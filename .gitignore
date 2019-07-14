@@ -1,0 +1,10 @@
+*.o
+*.dll
+*.so
+*.a
+*.log
+*.exe
+.idea
+cmake-build-*
+build
+a.out
