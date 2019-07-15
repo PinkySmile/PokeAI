@@ -21,9 +21,9 @@ protected:
 		const std::function<unsigned char (EmulatorHandle &handler, unsigned char byte)> &slaveHandler,
 		bool log
 	) :
+		_log(log),
 		_slaveHandler(slaveHandler),
-		_masterHandler(masterHandler),
-		_log(log)
+		_masterHandler(masterHandler)
 	{};
 
 public:
