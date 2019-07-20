@@ -36,8 +36,8 @@ private:
 
 public:
 	BGBHandler(
-		const std::function<unsigned char (EmulatorHandle &handler, unsigned char byte)> &masterHandler,
-		const std::function<unsigned char (EmulatorHandle &handler, unsigned char byte)> &slaveHandler,
+		const ByteHandle &masterHandler,
+		const ByteHandle &slaveHandler,
 		const std::string &ip,
 		unsigned short port,
 		bool log = false
@@ -46,7 +46,6 @@ public:
 	void disconnect() override;
 	void sendByte(unsigned char byte) override;
 	void reply(unsigned char byte) override;
-	bool isConnected();
 	~BGBHandler();
 
 	enum BGBCommand {

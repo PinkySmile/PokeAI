@@ -52,7 +52,7 @@ namespace Pokemon
 		_needRecharge(needRecharge)
 	{}
 
-	unsigned char Move::getMaxPP()
+	unsigned char Move::getMaxPP() const
 	{
 		return this->_maxpp * (5 + this->_ppup) / 5;
 	}
@@ -62,7 +62,7 @@ namespace Pokemon
 		this->_ppup = nb;
 	}
 
-	unsigned char Move::getPP()
+	unsigned char Move::getPP() const
 	{
 		return this->_pp;
 	}
@@ -70,6 +70,16 @@ namespace Pokemon
 	void Move::setPP(unsigned char pp)
 	{
 		this->_pp = pp;
+	}
+
+	unsigned char Move::getID() const
+	{
+		return this->_id;
+	}
+
+	unsigned char Move::getPPUp() const
+	{
+		return this->_ppup;
 	}
 
 	bool Move::attack(Pokemon &owner, Pokemon &target)

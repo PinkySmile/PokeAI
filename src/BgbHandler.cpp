@@ -27,21 +27,19 @@ BGBHandler::BGBHandler(
 
 BGBHandler::~BGBHandler()
 {
-	this->disconnect();
+	if (this->isConnected())
+		this->disconnect();
 }
 
 void BGBHandler::disconnect()
 {
 	this->log("Disconnecting...");
-	this->_disconnected = true;
+	this->_socket.disconnect();
 	if (this->_mainThread.joinable())
 		this->_mainThread.join();
+	this->_disconnected = true;
 }
 
-bool BGBHandler::isConnected()
-{
-	return !this->_disconnected;
-}
 
 void BGBHandler::log(const std::string &string, std::ostream &stream)
 {
@@ -55,7 +53,7 @@ void BGBHandler::log(const std::string &string, std::ostream &stream)
 void BGBHandler::sendByte(unsigned char byte)
 {
 	this->log("Sending " + std::to_string(byte));
-	this->_sendPacket({SYNC1_SIGNAL, byte, 0x80, 0, this->_ticks * 1024});
+	this->_sendPacket({SYNC1_SIGNAL, byte, 0x80, 0, this->_ticks * 1024 + 1});
 }
 
 void BGBHandler::reply(unsigned char byte)
@@ -85,6 +83,17 @@ void BGBHandler::_sendPacket(const BGBHandler::BGBPacket &packet)
 BGBHandler::BGBPacket BGBHandler::_getNextPacket()
 {
 	std::string serverMessage;
+	FD_SET set;
+	TIMEVAL timestruct{10, 0};
+
+	do {
+		FD_ZERO(&set);
+		FD_SET(this->_socket.getSockFd(), &set);
+		timestruct = {10, 0};
+	} while (select(FD_SETSIZE, &set, nullptr, nullptr, &timestruct) == 0 && !this->_disconnected);
+
+	if (!this->_socket.isOpen())
+		throw EOFException("EndOfFile");
 
 	serverMessage = this->_socket.read(PACKET_SIZE);
 
