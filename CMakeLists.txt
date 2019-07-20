@@ -30,7 +30,14 @@ add_executable(
 	src/PokemonRandomGenerator.hpp
 )
 
+if (WIN32)
 target_link_libraries(
 	PokeAI
 	ws2_32
 )
+else (WIN32)
+target_link_libraries(
+	PokeAI
+	pthread
+)
+endif (WIN32)

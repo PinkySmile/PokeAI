@@ -15,6 +15,10 @@
 	typedef fd_set FD_SET;
 #endif
 
+#ifndef closesocket
+#define closesocket(socket) close(socket)
+#endif
+
 #include <iostream>
 
 std::string Socket::getLastSocketError()

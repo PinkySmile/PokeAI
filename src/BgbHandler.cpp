@@ -2,7 +2,11 @@
 // Created by Gegel85 on 13/07/2019.
 //
 
+#ifdef _WIN32
 #include <inaddr.h>
+#else
+#include <sys/socket.h>
+#endif
 #include <cassert>
 #include "BgbHandler.hpp"
 #include "Exception.hpp"
@@ -107,7 +111,7 @@ BGBHandler::BGBPacket BGBHandler::_getNextPacket()
 
 void BGBHandler::_sync()
 {
-	this->_sendPacket({SYNC3_SIGNAL, 0, 0, 0, ++this->_ticks * 1024});
+	this->_sendPacket({SYNC3_SIGNAL, 0, 0, 0, ++this->_ticks});
 }
 
 bool BGBHandler::_handleLoop()

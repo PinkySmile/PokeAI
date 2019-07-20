@@ -2,6 +2,7 @@
 #include <sstream>
 #include <fstream>
 #include <random>
+#include <csignal>
 #include "EmulatorHandle.hpp"
 #include "Exception.hpp"
 #include "BgbHandler.hpp"
