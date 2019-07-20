@@ -1,4 +1,5 @@
 #include <iostream>
+#include <csignal>
 #include "Pokemon.hpp"
 #include "BgbHandler.hpp"
 #include "PkmnGen1Handle.hpp"
