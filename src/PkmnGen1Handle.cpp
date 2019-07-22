@@ -61,6 +61,7 @@ namespace Pokemon
 				} else if (byte >= 208 && byte != 254) {
 					this->_buffer = 0;
 					this->_done = false;
+					this->_timer = 0;
 					this->_log("Choosing room");
 					this->_stage = ROOM_CHOOSE;
 				}
@@ -72,6 +73,7 @@ namespace Pokemon
 				}
 				if (byte >= 208) {
 					this->_buffer = 0;
+					this->_timer = 0;
 					this->_log("Choosing room");
 					this->_stage = ROOM_CHOOSE;
 				} else if (byte == 0 && this->_done) {
@@ -116,7 +118,7 @@ namespace Pokemon
 					throw UnexpectedUserActionException("User didn't chose colosseum ( bad user >:( )");
 				} else if (byte >= 208) {
 					return static_cast<unsigned char>(208);
-				} else if (byte == PING_BYTE && !this->_done) {
+				} else if (byte == PING_BYTE) {
 					this->_stage = PINGING_OPPONENT;
 					this->_log("Oops, seems like we went to far. Going back to pinging the opponent");
 					return static_cast<unsigned char>(this->_isPlayer2 * PING_BYTE);
@@ -125,12 +127,14 @@ namespace Pokemon
 			case PING_POKEMON_EXCHANGE:
 				if (byte == 253 || (byte == 254 && this->_isPlayer2)) {
 					this->_sendBuffer = this->_craftPacket();
-					this->_sendBufferIndex = 0;
-					this->_received = false;
-					this->_sent = false;
-					this->_done = false;
+					this->_sendBufferIndex = {0, 0};
+					this->_received = this->_sent = this->_done = false;
 					this->_log("Sending battle data");
 					this->_stage = EXCHANGE_POKEMONS;
+					this->_receiveBuffer.clear();
+				} else if (byte >= 208 && byte != 254){
+					this->_log("Oops, we are still choosing room");
+					this->_stage = ROOM_CHOOSE;
 				}
 				break;
 			case EXCHANGE_POKEMONS:
@@ -138,30 +142,49 @@ namespace Pokemon
 				this->_receiveBuffer.push_back(byte);
 				this->_sent = false;
 				this->_done = true;
-				for (unsigned i = 4; i < 8; i++)
-					this->_done &= this->_last[i] == 254;
-				if (this->_done) {
+				if (byte == SYNC_BYTE)
+					this->_syncSignalsReceived++;
+				else
+					this->_syncSignalsReceived = 0;
+				if (
+					this->_syncSignalsReceived >= 9 - (2 * this->_sendBufferIndex.first) &&
+					this->_syncSignalsSent >= 9 - (2 * this->_sendBufferIndex.first)
+				) {
+					this->_sendBufferIndex.first++;
+					this->_sendBufferIndex.second = 0;
+				}
+				for (unsigned i = 0; i < 7; i++)
+					this->_done &= !this->_last[i];
+				if (this->_done && byte == 0xFE) {
 					this->_interpretPacket();
 					this->_stage = BATTLE;
 					this->_done = false;
+					this->_state.pokemonOnField = 0;
+					this->_state.opponentPokemonOnField = 0;
+					this->_state.team.clear();
+					for (Pokemon &pkmn : this->_pkmns)
+						this->_state.team.emplace_back(pkmn);
 					this->_state.nextAction = NoAction;
 					this->_log("Done: going to battle");
 				}
-				if (byte == 0xFD)
+				if (byte == SYNC_BYTE)
 					return byte;
 				this->_received = true;
 				break;
 			case BATTLE:
 				if (byte == 2)
 					this->_stage = PKMN_CENTER;
-				if (byte == 0) {
+				else if (byte == 0) {
 					if (this->_state.nextAction == Run) {
 						this->_log("I ran");
 						this->_stage = PING_POKEMON_EXCHANGE;
 					}
 					this->_state.nextAction = NoAction;
-				}
-				if (byte == Run) {
+					this->_state.nextOpponentAction = NoAction;
+				} else
+					this->_state.nextOpponentAction = static_cast<BattleAction>(byte);
+				switch (byte) {
+				case Run:
 					this->_log("Opponent ran");
 					this->_stage = PING_POKEMON_EXCHANGE;
 				}
@@ -207,14 +230,21 @@ namespace Pokemon
 					std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 					break;
 				}
+				if (this->_timer == 0)
+					this->_sent = false;
+				else
+					this->_timer--;
 				if (this->_sent)
 					break;
 				this->_sent = true;
-				if (!this->_received)
-					this->_emulator->sendByte(0xFD);
-				else if (this->_sendBufferIndex < this->_sendBuffer.size())
-					this->_emulator->sendByte(this->_sendBuffer[this->_sendBufferIndex++]);
-				else
+				this->_timer = 100;
+				if (this->_sendBufferIndex.second < this->_sendBuffer[this->_sendBufferIndex.first].size()) {
+					this->_syncSignalsSent = 0;
+					this->_emulator->sendByte(this->_sendBuffer[this->_sendBufferIndex.first][this->_sendBufferIndex.second++]);
+				} else if (this->_sendBufferIndex.first != 3) {
+					this->_emulator->sendByte(SYNC_BYTE);
+					this->_syncSignalsSent++;
+				} else
 					this->_emulator->sendByte(0x00);
 				break;
 			case BATTLE:
@@ -255,10 +285,13 @@ namespace Pokemon
 
 	void PkmnGen1Handle::_interpretPacket()
 	{
-		while (this->_receiveBuffer[0] == 0xFD)
+		/* HEADER PACKET */
+		while (this->_receiveBuffer[0] == SYNC_BYTE)
 			this->_receiveBuffer.erase(this->_receiveBuffer.begin());
 		this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 10);
-		while (this->_receiveBuffer[0] == 0xFD)
+
+		/* Content */
+		while (this->_receiveBuffer[0] == SYNC_BYTE)
 			this->_receiveBuffer.erase(this->_receiveBuffer.begin());
 		this->_state.opponentName = this->convertString(this->_receiveBuffer);
 		this->_log("Playing against " + this->_state.opponentName);
@@ -276,16 +309,16 @@ namespace Pokemon
 		std::vector<unsigned char> pkmnData{this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 44 * 6};
 
 		this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 44 * 6 + 66);
-		this->_state.team.clear();
+		this->_state.opponentTeam.clear();
 		for (int i = 0; i < 6; i++) {
 			if (pkmnData[0] == 0x50)
 				break;
-			this->_state.team.emplace_back(this->_randomGenerator, this->convertString(this->_receiveBuffer), pkmnData);
+			this->_state.opponentTeam.emplace_back(this->_randomGenerator, this->convertString(this->_receiveBuffer), pkmnData);
 			this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 11);
 			pkmnData.erase(pkmnData.begin(), pkmnData.begin() + 44);
 		}
-		this->_log("Enemy has " + std::to_string(this->_state.team.size()) + " pokémon(s): ");
-		for (Pokemon &pkmn : this->_state.team)
+		this->_log("Enemy has " + std::to_string(this->_state.opponentTeam.size()) + " pokémon(s): ");
+		for (Pokemon &pkmn : this->_state.opponentTeam)
 			this->_log("Level " + std::to_string(pkmn.getLevel()) + " " + pokemonList[pkmn.getID()].name + " (" + pkmn.getName() + ")");
 	}
 
@@ -294,60 +327,50 @@ namespace Pokemon
 		std::cout << "[PkmnGen1Handle]: " << msg << std::endl;
 	}
 
-	std::vector<unsigned char> PkmnGen1Handle::_craftPacket()
+	std::vector<std::vector<unsigned char>> PkmnGen1Handle::_craftPacket()
 	{
-		std::vector<unsigned char> packet;
+		std::vector<std::vector<unsigned char>> packet;
 		std::vector<unsigned char> buffer;
 
-		packet.push_back(0x38);
-		packet.push_back(0x2E);
-		packet.push_back(0x26);
-		packet.push_back(0x20);
-		packet.push_back(0x1C);
-		packet.push_back(0x1A);
-		packet.push_back(0x1A);
-		packet.push_back(0x1B);
-		packet.push_back(0x1E);
-		packet.push_back(0x23);
-		for (int i = 0; i < 9; i++)
-			packet.push_back(0xFD);
+		packet.emplace_back();
+		packet.push_back(HEADER_PACKET);
 
 		buffer = this->convertString("PokeAI");
 		buffer.resize(11, '\x50');
-		for (unsigned char c : buffer)
-			packet.push_back(c);
 
-		buffer.clear();
-		packet.push_back(this->_pkmns.size());
+		buffer.push_back(this->_pkmns.size());
 		for (Pokemon &pkmn : this->_pkmns)
 			buffer.push_back(pkmn.getID());
-		buffer.resize(7, 0xFF);
-		for (unsigned char c : buffer)
-			packet.push_back(c);
+		buffer.resize(19, 0xFF);
 		for (size_t i = 0; i < 6; i++)
 			for (unsigned char c : (i < this->_pkmns.size() ? this->_pkmns[i].encode() : NO_PKMN))
-				packet.push_back(c);
+				buffer.push_back(c);
 
+		packet.push_back(buffer);
 		buffer = this->convertString("PokeAI");
 		buffer.resize(11, '\x50');
 		for (unsigned char c : buffer)
-			packet.push_back(c);
+			packet[2].push_back(c);
 		for (unsigned char c : MIDDLE_PACKET)
-			packet.push_back(c);
+			packet[2].push_back(c);
 
 		buffer.clear();
 		for (Pokemon &pkmn : this->_pkmns) {
 			std::vector<unsigned char> buf = this->convertString(pkmn.getName());
 
 			buf.resize(11, '\x50');
+			buf[10] = ASCIIToPkmn1CharConversionTable['\0'];
 			for (unsigned char c : buf)
 				buffer.push_back(c);
 		}
 		buffer.resize(66, '\x50');
 		for (unsigned char c : buffer)
-			packet.push_back(c);
-		for (unsigned char c : PACKET_FOOTER)
-			packet.push_back(c);
+			packet[2].push_back(c);
+		packet[2].push_back(0xA3);
+		packet[2].push_back(0xFF);
+		packet[2].push_back(0xFF);
+		packet[2].push_back(0xFF);
+		packet.push_back(PACKET_FOOTER);
 		return packet;
 	}
 
