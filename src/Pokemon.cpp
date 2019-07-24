@@ -2,6 +2,8 @@
 // Created by Gegel85 on 14/07/2019.
 //
 
+#include <iostream>
+#include <sstream>
 #include "Pokemon.hpp"
 #include "PokemonTypes.hpp"
 #include "Move.hpp"
@@ -24,10 +26,14 @@ namespace Pokemon
 		_catchRate{base.catchRate},
 		_storingDamages(false),
 		_damagesStored(0),
-		_statusDuration{0, 0},
+		_statusDuration{0},
 		_currentStatus(STATUS_NONE),
 		_globalCritRatio(-1)
 	{
+		if (this->_nickname.size() > 10) {
+			this->_log("Warning : nickname is too big");
+			this->_nickname = this->_nickname.substr(0, 10);
+		}
 	}
 
 	Pokemon::Pokemon(PokemonRandomGenerator &random, const std::string &nickname, const std::vector<byte> &data) :
@@ -59,7 +65,7 @@ namespace Pokemon
 		_catchRate{data[7]},
 		_storingDamages(false),
 		_damagesStored(0),
-		_statusDuration{0, 0},
+		_statusDuration{0},
 		_currentStatus{data[4]},
 		_globalCritRatio(-1)
 	{
@@ -71,13 +77,17 @@ namespace Pokemon
 		this->_moveSet[1].setPP(data[30] & 0b111111U);
 		this->_moveSet[2].setPP(data[31] & 0b111111U);
 		this->_moveSet[3].setPP(data[32] & 0b111111U);
+		if (this->_nickname.size() > 10) {
+			this->_log("Warning : nickname is too big");
+			this->_nickname = this->_nickname.substr(0, 10);
+		}
 	}
 
 	BaseStats Pokemon::makeStats(unsigned char level, const PokemonBase &base)
 	{
 		std::function<unsigned short(unsigned short)> fct = [level](unsigned short val){
 			return static_cast<unsigned short>(
-				(2 * (val + 15) + 63.75) * level / 100.0 + 5
+				(2 * (val + 15.) + 63.75) * level / 100.0 + 5
 			);
 		};
 
@@ -98,33 +108,55 @@ namespace Pokemon
 
 	void Pokemon::addStatus(StatusChange status)
 	{
+		if (status == STATUS_BURNED && (this->_types.first == TYPE_FIRE || this->_types.second == TYPE_FIRE))
+			return;
 		if (this->_currentStatus & status)
 			return;
 		switch (status) {
 		case STATUS_ASLEEP:
-			return this->addStatus(status, this->_random(1, 4));
+			return this->addStatus(status, this->_random(1, 8));
 		case STATUS_CONFUSED:
 			return this->addStatus(status, this->_random(1, 5));
 		default:
-			return this->addStatus(status, 0);
+			return this->addStatus(status, static_cast<unsigned>(-1));
 		}
 	}
 
 	void Pokemon::addStatus(StatusChange status, unsigned duration)
 	{
+		if (status == STATUS_BURNED && (this->_types.first == TYPE_FIRE || this->_types.second == TYPE_FIRE))
+			return;
+		if ((status == STATUS_POISONED || status == STATUS_BADLY_POISONED) && (this->_types.first == TYPE_POISON || this->_types.second == TYPE_POISON))
+			return;
 		if (this->_currentStatus & status)
 			return;
-		this->_currentStatus |= status;
-		switch (status) {
-		case STATUS_ASLEEP:
-			this->_statusDuration[0] = duration;
-			return;
-		case STATUS_CONFUSED:
-			this->_statusDuration[1] = duration;
-			return;
-		default:
-			return;
-		}
+		this->_log("is now " + statusToString(status));
+		this->_badPoisonStage = 1;
+		this->_currentStatus = status;
+		this->_statusDuration = duration;
+	}
+
+	std::string Pokemon::dump() const
+	{
+		std::stringstream stream;
+
+		stream << this->getName() << " (" << this->_name << ") level " << static_cast<int>(this->_level);
+		stream << ", Type " << typeToString(this->_types.first);
+		if (this->_types.first != this->_types.second)
+			stream << "/" << typeToString(this->_types.second);
+		stream << ", " << this->_baseStats.HP << "/" << this->_baseStats.maxHP << " HP";
+		stream << ", " << this->_baseStats.ATK << " ATK";
+		stream << ", " << this->_baseStats.DEF << " DEF";
+		stream << ", " << this->_baseStats.SPD << " SPD";
+		stream << ", " << this->_baseStats.SPE << " SPE";
+		return stream.str();
+	}
+
+	void Pokemon::switched()
+	{
+		this->resetStatsChanges();
+		if (this->_currentStatus == STATUS_BADLY_POISONED)
+			this->_currentStatus = STATUS_POISONED;
 	}
 
 	void Pokemon::resetStatsChanges()
@@ -134,7 +166,9 @@ namespace Pokemon
 
 	void Pokemon::useMove(const Move &move, Pokemon &target)
 	{
-		this->_lastUsedMove = move;
+		if (this->_lastUsedMove.isFinished())
+			this->_lastUsedMove = move;
+		this->_log("uses " + this->_lastUsedMove.getName());
 		this->_lastUsedMove.attack(*this, target);
 	}
 
@@ -164,23 +198,62 @@ namespace Pokemon
 	{
 		return this->_id;
 	}
+
 	unsigned Pokemon::getSpeed() const
 	{
-		switch (this->_upgradedStats.SPD) {
-		case -6:
-			return this->_baseStats.SPD / 4;
-		case -5:
-			return 2 * this->_baseStats.SPD / 7;
-		case -4:
-			return this->_baseStats.SPD / 3;
-		case -3:
-			return 2 * this->_baseStats.SPD / 5;
-		case -2:
-			return this->_baseStats.SPD / 2;
-		case -1:
-			return 2 * this->_baseStats.SPD / 3;
-		default:
-			return (this->_upgradedStats.SPD + 2) * this->_baseStats.SPD / 2;
+		if (this->_currentStatus & STATUS_PARALYZED)
+			return this->_getUpgradedStat(this->_baseStats.SPD, this->_upgradedStats.SPD) / 4;
+		return this->_getUpgradedStat(this->_baseStats.SPD, this->_upgradedStats.SPD);
+	}
+
+	unsigned Pokemon::getAttack() const
+	{
+		if (this->_currentStatus & STATUS_BURNED)
+			return this->_getUpgradedStat(this->_baseStats.ATK, this->_upgradedStats.ATK) / 2;
+		return this->_getUpgradedStat(this->_baseStats.ATK, this->_upgradedStats.ATK);
+	}
+
+	void Pokemon::endTurn()
+	{
+	}
+
+	void Pokemon::_log(const std::string &msg) const
+	{
+		std::cout << "[" << this->getName() << "] " << msg << std::endl;
+	}
+
+	void Pokemon::attack(char moveSlot, Pokemon &target)
+	{
+		if (this->_currentStatus & STATUS_ASLEEP) {
+			if (this->_statusDuration) {
+				this->_log("is fast asleep");
+				this->_statusDuration--;
+			} else {
+				this->_log("woke up");
+				this->_currentStatus = None;
+			}
+			return;
+		} else if ((this->_currentStatus & STATUS_PARALYZED) && !this->_random(0, 4)) {
+			this->_log("is paralyzed");
+			return;
+		} else if ((this->_currentStatus & STATUS_CONFUSED) && !this->_random(0, 1)) {
+			if (--this->_statusDuration)
+				this->_log("hits itself in it's confusion");
+			else {
+				this->_log("woke up");
+				this->_currentStatus = None;
+			}
+		}
+		this->useMove(this->_moveSet[moveSlot], target);
+		if (this->_currentStatus & STATUS_BURNED) {
+			this->_log("is hurt by the burn");
+			this->takeDamage(this->getMaxHealth() / 16);
+		} else if ((this->_currentStatus & STATUS_POISONED) || (this->_currentStatus & STATUS_BADLY_POISONED)) {
+			this->_log("is hurt by the poison");
+			if (this->_currentStatus & STATUS_BADLY_POISONED)
+				this->takeDamage(this->getMaxHealth() * this->_badPoisonStage++ / 16);
+			else
+				this->takeDamage(this->getMaxHealth() / 16);
 		}
 	}
 
@@ -237,38 +310,118 @@ namespace Pokemon
 		return this->_nickname;
 	}
 
-	std::vector<unsigned char> Pokemon::encode()
+	std::vector<unsigned char> Pokemon::encode() const
 	{
 		std::vector<unsigned char> result;
 
+		//Sprite (and battle cry) ID
 		result.push_back(this->_id);
+
+		//Current HP
 		result.push_back(this->_baseStats.HP >> 8U);
 		result.push_back(this->_baseStats.HP >> 0U);
+
+		//Level
 		result.push_back(this->_level);
+
+		//Status
 		result.push_back(this->_currentStatus);
+
+		//Type
 		result.push_back(this->_types.first);
 		result.push_back(this->_types.second);
+
+		//Catch rate
 		result.push_back(this->_catchRate);
-		for (Move &move : this->_moveSet)
+
+		//Moves ID
+		for (const Move &move : this->_moveSet)
 			result.push_back(move.getID());
-		for (int i = this->_moveSet.size(); i < 21; i++)
-			result.push_back(0x00);
-		for (Move &move : this->_moveSet)
-			result.push_back(((move.getPPUp() & 0b11) << 6) + (move.getPP() & 0b111111));
 		for (int i = this->_moveSet.size(); i < 4; i++)
 			result.push_back(0x00);
+
+		//Trainer ID
+		result.push_back(0x00);
+		result.push_back(0x00);
+
+		//EXP
+		result.push_back(0x00);
+		result.push_back(0x00);
+		result.push_back(0x00);
+
+		//StatEXP HP
+		result.push_back(0x00);
+		result.push_back(0x00);
+
+		//StatEXP ATK
+		result.push_back(0x00);
+		result.push_back(0x00);
+
+		//StatEXP DEF
+		result.push_back(0x00);
+		result.push_back(0x00);
+
+		//StatEXP SPD
+		result.push_back(0x00);
+		result.push_back(0x00);
+
+		//StatEXP SPE
+		result.push_back(0x00);
+		result.push_back(0x00);
+
+		//DVs
+		result.push_back(0x00);
+		result.push_back(0x00);
+
+		//PP Ups and moves PP
+		for (const Move &move : this->_moveSet)
+			result.push_back(((move.getPPUp() & 0b11U) << 6U) + (move.getPP() & 0b111111U));
+		for (int i = this->_moveSet.size(); i < 4; i++)
+			result.push_back(0x00);
+
+		//Current Level
 		result.push_back(this->_level);
+
+		//Max HP
 		result.push_back(this->_baseStats.maxHP >> 8U);
 		result.push_back(this->_baseStats.maxHP >> 0U);
+
+		//Attack
 		result.push_back(this->_baseStats.ATK >> 8U);
 		result.push_back(this->_baseStats.ATK >> 0U);
+
+		//Defense
 		result.push_back(this->_baseStats.DEF >> 8U);
 		result.push_back(this->_baseStats.DEF >> 0U);
+
+		//Speed/Agility
 		result.push_back(this->_baseStats.SPD >> 8U);
 		result.push_back(this->_baseStats.SPD >> 0U);
+
+		//Special
 		result.push_back(this->_baseStats.SPE >> 8U);
 		result.push_back(this->_baseStats.SPE >> 0U);
 		return result;
+	}
+
+	unsigned Pokemon::_getUpgradedStat(unsigned char baseValue, char upgradeStage) const
+	{
+		switch (upgradeStage) {
+		case -6:
+			return baseValue / 4;
+		case -5:
+			return 2 * baseValue / 7;
+		case -4:
+			return baseValue / 3;
+		case -3:
+			return 2 * baseValue / 5;
+		case -2:
+			return baseValue / 2;
+		case -1:
+			return 2 * baseValue / 3;
+		default:
+			return (upgradeStage + 2) * baseValue / 2;
+		}
 	}
 
 	/*

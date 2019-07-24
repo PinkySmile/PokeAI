@@ -7,10 +7,16 @@
 namespace Pokemon
 {
 	PokemonRandomGenerator::PokemonRandomGenerator(unsigned int seed) :
-		_random(seed)
+		_random(seed),
+		_seed(seed)
 	{
 	}
 
+	unsigned PokemonRandomGenerator::getSeed()
+	{
+		return this->_seed;
+	}
+	
 	unsigned PokemonRandomGenerator::operator()()
 	{
 		return this->_random();

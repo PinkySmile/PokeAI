@@ -213,6 +213,8 @@ namespace Pokemon
 		unsigned char getPPUp() const;
 		unsigned char getPP() const;
 		unsigned char getID() const;
+		std::string getName() const;
+		bool isFinished() const;
 
 		void setPP(unsigned char pp);
 		void setPPUp(unsigned char nb);

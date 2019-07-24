@@ -52,6 +52,12 @@ namespace Pokemon
 		_needRecharge(needRecharge)
 	{}
 
+
+	bool Move::isFinished() const
+	{
+		return this->_nbHit == 0;
+	}
+
 	unsigned char Move::getMaxPP() const
 	{
 		return this->_maxpp * (5 + this->_ppup) / 5;
@@ -82,9 +88,18 @@ namespace Pokemon
 		return this->_ppup;
 	}
 
+	std::string Move::getName() const
+	{
+		return this->_name;
+	}
+
 	bool Move::attack(Pokemon &owner, Pokemon &target)
 	{
 		//TODO: Code function
+		if (!this->_nbHit)
+			this->_nbHit = this->_nbRuns[owner.getRandomGenerator()(0, this->_nbRuns.size())];
+		else
+			this->_nbHit--;
 		return true;
 	}
 

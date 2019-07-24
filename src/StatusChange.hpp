@@ -6,6 +6,9 @@
 #define POKEAI_STATUSCHANGE_HPP
 
 
+#include <vector>
+#include <string>
+
 enum StatusChange {
 	STATUS_NONE		= 0,
 	STATUS_PARALYZED	= 1U << 0U,
@@ -18,5 +21,6 @@ enum StatusChange {
 	STATUS_LEECHED		= 1U << 7U,
 };
 
+std::string statusToString(StatusChange stat);
 
 #endif //POKEAI_STATUSCHANGE_HPP

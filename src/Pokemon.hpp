@@ -18,6 +18,8 @@ typedef unsigned char byte;
 
 namespace Pokemon
 {
+	class PkmnGen1Handle;
+
 	struct PokemonBase {
 		unsigned char	id;
 		std::string	name;
@@ -69,9 +71,13 @@ namespace Pokemon
 		unsigned char				_catchRate;
 		bool					_storingDamages;
 		unsigned int				_damagesStored;
-		unsigned char				_statusDuration[2];
+		unsigned char				_badPoisonStage = 0;
+		unsigned char				_statusDuration;
 		unsigned char				_currentStatus;
 		double					_globalCritRatio;
+
+		void _log(const std::string &msg) const;
+		unsigned _getUpgradedStat(unsigned char baseValue, char upgradeStage) const;
 
 	public:
 		Pokemon(PokemonRandomGenerator &random, const std::string &nickname, unsigned char level, const PokemonBase &base, const std::vector<Move> &moveSet);
@@ -85,14 +91,21 @@ namespace Pokemon
 		void storeDamages(bool active);
 		bool hasStatus(StatusChange status) const;
 		void takeDamage(int damage);
+		void attack(char moveSlot, Pokemon &target);
 		unsigned dealDamage(Pokemon &target, unsigned power, PokemonTypes damageType) const;
-		std::vector<unsigned char> encode();
+		void endTurn();
+		void switched();
+		std::vector<unsigned char> encode() const;
+		std::string dump() const;
 
 		PokemonRandomGenerator &getRandomGenerator();
 		unsigned char getID();
 		unsigned getDamagesStored() const;
 		unsigned getSpeed() const;
 		unsigned getLevel() const;
+		unsigned getAttack() const;
+		unsigned getSpecial() const;
+		unsigned getDefense() const;
 		unsigned getHealth() const;
 		std::string getName() const;
 		unsigned getMaxHealth() const;

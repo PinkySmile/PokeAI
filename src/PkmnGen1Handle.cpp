@@ -29,14 +29,20 @@ namespace Pokemon
 			)
 		> &emulatorMaker,
 		const std::function<BattleAction(PkmnGen1Handle &)> &battleHandler,
+		const std::string &trainerName,
 		bool player2
 	) :
 		_emulatorMaker(emulatorMaker),
 		_emulator{nullptr},
+		_trainerName(trainerName),
 		_isPlayer2(player2),
 		_randomGenerator(time(nullptr)),
 		_battleHandler(battleHandler)
 	{
+		if (this->_trainerName.size() > 10) {
+			this->_log("Warning: trainer name is too long");
+			this->_trainerName = this->_trainerName.substr(0, 10);
+		}
 		this->_byteHandler = [this](EmulatorHandle &handle, unsigned char byte) {
 			if (this->_last.size() == 8)
 				this->_last.erase(this->_last.begin());
@@ -297,29 +303,25 @@ namespace Pokemon
 		this->_log("Playing against " + this->_state.opponentName);
 		this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 11);
 
-		this->_log("He has " + std::to_string(this->_receiveBuffer[0]) + " pokémon(s)");
+		unsigned char nbPkmns = this->_receiveBuffer[0];
+
+		this->_log("He has " + std::to_string(nbPkmns) + " pokémon(s)");
 		this->_receiveBuffer.erase(this->_receiveBuffer.begin());
-		for (int i = 0; i < 6; i++) {
-			if (this->_receiveBuffer[i] == 0xFF)
-				break;
+		for (int i = 0; i < nbPkmns; i++)
 			this->_log("Pokémon " + std::to_string(i) + ": " + pokemonList[this->_receiveBuffer[i]].name);
-		}
 		this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 7);
 
 		std::vector<unsigned char> pkmnData{this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 44 * 6};
 
 		this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 44 * 6 + 66);
 		this->_state.opponentTeam.clear();
-		for (int i = 0; i < 6; i++) {
-			if (pkmnData[0] == 0x50)
-				break;
+		for (int i = 0; i < nbPkmns; i++) {
 			this->_state.opponentTeam.emplace_back(this->_randomGenerator, this->convertString(this->_receiveBuffer), pkmnData);
 			this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 11);
 			pkmnData.erase(pkmnData.begin(), pkmnData.begin() + 44);
 		}
-		this->_log("Enemy has " + std::to_string(this->_state.opponentTeam.size()) + " pokémon(s): ");
 		for (Pokemon &pkmn : this->_state.opponentTeam)
-			this->_log("Level " + std::to_string(pkmn.getLevel()) + " " + pokemonList[pkmn.getID()].name + " (" + pkmn.getName() + ")");
+			this->_log(pkmn.dump());
 	}
 
 	void PkmnGen1Handle::_log(const std::string &msg)
@@ -335,19 +337,23 @@ namespace Pokemon
 		packet.emplace_back();
 		packet.push_back(HEADER_PACKET);
 
-		buffer = this->convertString("PokeAI");
+		this->_log("Making packet for trainer " + this->_trainerName);
+		buffer = this->convertString(this->_trainerName);
 		buffer.resize(11, '\x50');
 
 		buffer.push_back(this->_pkmns.size());
-		for (Pokemon &pkmn : this->_pkmns)
+		this->_log("Pushing " + std::to_string(this->_pkmns.size()) + " pokémon(s)");
+		for (Pokemon &pkmn : this->_pkmns) {
+			this->_log(pkmn.dump());
 			buffer.push_back(pkmn.getID());
+		}
 		buffer.resize(19, 0xFF);
 		for (size_t i = 0; i < 6; i++)
 			for (unsigned char c : (i < this->_pkmns.size() ? this->_pkmns[i].encode() : NO_PKMN))
 				buffer.push_back(c);
 
 		packet.push_back(buffer);
-		buffer = this->convertString("PokeAI");
+		buffer = this->convertString(this->_trainerName);
 		buffer.resize(11, '\x50');
 		for (unsigned char c : buffer)
 			packet[2].push_back(c);

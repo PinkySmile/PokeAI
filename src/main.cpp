@@ -35,10 +35,16 @@ int main(int argc, char **argv)
 		throw std::out_of_range("Too big value");
 
 	signal(SIGINT, sigHandler);
-	handler.addPokemonToTeam("", 55, Pokemon::pokemonList[Pokemon::Mewtwo], std::vector<Pokemon::Move>{
-		Pokemon::availableMoves[Pokemon::Struggle],
-		Pokemon::availableMoves[Pokemon::Aurora_Beam]
-	});
+	handler.addPokemonToTeam(
+		"",
+		100,
+		/* Pokemon::pokemonList[Pokemon::Mewtwo] */
+		Pokemon::PokemonBase{ 0x00, "TestPkmn", 0, 0, 32718, 0, 32718, TYPE_NORMAL, TYPE_ELECTRIC, 0, 0 },
+		std::vector<Pokemon::Move>{
+			Pokemon::availableMoves[Pokemon::Splash],
+			Pokemon::availableMoves[Pokemon::Aurora_Beam]
+		}
+	);
 	handler.connect(argv[1], port);
 	signal(SIGINT, nullptr);
 

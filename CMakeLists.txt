@@ -28,7 +28,7 @@ add_executable(
 	src/StatsChange.hpp
 	src/PokemonRandomGenerator.cpp
 	src/PokemonRandomGenerator.hpp
-)
+	src/StatusChange.cpp src/PokemonTypes.cpp)
 
 if (WIN32)
 target_link_libraries(

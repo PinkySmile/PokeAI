@@ -21,7 +21,6 @@ enum PokemonTypes {
 	TYPE_0x06,
 	TYPE_BUG,
 	TYPE_GHOST,
-	TYPE_0x08,
 	TYPE_0x09,
 	TYPE_0x0A,
 	TYPE_0x0B,
@@ -41,5 +40,7 @@ enum PokemonTypes {
 	TYPE_ICE,
 	TYPE_DRAGON,
 };
+
+std::string typeToString(PokemonTypes);
 
 #endif //POKEAI_POKEMONTYPES_HPP
