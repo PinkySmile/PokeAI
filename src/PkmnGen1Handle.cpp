@@ -199,25 +199,53 @@ namespace Pokemon
 			this->_received = true;
 			break;
 		case BATTLE:
-			if (byte == 2)
+			if (byte == 2) {
+				this->_log("Back to PKMN Center");
 				this->_stage = PKMN_CENTER;
-			else if (byte == 0) {
-				if (this->_state.nextAction == Run) {
-					this->_log("I ran");
-					this->_stage = PING_POKEMON_EXCHANGE;
-				}
+				this->_timer = 0;
+			} else if (byte == 0) {
+				if (this->_state.nextOpponentAction == NoAction)
+					break;
+				this->_executeBattleActions();
 				this->_state.nextAction = NoAction;
 				this->_state.nextOpponentAction = NoAction;
 			} else
 				this->_state.nextOpponentAction = static_cast<BattleAction>(byte);
-			switch (byte) {
-			case Run:
-				this->_log("Opponent ran");
-				this->_stage = PING_POKEMON_EXCHANGE;
-			}
 			break;
 		}
 		return byte;
+	}
+
+	void PkmnGen1Handle::_executeBattleActions()
+	{
+		if (this->_state.nextAction == Run) {
+			this->_log("I ran");
+			this->_stage = PING_POKEMON_EXCHANGE;
+			return;
+		}
+		if (this->_state.nextOpponentAction == Run) {
+			this->_log("Opponent ran");
+			this->_stage = PING_POKEMON_EXCHANGE;
+			return;
+		}
+		if (this->_state.nextAction < Attack1 || this->_state.nextAction > Switch6) {
+			this->_log("Warning: Invalid AI move");
+			this->_state.nextAction = Attack1;
+		}
+		if (this->_state.nextOpponentAction < Attack1 || this->_state.nextOpponentAction > Switch6) {
+			this->_log("Warning: Invalid opponent move");
+			this->_state.nextOpponentAction = Attack1;
+		}
+		if (this->_state.nextAction >= Switch1) {
+			this->_state.team[this->_state.pokemonOnField].switched();
+			this->_state.pokemonOnField = this->_state.nextAction - Switch1;
+			this->_log("Switched to " + this->_state.team[this->_state.pokemonOnField].getName());
+		}
+		if (this->_state.nextOpponentAction >= Switch1) {
+			this->_state.opponentTeam[this->_state.opponentPokemonOnField].switched();
+			this->_state.opponentPokemonOnField = this->_state.nextOpponentAction - Switch1;
+			this->_log("Opponent switched to " + this->_state.opponentTeam[this->_state.opponentPokemonOnField].getName());
+		}
 	}
 
 	void PkmnGen1Handle::_mainLoop(EmulatorHandle &handle)
@@ -226,12 +254,16 @@ namespace Pokemon
 
 		if (--val > 0)
 			return;
-		val = 200 + 200 * (this->_stage == ROOM_CHOOSE) + 800 * (this->_stage != EXCHANGE_POKEMONS && this->_stage != ROOM_CHOOSE);
 		switch (this->_stage) {
 		case PINGING_OPPONENT:
+			if (!this->_isPlayer2)
+				handle.sendByte(PING_BYTE);
+			val = 500;
+			break;
 		case PING_POKEMON_EXCHANGE:
 			if (!this->_isPlayer2)
 				handle.sendByte(PING_BYTE);
+			val = 1000;
 			break;
 		case ROOM_CHOOSE:
 			if (this->_isPlayer2)
@@ -247,6 +279,7 @@ namespace Pokemon
 				if (this->_buffer >= 12)
 					this->_buffer = 6;
 			}
+			val = 500;
 			break;
 		case EXCHANGE_POKEMONS:
 			if (this->_isPlayer2)
@@ -267,13 +300,16 @@ namespace Pokemon
 				this->_syncSignalsSent++;
 			} else
 				handle.sendByte(0x00);
+			val = 200;
 			break;
 		case BATTLE:
 			handle.sendByte(this->_state.nextAction);
 			if (this->_state.nextAction == NoAction)
 				this->_state.nextAction = this->_battleHandler(*this);
+			val = 400;
 			break;
 		default:
+			val = 0;
 			break;
 		}
 	}

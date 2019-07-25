@@ -150,6 +150,7 @@ namespace Pokemon
 
 	void Pokemon::switched()
 	{
+		this->_log("is withdrawn");
 		this->resetStatsChanges();
 		if (this->_currentStatus == STATUS_BADLY_POISONED)
 			this->_currentStatus = STATUS_POISONED;
