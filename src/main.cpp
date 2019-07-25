@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 
 	Pokemon::PkmnGen1Handle handler([](const ByteHandle &byteHandle, const std::string &ip, unsigned short port)
 	{
-		return new BGBHandler(byteHandle, byteHandle, ip, port);
+		return new BGBHandler(byteHandle, byteHandle, ip, port, true);
 	},
 	[](Pokemon::PkmnGen1Handle &) {
 		std::vector<Pokemon::BattleAction> actions = {
@@ -47,7 +47,5 @@ int main(int argc, char **argv)
 	);
 	handler.connect(argv[1], port);
 	signal(SIGINT, nullptr);
-
-	Pokemon::displayPacket(values);
 	return 0;
 }

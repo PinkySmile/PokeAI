@@ -309,6 +309,10 @@ namespace Pokemon
 
 	void PkmnGen1Handle::_interpretPacket()
 	{
+		this->_log("Decrypting received packet");
+		displayPacket(values);
+		values.clear();
+
 		/* HEADER PACKET */
 		while (this->_receiveBuffer[0] == SYNC_BYTE)
 			this->_receiveBuffer.erase(this->_receiveBuffer.begin());
@@ -395,6 +399,10 @@ namespace Pokemon
 		packet[2].push_back(0xFF);
 		packet[2].push_back(0xFF);
 		packet.push_back(PACKET_FOOTER);
+
+		this->_log("Packets are ready");
+		for (auto &p : packet)
+			displayPacket(p);
 		return packet;
 	}
 
