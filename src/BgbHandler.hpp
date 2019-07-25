@@ -38,11 +38,12 @@ public:
 	BGBHandler(
 		const ByteHandle &masterHandler,
 		const ByteHandle &slaveHandler,
+		const LoopHandle &loopHandler,
 		const std::string &ip,
 		unsigned short port,
 		bool log = false
 	);
-	void log(const std::string &string, std::ostream &stream = std::cout) override;
+	void log(const std::string &string, std::ostream &stream = std::cerr) override;
 	void disconnect() override;
 	void sendByte(unsigned char byte) override;
 	void reply(unsigned char byte) override;

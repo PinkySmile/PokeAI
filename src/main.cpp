@@ -4,7 +4,6 @@
 #include "BgbHandler.hpp"
 #include "PkmnGen1Handle.hpp"
 
-std::vector<unsigned char> values;
 void sigHandler(int);
 
 int main(int argc, char **argv)

@@ -77,10 +77,6 @@ namespace Pokemon
 		this->_moveSet[1].setPP(data[30] & 0b111111U);
 		this->_moveSet[2].setPP(data[31] & 0b111111U);
 		this->_moveSet[3].setPP(data[32] & 0b111111U);
-		if (this->_nickname.size() > 10) {
-			this->_log("Warning : nickname is too big");
-			this->_nickname = this->_nickname.substr(0, 10);
-		}
 	}
 
 	BaseStats Pokemon::makeStats(unsigned char level, const PokemonBase &base)

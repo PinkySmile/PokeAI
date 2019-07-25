@@ -6,8 +6,18 @@
 #define POKEAI_EMULATORHANDLE_HPP
 
 
+#include <sstream>
+#include <iomanip>
 #include <iostream>
 #include <functional>
+
+#define charToHex(val)\
+([](unsigned char i){\
+	std::stringstream stream;\
+\
+	stream << "0x" << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << static_cast<int>(i);\
+	return stream.str();\
+}(val))
 
 typedef std::function<unsigned char(class EmulatorHandle &handler, unsigned char byte)> ByteHandle;
 
@@ -18,7 +28,6 @@ protected:
 	ByteHandle _slaveHandler;
 	ByteHandle _masterHandler;
 
-	EmulatorHandle(const ByteHandle &masterHandler, const ByteHandle &slaveHandler, bool log) :
 		_log(log),
 		_slaveHandler(slaveHandler),
 		_masterHandler(masterHandler)

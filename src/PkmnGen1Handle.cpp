@@ -6,8 +6,6 @@
 #include "PkmnGen1Handle.hpp"
 #include "Exception.hpp"
 
-extern std::vector<unsigned char> values;
-
 EmulatorHandle *handler = nullptr;
 
 void sigHandler(int)
@@ -33,12 +31,11 @@ namespace Pokemon
 				printf(" ");
 			printf(" ");
 			for (unsigned j = 0; j < 20 && j + i < packet.size(); j++)
-				printf("%c", isprint(Pkmn1CharToASCIIConversionTable[packet[j + i]]) ? Pkmn1CharToASCIIConversionTable[packet[j + i]] : '.');
+				printf("%c", isprint(Pkmn1CharToASCIIConversionTable[packet[j + i]])
+					     ? Pkmn1CharToASCIIConversionTable[packet[j + i]] : '.');
 			printf("\n");
 		}
-	}
-
-	PkmnGen1Handle::PkmnGen1Handle(
+	}PkmnGen1Handle::PkmnGen1Handle(
 		const std::function<
 			EmulatorHandle *(
 				const ByteHandle &byteHandle,
@@ -62,160 +59,222 @@ namespace Pokemon
 			this->_trainerName = this->_trainerName.substr(0, 10);
 		}
 		this->_byteHandler = [this](EmulatorHandle &handle, unsigned char byte) {
-			if (this->_last.size() == 8)
-				this->_last.erase(this->_last.begin());
-			this->_last.push_back(byte);
-		START:
-			switch (this->_stage) {
-			case PKMN_CENTER:
-				if (byte == 1) {
-					this->_log("Pinging opponent");
-					this->_stage = PINGING_OPPONENT;
-					handle.reply(1 + this->_isPlayer2);
-					handle.reply(0);
-					handle.reply(0);
-					this->_done = false;
-					this->_buffer = 0;
-					return static_cast<unsigned char>(96);
-				} else if (byte == PING_BYTE) {
-					this->_log("Pinging opponent");
-					this->_stage = PINGING_OPPONENT;
-					this->_done = false;
-					return static_cast<unsigned char>(this->_isPlayer2 * PING_BYTE);
-				} else if (byte >= 208 && byte != 254) {
-					this->_buffer = 0;
-					this->_done = false;
-					this->_timer = 0;
-					this->_log("Choosing room");
-					this->_stage = ROOM_CHOOSE;
-				}
-				break;
-			case PINGING_OPPONENT:
-				if (this->_buffer < 2) {
-					this->_buffer++;
-					return byte;
-				}
-				if (byte >= 208) {
-					this->_buffer = 0;
-					this->_timer = 0;
-					this->_log("Choosing room");
-					this->_stage = ROOM_CHOOSE;
-				} else if (byte == 0 && this->_done) {
-					this->_timer = 5;
-					this->_done = false;
-					this->_buffer = 0;
-					this->_log("Choosing room");
-					this->_stage = ROOM_CHOOSE;
-				} else if (byte == PING_BYTE) {
-					this->_done = true;
-					return static_cast<unsigned char>(this->_isPlayer2 * PING_BYTE);
-				} else if (byte != 254 && byte) {
-					this->_log("Back to PKMN Center");
-					this->_stage = PKMN_CENTER;
-					this->_timer = 0;
-					goto START;
-				}
-				break;
-			case ROOM_CHOOSE:
-				if (byte != 254 && byte)
-					this->_done = true;
-				if (byte == 254) {
-					if (this->_buffer >= 6) {
-						this->_log("Waiting for user to start battle");
-						this->_stage = PING_POKEMON_EXCHANGE;
-						this->_done = false;
-						return static_cast<unsigned char>(254);
-					}
-					this->_buffer = 0;
-				} else if (byte == 2) {
-					this->_log("Back to PKMN Center");
-					this->_stage = PKMN_CENTER;
-					this->_timer = 0;
-				} else if (byte == 213) {
-					this->_log("User chose colosseum for me");
-					this->_stage = PING_POKEMON_EXCHANGE;
-					this->_done = false;
-				} else if (byte == 216) {
-					this->_log("Back to PKMN Center");
-					this->_stage = PKMN_CENTER; //User clicked cancel
-				} else if (byte >= 212) {
-					throw UnexpectedUserActionException("User didn't chose colosseum ( bad user >:( )");
-				} else if (byte >= 208) {
-					return static_cast<unsigned char>(208);
-				} else if (byte == PING_BYTE) {
-					this->_stage = PINGING_OPPONENT;
-					this->_log("Oops, seems like we went to far. Going back to pinging the opponent");
-					return static_cast<unsigned char>(this->_isPlayer2 * PING_BYTE);
-				}
-				break;
-			case PING_POKEMON_EXCHANGE:
-				if (byte == 253 || (byte == 254 && this->_isPlayer2)) {
-					this->_sendBuffer = this->_craftPacket();
-					this->_sendBufferIndex = {0, 0};
-					this->_received = this->_sent = this->_done = false;
-					this->_log("Sending battle data");
-					this->_stage = EXCHANGE_POKEMONS;
-					this->_receiveBuffer.clear();
-				} else if (byte >= 208 && byte != 254){
-					this->_log("Oops, we are still choosing room");
-					this->_stage = ROOM_CHOOSE;
-				}
-				break;
-			case EXCHANGE_POKEMONS:
-				values.push_back(byte);
-				this->_receiveBuffer.push_back(byte);
-				this->_sent = false;
+			return this->_handleReceivedBytes(handle, byte);
+		};
+	}
+
+	unsigned char PkmnGen1Handle::_handleReceivedBytes(EmulatorHandle &handle, unsigned char byte)
+	{
+		if (this->_last.size() == 8)
+			this->_last.erase(this->_last.begin());
+		this->_last.push_back(byte);
+	START:
+		switch (this->_stage) {
+		case PKMN_CENTER:
+			if (byte == 1) {
+				this->_log("Pinging opponent");
+				this->_stage = PINGING_OPPONENT;
+				handle.reply(1 + this->_isPlayer2);
+				handle.reply(0);
+				handle.reply(0);
+				this->_done = false;
+				this->_buffer = 0;
+				return static_cast<unsigned char>(96);
+			} else if (byte == PING_BYTE) {
+				this->_log("Pinging opponent");
+				this->_stage = PINGING_OPPONENT;
+				this->_done = false;
+				return static_cast<unsigned char>(this->_isPlayer2 * PING_BYTE);
+			} else if (byte >= 208 && byte != 254) {
+				this->_buffer = 0;
+				this->_done = false;
+				this->_timer = 0;
+				this->_log("Choosing room");
+				this->_stage = ROOM_CHOOSE;
+			}
+			break;
+		case PINGING_OPPONENT:
+			if (this->_buffer < 2) {
+				this->_buffer++;
+				return byte;
+			}
+			if (byte >= 208) {
+				this->_buffer = 0;
+				this->_timer = 0;
+				this->_log("Choosing room");
+				this->_stage = ROOM_CHOOSE;
+			} else if (byte == 0 && this->_done) {
+				this->_timer = 5;
+				this->_done = false;
+				this->_buffer = 0;
+				this->_log("Choosing room");
+				this->_stage = ROOM_CHOOSE;
+			} else if (byte == PING_BYTE) {
 				this->_done = true;
-				if (byte == SYNC_BYTE)
-					this->_syncSignalsReceived++;
-				else
-					this->_syncSignalsReceived = 0;
-				if (
-					this->_syncSignalsReceived >= 9 - (2 * this->_sendBufferIndex.first) &&
-					this->_syncSignalsSent >= 9 - (2 * this->_sendBufferIndex.first)
-				) {
-					this->_sendBufferIndex.first++;
-					this->_sendBufferIndex.second = 0;
-				}
-				for (unsigned i = 0; i < 7; i++)
-					this->_done &= !this->_last[i];
-				if (this->_done && byte == 0xFE) {
-					this->_interpretPacket();
-					this->_stage = BATTLE;
+				return static_cast<unsigned char>(this->_isPlayer2 * PING_BYTE);
+			} else if (byte != 254 && byte) {
+				this->_log("Back to PKMN Center");
+				this->_stage = PKMN_CENTER;
+				this->_timer = 0;
+				goto START;
+			}
+			break;
+		case ROOM_CHOOSE:
+			if (byte != 254 && byte)
+				this->_done = true;
+			if (byte == 254) {
+				if (this->_buffer >= 6) {
+					this->_log("Waiting for user to start battle");
+					this->_stage = PING_POKEMON_EXCHANGE;
 					this->_done = false;
-					this->_state.pokemonOnField = 0;
-					this->_state.opponentPokemonOnField = 0;
-					this->_state.team.clear();
-					for (Pokemon &pkmn : this->_pkmns)
-						this->_state.team.emplace_back(pkmn);
-					this->_state.nextAction = NoAction;
-					this->_log("Done: going to battle");
+					return static_cast<unsigned char>(254);
 				}
-				if (byte == SYNC_BYTE)
-					return byte;
-				this->_received = true;
-				break;
-			case BATTLE:
-				if (byte == 2)
-					this->_stage = PKMN_CENTER;
-				else if (byte == 0) {
-					if (this->_state.nextAction == Run) {
-						this->_log("I ran");
-						this->_stage = PING_POKEMON_EXCHANGE;
-					}
-					this->_state.nextAction = NoAction;
-					this->_state.nextOpponentAction = NoAction;
-				} else
-					this->_state.nextOpponentAction = static_cast<BattleAction>(byte);
-				switch (byte) {
-				case Run:
-					this->_log("Opponent ran");
+				this->_buffer = 0;
+			} else if (byte == 2) {
+				this->_log("Back to PKMN Center");
+				this->_stage = PKMN_CENTER;
+				this->_timer = 0;
+			} else if (byte == 213) {
+				this->_log("User chose colosseum for me");
+				this->_stage = PING_POKEMON_EXCHANGE;
+				this->_done = false;
+			} else if (byte == 216) {
+				this->_log("Back to PKMN Center");
+				this->_stage = PKMN_CENTER; //User clicked cancel
+			} else if (byte >= 212) {
+				throw UnexpectedUserActionException("User didn't chose colosseum ( bad user >:( )");
+			} else if (byte >= 208) {
+				return 208;
+			} else if (byte == PING_BYTE) {
+				this->_stage = PINGING_OPPONENT;
+				this->_log("Oops, seems like we went to far. Going back to pinging the opponent");
+				return static_cast<unsigned char>(this->_isPlayer2 * PING_BYTE);
+			}
+			break;
+		case PING_POKEMON_EXCHANGE:
+			if (byte == 253 || (byte == 254 && this->_isPlayer2)) {
+				this->_sendBuffer = this->_craftPacket();
+				this->_sendBufferIndex = {0, 0};
+				this->_received = this->_sent = this->_done = false;
+				this->_log("Sending battle data");
+				this->_stage = EXCHANGE_POKEMONS;
+				this->_receiveBuffer.clear();
+			} else if (byte >= 208 && byte != 254){
+				this->_log("Oops, we are still choosing room");
+				this->_stage = ROOM_CHOOSE;
+			}
+			break;
+		case EXCHANGE_POKEMONS:
+			this->_receiveBuffer.push_back(byte);
+			this->_sent = false;
+			this->_done = true;
+			if (byte == SYNC_BYTE || byte == 0xFE)
+				this->_syncSignalsReceived++;
+			else
+				this->_syncSignalsReceived = 0;
+			if (
+				this->_syncSignalsReceived >= 9 - (2 * this->_sendBufferIndex.first) &&
+				this->_syncSignalsSent >= 9 - (2 * this->_sendBufferIndex.first)
+				) {
+				this->_sendBufferIndex.first++;
+				this->_sendBufferIndex.second = 0;
+			}
+			for (unsigned i = 0; i < 7; i++)
+				this->_done &= !this->_last[i];
+			if (this->_done && byte == 0xFE) {
+				this->_interpretPacket();
+				this->_stage = BATTLE;
+				this->_done = false;
+				this->_state.pokemonOnField = 0;
+				this->_state.opponentPokemonOnField = 0;
+				this->_state.team.clear();
+				for (Pokemon &pkmn : this->_pkmns)
+					this->_state.team.emplace_back(pkmn);
+				this->_state.nextAction = NoAction;
+				this->_log("Done: going to battle");
+			}
+			if (byte == SYNC_BYTE)
+				return byte;
+			this->_received = true;
+			break;
+		case BATTLE:
+			if (byte == 2)
+				this->_stage = PKMN_CENTER;
+			else if (byte == 0) {
+				if (this->_state.nextAction == Run) {
+					this->_log("I ran");
 					this->_stage = PING_POKEMON_EXCHANGE;
 				}
+				this->_state.nextAction = NoAction;
+				this->_state.nextOpponentAction = NoAction;
+			} else
+				this->_state.nextOpponentAction = static_cast<BattleAction>(byte);
+			switch (byte) {
+			case Run:
+				this->_log("Opponent ran");
+				this->_stage = PING_POKEMON_EXCHANGE;
+			}
+			break;
+		}
+		return byte;
+	}
+
+	void PkmnGen1Handle::_mainLoop(EmulatorHandle &handle)
+	{
+		switch (this->_stage) {
+		case PINGING_OPPONENT:
+		case PING_POKEMON_EXCHANGE:
+			if (!this->_isPlayer2)
+				handle.sendByte(PING_BYTE);
+			std::this_thread::sleep_for(std::chrono::milliseconds(150));
+			break;
+		case ROOM_CHOOSE:
+			if (this->_isPlayer2)
+				break;
+			if (this->_timer) {
+				this->_buffer = 0;
+				this->_timer--;
+			} else if (!this->_done) {
+				handle.sendByte(PING_BYTE);
+			} else {
+				handle.sendByte((209 + (this->_buffer / 3 % 2) * 4) * (this->_buffer % 3 != 2));
+				this->_buffer++;
+				if (this->_buffer >= 12)
+					this->_buffer = 6;
+			}
+			std::this_thread::sleep_for(std::chrono::milliseconds(150));
+			break;
+		case EXCHANGE_POKEMONS:
+			if (this->_isPlayer2) {
+				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 				break;
 			}
-			return byte;
-		};
+			if (this->_timer == 0)
+				this->_sent = false;
+			else
+				this->_timer--;
+			if (this->_sent)
+				break;
+			this->_sent = true;
+			this->_timer = 100;
+			if (this->_sendBufferIndex.second < this->_sendBuffer[this->_sendBufferIndex.first].size()) {
+				this->_syncSignalsSent = 0;
+				handle.sendByte(this->_sendBuffer[this->_sendBufferIndex.first][this->_sendBufferIndex.second++]);
+			} else if (this->_sendBufferIndex.first != 3) {
+				handle.sendByte(SYNC_BYTE);
+				this->_syncSignalsSent++;
+			} else
+				handle.sendByte(0x00);
+			break;
+		case BATTLE:
+			handle.sendByte(this->_state.nextAction);
+			if (this->_state.nextAction == NoAction)
+				this->_state.nextAction = this->_battleHandler(*this);
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			break;
+		default:
+			break;
+		}
 	}
 
 	void PkmnGen1Handle::connect(const std::string &ip, unsigned short port)
@@ -225,64 +284,8 @@ namespace Pokemon
 		this->_emulator.reset(this->_emulatorMaker(this->_byteHandler, ip, port));
 		this->_log("Connected to " + ip + ":" + std::to_string(port));
 		handler = &*this->_emulator;
-		while (this->_emulator->isConnected()) {
-			switch (this->_stage) {
-			case PINGING_OPPONENT:
-			case PING_POKEMON_EXCHANGE:
-				if (!this->_isPlayer2)
-					this->_emulator->sendByte(PING_BYTE);
-				std::this_thread::sleep_for(std::chrono::milliseconds(150));
-				break;
-			case ROOM_CHOOSE:
-				if (this->_isPlayer2)
-					continue;
-				if (this->_timer) {
-					this->_buffer = 0;
-					this->_timer--;
-				} else if (!this->_done) {
-					this->_emulator->sendByte(PING_BYTE);
-				} else {
-					this->_emulator->sendByte((209 + (this->_buffer / 3 % 2) * 4) * (this->_buffer % 3 != 2));
-					this->_buffer++;
-					if (this->_buffer >= 12)
-						this->_buffer = 6;
-				}
-				std::this_thread::sleep_for(std::chrono::milliseconds(150));
-				break;
-			case EXCHANGE_POKEMONS:
-				if (this->_isPlayer2) {
-					std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-					break;
-				}
-				if (this->_timer == 0)
-					this->_sent = false;
-				else
-					this->_timer--;
-				if (this->_sent)
-					break;
-				this->_sent = true;
-				this->_timer = 100;
-				if (this->_sendBufferIndex.second < this->_sendBuffer[this->_sendBufferIndex.first].size()) {
-					this->_syncSignalsSent = 0;
-					this->_emulator->sendByte(this->_sendBuffer[this->_sendBufferIndex.first][this->_sendBufferIndex.second++]);
-				} else if (this->_sendBufferIndex.first != 3) {
-					this->_emulator->sendByte(SYNC_BYTE);
-					this->_syncSignalsSent++;
-				} else
-					this->_emulator->sendByte(0x00);
-				break;
-			case BATTLE:
-				this->_emulator->sendByte(this->_state.nextAction);
-				if (this->_state.nextAction == NoAction)
-					this->_state.nextAction = this->_battleHandler(*this);
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
-				break;
-			default:
-				std::this_thread::sleep_for(std::chrono::milliseconds(100));
-				break;
-			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(50));
-		}
+		while (this->_emulator->isConnected())
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 
 	std::vector<unsigned char> PkmnGen1Handle::convertString(const std::string &str)
@@ -291,7 +294,7 @@ namespace Pokemon
 
 		for (char c : str)
 			result.push_back(ASCIIToPkmn1CharConversionTable[static_cast<unsigned char>(c)]);
-		result.push_back(0x50);
+		result.push_back(ASCIIToPkmn1CharConversionTable['\0']);
 		return result;
 	}
 
@@ -310,8 +313,7 @@ namespace Pokemon
 	void PkmnGen1Handle::_interpretPacket()
 	{
 		this->_log("Decrypting received packet");
-		displayPacket(values);
-		values.clear();
+		displayPacket(this->_receiveBuffer);
 
 		/* HEADER PACKET */
 		while (this->_receiveBuffer[0] == SYNC_BYTE)
@@ -361,7 +363,7 @@ namespace Pokemon
 
 		this->_log("Making packet for trainer " + this->_trainerName);
 		buffer = this->convertString(this->_trainerName);
-		buffer.resize(11, '\x50');
+		buffer.resize(11, ASCIIToPkmn1CharConversionTable['\0']);
 
 		buffer.push_back(this->_pkmns.size());
 		this->_log("Pushing " + std::to_string(this->_pkmns.size()) + " pokémon(s)");
@@ -370,37 +372,34 @@ namespace Pokemon
 			buffer.push_back(pkmn.getID());
 		}
 		buffer.resize(19, 0xFF);
-		for (size_t i = 0; i < 6; i++)
-			for (unsigned char c : (i < this->_pkmns.size() ? this->_pkmns[i].encode() : NO_PKMN))
+		for (auto &pkmn : this->_pkmns)
+			for (unsigned char c : pkmn.encode())
 				buffer.push_back(c);
+		buffer.resize(19 + 44 * 6, ASCIIToPkmn1CharConversionTable['\0']);
 
 		packet.push_back(buffer);
 		buffer = this->convertString(this->_trainerName);
-		buffer.resize(11, '\x50');
+		buffer.resize(11, ASCIIToPkmn1CharConversionTable['\0']);
 		for (unsigned char c : buffer)
 			packet[2].push_back(c);
 		for (unsigned char c : MIDDLE_PACKET)
 			packet[2].push_back(c);
 
-		buffer.clear();
 		for (Pokemon &pkmn : this->_pkmns) {
-			std::vector<unsigned char> buf = this->convertString(pkmn.getName());
-
-			buf.resize(11, '\x50');
-			buf[10] = ASCIIToPkmn1CharConversionTable['\0'];
-			for (unsigned char c : buf)
-				buffer.push_back(c);
+			buffer = this->convertString(pkmn.getName());
+			buffer.resize(11, '\x50');
+			buffer[10] = ASCIIToPkmn1CharConversionTable['\0'];
+			for (unsigned char c : buffer)
+				packet[2].push_back(c);
 		}
-		buffer.resize(66, '\x50');
-		for (unsigned char c : buffer)
-			packet[2].push_back(c);
-		packet[2].push_back(0xA3);
+		for (int i = this->_pkmns.size() * 11; i < 66; i++)
+			packet[2].push_back(ASCIIToPkmn1CharConversionTable['\0']);
 		packet[2].push_back(0xFF);
 		packet[2].push_back(0xFF);
 		packet[2].push_back(0xFF);
 		packet.push_back(PACKET_FOOTER);
 
-		this->_log("Packets are ready");
+		this->_log("Packet ready");
 		for (auto &p : packet)
 			displayPacket(p);
 		return packet;

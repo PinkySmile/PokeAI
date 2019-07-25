@@ -18,7 +18,7 @@ BGBHandler::BGBHandler(
 	unsigned short port,
 	bool log
 ) :
-	EmulatorHandle(masterHandler, slaveHandler, log),
+	EmulatorHandle(masterHandler, slaveHandler, loopHandler, log),
 	_mainHandler([this] { while (this->_handleLoop()); })
 {
 	this->log("Connecting to " + ip + ":" + std::to_string(port));
@@ -56,13 +56,13 @@ void BGBHandler::log(const std::string &string, std::ostream &stream)
 
 void BGBHandler::sendByte(unsigned char byte)
 {
-	this->log("Sending " + std::to_string(byte));
-	this->_sendPacket({SYNC1_SIGNAL, byte, 0x80, 0, this->_ticks * 1024 + 1});
+	this->log("Sending " + charToHex(byte));
+	this->_sendPacket({SYNC1_SIGNAL, byte, 0x80, 0, this->_ticks});
 }
 
 void BGBHandler::reply(unsigned char byte)
 {
-	this->log("Replying " + std::to_string(byte));
+	this->log("Replying " + charToHex(byte));
 	this->_sendPacket({SYNC2_SIGNAL, byte, 0x80, 0, 0});
 }
 
@@ -147,17 +147,15 @@ bool BGBHandler::_handleLoop()
 		return true;
 
 	case SYNC1_SIGNAL:
-		this->log("Received one byte (" + std::to_string(packet.b2) + ") as master");
+		this->log("Received one byte (" + charToHex(packet.b2) + ") as master");
 		if (this->_masterHandler)
 			packet.b2 = this->_masterHandler(*this, packet.b2);
 		this->_sendPacket(packet);
 		return true;
 
 	case SYNC2_SIGNAL:
-		this->log("Received one byte (" + std::to_string(packet.b2) + ") as slave");
-		if (this->_slaveHandler)
-			packet.b2 = this->_slaveHandler(*this, packet.b2);
-		this->_sendPacket(packet);
+		this->log("Received one byte (" + charToHex(packet.b2) + ") as slave");
+		this->_slaveHandler(*this, packet.b2);
 		this->_sync();
 		return true;
 
