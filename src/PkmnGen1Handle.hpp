@@ -63,6 +63,8 @@ namespace Pokemon
 		BattleAction		nextOpponentAction;
 	};
 
+	void displayPacket(std::vector<unsigned char> packet);
+
 	class PkmnGen1Handle {
 	private:
 		BattleState	_state;

@@ -20,6 +20,24 @@ void sigHandler(int)
 
 namespace Pokemon
 {
+	void displayPacket(std::vector<unsigned char> packet)
+	{
+		for (unsigned int i = 0; i < packet.size(); i += 20) {
+			for (unsigned j = 0; j < 20 && j + i < packet.size(); j++)
+				printf("%02X ", packet[j + i]);
+			for (int j = 0; j < static_cast<int>(i - packet.size() + 20); j++)
+				printf("   ");
+			for (unsigned j = 0; j < 20 && j + i < packet.size(); j++)
+				printf("%c", isprint(packet[j + i]) ? packet[j + i] : '.');
+			for (int j = 0; j < static_cast<int>(i - packet.size() + 20); j++)
+				printf(" ");
+			printf(" ");
+			for (unsigned j = 0; j < 20 && j + i < packet.size(); j++)
+				printf("%c", isprint(Pkmn1CharToASCIIConversionTable[packet[j + i]]) ? Pkmn1CharToASCIIConversionTable[packet[j + i]] : '.');
+			printf("\n");
+		}
+	}
+
 	PkmnGen1Handle::PkmnGen1Handle(
 		const std::function<
 			EmulatorHandle *(

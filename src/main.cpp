@@ -48,19 +48,6 @@ int main(int argc, char **argv)
 	handler.connect(argv[1], port);
 	signal(SIGINT, nullptr);
 
-	for (unsigned int i = 0; i < values.size(); i += 20) {
-		for (unsigned j = 0; j < 20 && j + i < values.size(); j++)
-			printf("%02X ", values[j + i]);
-		for (int j = 0; j < static_cast<int>(i - values.size() + 20); j++)
-			printf("   ");
-		for (unsigned j = 0; j < 20 && j + i < values.size(); j++)
-			printf("%c", isprint(values[j + i]) ? values[j + i] : '.');
-		for (int j = 0; j < static_cast<int>(i - values.size() + 20); j++)
-			printf(" ");
-		printf(" ");
-		for (unsigned j = 0; j < 20 && j + i < values.size(); j++)
-			printf("%c", isprint(Pokemon::Pkmn1CharToASCIIConversionTable[values[j + i]]) ? Pokemon::Pkmn1CharToASCIIConversionTable[values[j + i]] : '.');
-		printf("\n");
-	}
+	Pokemon::displayPacket(values);
 	return 0;
 }
