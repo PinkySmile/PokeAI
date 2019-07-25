@@ -14,6 +14,7 @@
 BGBHandler::BGBHandler(
 	const std::function<unsigned char(EmulatorHandle &handler, unsigned char byte)> &masterHandler,
 	const std::function<unsigned char(EmulatorHandle &handler, unsigned char byte)> &slaveHandler,
+	const std::function<void(EmulatorHandle &handler)> &loopHandler,
 	const std::string &ip,
 	unsigned short port,
 	bool log
@@ -121,6 +122,8 @@ BGBHandler::BGBPacket BGBHandler::_getNextPacket()
 void BGBHandler::_sync()
 {
 	this->_sendPacket({SYNC3_SIGNAL, 0, 0, 0, ++this->_ticks});
+	if (this->_loopHandle)
+		this->_loopHandle(*this);
 }
 
 bool BGBHandler::_handleLoop()

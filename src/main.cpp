@@ -13,9 +13,9 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	Pokemon::PkmnGen1Handle handler([](const ByteHandle &byteHandle, const std::string &ip, unsigned short port)
+	Pokemon::PkmnGen1Handle handler([](const ByteHandle &byteHandle, const LoopHandle &loopHandler, const std::string &ip, unsigned short port)
 	{
-		return new BGBHandler(byteHandle, byteHandle, ip, port, true);
+		return new BGBHandler(byteHandle, byteHandle, loopHandler, ip, port, true);
 	},
 	[](Pokemon::PkmnGen1Handle &) {
 		std::vector<Pokemon::BattleAction> actions = {

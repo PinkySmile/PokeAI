@@ -20,6 +20,7 @@
 }(val))
 
 typedef std::function<unsigned char(class EmulatorHandle &handler, unsigned char byte)> ByteHandle;
+typedef std::function<void(class EmulatorHandle &handler)> LoopHandle;
 
 class EmulatorHandle {
 protected:
@@ -27,10 +28,13 @@ protected:
 	bool _disconnected = true;
 	ByteHandle _slaveHandler;
 	ByteHandle _masterHandler;
+	LoopHandle _loopHandle;
 
+	EmulatorHandle(const ByteHandle &masterHandler, const ByteHandle &slaveHandler, const LoopHandle &loopHandle, bool log) :
 		_log(log),
 		_slaveHandler(slaveHandler),
-		_masterHandler(masterHandler)
+		_masterHandler(masterHandler),
+		_loopHandle(loopHandle)
 	{};
 
 public:

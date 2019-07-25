@@ -112,6 +112,7 @@ namespace Pokemon
 			const std::function<
 				EmulatorHandle *(
 					const ByteHandle &byteHandle,
+					const LoopHandle &loopHandle,
 					const std::string &ip,
 					unsigned short port
 				)

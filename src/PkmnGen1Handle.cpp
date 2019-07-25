@@ -39,6 +39,7 @@ namespace Pokemon
 		const std::function<
 			EmulatorHandle *(
 				const ByteHandle &byteHandle,
+				const LoopHandle &loopHandle,
 				const std::string &ip,
 				unsigned short port
 			)
@@ -221,12 +222,16 @@ namespace Pokemon
 
 	void PkmnGen1Handle::_mainLoop(EmulatorHandle &handle)
 	{
+		static int val = 0;
+
+		if (--val > 0)
+			return;
+		val = 200 + 200 * (this->_stage == ROOM_CHOOSE) + 800 * (this->_stage != EXCHANGE_POKEMONS && this->_stage != ROOM_CHOOSE);
 		switch (this->_stage) {
 		case PINGING_OPPONENT:
 		case PING_POKEMON_EXCHANGE:
 			if (!this->_isPlayer2)
 				handle.sendByte(PING_BYTE);
-			std::this_thread::sleep_for(std::chrono::milliseconds(150));
 			break;
 		case ROOM_CHOOSE:
 			if (this->_isPlayer2)
@@ -242,13 +247,10 @@ namespace Pokemon
 				if (this->_buffer >= 12)
 					this->_buffer = 6;
 			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(150));
 			break;
 		case EXCHANGE_POKEMONS:
-			if (this->_isPlayer2) {
-				std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+			if (this->_isPlayer2)
 				break;
-			}
 			if (this->_timer == 0)
 				this->_sent = false;
 			else
@@ -270,7 +272,6 @@ namespace Pokemon
 			handle.sendByte(this->_state.nextAction);
 			if (this->_state.nextAction == NoAction)
 				this->_state.nextAction = this->_battleHandler(*this);
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			break;
 		default:
 			break;
@@ -281,7 +282,7 @@ namespace Pokemon
 	{
 		if (handler)
 			return;
-		this->_emulator.reset(this->_emulatorMaker(this->_byteHandler, ip, port));
+		this->_emulator.reset(this->_emulatorMaker(this->_byteHandler, [this](EmulatorHandle &handle){ this->_mainLoop(handle); }, ip, port));
 		this->_log("Connected to " + ip + ":" + std::to_string(port));
 		handler = &*this->_emulator;
 		while (this->_emulator->isConnected())
