@@ -2,7 +2,7 @@
 #include <csignal>
 #include "Pokemon.hpp"
 #include "BgbHandler.hpp"
-#include "PkmnGen1Handle.hpp"
+#include "GameHandle.hpp"
 
 void sigHandler(int);
 
@@ -13,16 +13,16 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	Pokemon::PkmnGen1Handle handler([](const ByteHandle &byteHandle, const LoopHandle &loopHandler, const std::string &ip, unsigned short port)
+	PokemonGen1::GameHandle handler([](const ByteHandle &byteHandle, const LoopHandle &loopHandler, const std::string &ip, unsigned short port)
 	{
 		return new BGBHandler(byteHandle, byteHandle, loopHandler, ip, port);
 	},
-	[](Pokemon::PkmnGen1Handle &) {
-		std::vector<Pokemon::BattleAction> actions = {
-			Pokemon::Attack1,
-			Pokemon::Attack2,
-			Pokemon::Attack3,
-			Pokemon::Attack4
+	[](PokemonGen1::GameHandle &) {
+		std::vector<PokemonGen1::BattleAction> actions = {
+			PokemonGen1::Attack1,
+			PokemonGen1::Attack2,
+			PokemonGen1::Attack3,
+			PokemonGen1::Attack4
 		};
 
 		return actions[0];
@@ -37,11 +37,10 @@ int main(int argc, char **argv)
 	handler.addPokemonToTeam(
 		"",
 		100,
-		/* Pokemon::pokemonList[Pokemon::Mewtwo] */
-		Pokemon::PokemonBase{ 0x00, "TestPkmn", 0, 0, 32718, 0, 32718, TYPE_NORMAL, TYPE_ELECTRIC, 0, 0 },
-		std::vector<Pokemon::Move>{
-			Pokemon::availableMoves[Pokemon::Splash],
-			Pokemon::availableMoves[Pokemon::Aurora_Beam]
+		PokemonGen1::pokemonList[PokemonGen1::Mewtwo],
+		std::vector<PokemonGen1::Move>{
+			PokemonGen1::availableMoves[PokemonGen1::Splash],
+			PokemonGen1::availableMoves[PokemonGen1::Aurora_Beam]
 		}
 	);
 	handler.connect(argv[1], port);

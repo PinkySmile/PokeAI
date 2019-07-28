@@ -2,8 +2,8 @@
 // Created by Gegel85 on 13/07/2019.
 //
 
-#ifndef POKEAI_PKMNGEN1HANDLE_HPP
-#define POKEAI_PKMNGEN1HANDLE_HPP
+#ifndef POKEAI_GAMEHANDLE_HPP
+#define POKEAI_GAMEHANDLE_HPP
 
 
 #include <memory>
@@ -28,7 +28,7 @@
 #define CHAR_MAL_NUM '|'
 #define CHAR_FEM_NUM '#'
 
-namespace Pokemon
+namespace PokemonGen1
 {
 	enum Gen1ConnectionStage
 	{
@@ -67,7 +67,7 @@ namespace Pokemon
 
 	void displayPacket(std::vector<unsigned char> packet);
 
-	class PkmnGen1Handle {
+	class GameHandle {
 	private:
 		BattleState	_state;
 		ByteHandle	_byteHandler;
@@ -93,22 +93,22 @@ namespace Pokemon
 		std::vector<Pokemon>			_pkmns;
 		std::vector<unsigned char>		_receiveBuffer;
 		std::vector<unsigned char>		_last;
-		unsigned				_controlSignalsRecieved;
 		bool					_sent = false;
 		std::pair<unsigned, unsigned>		_sendBufferIndex = {0, 0};
 		std::vector<std::vector<unsigned char>>	_sendBuffer;
-		std::function<BattleAction(PkmnGen1Handle &)> _battleHandler;
+		std::function<BattleAction(GameHandle &)> _battleHandler;
 
 		std::vector<std::vector<unsigned char>> _craftPacket();
 		void _interpretPacket();
 		void _executeBattleActions();
 		unsigned char _handleReceivedBytes(EmulatorHandle &handle, unsigned char byte);
 		void _mainLoop(EmulatorHandle &handle);
+		void _makePlayersAttack(bool AIAttack, bool opponentAttack);
 
 		void _log(const std::string &msg);
 
 	public:
-		explicit PkmnGen1Handle(
+		explicit GameHandle(
 			const std::function<
 				EmulatorHandle *(
 					const ByteHandle &byteHandle,
@@ -117,7 +117,7 @@ namespace Pokemon
 					unsigned short port
 				)
 			> &emulatorMaker,
-			const std::function<BattleAction(PkmnGen1Handle &)> &battleHandler,
+			const std::function<BattleAction(GameHandle &)> &battleHandler,
 			const std::string &trainerName = "PokeAI",
 			bool player2 = false
 		);
@@ -139,4 +139,4 @@ namespace Pokemon
 }
 
 
-#endif //POKEAI_PKMNGEN1HANDLE_HPP
+#endif //POKEAI_GAMEHANDLE_HPP

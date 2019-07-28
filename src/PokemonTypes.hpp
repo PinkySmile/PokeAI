@@ -42,5 +42,7 @@ enum PokemonTypes {
 };
 
 std::string typeToString(PokemonTypes);
+double getAttackDamageMultiplier(PokemonTypes attackType, PokemonTypes target);
+double getAttackDamageMultiplier(PokemonTypes attackType, std::pair<PokemonTypes, PokemonTypes> target);
 
 #endif //POKEAI_POKEMONTYPES_HPP

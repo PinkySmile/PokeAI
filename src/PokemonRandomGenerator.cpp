@@ -4,7 +4,7 @@
 
 #include "PokemonRandomGenerator.hpp"
 
-namespace Pokemon
+namespace PokemonGen1
 {
 	PokemonRandomGenerator::PokemonRandomGenerator(unsigned int seed) :
 		_random(seed),
@@ -26,7 +26,7 @@ namespace Pokemon
 	{
 		unsigned randomNumber = (*this)();
 
-		randomNumber = (randomNumber * static_cast<float>(end - start) / (1U << 31U)) + start;
+		randomNumber = (randomNumber * static_cast<float>(end - start) / UINT32_MAX) + start;
 		if (randomNumber == end)
 			return end - 1;
 		return randomNumber;

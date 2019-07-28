@@ -3,7 +3,7 @@
 //
 
 #include <thread>
-#include "PkmnGen1Handle.hpp"
+#include "GameHandle.hpp"
 #include "Exception.hpp"
 
 EmulatorHandle *handler = nullptr;
@@ -16,7 +16,7 @@ void sigHandler(int)
 	handler = nullptr;
 }
 
-namespace Pokemon
+namespace PokemonGen1
 {
 	void displayPacket(std::vector<unsigned char> packet)
 	{
@@ -35,7 +35,9 @@ namespace Pokemon
 					     ? Pkmn1CharToASCIIConversionTable[packet[j + i]] : '.');
 			printf("\n");
 		}
-	}PkmnGen1Handle::PkmnGen1Handle(
+	}
+
+	GameHandle::GameHandle(
 		const std::function<
 			EmulatorHandle *(
 				const ByteHandle &byteHandle,
@@ -44,7 +46,7 @@ namespace Pokemon
 				unsigned short port
 			)
 		> &emulatorMaker,
-		const std::function<BattleAction(PkmnGen1Handle &)> &battleHandler,
+		const std::function<BattleAction(GameHandle &)> &battleHandler,
 		const std::string &trainerName,
 		bool player2
 	) :
@@ -64,7 +66,7 @@ namespace Pokemon
 		};
 	}
 
-	unsigned char PkmnGen1Handle::_handleReceivedBytes(EmulatorHandle &handle, unsigned char byte)
+	unsigned char GameHandle::_handleReceivedBytes(EmulatorHandle &handle, unsigned char byte)
 	{
 		if (this->_last.size() == 8)
 			this->_last.erase(this->_last.begin());
@@ -216,39 +218,96 @@ namespace Pokemon
 		return byte;
 	}
 
-	void PkmnGen1Handle::_executeBattleActions()
+	void GameHandle::_makePlayersAttack(bool AIAttack, bool opponentAttack)
 	{
-		if (this->_state.nextAction == Run) {
-			this->_log("I ran");
+		Pokemon &ai = this->_state.team[this->_state.pokemonOnField];
+		Pokemon &opponent = this->_state.opponentTeam[this->_state.opponentPokemonOnField];
+		int aiPriorityFactor = ai.getPriorityFactor(this->_state.nextAction - Attack1);
+		int opponentPriorityFactor = opponent.getPriorityFactor(this->_state.nextOpponentAction - Attack1);
+		bool aiStart = aiPriorityFactor > opponentPriorityFactor || (aiPriorityFactor == opponentPriorityFactor && !this->_randomGenerator(2));
+
+		if (!ai.getHealth())
+			return;
+		if (AIAttack && aiStart)
+			ai.attack(this->_state.nextAction - Attack1, opponent);
+		if (!opponent.getHealth())
+			return;
+		if (opponentAttack)
+			opponent.attack(this->_state.nextOpponentAction - Attack1, ai);
+		if (!ai.getHealth())
+			return;
+		if (AIAttack && !aiStart)
+			ai.attack(this->_state.nextAction - Attack1, opponent);
+	}
+
+	void GameHandle::_executeBattleActions()
+	{
+		bool AIAttack = false;
+		bool opponentAttack = false;
+
+		//this->_log(std::to_string(this->_state.nextAction) + ":" + std::to_string(this->_state.nextOpponentAction));
+		switch (this->_state.nextAction) {
+		case Run:
+			this->_log("Got away safely !");
 			this->_stage = PING_POKEMON_EXCHANGE;
 			return;
-		}
-		if (this->_state.nextOpponentAction == Run) {
-			this->_log("Opponent ran");
-			this->_stage = PING_POKEMON_EXCHANGE;
-			return;
-		}
-		if (this->_state.nextAction < Attack1 || this->_state.nextAction > Switch6) {
-			this->_log("Warning: Invalid AI move");
-			this->_state.nextAction = Attack1;
-		}
-		if (this->_state.nextOpponentAction < Attack1 || this->_state.nextOpponentAction > Switch6) {
-			this->_log("Warning: Invalid opponent move");
-			this->_state.nextOpponentAction = Attack1;
-		}
-		if (this->_state.nextAction >= Switch1) {
+		case Switch1:
+		case Switch2:
+		case Switch3:
+		case Switch4:
+		case Switch5:
+		case Switch6:
 			this->_state.team[this->_state.pokemonOnField].switched();
 			this->_state.pokemonOnField = this->_state.nextAction - Switch1;
 			this->_log("Switched to " + this->_state.team[this->_state.pokemonOnField].getName());
+			break;
+		case Attack1:
+		case Attack2:
+		case Attack3:
+		case Attack4:
+			AIAttack = true;
+			break;
+		default:
+			this->_log("Warning: Invalid AI move");
+			this->_state.nextAction = Attack1;
+			AIAttack = true;
 		}
-		if (this->_state.nextOpponentAction >= Switch1) {
+
+		switch (this->_state.nextOpponentAction) {
+		case Run:
+			this->_log(this->_state.opponentName + " ran");
+			this->_stage = PING_POKEMON_EXCHANGE;
+			return;
+		case Switch1:
+		case Switch2:
+		case Switch3:
+		case Switch4:
+		case Switch5:
+		case Switch6:
 			this->_state.opponentTeam[this->_state.opponentPokemonOnField].switched();
 			this->_state.opponentPokemonOnField = this->_state.nextOpponentAction - Switch1;
 			this->_log("Opponent switched to " + this->_state.opponentTeam[this->_state.opponentPokemonOnField].getName());
+			break;
+		case Attack1:
+		case Attack2:
+		case Attack3:
+		case Attack4:
+			opponentAttack = true;
+			break;
+		default:
+			this->_log("Warning: Invalid opponent move");
+			this->_state.nextOpponentAction = Attack1;
+			opponentAttack = true;
 		}
+
+		this->_makePlayersAttack(AIAttack, opponentAttack);
+		this->_state.team[this->_state.pokemonOnField].endTurn();
+		this->_state.opponentTeam[this->_state.opponentPokemonOnField].endTurn();
+		this->_log(this->_state.team[this->_state.pokemonOnField].dump());
+		this->_log(this->_state.opponentTeam[this->_state.opponentPokemonOnField].dump());
 	}
 
-	void PkmnGen1Handle::_mainLoop(EmulatorHandle &handle)
+	void GameHandle::_mainLoop(EmulatorHandle &handle)
 	{
 		static int val = 0;
 
@@ -306,7 +365,7 @@ namespace Pokemon
 			handle.sendByte(this->_state.nextAction);
 			if (this->_state.nextAction == NoAction)
 				this->_state.nextAction = this->_battleHandler(*this);
-			val = 400;
+			val = 300;
 			break;
 		default:
 			val = 0;
@@ -314,7 +373,7 @@ namespace Pokemon
 		}
 	}
 
-	void PkmnGen1Handle::connect(const std::string &ip, unsigned short port)
+	void GameHandle::connect(const std::string &ip, unsigned short port)
 	{
 		if (handler)
 			return;
@@ -325,7 +384,7 @@ namespace Pokemon
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 
-	std::vector<unsigned char> PkmnGen1Handle::convertString(const std::string &str)
+	std::vector<unsigned char> GameHandle::convertString(const std::string &str)
 	{
 		std::vector<unsigned char> result;
 
@@ -335,7 +394,7 @@ namespace Pokemon
 		return result;
 	}
 
-	std::string PkmnGen1Handle::convertString(const std::vector<unsigned char> &str)
+	std::string GameHandle::convertString(const std::vector<unsigned char> &str)
 	{
 		std::string result;
 
@@ -347,7 +406,7 @@ namespace Pokemon
 		return result;
 	}
 
-	void PkmnGen1Handle::_interpretPacket()
+	void GameHandle::_interpretPacket()
 	{
 		this->_log("Decrypting received packet");
 		displayPacket(this->_receiveBuffer);
@@ -385,12 +444,12 @@ namespace Pokemon
 			this->_log(pkmn.dump());
 	}
 
-	void PkmnGen1Handle::_log(const std::string &msg)
+	void GameHandle::_log(const std::string &msg)
 	{
-		std::cout << "[PkmnGen1Handle]: " << msg << std::endl;
+		std::cout << "[Gen1GameHandle]: " << msg << std::endl;
 	}
 
-	std::vector<std::vector<unsigned char>> PkmnGen1Handle::_craftPacket()
+	std::vector<std::vector<unsigned char>> GameHandle::_craftPacket()
 	{
 		std::vector<std::vector<unsigned char>> packet;
 		std::vector<unsigned char> buffer;

@@ -8,7 +8,7 @@
 
 #include <random>
 
-namespace Pokemon
+namespace PokemonGen1
 {
 	class PokemonRandomGenerator {
 	private:

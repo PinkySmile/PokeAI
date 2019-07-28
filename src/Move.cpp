@@ -5,7 +5,7 @@
 #include "Pokemon.hpp"
 #include "Move.hpp"
 
-namespace Pokemon
+namespace PokemonGen1
 {
 	Move::Move(
 		unsigned char id,
@@ -25,8 +25,8 @@ namespace Pokemon
 		bool needLoading,
 		bool invulnerableDuringLoading,
 		bool needRecharge,
-		std::function<bool(Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun)> hitCallback,
-		std::function<bool(Pokemon &owner)> missCallback
+		const std::function<bool(Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun)> &&hitCallback,
+		const std::function<bool(Pokemon &owner)> &&missCallback
 	) :
 		_hitCallback(hitCallback),
 		_missCallback(missCallback),
@@ -93,14 +93,61 @@ namespace Pokemon
 		return this->_name;
 	}
 
+	bool Move::makesInvulnerable() const
+	{
+		return this->_invulnerableDuringLoading;
+	}
+
 	bool Move::attack(Pokemon &owner, Pokemon &target)
 	{
-		//TODO: Code function
+		double multiplier = target.getEvasion() * owner.getAccuracy();
+
 		if (!this->_nbHit)
 			this->_nbHit = this->_nbRuns[owner.getRandomGenerator()(0, this->_nbRuns.size())];
-		else
-			this->_nbHit--;
+		if (this->_needLoading) {
+			this->_needLoading = false;
+			return true;
+		}
+		this->_nbHit--;
+
+		if (!target.canGetHitBy(this->_id)) {
+			this->_nbHit = 0;
+			if (this->_missCallback)
+				this->_missCallback(owner);
+			return false;
+		}
+
+		unsigned random = owner.getRandomGenerator()(256);
+
+		if (this->_accuracy <= 100 && random / 2.55 >= this->_accuracy * multiplier) {
+			this->_nbHit = 0;
+			if (this->_missCallback)
+				this->_missCallback(owner);
+			return false;
+		}
+
+		unsigned damages = owner.dealDamage(target, this->_power, this->_type, this->_category, this->_critChance);
+
+		if (owner.getRandomGenerator()(256) / 256. < this->_statusChange.prob)
+			target.addStatus(this->_statusChange.status);
+
+		for (const auto &val : this->_foeChange)
+			if (owner.getRandomGenerator()(256) / 256. < val.prob)
+				target.changeStat(val.stat, val.nb);
+
+		for (const auto &val : this->_ownerChange)
+			if (owner.getRandomGenerator()(256) / 256. < val.prob)
+				owner.changeStat(val.stat, val.nb);
+
+		if (this->_hitCallback)
+			this->_hitCallback(owner, target, damages, this->isFinished());
+
 		return true;
+	}
+
+	char Move::getPriority() const
+	{
+		return this->_priority;
 	}
 
 	/*
@@ -110,11 +157,11 @@ namespace Pokemon
 	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/Tables.cs#L145
 	*/
 
-	//This is only relevent for Gen 1 (Some moves changed)
+	//This is only relevant for Gen 1 (Some moves changed)
 	const std::vector<Move> availableMoves{
 		DEFAULT_MOVE(0x00),
 		{0x01, "Pound"       , TYPE_NORMAL  , PHYSICAL,  40, 100, 35},
-		{0x02, "Karate Chop" , TYPE_NORMAL  , PHYSICAL,  50, 100, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE * 2},
+		{0x02, "Karate Chop" , TYPE_NORMAL  , PHYSICAL,  50, 100, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE * 8},
 		{0x03, "DoubleSlap"  , TYPE_NORMAL  , PHYSICAL,  15,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		{0x04, "Comet Punch" , TYPE_NORMAL  , PHYSICAL,  18,  85, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		{0x05, "Mega Punch"  , TYPE_NORMAL  , PHYSICAL,  80,  85, 20},
@@ -187,7 +234,7 @@ namespace Pokemon
 		{0x48, "Mega Drain"  , TYPE_GRASS   , SPECIAL ,  40, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, ABSORB_HALF_DAMAGE},
 		{0x49, "Leech Seed"  , TYPE_GRASS   , STATUS  ,   0,  90, 10, {STATUS_LEECHED, 1}},
 		{0x4A, "Growth"      , TYPE_NORMAL  , STATUS  ,   0, 255, 40, NO_STATS_CHANGE, {{STATS_ATK, 1, 1}, {STATS_SPE, 1, 1}}},
-		{0x4B, "Razor Leaf"  , TYPE_GRASS   , PHYSICAL,  55,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE * 2},
+		{0x4B, "Razor Leaf"  , TYPE_GRASS   , PHYSICAL,  55,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE * 8},
 		{0x4C, "SolarBeam"   , TYPE_GRASS   , SPECIAL , 120, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, true},
 		{0x4D, "PoisonPowder", TYPE_POISON  , STATUS  ,   0,  75, 35, {STATUS_POISONED, 1}},
 		{0x4E, "Stun Spore"  , TYPE_GRASS   , STATUS  ,   0,  75, 30, {STATUS_PARALYZED, 1}},
@@ -264,7 +311,7 @@ namespace Pokemon
 		{0x95, "Psywave"     , TYPE_PSYCHIC , SPECIAL ,   0,  80, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, DEAL_0_5_TO_1_5_LEVEL_DAMAGE},
 		{0x96, "Splash"      , TYPE_NORMAL  , STATUS  ,   0, 255, 40},
 		{0x97, "Acid Armor"  , TYPE_POISON  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {}, {{STATS_DEF, 2, 1}}},
-		{0x98, "Crabhammer"  , TYPE_WATER   , PHYSICAL,  90,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE * 2},
+		{0x98, "Crabhammer"  , TYPE_WATER   , PHYSICAL,  90,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE * 8},
 		{0x99, "Explosion"   , TYPE_NORMAL  , PHYSICAL, 340, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, SUICIDE},
 		{0x9A, "Fury Swipes" , TYPE_NORMAL  , PHYSICAL,  18,  80, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		{0x9B, "Bonemerang"  , TYPE_GROUND  , PHYSICAL,  50,  90, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, {{2, 1}}},
@@ -275,7 +322,7 @@ namespace Pokemon
 		{0xA0, "Conversion"  , TYPE_NORMAL  , STATUS  ,   0,   0, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, CONVERSION},
 		{0xA1, "Tri Attack"  , TYPE_NORMAL  , SPECIAL ,  80, 100, 10},
 		{0xA2, "Super Fang"  , TYPE_NORMAL  , PHYSICAL,   0,  90, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, DEAL_HALF_HP_DAMAGE},
-		{0xA3, "Slash"       , TYPE_NORMAL  , PHYSICAL,  70, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE * 2},
+		{0xA3, "Slash"       , TYPE_NORMAL  , PHYSICAL,  70, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE * 8},
 		{0xA4, "Substitute"  , TYPE_NORMAL  , STATUS  ,   0,   0, 10},
 		{0xA5, "Struggle"    , TYPE_NORMAL  , PHYSICAL,  50, 100,  0, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, TAKE_HALF_MOVE_DAMAGE},
 		DEFAULT_MOVE(0xA6),

@@ -17,7 +17,7 @@
 #define NO_STATS_CHANGE {}, {}
 #define DEFAULT_HITS {{1, 1}}
 #define TWO_TO_FIVE_HITS {{2, 0.375}, {3, 0.375}, {4, 0.125}, {5, 0.125}}
-#define DEFAULT_CRIT_CHANCE (1 / 24.)
+#define DEFAULT_CRIT_CHANCE (1)
 #define NO_STATUS_CHANGE {STATUS_NONE, 0}
 
 #define ONE_HIT_KO_HANDLE [](Pokemon &owner, Pokemon &target, unsigned, bool){\
@@ -121,7 +121,7 @@
 #define DREAM_EATER [](Pokemon &owner, Pokemon &target, unsigned, bool){\
 	if (!target.hasStatus(STATUS_ASLEEP))\
 		return false;\
-	owner.takeDamage(-owner.dealDamage(target, 100, TYPE_PSYCHIC) / 2);\
+	owner.takeDamage(-owner.dealDamage(target, 100, TYPE_PSYCHIC, SPECIAL, DEFAULT_CRIT_CHANCE) / 2);\
 	return true;\
 }
 
@@ -135,7 +135,7 @@
 	return true;\
 }
 
-namespace Pokemon
+namespace PokemonGen1
 {
 	class Pokemon;
 
@@ -205,10 +205,12 @@ namespace Pokemon
 			bool needLoading = false,
 			bool invulnerableDuringLoading = false,
 			bool needRecharge = false,
-			std::function<bool(Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun)> hitCallback = nullptr,
-			std::function<bool(Pokemon &owner)> missCallback = nullptr
+			const std::function<bool(Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun)> &&hitCallback = nullptr,
+			const std::function<bool(Pokemon &owner)> &&missCallback = nullptr
 		);
 
+		char getPriority() const;
+		bool makesInvulnerable() const;
 		unsigned char getMaxPP() const;
 		unsigned char getPPUp() const;
 		unsigned char getPP() const;

@@ -10,7 +10,7 @@
 
 #define NBR_2B(byte1, byte2) static_cast<unsigned short>((byte1 << 8U) + byte2)
 
-namespace Pokemon
+namespace PokemonGen1
 {
 	Pokemon::Pokemon(PokemonRandomGenerator &random, const std::string &nickname, unsigned char level, const PokemonBase &base, const std::vector<Move> &moveSet) :
 		_id(base.id),
@@ -140,11 +140,11 @@ namespace Pokemon
 		stream << ", Type " << typeToString(this->_types.first);
 		if (this->_types.first != this->_types.second)
 			stream << "/" << typeToString(this->_types.second);
-		stream << ", " << this->_baseStats.HP << "/" << this->_baseStats.maxHP << " HP";
-		stream << ", " << this->_baseStats.ATK << " ATK";
-		stream << ", " << this->_baseStats.DEF << " DEF";
-		stream << ", " << this->_baseStats.SPD << " SPD";
-		stream << ", " << this->_baseStats.SPE << " SPE";
+		stream << ", " << this->getHealth()  << "/" << this->getMaxHealth() << " HP";
+		stream << ", " << this->getAttack()  << " ATK";
+		stream << ", " << this->getDefense() << " DEF";
+		stream << ", " << this->getSpeed()   << " SPD";
+		stream << ", " << this->getSpecial() << " SPE";
 		return stream.str();
 	}
 
@@ -161,12 +161,24 @@ namespace Pokemon
 		this->_upgradedStats = {0, 0, 0, 0, 0, 0};
 	}
 
+	int Pokemon::getPriorityFactor(char moveSlot)
+	{
+		const Move *move = &this->_lastUsedMove;
+
+		if (this->_lastUsedMove.isFinished())
+			move = &this->_moveSet[moveSlot];
+		return move->getPriority() * 262140 + this->getSpeed();
+	}
+
 	void Pokemon::useMove(const Move &move, Pokemon &target)
 	{
-		if (this->_lastUsedMove.isFinished())
+		if (this->_lastUsedMove.isFinished()) {
 			this->_lastUsedMove = move;
-		this->_log("uses " + this->_lastUsedMove.getName());
-		this->_lastUsedMove.attack(*this, target);
+			this->_log("Uses " + this->_lastUsedMove.getName());
+		} else
+			this->_log("Keeps using " + this->_lastUsedMove.getName());
+		if (!this->_lastUsedMove.attack(*this, target))
+			this->_log("attack misses");
 	}
 
 	void Pokemon::storeDamages(bool active)
@@ -174,6 +186,8 @@ namespace Pokemon
 		this->_storingDamages = active;
 		if (!active)
 			this->_damagesStored = 0;
+		else
+			this->_log("is storing damages");
 	}
 
 	bool Pokemon::hasStatus(StatusChange status) const
@@ -210,8 +224,28 @@ namespace Pokemon
 		return this->_getUpgradedStat(this->_baseStats.ATK, this->_upgradedStats.ATK);
 	}
 
+	unsigned Pokemon::getSpecial() const
+	{
+		return this->_getUpgradedStat(this->_baseStats.SPE, this->_upgradedStats.SPE);
+	}
+
+	unsigned Pokemon::getDefense() const
+	{
+		return this->_getUpgradedStat(this->_baseStats.DEF, this->_upgradedStats.DEF);
+	}
+
 	void Pokemon::endTurn()
 	{
+		if (this->_currentStatus & STATUS_BURNED) {
+			this->_log("is hurt by the burn");
+			this->takeDamage(this->getHealth() / 16);
+		} else if ((this->_currentStatus & STATUS_POISONED) || (this->_currentStatus & STATUS_BADLY_POISONED)) {
+			this->_log("is hurt by the poison");
+			if (this->_currentStatus & STATUS_BADLY_POISONED)
+				this->takeDamage(this->getHealth() * this->_badPoisonStage++ / 16);
+			else
+				this->takeDamage(this->getHealth() / 16);
+		}
 	}
 
 	void Pokemon::_log(const std::string &msg) const
@@ -230,28 +264,20 @@ namespace Pokemon
 				this->_currentStatus = None;
 			}
 			return;
-		} else if ((this->_currentStatus & STATUS_PARALYZED) && !this->_random(0, 4)) {
+		} else if ((this->_currentStatus & STATUS_PARALYZED) && !this->_random(4)) {
 			this->_log("is paralyzed");
+			this->_lastUsedMove = DEFAULT_MOVE(0x00);
 			return;
-		} else if ((this->_currentStatus & STATUS_CONFUSED) && !this->_random(0, 1)) {
-			if (--this->_statusDuration)
-				this->_log("hits itself in it's confusion");
-			else {
+		} else if ((this->_currentStatus & STATUS_CONFUSED) && !this->_random(2)) {
+			if (--this->_statusDuration) {
+				this->_log("hurts itself in it's confusion");
+			} else {
 				this->_log("woke up");
 				this->_currentStatus = None;
 			}
+			this->_lastUsedMove = DEFAULT_MOVE(0x00);
 		}
 		this->useMove(this->_moveSet[moveSlot], target);
-		if (this->_currentStatus & STATUS_BURNED) {
-			this->_log("is hurt by the burn");
-			this->takeDamage(this->getMaxHealth() / 16);
-		} else if ((this->_currentStatus & STATUS_POISONED) || (this->_currentStatus & STATUS_BADLY_POISONED)) {
-			this->_log("is hurt by the poison");
-			if (this->_currentStatus & STATUS_BADLY_POISONED)
-				this->takeDamage(this->getMaxHealth() * this->_badPoisonStage++ / 16);
-			else
-				this->takeDamage(this->getMaxHealth() / 16);
-		}
 	}
 
 	unsigned Pokemon::getLevel() const
@@ -274,14 +300,84 @@ namespace Pokemon
 		return this->_lastUsedMove;
 	}
 
+	void Pokemon::changeStat(StatsChange stat, char nb)
+	{
+		std::string statName;
+		char *stats = reinterpret_cast<char *>(&this->_upgradedStats);
+
+		if (!nb)
+			return;
+
+		switch (stat) {
+		case STATS_ATK:
+			statName = "attack";
+			break;
+		case STATS_DEF:
+			statName = "defense";
+			break;
+		case STATS_SPD:
+			statName = "speed";
+			break;
+		case STATS_SPE:
+			statName = "special";
+			break;
+		case STATS_ESQ:
+			statName = "evasion";
+			break;
+		case STATS_PRE:
+			statName = "accuracy";
+			break;
+		default:
+			return;
+		}
+
+		if (stats[stat] >= 6 && nb > 0)
+			return this->_log(statName + " cannot go any higher !");
+		else if (stats[stat] <= -6 && nb < 0)
+			return this->_log(statName + " cannot go any lower !");
+
+		if (nb < -1)
+			this->_log(statName + " sharply decreased!");
+		else if (nb == -1)
+			this->_log(statName + " decreased!");
+		else if (nb == 1)
+			this->_log(statName + " rose!");
+		else if (nb > 1)
+			this->_log(statName + " sharply rose!");
+
+		stats[stat] += nb;
+		if (stats[stat] > 6)
+			stats[stat] = 6;
+		else if (stats[stat] < -6)
+			stats[stat] = -6;
+	}
+
 	void Pokemon::takeDamage(int damage)
 	{
+		if (!damage)
+			damage = 1;
+
 		if (damage > static_cast<int>(this->_baseStats.HP))
 			this->_baseStats.HP = 0;
 		else if (damage < static_cast<int>(this->_baseStats.HP - this->_baseStats.maxHP))
 			this->_baseStats.HP = this->_baseStats.maxHP;
 		else
 			this->_baseStats.HP -= damage;
+
+		if (damage < 0)
+			this->_log("healed for " + std::to_string(-damage) + "HP");
+		else
+			this->_log("lost " + std::to_string(damage) + "HP");
+
+		if (!this->_baseStats.HP)
+			this->_log("fainted");
+	}
+
+	bool Pokemon::canGetHitBy(unsigned char moveId)
+	{
+		if (moveId == Swift || moveId == Transform || moveId == Dig)
+			return true;
+		return this->_lastUsedMove.isFinished() || !this->_lastUsedMove.makesInvulnerable();
 	}
 
 	std::pair<PokemonTypes, PokemonTypes> Pokemon::getTypes() const
@@ -294,10 +390,56 @@ namespace Pokemon
 		this->_types = types;
 	}
 
-	unsigned Pokemon::dealDamage(Pokemon &target, unsigned power, PokemonTypes damageType) const
+	unsigned Pokemon::dealDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, double critRate) const
 	{
-		//TODO: Code function
-		return power;
+		unsigned defense;
+		unsigned attack;
+
+		switch (category) {
+		case SPECIAL:
+			attack = this->getSpecial();
+			defense = target.getSpecial();
+			break;
+		case PHYSICAL:
+			attack = this->getAttack();
+			defense = target.getDefense();
+			break;
+		default:
+			return 0;
+		}
+
+		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
+		bool critical = (this->_random(256) < (this->_baseStats.SPD / 2 * critRate));
+
+		if (critical)
+			this->_log(": Critical hit !");
+
+		if (effectiveness == 0) {
+			this->_log(": No effect");
+			return 0;
+		}
+
+		if (effectiveness < 1)
+			this->_log(": It's not very effective");
+
+		if (effectiveness > 1)
+			this->_log(": It's super very effective");
+
+		if (this->_types.first == damageType || this->_types.second == damageType)
+			effectiveness *= 1.5;
+
+		//From CampbellAlexander/PokemonGen1 ->
+		//https://github.com/CampbellAlexander/PokemonGen1/blob/24d92ce0e489cf853b1c9a0df6dc18ad225db124/PokemonGeneration1/Source/Moves/Transitive/Attack/AttackMove.cs#L119
+		auto damages = static_cast<unsigned>(((
+			(
+				(
+					((critical ? 4.f : 2.f) * this->_level / 2.f) + 2.f
+				) * attack * power / defense / 50.f
+			) + 2.f
+		) * effectiveness * this->_random(217, 256)) / 255.f);
+
+		target.takeDamage(damages);
+		return damages;
 	}
 
 	std::string Pokemon::getName() const
@@ -305,6 +447,16 @@ namespace Pokemon
 		if (this->_nickname.empty())
 			return this->_name;
 		return this->_nickname;
+	}
+
+	double Pokemon::getAccuracy() const
+	{
+		return this->_getUpgradedStat(1, this->_upgradedStats.PRE);
+	}
+
+	double Pokemon::getEvasion() const
+	{
+		return this->_getUpgradedStat(1, -this->_upgradedStats.ESQ);
 	}
 
 	std::vector<unsigned char> Pokemon::encode() const
@@ -401,24 +553,11 @@ namespace Pokemon
 		return result;
 	}
 
-	unsigned Pokemon::_getUpgradedStat(unsigned char baseValue, char upgradeStage) const
+	double Pokemon::_getUpgradedStat(unsigned short baseValue, char upgradeStage) const
 	{
-		switch (upgradeStage) {
-		case -6:
-			return baseValue / 4;
-		case -5:
-			return 2 * baseValue / 7;
-		case -4:
-			return baseValue / 3;
-		case -3:
-			return 2 * baseValue / 5;
-		case -2:
-			return baseValue / 2;
-		case -1:
-			return 2 * baseValue / 3;
-		default:
-			return (upgradeStage + 2) * baseValue / 2;
-		}
+		if (upgradeStage < 0)
+			return 2. * baseValue / (2 - upgradeStage);
+		return (upgradeStage + 2.) * baseValue / 2;
 	}
 
 	/*

@@ -15,8 +15,8 @@ add_executable(
 	src/Socket.hpp
 	src/BgbHandler.cpp
 	src/BgbHandler.hpp
-	src/PkmnGen1Handle.cpp
-	src/PkmnGen1Handle.hpp
+	src/GameHandle.cpp
+	src/GameHandle.hpp
 	src/EmulatorHandle.hpp
 	src/Pokemon.cpp
 	src/Pokemon.hpp
