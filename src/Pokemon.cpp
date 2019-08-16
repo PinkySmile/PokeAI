@@ -161,18 +161,28 @@ namespace PokemonGen1
 		this->_upgradedStats = {0, 0, 0, 0, 0, 0};
 	}
 
-	int Pokemon::getPriorityFactor(char moveSlot)
+	int Pokemon::getPriorityFactor(unsigned char moveSlot)
 	{
 		const Move *move = &this->_lastUsedMove;
 
-		if (this->_lastUsedMove.isFinished())
-			move = &this->_moveSet[moveSlot];
-		return move->getPriority() * 262140 + this->getSpeed();
+		if (moveSlot == 0xE)
+			move = &availableMoves[Struggle];
+		else if (this->_lastUsedMove.isFinished())
+			move = moveSlot < this->_moveSet.size() ? &this->_moveSet[moveSlot] : nullptr;
+		return (move ? move->getPriority() : 0) * 262140 + this->getSpeed();
 	}
 
 	void Pokemon::useMove(const Move &move, Pokemon &target)
 	{
 		if (this->_lastUsedMove.isFinished()) {
+			if (move.getName() == "Struggle") {
+				Move struggle = move;
+
+				this->_log("Uses Struggle");
+				if (!struggle.attack(*this, target))
+					this->_log("attack misses");
+				return;
+			}
 			this->_lastUsedMove = move;
 			this->_log("Uses " + this->_lastUsedMove.getName());
 		} else
@@ -253,7 +263,7 @@ namespace PokemonGen1
 		std::cout << "[" << this->getName() << "] " << msg << std::endl;
 	}
 
-	void Pokemon::attack(char moveSlot, Pokemon &target)
+	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
 	{
 		if (this->_currentStatus & STATUS_ASLEEP) {
 			if (this->_statusDuration) {
@@ -276,8 +286,12 @@ namespace PokemonGen1
 				this->_currentStatus = None;
 			}
 			this->_lastUsedMove = DEFAULT_MOVE(0x00);
+			return;
 		}
-		this->useMove(this->_moveSet[moveSlot], target);
+		if (moveSlot == 0xE)
+			this->useMove(availableMoves[Struggle], target);
+		else
+			this->useMove(this->_moveSet[moveSlot], target);
 	}
 
 	unsigned Pokemon::getLevel() const
@@ -677,7 +691,7 @@ namespace PokemonGen1
 		{ 0x00,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x00) */
 		{ 0x01,      "Rhydon", 105, 130, 120,  40,  45,   TYPE_GROUND,     TYPE_ROCK,  60, 204 }, /* RHYDON       (0x01) */
 		{ 0x02,  "Kangaskhan", 105,  95,  80,  90,  40,   TYPE_NORMAL,   TYPE_NORMAL,  45, 175 }, /* KANGASKHAN   (0x02) */
-		{ 0x03,    "Nidoran♂",  46,  57,  40,  50,  40,   TYPE_POISON,   TYPE_POISON, 235,  60 }, /* NIDORAN_M    (0x03) */
+		{ 0x03,    "Nidoran~",  46,  57,  40,  50,  40,   TYPE_POISON,   TYPE_POISON, 235,  60 }, /* NIDORAN_M    (0x03) */
 		{ 0x04,    "Clefairy",  70,  45,  48,  35,  60,   TYPE_NORMAL,   TYPE_NORMAL, 150,  68 }, /* CLEFAIRY     (0x04) */
 		{ 0x05,     "Spearow",  40,  60,  30,  70,  31,   TYPE_NORMAL,   TYPE_FLYING, 255,  58 }, /* SPEAROW      (0x05) */
 		{ 0x06,     "Voltorb",  40,  30,  50, 100,  55, TYPE_ELECTRIC, TYPE_ELECTRIC, 190, 103 }, /* VOLTORB      (0x06) */
@@ -689,7 +703,7 @@ namespace PokemonGen1
 		{ 0x0c,   "Exeggcute",  60,  40,  80,  40,  60,    TYPE_GRASS,  TYPE_PSYCHIC,  90,  98 }, /* EXEGGCUTE    (0x0C) */
 		{ 0x0d,      "Grimer",  80,  80,  50,  25,  40,   TYPE_POISON,   TYPE_POISON, 190,  90 }, /* GRIMER       (0x0D) */
 		{ 0x0e,      "Gengar",  60,  65,  60, 110, 130,    TYPE_GHOST,   TYPE_POISON,  45, 190 }, /* GENGAR       (0x0E) */
-		{ 0x0f,    "Nidoran♀",  55,  47,  52,  41,  40,   TYPE_POISON,   TYPE_POISON, 235,  59 }, /* NIDORAN_F    (0x0F) */
+		{ 0x0f,    "Nidoran`",  55,  47,  52,  41,  40,   TYPE_POISON,   TYPE_POISON, 235,  59 }, /* NIDORAN_F    (0x0F) */
 		{ 0x10,   "Nidoqueen",  90,  82,  87,  76,  75,   TYPE_POISON,   TYPE_GROUND,  45, 194 }, /* NIDOQUEEN    (0x10) */
 		{ 0x11,      "Cubone",  50,  50,  95,  35,  40,   TYPE_GROUND,   TYPE_GROUND, 190,  87 }, /* CUBONE       (0x11) */
 		{ 0x12,     "Rhyhorn",  80,  85,  95,  25,  30,   TYPE_GROUND,     TYPE_ROCK, 120, 135 }, /* RHYHORN      (0x12) */

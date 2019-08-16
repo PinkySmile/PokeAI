@@ -6,16 +6,6 @@
 #include "GameHandle.hpp"
 #include "Exception.hpp"
 
-EmulatorHandle *handler = nullptr;
-
-void sigHandler(int)
-{
-	if (!handler)
-		return;
-	handler->disconnect();
-	handler = nullptr;
-}
-
 namespace PokemonGen1
 {
 	void displayPacket(std::vector<unsigned char> packet)
@@ -158,12 +148,15 @@ namespace PokemonGen1
 			if (byte == 253 || (byte == 254 && this->_isPlayer2)) {
 				this->_sendBuffer = this->_craftPacket();
 				this->_sendBufferIndex = {0, 0};
-				this->_received = this->_sent = this->_done = false;
+				this->_sent = this->_done = false;
 				this->_log("Sending battle data");
 				this->_stage = EXCHANGE_POKEMONS;
 				this->_receiveBuffer.clear();
 			} else if (byte >= 208 && byte != 254){
 				this->_log("Oops, we are still choosing room");
+				this->_timer = 5;
+				this->_done = false;
+				this->_buffer = 0;
 				this->_stage = ROOM_CHOOSE;
 			}
 			break;
@@ -198,7 +191,6 @@ namespace PokemonGen1
 			}
 			if (byte == SYNC_BYTE)
 				return byte;
-			this->_received = true;
 			break;
 		case BATTLE:
 			if (byte == 2) {
@@ -245,7 +237,9 @@ namespace PokemonGen1
 		bool AIAttack = false;
 		bool opponentAttack = false;
 
-		//this->_log(std::to_string(this->_state.nextAction) + ":" + std::to_string(this->_state.nextOpponentAction));
+		if (this->_state.nextAction == NoAction)
+			this->_state.nextAction = this->_battleHandler(*this);
+
 		switch (this->_state.nextAction) {
 		case Run:
 			this->_log("Got away safely !");
@@ -268,8 +262,8 @@ namespace PokemonGen1
 			AIAttack = true;
 			break;
 		default:
-			this->_log("Warning: Invalid AI move");
-			this->_state.nextAction = Attack1;
+			this->_log("Warning: Invalid AI move " + std::to_string(this->_state.nextAction));
+			this->_state.nextAction = StruggleMove;
 			AIAttack = true;
 		}
 
@@ -295,8 +289,8 @@ namespace PokemonGen1
 			opponentAttack = true;
 			break;
 		default:
-			this->_log("Warning: Invalid opponent move");
-			this->_state.nextOpponentAction = Attack1;
+			this->_log("Warning: Invalid opponent move " + std::to_string(this->_state.nextOpponentAction));
+			this->_state.nextOpponentAction = StruggleMove;
 			opponentAttack = true;
 		}
 
@@ -375,13 +369,15 @@ namespace PokemonGen1
 
 	void GameHandle::connect(const std::string &ip, unsigned short port)
 	{
-		if (handler)
+		if (this->isConnected())
 			return;
 		this->_emulator.reset(this->_emulatorMaker(this->_byteHandler, [this](EmulatorHandle &handle){ this->_mainLoop(handle); }, ip, port));
 		this->_log("Connected to " + ip + ":" + std::to_string(port));
-		handler = &*this->_emulator;
-		while (this->_emulator->isConnected())
-			std::this_thread::sleep_for(std::chrono::milliseconds(500));
+	}
+
+	bool GameHandle::isConnected()
+	{
+		return this->_emulator && this->_emulator->isConnected();
 	}
 
 	std::vector<unsigned char> GameHandle::convertString(const std::string &str)
@@ -471,7 +467,7 @@ namespace PokemonGen1
 		for (auto &pkmn : this->_pkmns)
 			for (unsigned char c : pkmn.encode())
 				buffer.push_back(c);
-		buffer.resize(19 + 44 * 6, ASCIIToPkmn1CharConversionTable['\0']);
+		buffer.resize(19 + 44 * 6, 0);
 
 		packet.push_back(buffer);
 		buffer = this->convertString(this->_trainerName);
@@ -928,7 +924,7 @@ namespace PokemonGen1
 		']',          /* 0x9C */
 		'^',          /* 0x9D */
 		'_',          /* 0x9E */
-		'`',          /* 0x9F */
+		'\'',         /* 0x9F */
 		'a',          /* 0xA0 */
 		'b',          /* 0xA1 */
 		'c',          /* 0xA2 */

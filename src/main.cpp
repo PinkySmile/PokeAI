@@ -4,8 +4,6 @@
 #include "BgbHandler.hpp"
 #include "GameHandle.hpp"
 
-void sigHandler(int);
-
 int main(int argc, char **argv)
 {
 	if (argc != 3) {
@@ -18,14 +16,7 @@ int main(int argc, char **argv)
 		return new BGBHandler(byteHandle, byteHandle, loopHandler, ip, port);
 	},
 	[](PokemonGen1::GameHandle &) {
-		std::vector<PokemonGen1::BattleAction> actions = {
-			PokemonGen1::Attack1,
-			PokemonGen1::Attack2,
-			PokemonGen1::Attack3,
-			PokemonGen1::Attack4
-		};
-
-		return actions[0];
+		return PokemonGen1::Attack1;
 	});
 
 	unsigned long port = std::stoul(argv[2]);
@@ -33,17 +24,43 @@ int main(int argc, char **argv)
 	if (port > 65535)
 		throw std::out_of_range("Too big value");
 
-	signal(SIGINT, sigHandler);
 	handler.addPokemonToTeam(
 		"",
 		100,
-		PokemonGen1::pokemonList[PokemonGen1::Mewtwo],
+		PokemonGen1::pokemonList[0x00],
 		std::vector<PokemonGen1::Move>{
 			PokemonGen1::availableMoves[PokemonGen1::Splash],
-			PokemonGen1::availableMoves[PokemonGen1::Aurora_Beam]
+			PokemonGen1::availableMoves[PokemonGen1::Earthquake]
 		}
 	);
 	handler.connect(argv[1], port);
-	signal(SIGINT, nullptr);
-	return 0;
+	while (handler.isConnected()) {
+		unsigned id;
+		std::string str;
+
+		std::cin >> str;
+		try {
+			if (str.substr(0, 2) == "0x")
+				id = std::stol(str.substr(2), nullptr, 16);
+			else
+				id = std::stol(str);
+		} catch (std::exception &) {
+			continue;
+		}
+		if (id > 255)
+			continue;
+		std::cout << "Changing pokemon to " << PokemonGen1::pokemonList[id].name << " (ID: " << id << ")" << std::endl;
+		handler.changePokemon(
+			0,
+			"",
+			100,
+			PokemonGen1::pokemonList[id],
+			std::vector<PokemonGen1::Move>{
+				PokemonGen1::availableMoves[PokemonGen1::Splash],
+				PokemonGen1::availableMoves[PokemonGen1::Aurora_Beam]
+			}
+		);
+	}
+
+	return EXIT_SUCCESS;
 }
