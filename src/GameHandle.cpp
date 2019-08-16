@@ -359,7 +359,7 @@ namespace PokemonGen1
 			handle.sendByte(this->_state.nextAction);
 			if (this->_state.nextAction == NoAction)
 				this->_state.nextAction = this->_battleHandler(*this);
-			val = 300;
+			val = 900;
 			break;
 		default:
 			val = 0;
