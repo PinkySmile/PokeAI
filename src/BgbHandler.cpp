@@ -6,6 +6,9 @@
 #include <inaddr.h>
 #else
 #include <sys/socket.h>
+
+typedef fd_set FD_SET;
+typedef struct timeval TIMEVAL;
 #endif
 #include <cassert>
 #include "BgbHandler.hpp"
