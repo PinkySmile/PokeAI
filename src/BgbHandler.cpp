@@ -145,7 +145,7 @@ bool BGBHandler::_handleLoop()
 			this->log("Server version is invalid");
 			throw InvalidVersionException("Server version is not compatible");
 		}
-		this->_sendPacket({STATUS, STATUSFLAG_RUNNING & STATUSFLAG_PAUSED, 0, 0, 0});
+		this->_sendPacket({STATUS, STATUSFLAG_RUNNING | STATUSFLAG_PAUSED, 0, 0, 0});
 		this->log("Server version is OK");
 		return true;
 
@@ -172,8 +172,10 @@ bool BGBHandler::_handleLoop()
 		return true;
 
 	case JOYPAD_CHANGE:
-	case WANT_DISCONNECT:
 		return true;
+	case WANT_DISCONNECT:
+		this->_socket.disconnect();
+		return false;
 	default:
 		this->log("Unknown command sent by server (Opcode: " + std::to_string(packet.b1) + ")");
 	}

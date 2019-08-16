@@ -92,12 +92,12 @@ namespace PokemonGen1
 		void storeDamages(bool active);
 		bool hasStatus(StatusChange status) const;
 		void takeDamage(int damage);
-		void attack(char moveSlot, Pokemon &target);
+		void attack(unsigned char moveSlot, Pokemon &target);
 		bool canGetHitBy(unsigned char moveId);
 		unsigned dealDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, double critChance) const;
 		void endTurn();
 		void switched();
-		int getPriorityFactor(char moveSlot);
+		int getPriorityFactor(unsigned char moveSlot);
 		std::vector<unsigned char> encode() const;
 		std::string dump() const;
 

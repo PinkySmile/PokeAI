@@ -126,7 +126,7 @@ namespace PokemonGen1
 			return false;
 		}
 
-		unsigned damages = owner.dealDamage(target, this->_power, this->_type, this->_category, this->_critChance);
+		unsigned damages = !this->_power ? 0 : owner.dealDamage(target, this->_power, this->_type, this->_category, this->_critChance);
 
 		if (owner.getRandomGenerator()(256) / 256. < this->_statusChange.prob)
 			target.addStatus(this->_statusChange.status);
