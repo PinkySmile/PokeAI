@@ -4,9 +4,9 @@ project(PokeAI)
 set(CMAKE_CXX_STANDARD 17)
 
 
-if (CMAKE_COMPILER_IS_GNUCC)
+if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_BUILD_TYPE MATCHES Debug)
 	add_compile_options(-W -Wall -Wextra)
-endif (CMAKE_COMPILER_IS_GNUCC)
+endif (CMAKE_COMPILER_IS_GNUCC AND CMAKE_BUILD_TYPE MATCHES Debug)
 
 add_executable(
 	PokeAI
@@ -28,16 +28,20 @@ add_executable(
 	src/StatsChange.hpp
 	src/PokemonRandomGenerator.cpp
 	src/PokemonRandomGenerator.hpp
-	src/StatusChange.cpp src/PokemonTypes.cpp)
+	src/StatusChange.cpp
+	src/PokemonTypes.cpp
+	src/commandLine.cpp
+	src/commandLine.hpp
+)
 
 if (WIN32)
-target_link_libraries(
-	PokeAI
-	ws2_32
-)
+	target_link_libraries(
+		PokeAI
+		ws2_32
+	)
 else (WIN32)
-target_link_libraries(
-	PokeAI
-	pthread
-)
+	target_link_libraries(
+		PokeAI
+		pthread
+	)
 endif (WIN32)

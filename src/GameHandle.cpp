@@ -38,15 +38,21 @@ namespace PokemonGen1
 		> &emulatorMaker,
 		const std::function<BattleAction(GameHandle &)> &battleHandler,
 		const std::string &trainerName,
-		bool player2
+		const Logger &battleLogger,
+		bool player2,
+		bool log
 	) :
 		_emulatorMaker(emulatorMaker),
+		_logMsg(log),
 		_emulator{nullptr},
 		_trainerName(trainerName),
 		_isPlayer2(player2),
 		_randomGenerator(time(nullptr)),
+		_battleLogger(battleLogger),
 		_battleHandler(battleHandler)
 	{
+		if (player2)
+			throw NotImplementedException("Player 2 hasn't been implemented");
 		if (this->_trainerName.size() > 10) {
 			this->_log("Warning: trainer name is too long");
 			this->_trainerName = this->_trainerName.substr(0, 10);
@@ -54,6 +60,48 @@ namespace PokemonGen1
 		this->_byteHandler = [this](EmulatorHandle &handle, unsigned char byte) {
 			return this->_handleReceivedBytes(handle, byte);
 		};
+	}
+
+	void GameHandle::logBattle(const std::string &message)
+	{
+		std::cout << "[BATTLE]: " << message << std::endl;
+		if (this->_battleLogger)
+			this->_battleLogger(message);
+	}
+
+	void GameHandle::setTeamSize(unsigned size)
+	{
+		if (!size || size > 6)
+			throw std::invalid_argument("Team size out of range");
+
+		std::vector<PokemonGen1::Pokemon> temp{this->_pkmns};
+
+		this->_pkmns.clear();
+		for (unsigned i = 0; i < size; i++)
+			if (i < temp.size())
+				this->_pkmns.push_back(temp[i]);
+			else
+				this->_pkmns.emplace_back(
+					this->_randomGenerator,
+					*this,
+					"",
+					1,
+					PokemonGen1::pokemonList[PokemonGen1::Rhydon],
+					std::vector<PokemonGen1::Move>{
+						PokemonGen1::availableMoves[PokemonGen1::Tackle],
+						PokemonGen1::availableMoves[PokemonGen1::Tail_Whip],
+					}
+				);
+	}
+
+	const std::vector<Pokemon> &GameHandle::getPokemonTeam()
+	{
+		return this->_pkmns;
+	}
+
+	const BattleState &GameHandle::getBattleState()
+	{
+		return this->_state;
 	}
 
 	unsigned char GameHandle::_handleReceivedBytes(EmulatorHandle &handle, unsigned char byte)
@@ -164,7 +212,7 @@ namespace PokemonGen1
 			this->_receiveBuffer.push_back(byte);
 			this->_sent = false;
 			this->_done = true;
-			if (byte == SYNC_BYTE || byte == 0xFE)
+			if (byte == SYNC_BYTE || byte == UNAVAILABLE_BYTE)
 				this->_syncSignalsReceived++;
 			else
 				this->_syncSignalsReceived = 0;
@@ -177,7 +225,7 @@ namespace PokemonGen1
 			}
 			for (unsigned i = 0; i < 7; i++)
 				this->_done &= !this->_last[i];
-			if (this->_done && byte == 0xFE) {
+			if (this->_done && byte == UNAVAILABLE_BYTE) {
 				this->_interpretPacket();
 				this->_stage = BATTLE;
 				this->_done = false;
@@ -203,7 +251,7 @@ namespace PokemonGen1
 				this->_executeBattleActions();
 				this->_state.nextAction = NoAction;
 				this->_state.nextOpponentAction = NoAction;
-			} else
+			} else if (byte != UNAVAILABLE_BYTE)
 				this->_state.nextOpponentAction = static_cast<BattleAction>(byte);
 			break;
 		}
@@ -232,67 +280,92 @@ namespace PokemonGen1
 			ai.attack(this->_state.nextAction - Attack1, opponent);
 	}
 
+	void GameHandle::setReady(bool ready)
+	{
+		this->_ready = ready;
+	}
+
+	void GameHandle::disconnect()
+	{
+		if (!this->isConnected())
+			return;
+		this->_emulator->disconnect();
+	}
+
 	void GameHandle::_executeBattleActions()
 	{
 		bool AIAttack = false;
 		bool opponentAttack = false;
+		bool AIFainted = !this->_state.team[this->_state.pokemonOnField].getHealth();
+		bool opponentFainted = !this->_state.opponentTeam[this->_state.opponentPokemonOnField].getHealth();
 
 		if (this->_state.nextAction == NoAction)
 			this->_state.nextAction = this->_battleHandler(*this);
 
-		switch (this->_state.nextAction) {
-		case Run:
-			this->_log("Got away safely !");
-			this->_stage = PING_POKEMON_EXCHANGE;
-			return;
-		case Switch1:
-		case Switch2:
-		case Switch3:
-		case Switch4:
-		case Switch5:
-		case Switch6:
-			this->_state.team[this->_state.pokemonOnField].switched();
-			this->_state.pokemonOnField = this->_state.nextAction - Switch1;
-			this->_log("Switched to " + this->_state.team[this->_state.pokemonOnField].getName());
-			break;
-		case Attack1:
-		case Attack2:
-		case Attack3:
-		case Attack4:
-			AIAttack = true;
-			break;
-		default:
-			this->_log("Warning: Invalid AI move " + std::to_string(this->_state.nextAction));
-			this->_state.nextAction = StruggleMove;
-			AIAttack = true;
-		}
+		if (AIFainted || !opponentFainted)
+			switch (this->_state.nextAction) {
+			case Run:
+				this->logBattle("Got away safely!");
+				this->_stage = PING_POKEMON_EXCHANGE;
+				return;
+			case Switch1:
+			case Switch2:
+			case Switch3:
+			case Switch4:
+			case Switch5:
+			case Switch6:
+				if (!AIFainted) {
+					this->_state.team[this->_state.pokemonOnField].switched();
+					this->logBattle(this->_state.team[this->_state.pokemonOnField].getName() + " come back!");
+				}
+				this->_state.pokemonOnField = this->_state.nextAction - Switch1;
+				this->logBattle(this->_state.team[this->_state.pokemonOnField].getName() + " go!");
+				break;
+			case Attack1:
+			case Attack2:
+			case Attack3:
+			case Attack4:
+				AIAttack = true;
+				break;
+			default:
+				this->_log("Warning: Invalid AI move " + std::to_string(this->_state.nextAction));
+				this->_state.nextAction = StruggleMove;
+				AIAttack = true;
+			}
 
-		switch (this->_state.nextOpponentAction) {
-		case Run:
-			this->_log(this->_state.opponentName + " ran");
-			this->_stage = PING_POKEMON_EXCHANGE;
+		if (opponentFainted || !AIFainted)
+			switch (this->_state.nextOpponentAction) {
+			case Run:
+				this->logBattle(this->_state.opponentTeam[this->_state.opponentPokemonOnField].getName() + " ran");
+				this->_stage = PING_POKEMON_EXCHANGE;
+				return;
+			case Switch1:
+			case Switch2:
+			case Switch3:
+			case Switch4:
+			case Switch5:
+			case Switch6:
+				if (!opponentFainted) {
+					this->_state.opponentTeam[this->_state.opponentPokemonOnField].switched();
+					this->logBattle(this->_state.opponentName + " withdrew " + this->_state.opponentTeam[this->_state.opponentPokemonOnField].getName());
+				}
+				this->_state.opponentPokemonOnField = this->_state.nextOpponentAction - Switch1;
+				this->logBattle(this->_state.opponentName + " sent out " + this->_state.opponentTeam[this->_state.opponentPokemonOnField].getName());
+				break;
+			case Attack1:
+			case Attack2:
+			case Attack3:
+			case Attack4:
+				opponentAttack = true;
+				break;
+			default:
+				this->_log("Warning: Invalid opponent move " + std::to_string(this->_state.nextOpponentAction));
+				this->_state.nextOpponentAction = StruggleMove;
+				opponentAttack = true;
+			}
+
+		if (opponentFainted || AIFainted)
 			return;
-		case Switch1:
-		case Switch2:
-		case Switch3:
-		case Switch4:
-		case Switch5:
-		case Switch6:
-			this->_state.opponentTeam[this->_state.opponentPokemonOnField].switched();
-			this->_state.opponentPokemonOnField = this->_state.nextOpponentAction - Switch1;
-			this->_log("Opponent switched to " + this->_state.opponentTeam[this->_state.opponentPokemonOnField].getName());
-			break;
-		case Attack1:
-		case Attack2:
-		case Attack3:
-		case Attack4:
-			opponentAttack = true;
-			break;
-		default:
-			this->_log("Warning: Invalid opponent move " + std::to_string(this->_state.nextOpponentAction));
-			this->_state.nextOpponentAction = StruggleMove;
-			opponentAttack = true;
-		}
 
 		this->_makePlayersAttack(AIAttack, opponentAttack);
 		this->_state.team[this->_state.pokemonOnField].endTurn();
@@ -301,26 +374,29 @@ namespace PokemonGen1
 		this->_log(this->_state.opponentTeam[this->_state.opponentPokemonOnField].dump());
 	}
 
+	Gen1ConnectionStage GameHandle::getStage() const
+	{
+		return this->_stage;
+	}
+
 	void GameHandle::_mainLoop(EmulatorHandle &handle)
 	{
 		static int val = 0;
 
-		if (--val > 0)
+		if (--val > 0 || this->_isPlayer2)
 			return;
 		switch (this->_stage) {
 		case PINGING_OPPONENT:
-			if (!this->_isPlayer2)
-				handle.sendByte(PING_BYTE);
+			handle.sendByte(PING_BYTE);
 			val = 500;
 			break;
 		case PING_POKEMON_EXCHANGE:
-			if (!this->_isPlayer2)
-				handle.sendByte(PING_BYTE);
+			if (!this->_ready)
+				break;
+			handle.sendByte(PING_BYTE);
 			val = 1000;
 			break;
 		case ROOM_CHOOSE:
-			if (this->_isPlayer2)
-				break;
 			if (this->_timer) {
 				this->_buffer = 0;
 				this->_timer--;
@@ -335,8 +411,6 @@ namespace PokemonGen1
 			val = 500;
 			break;
 		case EXCHANGE_POKEMONS:
-			if (this->_isPlayer2)
-				break;
 			if (this->_timer == 0)
 				this->_sent = false;
 			else
@@ -356,10 +430,10 @@ namespace PokemonGen1
 			val = 200;
 			break;
 		case BATTLE:
-			handle.sendByte(this->_state.nextAction);
+			handle.sendByte(this->_state.nextOpponentAction ? this->_state.nextAction : NoAction);
 			if (this->_state.nextAction == NoAction)
 				this->_state.nextAction = this->_battleHandler(*this);
-			val = 900;
+			val = 1900;
 			break;
 		default:
 			val = 0;
@@ -405,7 +479,8 @@ namespace PokemonGen1
 	void GameHandle::_interpretPacket()
 	{
 		this->_log("Decrypting received packet");
-		displayPacket(this->_receiveBuffer);
+		if (this->_logMsg)
+			displayPacket(this->_receiveBuffer);
 
 		/* HEADER PACKET */
 		while (this->_receiveBuffer[0] == SYNC_BYTE)
@@ -431,18 +506,22 @@ namespace PokemonGen1
 
 		this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 44 * 6 + 66);
 		this->_state.opponentTeam.clear();
-		for (int i = 0; i < nbPkmns; i++) {
-			this->_state.opponentTeam.emplace_back(this->_randomGenerator, this->convertString(this->_receiveBuffer), pkmnData);
+		for (int i = 0; i < 6; i++) {
+			this->_state.opponentTeam.emplace_back(this->_randomGenerator, *this, this->convertString(this->_receiveBuffer), pkmnData, true);
 			this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 11);
 			pkmnData.erase(pkmnData.begin(), pkmnData.begin() + 44);
 		}
 		for (Pokemon &pkmn : this->_state.opponentTeam)
 			this->_log(pkmn.dump());
+		this->logBattle(this->_state.opponentName + " wants to fight!");
+		this->logBattle(this->_state.opponentName + " sent out " + this->_state.opponentTeam[0].getName() + "!");
+		this->logBattle(this->_pkmns[0].getName() + " go!");
 	}
 
 	void GameHandle::_log(const std::string &msg)
 	{
-		std::cout << "[Gen1GameHandle]: " << msg << std::endl;
+		if (this->_logMsg || msg.substr(0, 7) == "Warning")
+			(msg.substr(0, 7) == "Warning" ? std::cerr : std::cout) << "[Gen1GameHandle]: " << msg << std::endl;
 	}
 
 	std::vector<std::vector<unsigned char>> GameHandle::_craftPacket()
@@ -456,44 +535,59 @@ namespace PokemonGen1
 		this->_log("Making packet for trainer " + this->_trainerName);
 		buffer = this->convertString(this->_trainerName);
 		buffer.resize(11, ASCIIToPkmn1CharConversionTable['\0']);
+		for (unsigned i = 0; i < buffer.size(); i++)
+			if (buffer[i] == UNAVAILABLE_BYTE)
+				buffer[i] = 0xFF;
+
+		if (this->_pkmns.empty()) {
+			this->_log("Warning: Team is empty");
+			this->addPokemonToTeam(
+				"",
+				1,
+				PokemonGen1::pokemonList[PokemonGen1::Rhydon],
+				std::vector<PokemonGen1::Move>{
+					PokemonGen1::availableMoves[PokemonGen1::Tackle],
+					PokemonGen1::availableMoves[PokemonGen1::Tail_Whip]
+				}
+			);
+		}
 
 		buffer.push_back(this->_pkmns.size());
 		this->_log("Pushing " + std::to_string(this->_pkmns.size()) + " pokémon(s)");
 		for (Pokemon &pkmn : this->_pkmns) {
 			this->_log(pkmn.dump());
-			buffer.push_back(pkmn.getID());
+			buffer.push_back(pkmn.getID() != UNAVAILABLE_BYTE ? pkmn.getID() : 0xFF);
 		}
 		buffer.resize(19, 0xFF);
+
 		for (auto &pkmn : this->_pkmns)
 			for (unsigned char c : pkmn.encode())
-				buffer.push_back(c);
+				buffer.push_back(c != UNAVAILABLE_BYTE ? c : 0xFF);
 		buffer.resize(19 + 44 * 6, 0);
 
 		packet.push_back(buffer);
 		buffer = this->convertString(this->_trainerName);
 		buffer.resize(11, ASCIIToPkmn1CharConversionTable['\0']);
 		for (unsigned char c : buffer)
-			packet[2].push_back(c);
-		for (unsigned char c : MIDDLE_PACKET)
-			packet[2].push_back(c);
+			packet[2].push_back(c != UNAVAILABLE_BYTE ? c : 0xFF);
+		packet[2].resize(packet[2].size() + 55, 0);
 
 		for (Pokemon &pkmn : this->_pkmns) {
 			buffer = this->convertString(pkmn.getName());
 			buffer.resize(11, '\x50');
 			buffer[10] = ASCIIToPkmn1CharConversionTable['\0'];
 			for (unsigned char c : buffer)
-				packet[2].push_back(c);
+				packet[2].push_back(c != UNAVAILABLE_BYTE ? c : 0xFF);
 		}
-		for (int i = this->_pkmns.size() * 11; i < 66; i++)
-			packet[2].push_back(ASCIIToPkmn1CharConversionTable['\0']);
-		packet[2].push_back(0xFF);
-		packet[2].push_back(0xFF);
-		packet[2].push_back(0xFF);
+		packet[2].resize(415, ASCIIToPkmn1CharConversionTable['\0']);
+		packet[2].resize(packet[2].size() + 21, 0);
+		packet[2].resize(packet[2].size() + 3, 0xFF);
 		packet.push_back(PACKET_FOOTER);
 
 		this->_log("Packet ready");
-		for (auto &p : packet)
-			displayPacket(p);
+		if (this->_logMsg)
+			for (auto &p : packet)
+				displayPacket(p);
 		return packet;
 	}
 

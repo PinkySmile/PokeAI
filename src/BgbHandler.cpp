@@ -30,6 +30,18 @@ BGBHandler::BGBHandler(
 	this->_disconnected = false;
 	this->log("Performing handshake");
 	this->_sendPacket({VERSION_CHECK, 1, 4, 0, 0});
+
+	BGBPacket packet = this->_getNextPacket();
+
+	if (packet.b1 != VERSION_CHECK)
+		throw InvalidVersionException("Server didn't send the version packet");
+	if (packet.b2 != 1 || packet.b3 != 4 || packet.b4 != 0 || packet.i1 != 0) {
+		this->log("Server version is invalid");
+		throw InvalidVersionException("Server version is not compatible");
+	}
+	this->_sendPacket({STATUS, STATUSFLAG_RUNNING | STATUSFLAG_PAUSED, 0, 0, 0});
+	this->log("Server version is OK");
+
 	this->_mainThread = std::thread(this->_mainHandler);
 }
 
@@ -42,12 +54,12 @@ BGBHandler::~BGBHandler()
 void BGBHandler::disconnect()
 {
 	this->log("Disconnecting...");
+	this->_sendPacket({WANT_DISCONNECT, 0, 0, 0, 0});
 	this->_socket.disconnect();
 	if (this->_mainThread.joinable())
 		this->_mainThread.join();
 	this->_disconnected = true;
 }
-
 
 void BGBHandler::log(const std::string &string, std::ostream &stream)
 {
@@ -94,18 +106,16 @@ BGBHandler::BGBPacket BGBHandler::_getNextPacket()
 	FD_SET set;
 	TIMEVAL timestruct{10, 0};
 
-	do {
-		FD_ZERO(&set);
-		FD_SET(this->_socket.getSockFd(), &set);
-		timestruct = {10, 0};
-	} while (select(FD_SETSIZE, &set, nullptr, nullptr, &timestruct) == 0 && !this->_disconnected);
+	if (select(FD_SETSIZE, &set, nullptr, nullptr, &timestruct) == 0)
+		throw TimeOutException("Connection timed out after 10 seconds");
 
 	if (!this->_socket.isOpen())
 		throw EOFException("EndOfFile");
 
 	serverMessage = this->_socket.read(PACKET_SIZE);
 
-	assert(serverMessage.length() == 8);
+	if (serverMessage.length() != 8)
+		throw InvalidVersionException("Server sent a " + std::to_string(serverMessage.length()) + " bytes long packet but it should be 8");
 
 	return {
 		static_cast<unsigned char>(serverMessage[0]),
@@ -138,7 +148,11 @@ bool BGBHandler::_handleLoop()
 
 	try {
 		packet = this->_getNextPacket();
-	} catch (EOFException &) {
+	} catch (TimeOutException &e) {
+		this->log("Error: " + std::string(e.what()));
+		return false;
+	} catch (EOFException &e) {
+		this->log("Error: EOF found" + std::string(e.what()));
 		return false;
 	}
 

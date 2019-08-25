@@ -68,5 +68,10 @@ public:
 	explicit UnexpectedUserActionException(const std::string &msg) : BaseException(msg) {};
 };
 
+class NotImplementedException : public BaseException {
+public:
+	explicit NotImplementedException(const std::string &msg) : BaseException(msg) {};
+};
+
 
 #endif //POKE_AI_EXCEPTION_HPP

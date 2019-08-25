@@ -19,19 +19,23 @@ namespace PokemonGen1
 		std::vector<StatsChangeProb> ownerChange,
 		std::vector<StatsChangeProb> foeChange,
 		std::vector<HitsProb> nbHits,
-		std::vector<unsigned> nbRuns,
+		std::vector<HitsProb> nbRuns,
+		const std::string &keepGoingMsg,
 		char priority,
 		double critChance,
 		bool needLoading,
+		const std::string &loadingMsg,
 		bool invulnerableDuringLoading,
 		bool needRecharge,
-		const std::function<bool(Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun)> &&hitCallback,
-		const std::function<bool(Pokemon &owner)> &&missCallback
+		const std::function<bool(Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun, const std::function<void(const std::string &msg)> &logger)> &&hitCallback,
+		const std::function<bool(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)> &&missCallback
 	) :
 		_hitCallback(hitCallback),
 		_missCallback(missCallback),
 		_critChance(critChance),
-		 _name(name),
+		_loadingMsg(loadingMsg),
+		_keepGoingMsg(keepGoingMsg),
+		_name(name),
 		_type(type),
 		_category(category),
 		_power(power),
@@ -98,49 +102,89 @@ namespace PokemonGen1
 		return this->_invulnerableDuringLoading;
 	}
 
-	bool Move::attack(Pokemon &owner, Pokemon &target)
+	void Move::glitch()
+	{
+		this->_nbHit = 2;
+	}
+
+	bool Move::attack(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)
 	{
 		double multiplier = target.getEvasion() * owner.getAccuracy();
+		std::string msg = this->_keepGoingMsg;
 
-		if (!this->_nbHit)
-			this->_nbHit = this->_nbRuns[owner.getRandomGenerator()(0, this->_nbRuns.size())];
-		if (this->_needLoading) {
-			this->_needLoading = false;
-			return true;
+		if (!this->_nbHit) {
+			unsigned random = owner.getRandomGenerator()(255);
+			double count = 0;
+
+			for (const auto &val : this->_nbRuns) {
+				count += val.prob;
+				if (random / 255. < count) {
+					this->_nbHit = val.count;
+					break;
+				}
+			}
+			if (this->_needRecharge)
+				this->_nbHit++;
+			if (this->_needLoading) {
+				logger(owner.getName() + " " + this->_loadingMsg);
+				return true;
+			}
+			msg = "";
 		}
+
 		this->_nbHit--;
 
-		if (!target.canGetHitBy(this->_id)) {
-			this->_nbHit = 0;
+		if (!this->_nbHit && this->_needRecharge) {
+			logger(owner.getName() + " must recharge!");
+			return true;
+		}
+
+		if (getAttackDamageMultiplier(this->_type, target.getTypes()) == 0) {
+			logger("It doesn't affect " + target.getName());
 			if (this->_missCallback)
-				this->_missCallback(owner);
+				this->_missCallback(owner, target, logger);
 			return false;
 		}
 
-		unsigned random = owner.getRandomGenerator()(256);
-
-		if (this->_accuracy <= 100 && random / 2.55 >= this->_accuracy * multiplier) {
-			this->_nbHit = 0;
+		if (!target.canGetHitBy(this->_id)) {
 			if (this->_missCallback)
-				this->_missCallback(owner);
+				this->_missCallback(owner, target, logger);
+			return false;
+		}
+
+		if (!msg.empty())
+			logger(owner.getName() + msg);
+		else
+			logger(owner.getName() + " used " + this->_name);
+
+		unsigned random = owner.getRandomGenerator()(0, 255);
+
+		if (this->_accuracy <= 100 && (random / 2.55 >= this->_accuracy * multiplier || random == 255)) {
+			if (this->_needRecharge)
+				this->_nbHit = 0;
+			if (this->_missCallback)
+				this->_missCallback(owner, target, logger);
 			return false;
 		}
 
 		unsigned damages = !this->_power ? 0 : owner.dealDamage(target, this->_power, this->_type, this->_category, this->_critChance);
 
-		if (owner.getRandomGenerator()(256) / 256. < this->_statusChange.prob)
+		if (!target.getHealth())
+			return true;
+
+		if (owner.getRandomGenerator()(0, 255) / 255. < this->_statusChange.prob)
 			target.addStatus(this->_statusChange.status);
 
 		for (const auto &val : this->_foeChange)
-			if (owner.getRandomGenerator()(256) / 256. < val.prob)
+			if (owner.getRandomGenerator()(0, 255) / 255. < val.prob)
 				target.changeStat(val.stat, val.nb);
 
 		for (const auto &val : this->_ownerChange)
-			if (owner.getRandomGenerator()(256) / 256. < val.prob)
+			if (owner.getRandomGenerator()(0, 255) / 255. < val.prob)
 				owner.changeStat(val.stat, val.nb);
 
 		if (this->_hitCallback)
-			this->_hitCallback(owner, target, damages, this->isFinished());
+			return this->_hitCallback(owner, target, damages, this->isFinished(), logger);
 
 		return true;
 	}
@@ -159,9 +203,9 @@ namespace PokemonGen1
 
 	//This is only relevant for Gen 1 (Some moves changed)
 	const std::vector<Move> availableMoves{
-		DEFAULT_MOVE(0x00),
+		{0x00, "--"          , TYPE_NORMAL  , PHYSICAL,   0,   0, 0},
 		{0x01, "Pound"       , TYPE_NORMAL  , PHYSICAL,  40, 100, 35},
-		{0x02, "Karate Chop" , TYPE_NORMAL  , PHYSICAL,  50, 100, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE * 8},
+		{0x02, "Karate Chop" , TYPE_NORMAL  , PHYSICAL,  50, 100, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},
 		{0x03, "DoubleSlap"  , TYPE_NORMAL  , PHYSICAL,  15,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		{0x04, "Comet Punch" , TYPE_NORMAL  , PHYSICAL,  18,  85, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		{0x05, "Mega Punch"  , TYPE_NORMAL  , PHYSICAL,  80,  85, 20},
@@ -171,33 +215,33 @@ namespace PokemonGen1
 		{0x09, "ThunderPunch", TYPE_ELECTRIC, PHYSICAL,  75, 100, 15, {STATUS_PARALYZED, 0.1}},
 		{0x0A, "Scratch"     , TYPE_NORMAL  , PHYSICAL,  40, 100, 35},
 		{0x0B, "ViceGrip"    , TYPE_NORMAL  , PHYSICAL,  55, 100, 30},
-		{0x0C, "Guillotine"  , TYPE_NORMAL  , PHYSICAL,   0,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, ONE_HIT_KO_HANDLE},
-		{0x0D, "Razor Wind"  , TYPE_NORMAL  , PHYSICAL,  80,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, true},
+		{0x0C, "Guillotine"  , TYPE_NORMAL  , PHYSICAL,   0,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ONE_HIT_KO_HANDLE},
+		{0x0D, "Razor Wind"  , TYPE_NORMAL  , PHYSICAL,  80,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("whipped up a whirlwind")},
 		{0x0E, "Swords Dance", TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {{STATS_ATK, 2, 1}}},
 		{0x0F, "Cut"         , TYPE_NORMAL  , PHYSICAL,  50,  95, 30},
 		{0x10, "Gust"        , TYPE_NORMAL  , SPECIAL ,  40, 100, 35},
 		{0x11, "Wing Attack" , TYPE_FLYING  , PHYSICAL,  35, 100, 35},
 		{0x12, "Whirlwind"   , TYPE_NORMAL  , STATUS  ,   0, 100, 20},
-		{0x13, "Fly"         , TYPE_FLYING  , PHYSICAL,  90,  95, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, true, true},
-		{0x14, "Bind"        , TYPE_NORMAL  , PHYSICAL,  15,  75, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
+		{0x13, "Fly"         , TYPE_FLYING  , PHYSICAL,  90,  95, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("flew up high"), true},
+		{0x14, "Bind"        , TYPE_NORMAL  , PHYSICAL,  15,  75, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, WRAP_TARGET, GLITCH_HYPER_BEAM},
 		{0x15, "Slam"        , TYPE_NORMAL  , PHYSICAL,  80,  75, 20},
 		{0x16, "Vine Whip"   , TYPE_GRASS   , PHYSICAL,  35, 100, 25},
 		{0x17, "Stomp"       , TYPE_NORMAL  , PHYSICAL,  65, 100, 20},
 		{0x18, "Double Kick" , TYPE_FIGHTING, PHYSICAL,  65, 100, 20},
 		{0x19, "Mega Kick"   , TYPE_NORMAL  , PHYSICAL, 120,  75,  5},
-		{0x1A, "Jump Kick"   , TYPE_FIGHTING, PHYSICAL,  70,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, nullptr, TAKE_1DAMAGE},
+		{0x1A, "Jump Kick"   , TYPE_FIGHTING, PHYSICAL,  70,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, nullptr, TAKE_1DAMAGE},
 		{0x1B, "Rolling Kick", TYPE_FIGHTING, PHYSICAL,  60,  85, 15},
 		{0x1C, "Sand-Attack" , TYPE_NORMAL  , STATUS  ,   0, 100, 15},
 		{0x1D, "Headbutt"    , TYPE_NORMAL  , PHYSICAL,  70, 100, 15},
 		{0x1E, "Horn Attack" , TYPE_NORMAL  , PHYSICAL,  65, 100, 25},
 		{0x1F, "Fury Attack" , TYPE_NORMAL  , PHYSICAL,  15,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
-		{0x20, "Horn Drill"  , TYPE_NORMAL  , PHYSICAL,   0,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, ONE_HIT_KO_HANDLE},
+		{0x20, "Horn Drill"  , TYPE_NORMAL  , PHYSICAL,   0,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ONE_HIT_KO_HANDLE},
 		{0x21, "Tackle"      , TYPE_NORMAL  , PHYSICAL,  35,  95, 35},
 		{0x22, "Body Slam"   , TYPE_NORMAL  , PHYSICAL,  85, 100, 15},
-		{0x23, "Wrap"        , TYPE_NORMAL  , PHYSICAL,  15,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
-		{0x24, "Take down"   , TYPE_NORMAL  , PHYSICAL,  90,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, TAKE_QUATER_MOVE_DAMAGE},
-		{0x25, "Thrash"      , TYPE_NORMAL  , PHYSICAL,  90, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, 0, DEFAULT_CRIT_CHANCE, false, false, false, CONFUSE_ON_LAST},
-		{0x26, "Double Edge" , TYPE_NORMAL  , PHYSICAL, 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, TAKE_QUATER_MOVE_DAMAGE},
+		{0x23, "Wrap"        , TYPE_NORMAL  , PHYSICAL,  15,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, WRAP_TARGET, GLITCH_HYPER_BEAM},
+		{0x24, "Take down"   , TYPE_NORMAL  , PHYSICAL,  90,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_QUATER_MOVE_DAMAGE},
+		{0x25, "Thrash"      , TYPE_NORMAL  , PHYSICAL,  90, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {{3, 0.5}, {4, 0.5}}, "'s thrashing about!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CONFUSE_ON_LAST},
+		{0x26, "Double Edge" , TYPE_NORMAL  , PHYSICAL, 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_QUATER_MOVE_DAMAGE},
 		{0x27, "Tail Whip"   , TYPE_NORMAL  , STATUS  ,   0, 100, 30, NO_STATUS_CHANGE, {}, {{STATS_DEF, -1, 1}}},
 		{0x28, "Poison Sting", TYPE_POISON  , PHYSICAL,  15, 100, 35, {STATUS_POISONED, 0.3}},
 		{0x29, "Twineedle"   , TYPE_BUG     , PHYSICAL,  25, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, {{2, 1}}},
@@ -208,7 +252,7 @@ namespace PokemonGen1
 		{0x2E, "Roar"        , TYPE_NORMAL  , STATUS  ,   0, 100, 20},
 		{0x2F, "Sing"        , TYPE_NORMAL  , STATUS  ,   0,  55, 15, {STATUS_ASLEEP, 1}},
 		{0x30, "Supersonic"  , TYPE_NORMAL  , STATUS  ,   0,  55, 20, {STATUS_CONFUSED, 1}},
-		{0x31, "SonicBoom"   , TYPE_NORMAL  , SPECIAL ,   0,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, DEAL_20_DAMAGE},
+		{0x31, "SonicBoom"   , TYPE_NORMAL  , SPECIAL ,   0,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_20_DAMAGE},
 		{0x32, "Disable"     , TYPE_NORMAL  , SPECIAL ,   0,  55, 20}, //TODO: Code this move
 		{0x33, "Acid"        , TYPE_POISON  , PHYSICAL,  40, 100, 30},
 		{0x34, "Ember"       , TYPE_FIRE    , SPECIAL ,  40, 100, 25, {STATUS_BURNED, 0.1}},
@@ -222,26 +266,26 @@ namespace PokemonGen1
 		{0x3C, "Psybeam"     , TYPE_PSYCHIC , SPECIAL ,  65, 100, 20, {STATUS_CONFUSED, 0.1}},
 		{0x3D, "Bubblebeam"  , TYPE_WATER   , SPECIAL ,  65, 100, 20, NO_STATUS_CHANGE, {}, {{STATS_SPD, -1, 0.1}}},
 		{0x3E, "Aurora Beam" , TYPE_ICE     , SPECIAL ,  65, 100, 20, NO_STATUS_CHANGE, {}, {{STATS_ATK, -1, 0.1}}},
-		{0x3F, "Hyper Beam"  , TYPE_NORMAL  , SPECIAL , 150,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, true},
+		{0x3F, "Hyper Beam"  , TYPE_NORMAL  , SPECIAL , 150,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, true},
 		{0x40, "Peck"        , TYPE_FLYING  , PHYSICAL,  35, 100, 35},
 		{0x41, "Drill Peck"  , TYPE_FLYING  , PHYSICAL,  80, 100, 20},
-		{0x42, "Submission"  , TYPE_FIGHTING, PHYSICAL,  80,  80, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, TAKE_QUATER_MOVE_DAMAGE},
+		{0x42, "Submission"  , TYPE_FIGHTING, PHYSICAL,  80,  80, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_QUATER_MOVE_DAMAGE},
 		{0x43, "Low Kick"    , TYPE_FIGHTING, PHYSICAL,  50, 100, 20},
-		{0x44, "Counter"     , TYPE_FIGHTING, PHYSICAL,  80,  80, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, -5}, //TODO: Code this move
-		{0x45, "Seismic Toss", TYPE_FIGHTING, PHYSICAL,   0, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, DEAL_LVL_AS_DAMAGE},
+		{0x44, "Counter"     , TYPE_FIGHTING, PHYSICAL,  80,  80, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, -5}, //TODO: Code this move
+		{0x45, "Seismic Toss", TYPE_FIGHTING, PHYSICAL,   0, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_LVL_AS_DAMAGE},
 		{0x46, "Strength"    , TYPE_NORMAL  , PHYSICAL,  80, 100, 15},
-		{0x47, "Absorb"      , TYPE_GRASS   , SPECIAL ,  20, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, ABSORB_HALF_DAMAGE},
-		{0x48, "Mega Drain"  , TYPE_GRASS   , SPECIAL ,  40, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, ABSORB_HALF_DAMAGE},
+		{0x47, "Absorb"      , TYPE_GRASS   , SPECIAL ,  20, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ABSORB_HALF_DAMAGE},
+		{0x48, "Mega Drain"  , TYPE_GRASS   , SPECIAL ,  40, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ABSORB_HALF_DAMAGE},
 		{0x49, "Leech Seed"  , TYPE_GRASS   , STATUS  ,   0,  90, 10, {STATUS_LEECHED, 1}},
 		{0x4A, "Growth"      , TYPE_NORMAL  , STATUS  ,   0, 255, 40, NO_STATS_CHANGE, {{STATS_ATK, 1, 1}, {STATS_SPE, 1, 1}}},
-		{0x4B, "Razor Leaf"  , TYPE_GRASS   , PHYSICAL,  55,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE * 8},
-		{0x4C, "SolarBeam"   , TYPE_GRASS   , SPECIAL , 120, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, true},
+		{0x4B, "Razor Leaf"  , TYPE_GRASS   , PHYSICAL,  55,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},
+		{0x4C, "SolarBeam"   , TYPE_GRASS   , SPECIAL , 120, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("took in sunlight")},
 		{0x4D, "PoisonPowder", TYPE_POISON  , STATUS  ,   0,  75, 35, {STATUS_POISONED, 1}},
 		{0x4E, "Stun Spore"  , TYPE_GRASS   , STATUS  ,   0,  75, 30, {STATUS_PARALYZED, 1}},
 		{0x4F, "Sleep Powder", TYPE_GRASS   , STATUS  ,   0,  75, 15, {STATUS_ASLEEP, 1}},
-		{0x50, "Petal Dance" , TYPE_GRASS   , SPECIAL ,  70, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, 0, DEFAULT_CRIT_CHANCE, false, false, false, CONFUSE_ON_LAST},
+		{0x50, "Petal Dance" , TYPE_GRASS   , SPECIAL ,  70, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {{3, 0.5}, {4, 0.5}}, "'s thrashing about!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CONFUSE_ON_LAST},
 		{0x51, "String Shot" , TYPE_BUG     , STATUS  ,   0,  90, 40, NO_STATUS_CHANGE, {}, {{STATS_SPD, 1, 1}}},
-		{0x52, "Dragon Rage" , TYPE_DRAGON  , SPECIAL ,   0, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, DEAL_40_DAMAGE},
+		{0x52, "Dragon Rage" , TYPE_DRAGON  , SPECIAL ,   0, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_40_DAMAGE},
 		{0x53, "Fire Spin"   , TYPE_FIRE    , SPECIAL ,  35,  85, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		{0x54, "ThunderShock", TYPE_ELECTRIC, SPECIAL ,  40, 100, 30, {STATUS_PARALYZED, 0.1}},
 		{0x55, "Thunderbolt" , TYPE_ELECTRIC, SPECIAL ,  90, 100, 15, {STATUS_PARALYZED, 0.1}},
@@ -249,22 +293,22 @@ namespace PokemonGen1
 		{0x57, "Thunder"     , TYPE_ELECTRIC, SPECIAL , 120,  70, 30, {STATUS_PARALYZED, 0.1}},
 		{0x58, "Rock Throw"  , TYPE_ROCK    , PHYSICAL,  50,  65, 15},
 		{0x59, "Earthquake"  , TYPE_GROUND  , PHYSICAL, 100, 100, 10},
-		{0x5A, "Fissure"     , TYPE_GROUND  , PHYSICAL,   0,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, ONE_HIT_KO_HANDLE},
-		{0x5B, "Dig"         , TYPE_GROUND  , PHYSICAL,  80, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, true, true},
+		{0x5A, "Fissure"     , TYPE_GROUND  , PHYSICAL,   0,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ONE_HIT_KO_HANDLE},
+		{0x5B, "Dig"         , TYPE_GROUND  , PHYSICAL,  80, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("dug a hole"), true},
 		{0x5C, "Toxic"       , TYPE_POISON  , STATUS  ,   0,  85, 10, {STATUS_BADLY_POISONED, 1}},
 		{0x5D, "Confusion"   , TYPE_PSYCHIC , SPECIAL ,  50, 100, 25, {STATUS_CONFUSED, 0.1}},
 		{0x5E, "Psychic"     , TYPE_PSYCHIC , SPECIAL ,  90, 100, 10, NO_STATUS_CHANGE, {}, {{STATS_SPE, -1, 0.3}}},
 		{0x5F, "Hypnosis"    , TYPE_PSYCHIC , STATUS  ,   0,  60, 20, {STATUS_ASLEEP, 1}},
 		{0x60, "Meditate"    , TYPE_PSYCHIC , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {{STATS_ATK, 1, 1}}},
 		{0x61, "Agility"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, {{STATS_SPD, 2, 1}}},
-		{0x62, "Quick Attack", TYPE_NORMAL  , PHYSICAL,  40, 100, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 1},
-		{0x63, "Rage"        , TYPE_NORMAL  , PHYSICAL,  20, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {0xFFFFFFFF}},
+		{0x62, "Quick Attack", TYPE_NORMAL  , PHYSICAL,  40, 100, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 1},
+		{0x63, "Rage"        , TYPE_NORMAL  , PHYSICAL,  20, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {{0xFFFFFFFF, 1}}},
 		{0x64, "Teleport"    , TYPE_NORMAL  , STATUS  ,   0, 255, 20},
-		{0x65, "Night Shade" , TYPE_GHOST   , SPECIAL ,   0, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, DEAL_LVL_AS_DAMAGE},
+		{0x65, "Night Shade" , TYPE_GHOST   , SPECIAL ,   0, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_LVL_AS_DAMAGE},
 		{0x66, "Mimic"       , TYPE_NORMAL  , STATUS  ,   0, 255, 10},
 		{0x67, "Screech"     , TYPE_NORMAL  , STATUS  ,   0,  85, 40, NO_STATUS_CHANGE, {}, {{STATS_DEF, -2, 1}}},
 		{0x68, "Double Team" , TYPE_NORMAL  , STATUS  ,   0, 255, 15, NO_STATUS_CHANGE, {{STATS_ESQ, 1, 1}}},
-		{0x69, "Recover"     , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, HEAL_HALF_HEALTH},
+		{0x69, "Recover"     , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEAL_HALF_HEALTH},
 		{0x6A, "Harden"      , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, {{STATS_DEF, 1, 1}}},
 		{0x6B, "Minimize"    , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {{STATS_ESQ, 1, 1}}},
 		{0x6C, "SmokeScreen" , TYPE_NORMAL  , STATUS  ,   0, 100, 20, NO_STATUS_CHANGE, {}, {{STATS_PRE, -2, 1}}},
@@ -273,13 +317,13 @@ namespace PokemonGen1
 		{0x6F, "Defense Curl", TYPE_NORMAL  , STATUS  ,   0, 255, 40, NO_STATUS_CHANGE, {{STATS_DEF, 1, 1}}},
 		{0x70, "Barrier"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, {{STATS_DEF, 2, 1}}},
 		{0x71, "Light Screen", TYPE_PSYCHIC , STATUS  ,   0, 255, 30}, //TODO: Code the move
-		{0x72, "Haze"        , TYPE_ICE     , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, CANCEL_STATS_CHANGE},
+		{0x72, "Haze"        , TYPE_ICE     , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CANCEL_STATS_CHANGE},
 		{0x73, "Reflect"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 20}, //TODO: Code the move
-		{0x74, "Focus Energy", TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, SET_USER_CRIT_RATIO_TO_1_HALF},
-		{0x75, "Bide"        , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, 0, DEFAULT_CRIT_CHANCE, false, false, false, STORE_DAMAGES},
-		{0x76, "Metronome"   , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, USE_RANDOM_MOVE},
-		{0x77, "Mirror Move" , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, USE_LAST_FOE_MOVE},
-		{0x78, "Selfdestruct", TYPE_NORMAL  , PHYSICAL, 200, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, SUICIDE},
+		{0x74, "Focus Energy", TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SET_USER_CRIT_RATIO_TO_1_HALF},
+		{0x75, "Bide"        , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {{2, 0.5}, {3, 0.5}}, "", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, STORE_DAMAGES},
+		{0x76, "Metronome"   , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, USE_RANDOM_MOVE},
+		{0x77, "Mirror Move" , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, USE_LAST_FOE_MOVE},
+		{0x78, "Selfdestruct", TYPE_NORMAL  , PHYSICAL, 200, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SUICIDE, SUICIDE_MISS},
 		{0x79, "Egg Bomb"    , TYPE_NORMAL  , PHYSICAL, 100,  75, 10},
 		{0x7A, "Lick"        , TYPE_GHOST   , PHYSICAL,  30, 100, 30, {STATUS_PARALYZED, 0.3}},
 		{0x7B, "Smog"        , TYPE_POISON  , SPECIAL ,  20,  70, 20, {STATUS_POISONED, 0.4}},
@@ -287,44 +331,44 @@ namespace PokemonGen1
 		{0x7D, "Bone Club"   , TYPE_GROUND  , PHYSICAL,  65,  85, 20},
 		{0x7E, "Fire Blast"  , TYPE_FIRE    , SPECIAL , 120,  85,  5, {STATUS_BURNED, 0.1}},
 		{0x7F, "Waterfall"   , TYPE_WATER   , PHYSICAL,  80, 120, 15},
-		{0x80, "Clamp"       , TYPE_WATER   , PHYSICAL,  35,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
+		{0x80, "Clamp"       , TYPE_WATER   , PHYSICAL,  35,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, WRAP_TARGET, GLITCH_HYPER_BEAM},
 		{0x81, "Swift"       , TYPE_NORMAL  , SPECIAL ,  60, 255, 20},
-		{0x82, "Skull Bash"  , TYPE_NORMAL  , PHYSICAL, 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, true},
+		{0x82, "Skull Bash"  , TYPE_NORMAL  , PHYSICAL, 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("lowered it's head")},
 		{0x83, "Spike Cannon", TYPE_NORMAL  , PHYSICAL,  20, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		{0x84, "Constrict"   , TYPE_NORMAL  , PHYSICAL,  10, 100, 35, NO_STATUS_CHANGE, {}, {{STATS_SPD, -1, 0.1}}},
 		{0x85, "Amnesia"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {{STATS_SPE, 2, 1}}},
 		{0x86, "Kinesis"     , TYPE_PSYCHIC , STATUS  ,   0,  80, 15, NO_STATUS_CHANGE, {}, {{STATS_PRE, -1, 1}}},
-		{0x87, "Softboiled"  , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, HEAL_HALF_HEALTH},
-		{0x88, "Hi Jump Kick", TYPE_FIGHTING, PHYSICAL,  85,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, nullptr, TAKE_1DAMAGE},
+		{0x87, "Softboiled"  , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEAL_HALF_HEALTH},
+		{0x88, "Hi Jump Kick", TYPE_FIGHTING, PHYSICAL,  85,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, nullptr, TAKE_1DAMAGE},
 		{0x89, "Glare"       , TYPE_NORMAL  , STATUS  ,   0,  75, 30},
-		{0x8A, "Dream Eater" , TYPE_PSYCHIC , STATUS  ,   0, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, DREAM_EATER},
+		{0x8A, "Dream Eater" , TYPE_PSYCHIC , STATUS  ,   0, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DREAM_EATER},
 		{0x8B, "Poison Gas"  , TYPE_POISON  , STATUS  ,   0,  55, 40, {STATUS_POISONED, 1}},
 		{0x8C, "Barrage"     , TYPE_NORMAL  , PHYSICAL,  15,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
-		{0x8D, "Leech Life"  , TYPE_BUG     , PHYSICAL,  20, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, ABSORB_HALF_DAMAGE},
+		{0x8D, "Leech Life"  , TYPE_BUG     , PHYSICAL,  20, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ABSORB_HALF_DAMAGE},
 		{0x8E, "Lovely Kiss" , TYPE_NORMAL  , STATUS  ,   0,  75, 10, {STATUS_ASLEEP, 1}},
-		{0x8F, "Sky Attack"  , TYPE_FLYING  , PHYSICAL, 140,  90,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, true},
-		{0x90, "Transform"   , TYPE_NORMAL  , PHYSICAL,   0, 255, 10},
+		{0x8F, "Sky Attack"  , TYPE_FLYING  , PHYSICAL, 140,  90,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("is glowing")},
+		{0x90, "Transform"   , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TRANSFORM},
 		{0x91, "Bubble"      , TYPE_WATER   , SPECIAL ,  20, 100, 30, NO_STATUS_CHANGE, {}, {{STATS_SPD, -1, 0.1}}},
 		{0x92, "Dizzy Punch" , TYPE_NORMAL  , PHYSICAL,  70, 100, 10},
 		{0x93, "Spore"       , TYPE_GRASS   , STATUS  ,   0, 100, 15, {STATUS_ASLEEP, 1}},
 		{0x94, "Flash"       , TYPE_NORMAL  , STATUS  ,   0,  70, 20, NO_STATUS_CHANGE, {}, {{STATS_PRE, -1, 1}}},
-		{0x95, "Psywave"     , TYPE_PSYCHIC , SPECIAL ,   0,  80, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, DEAL_0_5_TO_1_5_LEVEL_DAMAGE},
+		{0x95, "Psywave"     , TYPE_PSYCHIC , SPECIAL ,   0,  80, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_0_5_TO_1_5_LEVEL_DAMAGE},
 		{0x96, "Splash"      , TYPE_NORMAL  , STATUS  ,   0, 255, 40},
 		{0x97, "Acid Armor"  , TYPE_POISON  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {}, {{STATS_DEF, 2, 1}}},
-		{0x98, "Crabhammer"  , TYPE_WATER   , PHYSICAL,  90,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE * 8},
-		{0x99, "Explosion"   , TYPE_NORMAL  , PHYSICAL, 340, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, SUICIDE},
+		{0x98, "Crabhammer"  , TYPE_WATER   , PHYSICAL,  90,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},
+		{0x99, "Explosion"   , TYPE_NORMAL  , PHYSICAL, 340, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SUICIDE, SUICIDE_MISS},
 		{0x9A, "Fury Swipes" , TYPE_NORMAL  , PHYSICAL,  18,  80, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		{0x9B, "Bonemerang"  , TYPE_GROUND  , PHYSICAL,  50,  90, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, {{2, 1}}},
-		{0x9C, "Rest"        , TYPE_PSYCHIC , STATUS  ,   0,   0, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, HEAL_ALL_HEALTH},
+		{0x9C, "Rest"        , TYPE_PSYCHIC , STATUS  ,   0,   0, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEAL_ALL_HEALTH_AND_SLEEP},
 		{0x9D, "Rock Slide"  , TYPE_ROCK    , PHYSICAL,  75,  90, 10},
 		{0x9E, "Hyper Fang"  , TYPE_NORMAL  , PHYSICAL,  80,  90, 15},
 		{0x9F, "Sharpen"     , TYPE_NORMAL  , STATUS  ,   0,   0, 30, NO_STATUS_CHANGE, {{STATS_ATK, 1, 1}}},
-		{0xA0, "Conversion"  , TYPE_NORMAL  , STATUS  ,   0,   0, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, CONVERSION},
+		{0xA0, "Conversion"  , TYPE_NORMAL  , STATUS  ,   0,   0, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CONVERSION},
 		{0xA1, "Tri Attack"  , TYPE_NORMAL  , SPECIAL ,  80, 100, 10},
-		{0xA2, "Super Fang"  , TYPE_NORMAL  , PHYSICAL,   0,  90, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, DEAL_HALF_HP_DAMAGE},
-		{0xA3, "Slash"       , TYPE_NORMAL  , PHYSICAL,  70, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE * 8},
+		{0xA2, "Super Fang"  , TYPE_NORMAL  , PHYSICAL,   0,  90, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_HALF_HP_DAMAGE},
+		{0xA3, "Slash"       , TYPE_NORMAL  , PHYSICAL,  70, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},
 		{0xA4, "Substitute"  , TYPE_NORMAL  , STATUS  ,   0,   0, 10},
-		{0xA5, "Struggle"    , TYPE_NORMAL  , PHYSICAL,  50, 100,  0, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {1}, 0, DEFAULT_CRIT_CHANCE, false, false, false, TAKE_HALF_MOVE_DAMAGE},
+		{0xA5, "Struggle"    , TYPE_NORMAL  , PHYSICAL,  50, 100,  0, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_HALF_MOVE_DAMAGE},
 		DEFAULT_MOVE(0xA6),
 		DEFAULT_MOVE(0xA7),
 		DEFAULT_MOVE(0xA8),

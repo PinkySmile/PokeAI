@@ -13,11 +13,11 @@
 
 #define PING_BYTE 0x60
 #define SYNC_BYTE 0xFD
+#define UNAVAILABLE_BYTE 0xFE
 
 //These are just things the game sent me when I was testing
 //I have no idea what those value does
 #define HEADER_PACKET std::vector<unsigned char>{0xFE, 0xCE, 0xB2, 0x98, 0x80, 0x6A, 0x56, 0x43, 0xFE, 0x32, 0x23, 0x16}
-#define MIDDLE_PACKET std::vector<unsigned char>{0xE5, 0xC9, 0xD3, 0xFE, 0xB2, 0xFE, 0x1E, 0xFE, 0xAA, 0xFE, 0x37, 0xE5, 0xC9, 0xD3, 0xFE, 0xB2, 0xFE, 0x1E, 0xFE, 0xAA, 0xFE, 0x37, 0xE5, 0xC9, 0xD3, 0xFE, 0xB2, 0xFE, 0x1E, 0xFE, 0xAA, 0xFE, 0x37, 0xE5, 0xC9, 0xD3, 0xFE, 0xB2, 0xFE, 0x1E, 0xFE, 0xAA, 0xFE, 0x37, 0xE5, 0xC9, 0xD3, 0xFE, 0xB2, 0xFE, 0x1E, 0xFE, 0xAA, 0xFE, 0x37, 0x8F, 0x88, 0x8A, 0x80, 0x82, 0x87, 0x94, 0x50, 0x50, 0x50, 0x50, 0x50, 0x8D, 0x84, 0x54, 0x00, 0xFE, 0x31, 0x00, 0x17, 0x17}
 #define PACKET_FOOTER std::vector<unsigned char>{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x32, 0x3A, 0x3E, 0x47, 0x51, 0x5E, 0x66, 0x6A, 0x73, 0x7D, 0x8A, 0x92, 0x96, 0x9F, 0xA9, 0xB6, 0xBE, 0xC2, 0xCB, 0xD5, 0xE2, 0xEA, 0xEE, 0xF7, 0xFF, 0x05, 0xFF}
 
 #define CHAR_INVALID 0xFF
@@ -65,6 +65,7 @@ namespace PokemonGen1
 		BattleAction		nextOpponentAction;
 	};
 
+	typedef std::function<void (const std::string &message)> Logger;
 	void displayPacket(std::vector<unsigned char> packet);
 
 	class GameHandle {
@@ -79,6 +80,8 @@ namespace PokemonGen1
 				unsigned short port
 			)
 		>					_emulatorMaker;
+		bool					_ready = true;
+		bool					_logMsg;
 		std::unique_ptr<EmulatorHandle>		_emulator;
 		std::string				_trainerName;
 		bool					_isPlayer2;
@@ -95,6 +98,7 @@ namespace PokemonGen1
 		bool					_sent = false;
 		std::pair<unsigned, unsigned>		_sendBufferIndex = {0, 0};
 		std::vector<std::vector<unsigned char>>	_sendBuffer;
+		Logger					_battleLogger;
 		std::function<BattleAction(GameHandle &)> _battleHandler;
 
 		std::vector<std::vector<unsigned char>> _craftPacket();
@@ -118,7 +122,9 @@ namespace PokemonGen1
 			> &emulatorMaker,
 			const std::function<BattleAction(GameHandle &)> &battleHandler,
 			const std::string &trainerName = "PokeAI",
-			bool player2 = false
+			const Logger &battleLogger = {},
+			bool player2 = false,
+			bool log = false
 		);
 
 		template <typename ...types>
@@ -126,7 +132,7 @@ namespace PokemonGen1
 		{
 			if (this->_pkmns.size() >= 6)
 				throw std::out_of_range("There are already 6 pokémons in the team");
-			this->_pkmns.emplace_back(this->_randomGenerator, args...);
+			this->_pkmns.emplace_back(this->_randomGenerator, *this, args...);
 		}
 
 		template <typename ...types>
@@ -139,7 +145,7 @@ namespace PokemonGen1
 
 			for (const Pokemon &pkmn : this->_pkmns) {
 				if (buffer.size() == index)
-					buffer.emplace_back(this->_randomGenerator, args...);
+					buffer.emplace_back(this->_randomGenerator, *this, args...);
 				else
 					buffer.push_back(pkmn);
 			}
@@ -150,11 +156,17 @@ namespace PokemonGen1
 		}
 
 		void connect(const std::string &ip, unsigned short port);
+		void disconnect();
+		void setReady(bool ready);
 
+		Gen1ConnectionStage getStage() const;
+		void logBattle(const std::string &message);
 		bool isConnected();
 		void setTeamSize(unsigned size);
 		const std::vector<Pokemon> &getPokemonTeam();
-		std::vector<unsigned char> convertString(const std::string &str);
+		const BattleState &getBattleState();
+
+		static std::vector<unsigned char> convertString(const std::string &str);
 		static std::string convertString(const std::vector<unsigned char> &str);
 	};
 

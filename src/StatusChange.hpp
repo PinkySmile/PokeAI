@@ -9,18 +9,33 @@
 #include <vector>
 #include <string>
 
-enum StatusChange {
-	STATUS_NONE		= 0,
-	STATUS_PARALYZED	= 1U << 0U,
-	STATUS_BURNED		= 1U << 1U,
-	STATUS_FROZEN		= 1U << 2U,
-	STATUS_POISONED		= 1U << 3U,
-	STATUS_BADLY_POISONED	= 1U << 4U,
-	STATUS_ASLEEP		= 1U << 5U,
-	STATUS_CONFUSED		= 1U << 6U,
-	STATUS_LEECHED		= 1U << 7U,
-};
+namespace PokemonGen1
+{
+	enum StatusChange {
+		STATUS_NONE,
+		STATUS_ASLEEP_FOR_1_TURN,
+		STATUS_ASLEEP_FOR_2_TURN,
+		STATUS_ASLEEP_FOR_3_TURN,
+		STATUS_ASLEEP_FOR_4_TURN,
+		STATUS_ASLEEP_FOR_5_TURN,
+		STATUS_ASLEEP_FOR_6_TURN,
+		STATUS_ASLEEP_FOR_7_TURN,
+		STATUS_ASLEEP             = 0b111,
+		STATUS_POISONED           = 1U << 3U,
+		STATUS_BURNED             = 1U << 4U,
+		STATUS_FROZEN             = 1U << 5U,
+		STATUS_PARALYZED          = 1U << 6U,
+		STATUS_KO                 = 1U << 7U,
+		STATUS_BADLY_POISONED     = 1U << 8U, //From here, it is not handled by the game
+		STATUS_LEECHED            = 1U << 9U,
+		STATUS_CONFUSED_FOR_1_TURN= 1U << 10U,
+		STATUS_CONFUSED_FOR_2_TURN= 1U << 11U,
+		STATUS_CONFUSED_FOR_3_TURN= STATUS_CONFUSED_FOR_1_TURN | STATUS_CONFUSED_FOR_2_TURN,
+		STATUS_CONFUSED_FOR_4_TURN= 1U << 12U,
+		STATUS_CONFUSED           = STATUS_CONFUSED_FOR_3_TURN | STATUS_CONFUSED_FOR_4_TURN
+	};
 
-std::string statusToString(StatusChange stat);
+	std::string statusToString(StatusChange stat);
+}
 
 #endif //POKEAI_STATUSCHANGE_HPP

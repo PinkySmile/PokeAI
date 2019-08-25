@@ -58,7 +58,15 @@ namespace PokemonGen1
 
 	class Pokemon {
 	private:
+		struct PokemonState {
+			unsigned char				id;
+			std::vector<Move>			moves;
+			std::pair<PokemonTypes, PokemonTypes>	types;
+		};
+
+		PokemonState				_oldState{};
 		unsigned char				_id;
+		bool					_enemy;
 		Move					_lastUsedMove;
 		PokemonRandomGenerator			&_random;
 		std::string				_nickname;
@@ -69,23 +77,27 @@ namespace PokemonGen1
 		std::pair<PokemonTypes, PokemonTypes>	_types;
 		unsigned char				_level;
 		unsigned char				_catchRate;
+		bool					_transformed = false;
+		bool					_wrapped = false;
 		bool					_storingDamages;
 		unsigned int				_damagesStored;
 		unsigned char				_badPoisonStage = 0;
-		unsigned char				_statusDuration;
-		unsigned char				_currentStatus;
+		unsigned short				_currentStatus;
 		double					_globalCritRatio;
+		GameHandle				&_game;
 
 		void _log(const std::string &msg) const;
 		double _getUpgradedStat(unsigned short baseValue, char upgradeStage) const;
 
 	public:
-		Pokemon(PokemonRandomGenerator &random, const std::string &nickname, unsigned char level, const PokemonBase &base, const std::vector<Move> &moveSet);
-		Pokemon(PokemonRandomGenerator &random, const std::string &nickname, const std::vector<byte> &data);
+		Pokemon(PokemonRandomGenerator &random, GameHandle &game, const std::string &nickname, unsigned char level, const PokemonBase &base, const std::vector<Move> &moveSet, bool enemy = false);
+		Pokemon(PokemonRandomGenerator &random, GameHandle &game, const std::string &nickname, const std::vector<byte> &data, bool enemy = false);
 
 		void setGlobalCritRatio(double ratio);
-		void addStatus(StatusChange status);
-		void addStatus(StatusChange status, unsigned duration);
+		bool addStatus(StatusChange status);
+		void setStatus(StatusChange status);
+		void setStatus(StatusChange status, unsigned duration);
+		bool addStatus(StatusChange status, unsigned duration);
 		void resetStatsChanges();
 		void changeStat(StatsChange stat, char nb);
 		void useMove(const Move &move, Pokemon &target);
@@ -98,17 +110,23 @@ namespace PokemonGen1
 		void endTurn();
 		void switched();
 		int getPriorityFactor(unsigned char moveSlot);
+		void setWrapped(bool isWrapped);
+		void glitchHyperBeam();
+		void transform(const Pokemon &target);
 		std::vector<unsigned char> encode() const;
 		std::string dump() const;
 
 		PokemonRandomGenerator &getRandomGenerator();
-		unsigned char getID();
+		unsigned char getID() const;
 		unsigned getDamagesStored() const;
 		unsigned getSpeed() const;
 		unsigned getLevel() const;
 		unsigned getAttack() const;
 		unsigned getSpecial() const;
 		unsigned getDefense() const;
+		unsigned getRawAttack() const;
+		unsigned getRawSpecial() const;
+		unsigned getRawDefense() const;
 		unsigned getHealth() const;
 		std::string getName() const;
 		unsigned getMaxHealth() const;
@@ -116,6 +134,9 @@ namespace PokemonGen1
 		double getEvasion() const;
 		const Move &getLastUsedMove() const;
 		std::pair<PokemonTypes, PokemonTypes> getTypes() const;
+		const std::vector<Move> getMoveSet() const;
+		UpgradableStats getStatsUpgradeStages() const;
+		std::string getSpeciesName() const;
 
 		void setTypes(std::pair<PokemonTypes, PokemonTypes> types);
 

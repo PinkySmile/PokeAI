@@ -7,13 +7,15 @@
 #include "Pokemon.hpp"
 #include "PokemonTypes.hpp"
 #include "Move.hpp"
+#include "GameHandle.hpp"
 
 #define NBR_2B(byte1, byte2) static_cast<unsigned short>((byte1 << 8U) + byte2)
 
 namespace PokemonGen1
 {
-	Pokemon::Pokemon(PokemonRandomGenerator &random, const std::string &nickname, unsigned char level, const PokemonBase &base, const std::vector<Move> &moveSet) :
+	Pokemon::Pokemon(PokemonRandomGenerator &random, GameHandle &game, const std::string &nickname, unsigned char level, const PokemonBase &base, const std::vector<Move> &moveSet, bool enemy) :
 		_id(base.id),
+		_enemy(enemy),
 		_lastUsedMove(DEFAULT_MOVE(0x00)),
 		_random{random},
 		_nickname{nickname},
@@ -26,29 +28,33 @@ namespace PokemonGen1
 		_catchRate{base.catchRate},
 		_storingDamages(false),
 		_damagesStored(0),
-		_statusDuration{0},
 		_currentStatus(STATUS_NONE),
-		_globalCritRatio(-1)
+		_globalCritRatio(-1),
+		_game(game)
 	{
 		if (this->_nickname.size() > 10) {
-			this->_log("Warning : nickname is too big");
+			this->_log(" Warning : nickname is too big");
 			this->_nickname = this->_nickname.substr(0, 10);
-		}
+		} else if (this->_nickname.empty())
+			this->_nickname = this->_name;
+		for (int i = moveSet.size(); i < 4; i++)
+			this->_moveSet.push_back(availableMoves[0]);
 	}
 
-	Pokemon::Pokemon(PokemonRandomGenerator &random, const std::string &nickname, const std::vector<byte> &data) :
+	Pokemon::Pokemon(PokemonRandomGenerator &random, GameHandle &game, const std::string &nickname, const std::vector<byte> &data, bool enemy) :
 		_id(data[0]),
+		_enemy(enemy),
 		_lastUsedMove(DEFAULT_MOVE(0x00)),
 		_random{random},
 		_nickname{nickname},
 		_name{pokemonList[data[0]].name},
 		_baseStats{
-			NBR_2B(data[1], data[2]),   //HP
-			NBR_2B(data[34], data[35]), //maxHP
-			NBR_2B(data[36], data[37]), //ATK
-			NBR_2B(data[38], data[39]), //DEF
-			NBR_2B(data[40], data[41]), //SPD
-			NBR_2B(data[42], data[43])  //SPE
+			static_cast<unsigned      >(fmin(999, fmax(1, NBR_2B(data[1],  data[2])))),   //HP
+			static_cast<unsigned      >(fmin(999, fmax(1, NBR_2B(data[34], data[35])))), //maxHP
+			static_cast<unsigned short>(fmin(999, fmax(1, NBR_2B(data[36], data[37])))), //ATK
+			static_cast<unsigned short>(fmin(999, fmax(1, NBR_2B(data[38], data[39])))), //DEF
+			static_cast<unsigned short>(fmin(999, fmax(1, NBR_2B(data[40], data[41])))), //SPD
+			static_cast<unsigned short>(fmin(999, fmax(1, NBR_2B(data[42], data[43]))))  //SPE
 		},
 		_upgradedStats{0, 0, 0, 0, 0, 0},
 		_moveSet{
@@ -61,13 +67,13 @@ namespace PokemonGen1
 			static_cast<PokemonTypes>(data[5]),
 			static_cast<PokemonTypes>(data[6])
 		},
-		_level{data[3]},
+		_level{data[33]},
 		_catchRate{data[7]},
 		_storingDamages(false),
 		_damagesStored(0),
-		_statusDuration{0},
 		_currentStatus{data[4]},
-		_globalCritRatio(-1)
+		_globalCritRatio(-1),
+		_game(game)
 	{
 		this->_moveSet[0].setPPUp(data[29] >> 6U);
 		this->_moveSet[1].setPPUp(data[30] >> 6U);
@@ -77,6 +83,8 @@ namespace PokemonGen1
 		this->_moveSet[1].setPP(data[30] & 0b111111U);
 		this->_moveSet[2].setPP(data[31] & 0b111111U);
 		this->_moveSet[3].setPP(data[32] & 0b111111U);
+		if (this->_nickname.empty())
+			this->_nickname = this->_name;
 	}
 
 	BaseStats Pokemon::makeStats(unsigned char level, const PokemonBase &base)
@@ -88,12 +96,12 @@ namespace PokemonGen1
 		};
 
 		return {
-			fct(base.HP),
-			fct(base.HP),
-			fct(base.ATK),
-			fct(base.DEF),
-			fct(base.SPD),
-			fct(base.SPE)
+			static_cast<unsigned      >(fmin(999, fmax(1, fct(base.HP)))),
+			static_cast<unsigned      >(fmin(999, fmax(1, fct(base.HP)))),
+			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.ATK)))),
+			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.DEF)))),
+			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.SPD)))),
+			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.SPE))))
 		};
 	}
 
@@ -102,34 +110,66 @@ namespace PokemonGen1
 		this->_globalCritRatio = ratio;
 	}
 
-	void Pokemon::addStatus(StatusChange status)
+	void Pokemon::setStatus(PokemonGen1::StatusChange status)
 	{
-		if (status == STATUS_BURNED && (this->_types.first == TYPE_FIRE || this->_types.second == TYPE_FIRE))
-			return;
-		if (this->_currentStatus & status)
-			return;
+		this->_currentStatus = STATUS_NONE;
+		this->addStatus(status);
+	}
+
+	void Pokemon::setStatus(PokemonGen1::StatusChange status, unsigned duration)
+	{
+		this->_currentStatus = STATUS_NONE;
+		this->addStatus(status, duration);
+	}
+
+	bool Pokemon::addStatus(StatusChange status)
+	{
+		if (status == STATUS_NONE)
+			return true;
 		switch (status) {
 		case STATUS_ASLEEP:
-			return this->addStatus(status, this->_random(1, 8));
+			return this->addStatus(STATUS_ASLEEP_FOR_1_TURN, this->_random(1, 7));
 		case STATUS_CONFUSED:
-			return this->addStatus(status, this->_random(1, 5));
+			return this->addStatus(STATUS_CONFUSED_FOR_1_TURN, this->_random(1, 4));
 		default:
-			return this->addStatus(status, static_cast<unsigned>(-1));
+			return this->addStatus(status, 1);
 		}
 	}
 
-	void Pokemon::addStatus(StatusChange status, unsigned duration)
+	bool Pokemon::addStatus(StatusChange status, unsigned duration)
 	{
+		if (status == STATUS_NONE)
+			return false;
 		if (status == STATUS_BURNED && (this->_types.first == TYPE_FIRE || this->_types.second == TYPE_FIRE))
-			return;
-		if ((status == STATUS_POISONED || status == STATUS_BADLY_POISONED) && (this->_types.first == TYPE_POISON || this->_types.second == TYPE_POISON))
-			return;
-		if (this->_currentStatus & status)
-			return;
-		this->_log("is now " + statusToString(status));
+			return false;
+		if (
+			(status == STATUS_POISONED || status == STATUS_BADLY_POISONED) &&
+			(this->_types.first == TYPE_POISON || this->_types.second == TYPE_POISON)
+		)
+			return false;
+		if (
+			(
+				status & STATUS_ASLEEP ||
+				status == STATUS_BURNED ||
+				status == STATUS_POISONED ||
+				status == STATUS_BADLY_POISONED ||
+				status == STATUS_FROZEN ||
+				status == STATUS_PARALYZED
+			) && (
+				this->hasStatus(STATUS_ASLEEP) ||
+				this->hasStatus(STATUS_BURNED) ||
+				this->hasStatus(STATUS_POISONED) ||
+				this->hasStatus(STATUS_BADLY_POISONED) ||
+				this->hasStatus(STATUS_FROZEN) ||
+				this->hasStatus(STATUS_PARALYZED)
+			)
+		)
+			return false;
+
+		this->_log(" is now " + statusToString(status));
 		this->_badPoisonStage = 1;
-		this->_currentStatus = status;
-		this->_statusDuration = duration;
+		this->_currentStatus |= (status * duration);
+		return true;
 	}
 
 	std::string Pokemon::dump() const
@@ -145,13 +185,30 @@ namespace PokemonGen1
 		stream << ", " << this->getDefense() << " DEF";
 		stream << ", " << this->getSpeed()   << " SPD";
 		stream << ", " << this->getSpecial() << " SPE";
-		return stream.str();
+		stream << ", Status: " << std::hex << static_cast<int>(this->_currentStatus) << " ";
+		if (this->_currentStatus) {
+			for (unsigned i = 0; i < sizeof(this->_currentStatus) * 8; i++)
+				if (this->_currentStatus & (1U << i))
+					stream << statusToString(static_cast<StatusChange>(1U << i)) << ", ";
+		} else
+			stream << "OK, ";
+		stream << "Moves: ";
+		if (this->_moveSet.empty())
+			stream << "No moves, ";
+		for (const Move &move : this->_moveSet)
+			stream << move.getName() << ", ";
+		return stream.str().substr(0, stream.str().size() - 2);
 	}
 
 	void Pokemon::switched()
 	{
-		this->_log("is withdrawn");
 		this->resetStatsChanges();
+		if (this->_transformed) {
+			this->_id = this->_oldState.id;
+			this->_moveSet = this->_oldState.moves;
+			this->_types = this->_oldState.types;
+			this->_transformed = false;
+		}
 		if (this->_currentStatus == STATUS_BADLY_POISONED)
 			this->_currentStatus = STATUS_POISONED;
 	}
@@ -174,21 +231,19 @@ namespace PokemonGen1
 
 	void Pokemon::useMove(const Move &move, Pokemon &target)
 	{
+		//TODO: Implement the Hyper beam glitch
 		if (this->_lastUsedMove.isFinished()) {
-			if (move.getName() == "Struggle") {
+			if (move.getID() == Struggle) {
 				Move struggle = move;
 
-				this->_log("Uses Struggle");
-				if (!struggle.attack(*this, target))
-					this->_log("attack misses");
+				if (!struggle.attack(*this, target,[this](const std::string &msg) { this->_game.logBattle(msg); }))
+					this->_log("'s attack missed!");
 				return;
 			}
 			this->_lastUsedMove = move;
-			this->_log("Uses " + this->_lastUsedMove.getName());
-		} else
-			this->_log("Keeps using " + this->_lastUsedMove.getName());
-		if (!this->_lastUsedMove.attack(*this, target))
-			this->_log("attack misses");
+		}
+		if (!this->_lastUsedMove.attack(*this, target, [this](const std::string &msg) { this->_game.logBattle(msg); }))
+			this->_log("'s attack missed!");
 	}
 
 	void Pokemon::storeDamages(bool active)
@@ -197,7 +252,7 @@ namespace PokemonGen1
 		if (!active)
 			this->_damagesStored = 0;
 		else
-			this->_log("is storing damages");
+			this->_log(" is storing damages");
 	}
 
 	bool Pokemon::hasStatus(StatusChange status) const
@@ -215,42 +270,47 @@ namespace PokemonGen1
 		return this->_damagesStored;
 	}
 
-	unsigned char Pokemon::getID()
+	unsigned char Pokemon::getID() const
 	{
 		return this->_id;
+	}
+
+	void Pokemon::setWrapped(bool isWrapped)
+	{
+		this->_wrapped = isWrapped;
 	}
 
 	unsigned Pokemon::getSpeed() const
 	{
 		if (this->_currentStatus & STATUS_PARALYZED)
-			return this->_getUpgradedStat(this->_baseStats.SPD, this->_upgradedStats.SPD) / 4;
-		return this->_getUpgradedStat(this->_baseStats.SPD, this->_upgradedStats.SPD);
+			return fmin(999, fmax(1, this->_getUpgradedStat(this->_baseStats.SPD, this->_upgradedStats.SPD) / 4));
+		return fmin(999, fmax(1, this->_getUpgradedStat(this->_baseStats.SPD, this->_upgradedStats.SPD)));
 	}
 
 	unsigned Pokemon::getAttack() const
 	{
 		if (this->_currentStatus & STATUS_BURNED)
-			return this->_getUpgradedStat(this->_baseStats.ATK, this->_upgradedStats.ATK) / 2;
-		return this->_getUpgradedStat(this->_baseStats.ATK, this->_upgradedStats.ATK);
+			return fmin(999, fmax(1, this->_getUpgradedStat(this->_baseStats.ATK, this->_upgradedStats.ATK) / 2));
+		return fmin(999, fmax(1, this->_getUpgradedStat(this->_baseStats.ATK, this->_upgradedStats.ATK)));
 	}
 
 	unsigned Pokemon::getSpecial() const
 	{
-		return this->_getUpgradedStat(this->_baseStats.SPE, this->_upgradedStats.SPE);
+		return fmin(999, fmax(1, this->_getUpgradedStat(this->_baseStats.SPE, this->_upgradedStats.SPE)));
 	}
 
 	unsigned Pokemon::getDefense() const
 	{
-		return this->_getUpgradedStat(this->_baseStats.DEF, this->_upgradedStats.DEF);
+		return fmin(999, fmax(1, this->_getUpgradedStat(this->_baseStats.DEF, this->_upgradedStats.DEF)));
 	}
 
 	void Pokemon::endTurn()
 	{
 		if (this->_currentStatus & STATUS_BURNED) {
-			this->_log("is hurt by the burn");
+			this->_log(" is hurt by the burn!");
 			this->takeDamage(this->getHealth() / 16);
 		} else if ((this->_currentStatus & STATUS_POISONED) || (this->_currentStatus & STATUS_BADLY_POISONED)) {
-			this->_log("is hurt by the poison");
+			this->_log(" is hurt by the poison!");
 			if (this->_currentStatus & STATUS_BADLY_POISONED)
 				this->takeDamage(this->getHealth() * this->_badPoisonStage++ / 16);
 			else
@@ -260,38 +320,48 @@ namespace PokemonGen1
 
 	void Pokemon::_log(const std::string &msg) const
 	{
-		std::cout << "[" << this->getName() << "] " << msg << std::endl;
+		this->_game.logBattle(this->getName() + msg);
 	}
 
 	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
 	{
-		if (this->_currentStatus & STATUS_ASLEEP) {
-			if (this->_statusDuration) {
-				this->_log("is fast asleep");
-				this->_statusDuration--;
-			} else {
-				this->_log("woke up");
-				this->_currentStatus = None;
-			}
-			return;
-		} else if ((this->_currentStatus & STATUS_PARALYZED) && !this->_random(4)) {
-			this->_log("is paralyzed");
-			this->_lastUsedMove = DEFAULT_MOVE(0x00);
-			return;
-		} else if ((this->_currentStatus & STATUS_CONFUSED) && !this->_random(2)) {
-			if (--this->_statusDuration) {
-				this->_log("hurts itself in it's confusion");
-			} else {
-				this->_log("woke up");
-				this->_currentStatus = None;
-			}
-			this->_lastUsedMove = DEFAULT_MOVE(0x00);
+		if (this->_wrapped) {
+			this->_log(" can't move!");
 			return;
 		}
-		if (moveSlot == 0xE)
+
+		if (this->_currentStatus & STATUS_ASLEEP) {
+			this->_currentStatus--;
+			if (this->_currentStatus)
+				this->_log(" is fast asleep!");
+			else {
+				this->_log(" woke up!");
+				this->_currentStatus &= 0xFF00U;
+			}
+			return;
+		} else if ((this->_currentStatus & STATUS_PARALYZED) && this->_random(1, 4) == 1) {
+			this->_log(" is fully paralyzed!");
+			this->_lastUsedMove = DEFAULT_MOVE(0x00);
+			return;
+		} else if (this->_currentStatus & STATUS_FROZEN) {
+			this->_log(" is frozen solid!");
+			return;
+		} else if ((this->_currentStatus & STATUS_CONFUSED)) {
+			this->_log(" is confused!");
+			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
+			if (this->_random(1, 2) == 1) {
+				this->_log(" hurts itself in it's confusion!");
+				this->dealDamage(*this, 40, TYPE_0x0A, PHYSICAL, 0);
+				this->_lastUsedMove = DEFAULT_MOVE(0x00);
+				return;
+			}
+		}
+		if (moveSlot >= 4)
 			this->useMove(availableMoves[Struggle], target);
-		else
+		else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
 			this->useMove(this->_moveSet[moveSlot], target);
+			this->_moveSet[moveSlot].setPP(this->_moveSet[moveSlot].getPP() ? this->_moveSet[moveSlot].getPP() - 1 : 63);
+		}
 	}
 
 	unsigned Pokemon::getLevel() const
@@ -319,45 +389,46 @@ namespace PokemonGen1
 		std::string statName;
 		char *stats = reinterpret_cast<char *>(&this->_upgradedStats);
 
+		//TODO: Implement the stats glitch
 		if (!nb)
 			return;
 
 		switch (stat) {
 		case STATS_ATK:
-			statName = "attack";
+			statName = "ATTACK";
 			break;
 		case STATS_DEF:
-			statName = "defense";
+			statName = "DEFENSE";
 			break;
 		case STATS_SPD:
-			statName = "speed";
+			statName = "SPEED";
 			break;
 		case STATS_SPE:
-			statName = "special";
+			statName = "SPECIAL";
 			break;
 		case STATS_ESQ:
-			statName = "evasion";
+			statName = "EVADE";
 			break;
 		case STATS_PRE:
-			statName = "accuracy";
+			statName = "ACCURACY";
 			break;
 		default:
 			return;
 		}
 
-		if (stats[stat] >= 6 && nb > 0)
-			return this->_log(statName + " cannot go any higher !");
-		else if (stats[stat] <= -6 && nb < 0)
-			return this->_log(statName + " cannot go any lower !");
+		if ((stats[stat] >= 6 && nb > 0) || (stats[stat] <= -6 && nb < 0)) {
+			this->_game.logBattle("Nothing happened.");
+			return;
+		}
 
 		if (nb < -1)
-			this->_log(statName + " sharply decreased!");
+			this->_log("'s " + statName + " greatly fell!");
 		else if (nb == -1)
-			this->_log(statName + " decreased!");
+			this->_log("'s " + statName + " fell!");
 		else if (nb == 1)
-			this->_log(statName + " rose!");
+			this->_log("'s " + statName + " rose!");
 		else if (nb > 1)
-			this->_log(statName + " sharply rose!");
+			this->_log("'s " + statName + " greatly rose!");
 
 		stats[stat] += nb;
 		if (stats[stat] > 6)
@@ -378,13 +449,8 @@ namespace PokemonGen1
 		else
 			this->_baseStats.HP -= damage;
 
-		if (damage < 0)
-			this->_log("healed for " + std::to_string(-damage) + "HP");
-		else
-			this->_log("lost " + std::to_string(damage) + "HP");
-
 		if (!this->_baseStats.HP)
-			this->_log("fainted");
+			this->_log(" fainted");
 	}
 
 	bool Pokemon::canGetHitBy(unsigned char moveId)
@@ -404,62 +470,95 @@ namespace PokemonGen1
 		this->_types = types;
 	}
 
+	unsigned Pokemon::getRawAttack() const
+	{
+		return this->_baseStats.ATK;
+	}
+
+	unsigned Pokemon::getRawSpecial() const
+	{
+		return this->_baseStats.SPE;
+	}
+
+	unsigned Pokemon::getRawDefense() const
+	{
+		return this->_baseStats.DEF;
+	}
+
+	void Pokemon::glitchHyperBeam()
+	{
+		if (this->_lastUsedMove.getID() == Hyper_Beam)
+			this->_lastUsedMove.glitch();
+	}
+
 	unsigned Pokemon::dealDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, double critRate) const
 	{
+		bool critical = (this->_random(255) < (this->_baseStats.SPD * critRate / 2));
 		unsigned defense;
 		unsigned attack;
+		unsigned level = this->_level * (1 + critical);
+		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
+
+		if (effectiveness == 0) {
+			this->_game.logBattle("It doesn't affect " + target.getName());
+			return 0;
+		}
 
 		switch (category) {
 		case SPECIAL:
-			attack = this->getSpecial();
-			defense = target.getSpecial();
+			attack  = critical ? this->getRawSpecial()  : this->getSpecial();
+			defense = critical ? target.getRawSpecial() : target.getSpecial();
 			break;
 		case PHYSICAL:
-			attack = this->getAttack();
-			defense = target.getDefense();
+			attack =  critical ? this->getRawAttack()   : this->getAttack();
+			defense = critical ? target.getRawDefense() : target.getDefense();
 			break;
 		default:
 			return 0;
 		}
 
-		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
-		bool critical = (this->_random(256) < (this->_baseStats.SPD / 2 * critRate));
-
-		if (critical)
-			this->_log(": Critical hit !");
-
-		if (effectiveness == 0) {
-			this->_log(": No effect");
-			return 0;
+		if (attack > 255 || defense > 255) {
+			attack = attack / 4 % 256;
+			defense = defense / 4 % 256;
 		}
 
+		if (critical)
+			this->_game.logBattle("Critical hit !");
+
 		if (effectiveness < 1)
-			this->_log(": It's not very effective");
+			this->_game.logBattle("It's not very effective");
 
 		if (effectiveness > 1)
-			this->_log(": It's super very effective");
+			this->_game.logBattle("It's super very effective");
 
 		if (this->_types.first == damageType || this->_types.second == damageType)
 			effectiveness *= 1.5;
 
-		//From CampbellAlexander/PokemonGen1 ->
-		//https://github.com/CampbellAlexander/PokemonGen1/blob/24d92ce0e489cf853b1c9a0df6dc18ad225db124/PokemonGeneration1/Source/Moves/Transitive/Attack/AttackMove.cs#L119
-		auto damages = static_cast<unsigned>(((
+		//From Zarel/honko-damagecalc ->
+		//https://github.com/Zarel/honko-damagecalc/blob/dfff275e362ede0857b7564b3e5e2e6fc0e6782d/calc/src/mechanics/gen1.ts#L95
+		double damages = floor(
 			(
-				(
-					((critical ? 4.f : 2.f) * this->_level / 2.f) + 2.f
-				) * attack * power / defense / 50.f
-			) + 2.f
-		) * effectiveness * this->_random(217, 256)) / 255.f);
+				fmin(
+					997,
+					floor(
+						floor(
+							floor(
+								2. * level / 5 + 2
+							) * attack * power / defense
+						) / 50
+					)
+				) + 2
+			) * effectiveness * this->_random(217, 255) / 255
+		);
 
-		target.takeDamage(damages);
-		return damages;
+		target.takeDamage(floor(damages));
+		return floor(damages);
 	}
 
 	std::string Pokemon::getName() const
 	{
-		if (this->_nickname.empty())
-			return this->_name;
+		if (this->_enemy)
+			return "Enemy " + this->_nickname;
 		return this->_nickname;
 	}
 
@@ -533,8 +632,8 @@ namespace PokemonGen1
 		result.push_back(0x00);
 
 		//DVs
-		result.push_back(0x00);
-		result.push_back(0x00);
+		result.push_back(0xFF);
+		result.push_back(0xFF);
 
 		//PP Ups and moves PP
 		for (const Move &move : this->_moveSet)
@@ -567,11 +666,41 @@ namespace PokemonGen1
 		return result;
 	}
 
+	const std::vector<Move> Pokemon::getMoveSet() const
+	{
+		return this->_moveSet;
+	}
+
 	double Pokemon::_getUpgradedStat(unsigned short baseValue, char upgradeStage) const
 	{
 		if (upgradeStage < 0)
 			return 2. * baseValue / (2 - upgradeStage);
 		return (upgradeStage + 2.) * baseValue / 2;
+	}
+
+	UpgradableStats Pokemon::getStatsUpgradeStages() const
+	{
+		return this->_upgradedStats;
+	}
+
+	std::string Pokemon::getSpeciesName() const
+	{
+		return this->_name;
+	}
+
+	void Pokemon::transform(const PokemonGen1::Pokemon &target)
+	{
+		if (!this->_transformed) {
+			this->_oldState.id = this->_id;
+			this->_oldState.moves = this->_moveSet;
+			this->_oldState.types = this->_types;
+		}
+		this->_upgradedStats = target.getStatsUpgradeStages();
+		this->_moveSet = target.getMoveSet();
+		this->_types = target.getTypes();
+		for (auto &move : this->_moveSet)
+			move.setPP(5);
+		this->_transformed = true;
 	}
 
 	/*
@@ -688,261 +817,261 @@ namespace PokemonGen1
 	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/Tables.cs#L202
 	*/
 	const std::vector<PokemonBase> pokemonList{
-		{ 0x00,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x00) */
-		{ 0x01,      "Rhydon", 105, 130, 120,  40,  45,   TYPE_GROUND,     TYPE_ROCK,  60, 204 }, /* RHYDON       (0x01) */
-		{ 0x02,  "Kangaskhan", 105,  95,  80,  90,  40,   TYPE_NORMAL,   TYPE_NORMAL,  45, 175 }, /* KANGASKHAN   (0x02) */
-		{ 0x03,    "Nidoran~",  46,  57,  40,  50,  40,   TYPE_POISON,   TYPE_POISON, 235,  60 }, /* NIDORAN_M    (0x03) */
-		{ 0x04,    "Clefairy",  70,  45,  48,  35,  60,   TYPE_NORMAL,   TYPE_NORMAL, 150,  68 }, /* CLEFAIRY     (0x04) */
-		{ 0x05,     "Spearow",  40,  60,  30,  70,  31,   TYPE_NORMAL,   TYPE_FLYING, 255,  58 }, /* SPEAROW      (0x05) */
-		{ 0x06,     "Voltorb",  40,  30,  50, 100,  55, TYPE_ELECTRIC, TYPE_ELECTRIC, 190, 103 }, /* VOLTORB      (0x06) */
-		{ 0x07,    "Nidoking",  81,  92,  77,  85,  75,   TYPE_POISON,   TYPE_GROUND,  45, 195 }, /* NIDOKING     (0x07) */
-		{ 0x08,     "Slowbro",  95,  75, 110,  30,  80,    TYPE_WATER,  TYPE_PSYCHIC,  75, 164 }, /* SLOWBRO      (0x08) */
-		{ 0x09,     "Ivysaur",  60,  62,  63,  60,  80,    TYPE_GRASS,   TYPE_POISON,  45, 141 }, /* IVYSAUR      (0x09) */
-		{ 0x0a,   "Exeggutor",  95,  95,  85,  55, 125,    TYPE_GRASS,  TYPE_PSYCHIC,  45, 212 }, /* EXEGGUTOR    (0x0A) */
-		{ 0x0b,   "Lickitung",  90,  55,  75,  30,  60,   TYPE_NORMAL,   TYPE_NORMAL,  45, 127 }, /* LICKITUNG    (0x0B) */
-		{ 0x0c,   "Exeggcute",  60,  40,  80,  40,  60,    TYPE_GRASS,  TYPE_PSYCHIC,  90,  98 }, /* EXEGGCUTE    (0x0C) */
-		{ 0x0d,      "Grimer",  80,  80,  50,  25,  40,   TYPE_POISON,   TYPE_POISON, 190,  90 }, /* GRIMER       (0x0D) */
-		{ 0x0e,      "Gengar",  60,  65,  60, 110, 130,    TYPE_GHOST,   TYPE_POISON,  45, 190 }, /* GENGAR       (0x0E) */
-		{ 0x0f,    "Nidoran`",  55,  47,  52,  41,  40,   TYPE_POISON,   TYPE_POISON, 235,  59 }, /* NIDORAN_F    (0x0F) */
-		{ 0x10,   "Nidoqueen",  90,  82,  87,  76,  75,   TYPE_POISON,   TYPE_GROUND,  45, 194 }, /* NIDOQUEEN    (0x10) */
-		{ 0x11,      "Cubone",  50,  50,  95,  35,  40,   TYPE_GROUND,   TYPE_GROUND, 190,  87 }, /* CUBONE       (0x11) */
-		{ 0x12,     "Rhyhorn",  80,  85,  95,  25,  30,   TYPE_GROUND,     TYPE_ROCK, 120, 135 }, /* RHYHORN      (0x12) */
-		{ 0x13,      "Lapras", 130,  85,  80,  60,  95,    TYPE_WATER,      TYPE_ICE,  45, 219 }, /* LAPRAS       (0x13) */
-		{ 0x14,    "Arcanine",  90, 110,  80,  95,  80,     TYPE_FIRE,     TYPE_FIRE,  75, 213 }, /* ARCANINE     (0x14) */
-		{ 0x15,         "Mew", 100, 100, 100, 100, 100,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  45,  64 }, /* MEW          (0x15) */
-		{ 0x16,    "Gyarados",  95, 125,  79,  81, 100,    TYPE_WATER,   TYPE_FLYING,  45, 214 }, /* GYARADOS     (0x16) */
-		{ 0x17,    "Shellder",  30,  65, 100,  40,  45,    TYPE_WATER,    TYPE_WATER, 190,  97 }, /* SHELLDER     (0x17) */
-		{ 0x18,   "Tentacool",  40,  40,  35,  70, 100,    TYPE_WATER,   TYPE_POISON, 190, 105 }, /* TENTACOOL    (0x18) */
-		{ 0x19,      "Gastly",  30,  35,  30,  80, 100,    TYPE_GHOST,   TYPE_POISON, 190,  95 }, /* GASTLY       (0x19) */
-		{ 0x1a,     "Scyther",  70, 110,  80, 105,  55,      TYPE_BUG,   TYPE_FLYING,  45, 187 }, /* SCYTHER      (0x1A) */
-		{ 0x1b,      "Staryu",  30,  45,  55,  85,  70,    TYPE_WATER,    TYPE_WATER, 225, 106 }, /* STARYU       (0x1B) */
-		{ 0x1c,   "Blastoise",  79,  83, 100,  78,  85,    TYPE_WATER,    TYPE_WATER,  45, 210 }, /* BLASTOISE    (0x1C) */
-		{ 0x1d,      "Pinsir",  65, 125, 100,  85,  55,      TYPE_BUG,      TYPE_BUG,  45, 200 }, /* PINSIR       (0x1D) */
-		{ 0x1e,     "Tangela",  65,  55, 115,  60, 100,    TYPE_GRASS,    TYPE_GRASS,  45, 166 }, /* TANGELA      (0x1E) */
-		{ 0x1f,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x1F) */
-		{ 0x20,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x20) */
-		{ 0x21,   "Growlithe",  55,  70,  45,  60,  50,     TYPE_FIRE,     TYPE_FIRE, 190,  91 }, /* GROWLITHE    (0x21) */
-		{ 0x22,        "Onix",  35,  45, 160,  70,  30,     TYPE_ROCK,   TYPE_GROUND,  45, 108 }, /* ONIX         (0x22) */
-		{ 0x23,      "Fearow",  65,  90,  65, 100,  61,   TYPE_NORMAL,   TYPE_FLYING,  90, 162 }, /* FEAROW       (0x23) */
-		{ 0x24,      "Pidgey",  40,  45,  40,  56,  35,   TYPE_NORMAL,   TYPE_FLYING, 255,  55 }, /* PIDGEY       (0x24) */
-		{ 0x25,    "Slowpoke",  90,  65,  65,  15,  40,    TYPE_WATER,  TYPE_PSYCHIC, 190,  99 }, /* SLOWPOKE     (0x25) */
-		{ 0x26,     "Kadabra",  40,  35,  30, 105, 120,  TYPE_PSYCHIC,  TYPE_PSYCHIC, 100, 145 }, /* KADABRA      (0x26) */
-		{ 0x27,    "Graveler",  55,  95, 115,  35,  45,     TYPE_ROCK,   TYPE_GROUND, 120, 134 }, /* GRAVELER     (0x27) */
-		{ 0x28,     "Chansey", 250,   5,   5,  50, 105,   TYPE_NORMAL,   TYPE_NORMAL,  30, 255 }, /* CHANSEY      (0x28) */
-		{ 0x29,     "Machoke",  80, 100,  70,  45,  50, TYPE_FIGHTING, TYPE_FIGHTING,  90, 146 }, /* MACHOKE      (0x29) */
-		{ 0x2a,    "Mr. Mime",  40,  45,  65,  90, 100,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  45, 136 }, /* MR_MIME      (0x2A) */
-		{ 0x2b,   "Hitmonlee",  50, 120,  53,  87,  35, TYPE_FIGHTING, TYPE_FIGHTING,  45, 139 }, /* HITMONLEE    (0x2B) */
-		{ 0x2c,  "Hitmonchan",  50, 105,  79,  76,  35, TYPE_FIGHTING, TYPE_FIGHTING,  45, 140 }, /* HITMONCHAN   (0x2C) */
-		{ 0x2d,       "Arbok",  60,  85,  69,  80,  65,   TYPE_POISON,   TYPE_POISON,  90, 147 }, /* ARBOK        (0x2D) */
-		{ 0x2e,    "Parasect",  60,  95,  80,  30,  80,      TYPE_BUG,    TYPE_GRASS,  75, 128 }, /* PARASECT     (0x2E) */
-		{ 0x2f,     "Psyduck",  50,  52,  48,  55,  50,    TYPE_WATER,    TYPE_WATER, 190,  80 }, /* PSYDUCK      (0x2F) */
-		{ 0x30,     "Drowzee",  60,  48,  45,  42,  90,  TYPE_PSYCHIC,  TYPE_PSYCHIC, 190, 102 }, /* DROWZEE      (0x30) */
-		{ 0x31,       "Golem",  80, 110, 130,  45,  55,     TYPE_ROCK,   TYPE_GROUND,  45, 177 }, /* GOLEM        (0x31) */
-		{ 0x32,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x32) */
-		{ 0x33,      "Magmar",  65,  95,  57,  93,  85,     TYPE_FIRE,     TYPE_FIRE,  45, 167 }, /* MAGMAR       (0x33) */
-		{ 0x34,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x34) */
-		{ 0x35,  "Electabuzz",  65,  83,  57, 105,  85, TYPE_ELECTRIC, TYPE_ELECTRIC,  45, 156 }, /* ELECTABUZZ   (0x35) */
-		{ 0x36,    "Magneton",  50,  60,  95,  70, 120, TYPE_ELECTRIC, TYPE_ELECTRIC,  60, 161 }, /* MAGNETON     (0x36) */
-		{ 0x37,     "Koffing",  40,  65,  95,  35,  60,   TYPE_POISON,   TYPE_POISON, 190, 114 }, /* KOFFING      (0x37) */
-		{ 0x38,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x38) */
-		{ 0x39,      "Mankey",  40,  80,  35,  70,  35, TYPE_FIGHTING, TYPE_FIGHTING, 190,  74 }, /* MANKEY       (0x39) */
-		{ 0x3a,        "Seel",  65,  45,  55,  45,  70,    TYPE_WATER,    TYPE_WATER, 190, 100 }, /* SEEL         (0x3A) */
-		{ 0x3b,     "Diglett",  10,  55,  25,  95,  45,   TYPE_GROUND,   TYPE_GROUND, 255,  81 }, /* DIGLETT      (0x3B) */
-		{ 0x3c,      "Tauros",  75, 100,  95, 110,  70,   TYPE_NORMAL,   TYPE_NORMAL,  45, 211 }, /* TAUROS       (0x3C) */
-		{ 0x3d,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x3D) */
-		{ 0x3e,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x3E) */
-		{ 0x3f,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x3F) */
-		{ 0x40,   "Farfetchd",  52,  65,  55,  60,  58,   TYPE_NORMAL,   TYPE_FLYING,  45,  94 }, /* FARFETCH_D   (0x40) */
-		{ 0x41,     "Venonat",  60,  55,  50,  45,  40,      TYPE_BUG,   TYPE_POISON, 190,  75 }, /* VENONAT      (0x41) */
-		{ 0x42,   "Dragonite",  91, 134,  95,  80, 100,   TYPE_DRAGON,   TYPE_FLYING,  45, 218 }, /* DRAGONITE    (0x42) */
-		{ 0x43,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x43) */
-		{ 0x44,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x44) */
-		{ 0x45,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x45) */
-		{ 0x46,       "Doduo",  35,  85,  45,  75,  35,   TYPE_NORMAL,   TYPE_FLYING, 190,  96 }, /* DODUO        (0x46) */
-		{ 0x47,     "Poliwag",  40,  50,  40,  90,  40,    TYPE_WATER,    TYPE_WATER, 255,  77 }, /* POLIWAG      (0x47) */
-		{ 0x48,        "Jynx",  65,  50,  35,  95,  95,      TYPE_ICE,  TYPE_PSYCHIC,  45, 137 }, /* JYNX         (0x48) */
-		{ 0x49,     "Moltres",  90, 100,  90,  90, 125,     TYPE_FIRE,   TYPE_FLYING,   3, 217 }, /* MOLTRES      (0x49) */
-		{ 0x4a,    "Articuno",  90,  85, 100,  85, 125,      TYPE_ICE,   TYPE_FLYING,   3, 215 }, /* ARTICUNO     (0x4A) */
-		{ 0x4b,      "Zapdos",  90,  90,  85, 100, 125, TYPE_ELECTRIC,   TYPE_FLYING,   3, 216 }, /* ZAPDOS       (0x4B) */
-		{ 0x4c,       "Ditto",  48,  48,  48,  48,  48,   TYPE_NORMAL,   TYPE_NORMAL,  35,  61 }, /* DITTO        (0x4C) */
-		{ 0x4d,      "Meowth",  40,  45,  35,  90,  40,   TYPE_NORMAL,   TYPE_NORMAL, 255,  69 }, /* MEOWTH       (0x4D) */
-		{ 0x4e,      "Krabby",  30, 105,  90,  50,  25,    TYPE_WATER,    TYPE_WATER, 225, 115 }, /* KRABBY       (0x4E) */
-		{ 0x4f,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x4F) */
-		{ 0x50,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x50) */
-		{ 0x51,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x51) */
-		{ 0x52,      "Vulpix",  38,  41,  40,  65,  65,     TYPE_FIRE,     TYPE_FIRE, 190,  63 }, /* VULPIX       (0x52) */
-		{ 0x53,   "Ninetales",  73,  76,  75, 100, 100,     TYPE_FIRE,     TYPE_FIRE,  75, 178 }, /* NINETALES    (0x53) */
-		{ 0x54,     "Pikachu",  35,  55,  30,  90,  50, TYPE_ELECTRIC, TYPE_ELECTRIC, 190,  82 }, /* PIKACHU      (0x54) */
-		{ 0x55,      "Raichu",  60,  90,  55, 100,  90, TYPE_ELECTRIC, TYPE_ELECTRIC,  75, 122 }, /* RAICHU       (0x55) */
-		{ 0x56,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x56) */
-		{ 0x57,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x57) */
-		{ 0x58,     "Dratini",  41,  64,  45,  50,  50,   TYPE_DRAGON,   TYPE_DRAGON,  45,  67 }, /* DRATINI      (0x58) */
-		{ 0x59,   "Dragonair",  61,  84,  65,  70,  70,   TYPE_DRAGON,   TYPE_DRAGON,  45, 144 }, /* DRAGONAIR    (0x59) */
-		{ 0x5a,      "Kabuto",  30,  80,  90,  55,  45,     TYPE_ROCK,    TYPE_WATER,  45, 119 }, /* KABUTO       (0x5A) */
-		{ 0x5b,    "Kabutops",  60, 115, 105,  80,  70,     TYPE_ROCK,    TYPE_WATER,  45, 201 }, /* KABUTOPS     (0x5B) */
-		{ 0x5c,      "Horsea",  30,  40,  70,  60,  70,    TYPE_WATER,    TYPE_WATER, 225,  83 }, /* HORSEA       (0x5C) */
-		{ 0x5d,      "Seadra",  55,  65,  95,  85,  95,    TYPE_WATER,    TYPE_WATER,  75, 155 }, /* SEADRA       (0x5D) */
-		{ 0x5e,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x5E) */
-		{ 0x5f,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x5F) */
-		{ 0x60,   "Sandshrew",  50,  75,  85,  40,  30,   TYPE_GROUND,   TYPE_GROUND, 255,  93 }, /* SANDSHREW    (0x60) */
-		{ 0x61,   "Sandslash",  75, 100, 110,  65,  55,   TYPE_GROUND,   TYPE_GROUND,  90, 163 }, /* SANDSLASH    (0x61) */
-		{ 0x62,     "Omanyte",  35,  40, 100,  35,  90,     TYPE_ROCK,    TYPE_WATER,  45, 120 }, /* OMANYTE      (0x62) */
-		{ 0x63,     "Omastar",  70,  60, 125,  55, 115,     TYPE_ROCK,    TYPE_WATER,  45, 199 }, /* OMASTAR      (0x63) */
-		{ 0x64,  "Jigglypuff", 115,  45,  20,  20,  25,   TYPE_NORMAL,   TYPE_NORMAL, 170,  76 }, /* JIGGLYPUFF   (0x64) */
-		{ 0x65,  "Wigglytuff", 140,  70,  45,  45,  50,   TYPE_NORMAL,   TYPE_NORMAL,  50, 109 }, /* WIGGLYTUFF   (0x65) */
-		{ 0x66,       "Eevee",  55,  55,  50,  55,  65,   TYPE_NORMAL,   TYPE_NORMAL,  45,  92 }, /* EEVEE        (0x66) */
-		{ 0x67,     "Flareon",  65, 130,  60,  65, 110,     TYPE_FIRE,     TYPE_FIRE,  45, 198 }, /* FLAREON      (0x67) */
-		{ 0x68,     "Jolteon",  65,  65,  60, 130, 110, TYPE_ELECTRIC, TYPE_ELECTRIC,  45, 197 }, /* JOLTEON      (0x68) */
-		{ 0x69,    "Vaporeon", 130,  65,  60,  65, 110,    TYPE_WATER,    TYPE_WATER,  45, 196 }, /* VAPOREON     (0x69) */
-		{ 0x6a,      "Machop",  70,  80,  50,  35,  35, TYPE_FIGHTING, TYPE_FIGHTING, 180,  88 }, /* MACHOP       (0x6A) */
-		{ 0x6b,       "Zubat",  40,  45,  35,  55,  40,   TYPE_POISON,   TYPE_FLYING, 255,  54 }, /* ZUBAT        (0x6B) */
-		{ 0x6c,       "Ekans",  35,  60,  44,  55,  40,   TYPE_POISON,   TYPE_POISON, 255,  62 }, /* EKANS        (0x6C) */
-		{ 0x6d,       "Paras",  35,  70,  55,  25,  55,      TYPE_BUG,    TYPE_GRASS, 190,  70 }, /* PARAS        (0x6D) */
-		{ 0x6e,   "Poliwhirl",  65,  65,  65,  90,  50,    TYPE_WATER,    TYPE_WATER, 120, 131 }, /* POLIWHIRL    (0x6E) */
-		{ 0x6f,   "Poliwrath",  90,  85,  95,  70,  70,    TYPE_WATER, TYPE_FIGHTING,  45, 185 }, /* POLIWRATH    (0x6F) */
-		{ 0x70,      "Weedle",  40,  35,  30,  50,  20,      TYPE_BUG,   TYPE_POISON, 255,  52 }, /* WEEDLE       (0x70) */
-		{ 0x71,      "Kakuna",  45,  25,  50,  35,  25,      TYPE_BUG,   TYPE_POISON, 120,  71 }, /* KAKUNA       (0x71) */
-		{ 0x72,    "Beedrill",  65,  80,  40,  75,  45,      TYPE_BUG,   TYPE_POISON,  45, 159 }, /* BEEDRILL     (0x72) */
-		{ 0x73,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x73) */
-		{ 0x74,      "Dodrio",  60, 110,  70, 100,  60,   TYPE_NORMAL,   TYPE_FLYING,  45, 158 }, /* DODRIO       (0x74) */
-		{ 0x75,    "Primeape",  65, 105,  60,  95,  60, TYPE_FIGHTING, TYPE_FIGHTING,  75, 149 }, /* PRIMEAPE     (0x75) */
-		{ 0x76,     "Dugtrio",  35,  80,  50, 120,  70,   TYPE_GROUND,   TYPE_GROUND,  50, 153 }, /* DUGTRIO      (0x76) */
-		{ 0x77,    "Venomoth",  70,  65,  60,  90,  90,      TYPE_BUG,   TYPE_POISON,  75, 138 }, /* VENOMOTH     (0x77) */
-		{ 0x78,     "Dewgong",  90,  70,  80,  70,  95,    TYPE_WATER,      TYPE_ICE,  75, 176 }, /* DEWGONG      (0x78) */
-		{ 0x79,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x79) */
-		{ 0x7a,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x7A) */
-		{ 0x7b,    "Caterpie",  45,  30,  35,  45,  20,      TYPE_BUG,      TYPE_BUG, 255,  53 }, /* CATERPIE     (0x7B) */
-		{ 0x7c,     "Metapod",  50,  20,  55,  30,  25,      TYPE_BUG,      TYPE_BUG, 120,  72 }, /* METAPOD      (0x7C) */
-		{ 0x7d,  "Butterfree",  60,  45,  50,  70,  80,      TYPE_BUG,   TYPE_FLYING,  45, 160 }, /* BUTTERFREE   (0x7D) */
-		{ 0x7e,     "Machamp",  90, 130,  80,  55,  65, TYPE_FIGHTING, TYPE_FIGHTING,  45, 193 }, /* MACHAMP      (0x7E) */
-		{ 0x7f,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x7F) */
-		{ 0x80,     "Golduck",  80,  82,  78,  85,  80,    TYPE_WATER,    TYPE_WATER,  75, 174 }, /* GOLDUCK      (0x80) */
-		{ 0x81,       "Hypno",  85,  73,  70,  67, 115,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  75, 165 }, /* HYPNO        (0x81) */
-		{ 0x82,      "Golbat",  75,  80,  70,  90,  75,   TYPE_POISON,   TYPE_FLYING,  90, 171 }, /* GOLBAT       (0x82) */
-		{ 0x83,      "Mewtwo", 106, 110,  90, 130, 154,  TYPE_PSYCHIC,  TYPE_PSYCHIC,   3, 220 }, /* MEWTWO       (0x83) */
-		{ 0x84,     "Snorlax", 160, 110,  65,  30,  65,   TYPE_NORMAL,   TYPE_NORMAL,  25, 154 }, /* SNORLAX      (0x84) */
-		{ 0x85,    "Magikarp",  20,  10,  55,  80,  20,    TYPE_WATER,    TYPE_WATER, 255,  20 }, /* MAGIKARP     (0x85) */
-		{ 0x86,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x86) */
-		{ 0x87,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x87) */
-		{ 0x88,         "Muk", 105, 105,  75,  50,  65,   TYPE_POISON,   TYPE_POISON,  75, 157 }, /* MUK          (0x88) */
-		{ 0x89,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x89) */
-		{ 0x8a,     "Kingler",  55, 130, 115,  75,  50,    TYPE_WATER,    TYPE_WATER,  60, 206 }, /* KINGLER      (0x8A) */
-		{ 0x8b,    "Cloyster",  50,  95, 180,  70,  85,    TYPE_WATER,      TYPE_ICE,  60, 203 }, /* CLOYSTER     (0x8B) */
-		{ 0x8c,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x8C) */
-		{ 0x8d,   "Electrode",  60,  50,  70, 140,  80, TYPE_ELECTRIC, TYPE_ELECTRIC,  60, 150 }, /* ELECTRODE    (0x8D) */
-		{ 0x8e,    "Clefable",  95,  70,  73,  60,  85,   TYPE_NORMAL,   TYPE_NORMAL,  25, 129 }, /* CLEFABLE     (0x8E) */
-		{ 0x8f,     "Weezing",  65,  90, 120,  60,  85,   TYPE_POISON,   TYPE_POISON,  60, 173 }, /* WEEZING      (0x8F) */
-		{ 0x90,     "Persian",  65,  70,  60, 115,  65,   TYPE_NORMAL,   TYPE_NORMAL,  90, 148 }, /* PERSIAN      (0x90) */
-		{ 0x91,     "Marowak",  60,  80, 110,  45,  50,   TYPE_GROUND,   TYPE_GROUND,  75, 124 }, /* MAROWAK      (0x91) */
-		{ 0x92,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x92) */
-		{ 0x93,     "Haunter",  45,  50,  45,  95, 115,    TYPE_GHOST,   TYPE_POISON,  90, 126 }, /* HAUNTER      (0x93) */
-		{ 0x94,        "Abra",  25,  20,  15,  90, 105,  TYPE_PSYCHIC,  TYPE_PSYCHIC, 200,  73 }, /* ABRA         (0x94) */
-		{ 0x95,    "Alakazam",  55,  50,  45, 120, 135,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  50, 186 }, /* ALAKAZAM     (0x95) */
-		{ 0x96,   "Pidgeotto",  63,  60,  55,  71,  50,   TYPE_NORMAL,   TYPE_FLYING, 120, 113 }, /* PIDGEOTTO    (0x96) */
-		{ 0x97,     "Pidgeot",  83,  80,  75,  91,  70,   TYPE_NORMAL,   TYPE_FLYING,  45, 172 }, /* PIDGEOT      (0x97) */
-		{ 0x98,     "Starmie",  60,  75,  85, 115, 100,    TYPE_WATER,  TYPE_PSYCHIC,  60, 207 }, /* STARMIE      (0x98) */
-		{ 0x99,   "Bulbasaur",  45,  49,  49,  45,  65,    TYPE_GRASS,   TYPE_POISON,  45,  64 }, /* BULBASAUR    (0x99) */
-		{ 0x9a,    "Venusaur",  80,  82,  83,  80, 100,    TYPE_GRASS,   TYPE_POISON,  45, 208 }, /* VENUSAUR     (0x9A) */
-		{ 0x9b,  "Tentacruel",  80,  70,  65, 100, 120,    TYPE_WATER,   TYPE_POISON,  60, 205 }, /* TENTACRUEL   (0x9B) */
-		{ 0x9c,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x9C) */
-		{ 0x9d,     "Goldeen",  45,  67,  60,  63,  50,    TYPE_WATER,    TYPE_WATER, 225, 111 }, /* GOLDEEN      (0x9D) */
-		{ 0x9e,     "Seaking",  80,  92,  65,  68,  80,    TYPE_WATER,    TYPE_WATER,  60, 170 }, /* SEAKING      (0x9E) */
-		{ 0x9f,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0x9F) */
-		{ 0xa0,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xA0) */
-		{ 0xa1,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xA1) */
-		{ 0xa2,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xA2) */
-		{ 0xa3,      "Ponyta",  50,  85,  55,  90,  65,     TYPE_FIRE,     TYPE_FIRE, 190, 152 }, /* PONYTA       (0xA3) */
-		{ 0xa4,    "Rapidash",  65, 100,  70, 105,  80,     TYPE_FIRE,     TYPE_FIRE,  60, 192 }, /* RAPIDASH     (0xA4) */
-		{ 0xa5,     "Rattata",  30,  56,  35,  72,  25,   TYPE_NORMAL,   TYPE_NORMAL, 255,  57 }, /* RATTATA      (0xA5) */
-		{ 0xa6,    "Raticate",  55,  81,  60,  97,  50,   TYPE_NORMAL,   TYPE_NORMAL,  90, 116 }, /* RATICATE     (0xA6) */
-		{ 0xa7,    "Nidorino",  61,  72,  57,  65,  55,   TYPE_POISON,   TYPE_POISON, 120, 118 }, /* NIDORINO     (0xA7) */
-		{ 0xa8,    "Nidorina",  70,  62,  67,  56,  55,   TYPE_POISON,   TYPE_POISON, 120, 117 }, /* NIDORINA     (0xA8) */
-		{ 0xa9,     "Geodude",  40,  80, 100,  20,  30,     TYPE_ROCK,   TYPE_GROUND, 255,  86 }, /* GEODUDE      (0xA9) */
-		{ 0xaa,     "Porygon",  65,  60,  70,  40,  75,   TYPE_NORMAL,   TYPE_NORMAL,  45, 130 }, /* PORYGON      (0xAA) */
-		{ 0xab,  "Aerodactyl",  80, 105,  65, 130,  60,     TYPE_ROCK,   TYPE_FLYING,  45, 202 }, /* AERODACTYL   (0xAB) */
-		{ 0xac,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xAC) */
-		{ 0xad,   "Magnemite",  25,  35,  70,  45,  95, TYPE_ELECTRIC, TYPE_ELECTRIC, 190,  89 }, /* MAGNEMITE    (0xAD) */
-		{ 0xae,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xAE) */
-		{ 0xaf,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xAF) */
-		{ 0xb0,  "Charmander",  39,  52,  43,  65,  50,     TYPE_FIRE,     TYPE_FIRE,  45,  65 }, /* CHARMANDER   (0xB0) */
-		{ 0xb1,    "Squirtle",  44,  48,  65,  43,  50,    TYPE_WATER,    TYPE_WATER,  45,  66 }, /* SQUIRTLE     (0xB1) */
-		{ 0xb2,  "Charmeleon",  58,  64,  58,  80,  65,     TYPE_FIRE,     TYPE_FIRE,  45, 142 }, /* CHARMELEON   (0xB2) */
-		{ 0xb3,   "Wartortle",  59,  63,  80,  58,  65,    TYPE_WATER,    TYPE_WATER,  45, 143 }, /* WARTORTLE    (0xB3) */
-		{ 0xb4,   "Charizard",  78,  84,  78, 100,  85,     TYPE_FIRE,   TYPE_FLYING,  45, 209 }, /* CHARIZARD    (0xB4) */
-		{ 0xb5,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xB5) */
-		{ 0xb6,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xB6) */
-		{ 0xb7,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xB7) */
-		{ 0xb8,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xB8) */
-		{ 0xb9,      "Oddish",  45,  50,  55,  30,  75,    TYPE_GRASS,   TYPE_POISON, 255,  78 }, /* ODDISH       (0xB9) */
-		{ 0xba,       "Gloom",  60,  65,  70,  40,  85,    TYPE_GRASS,   TYPE_POISON, 120, 132 }, /* GLOOM        (0xBA) */
-		{ 0xbb,   "Vileplume",  75,  80,  85,  50, 100,    TYPE_GRASS,   TYPE_POISON,  45, 184 }, /* VILEPLUME    (0xBB) */
-		{ 0xbc,  "Bellsprout",  50,  75,  35,  40,  70,    TYPE_GRASS,   TYPE_POISON, 255,  84 }, /* BELLSPROUT   (0xBC) */
-		{ 0xbd,  "Weepinbell",  65,  90,  50,  55,  85,    TYPE_GRASS,   TYPE_POISON, 120, 151 }, /* WEEPINBELL   (0xBD) */
-		{ 0xbe,  "Victreebel",  80, 105,  65,  70, 100,    TYPE_GRASS,   TYPE_POISON,  45, 191 }, /* VICTREEBEL   (0xBE) */
-		{ 0xbf,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xBF) */
-		{ 0xc0,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xC0) */
-		{ 0xc1,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xC1) */
-		{ 0xc2,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xC2) */
-		{ 0xc3,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xC3) */
-		{ 0xc4,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xC4) */
-		{ 0xc5,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xC5) */
-		{ 0xc6,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xC6) */
-		{ 0xc7,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xC7) */
-		{ 0xc8,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xC8) */
-		{ 0xc9,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xC9) */
-		{ 0xca,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xCA) */
-		{ 0xcb,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xCB) */
-		{ 0xcc,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xCC) */
-		{ 0xcd,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xCD) */
-		{ 0xce,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xCE) */
-		{ 0xcf,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xCF) */
-		{ 0xd0,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xD0) */
-		{ 0xd1,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xD1) */
-		{ 0xd2,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xD2) */
-		{ 0xd3,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xD3) */
-		{ 0xd4,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xD4) */
-		{ 0xd5,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xD5) */
-		{ 0xd6,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xD6) */
-		{ 0xd7,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xD7) */
-		{ 0xd8,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xD8) */
-		{ 0xd9,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xD9) */
-		{ 0xda,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xDA) */
-		{ 0xdb,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xDB) */
-		{ 0xdc,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xDC) */
-		{ 0xdd,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xDD) */
-		{ 0xde,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xDE) */
-		{ 0xdf,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xDF) */
-		{ 0xe0,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xE0) */
-		{ 0xe1,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xE1) */
-		{ 0xe2,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xE2) */
-		{ 0xe3,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xE3) */
-		{ 0xe4,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xE4) */
-		{ 0xe5,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xE5) */
-		{ 0xe6,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xE6) */
-		{ 0xe7,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xE7) */
-		{ 0xe8,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xE8) */
-		{ 0xe9,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xE9) */
-		{ 0xea,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xEA) */
-		{ 0xeb,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xEB) */
-		{ 0xec,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xEC) */
-		{ 0xed,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xED) */
-		{ 0xee,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xEE) */
-		{ 0xef,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xEF) */
-		{ 0xf0,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xF0) */
-		{ 0xf1,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xF1) */
-		{ 0xf2,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xF2) */
-		{ 0xf3,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xF3) */
-		{ 0xf4,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xF4) */
-		{ 0xf5,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xF5) */
-		{ 0xf6,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xF6) */
-		{ 0xf7,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xF7) */
-		{ 0xf8,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xF8) */
-		{ 0xf9,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xF9) */
-		{ 0xfa,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xFA) */
-		{ 0xfb,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xFB) */
-		{ 0xfc,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xFC) */
-		{ 0xfd,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xFD) */
-		{ 0xfe,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xFE) */
-		{ 0xff,  "Missingno.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO    (0xFF) */
+		{ 0X00,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X00) */
+		{ 0X01,      "RHYDON", 105, 130, 120,  40,  45,   TYPE_GROUND,     TYPE_ROCK,  60, 204 }, /* RHYDON       (0X01) */
+		{ 0X02,  "KANGASKHAN", 105,  95,  80,  90,  40,   TYPE_NORMAL,   TYPE_NORMAL,  45, 175 }, /* KANGASKHAN   (0X02) */
+		{ 0X03,    "NIDORAN~",  46,  57,  40,  50,  40,   TYPE_POISON,   TYPE_POISON, 235,  60 }, /* NIDORAN_M    (0X03) */
+		{ 0X04,    "CLEFAIRY",  70,  45,  48,  35,  60,   TYPE_NORMAL,   TYPE_NORMAL, 150,  68 }, /* CLEFAIRY     (0X04) */
+		{ 0X05,     "SPEAROW",  40,  60,  30,  70,  31,   TYPE_NORMAL,   TYPE_FLYING, 255,  58 }, /* SPEAROW      (0X05) */
+		{ 0X06,     "VOLTORB",  40,  30,  50, 100,  55, TYPE_ELECTRIC, TYPE_ELECTRIC, 190, 103 }, /* VOLTORB      (0X06) */
+		{ 0X07,    "NIDOKING",  81,  92,  77,  85,  75,   TYPE_POISON,   TYPE_GROUND,  45, 195 }, /* NIDOKING     (0X07) */
+		{ 0X08,     "SLOWBRO",  95,  75, 110,  30,  80,    TYPE_WATER,  TYPE_PSYCHIC,  75, 164 }, /* SLOWBRO      (0X08) */
+		{ 0X09,     "IVYSAUR",  60,  62,  63,  60,  80,    TYPE_GRASS,   TYPE_POISON,  45, 141 }, /* IVYSAUR      (0X09) */
+		{ 0X0A,   "EXEGGUTOR",  95,  95,  85,  55, 125,    TYPE_GRASS,  TYPE_PSYCHIC,  45, 212 }, /* EXEGGUTOR    (0X0A) */
+		{ 0X0B,   "LICKITUNG",  90,  55,  75,  30,  60,   TYPE_NORMAL,   TYPE_NORMAL,  45, 127 }, /* LICKITUNG    (0X0B) */
+		{ 0X0C,   "EXEGGCUTE",  60,  40,  80,  40,  60,    TYPE_GRASS,  TYPE_PSYCHIC,  90,  98 }, /* EXEGGCUTE    (0X0C) */
+		{ 0X0D,      "GRIMER",  80,  80,  50,  25,  40,   TYPE_POISON,   TYPE_POISON, 190,  90 }, /* GRIMER       (0X0D) */
+		{ 0X0E,      "GENGAR",  60,  65,  60, 110, 130,    TYPE_GHOST,   TYPE_POISON,  45, 190 }, /* GENGAR       (0X0E) */
+		{ 0X0F,    "NIDORAN`",  55,  47,  52,  41,  40,   TYPE_POISON,   TYPE_POISON, 235,  59 }, /* NIDORAN_F    (0X0F) */
+		{ 0X10,   "NIDOQUEEN",  90,  82,  87,  76,  75,   TYPE_POISON,   TYPE_GROUND,  45, 194 }, /* NIDOQUEEN    (0X10) */
+		{ 0X11,      "CUBONE",  50,  50,  95,  35,  40,   TYPE_GROUND,   TYPE_GROUND, 190,  87 }, /* CUBONE       (0X11) */
+		{ 0X12,     "RHYHORN",  80,  85,  95,  25,  30,   TYPE_GROUND,     TYPE_ROCK, 120, 135 }, /* RHYHORN      (0X12) */
+		{ 0X13,      "LAPRAS", 130,  85,  80,  60,  95,    TYPE_WATER,      TYPE_ICE,  45, 219 }, /* LAPRAS       (0X13) */
+		{ 0X14,    "ARCANINE",  90, 110,  80,  95,  80,     TYPE_FIRE,     TYPE_FIRE,  75, 213 }, /* ARCANINE     (0X14) */
+		{ 0X15,         "MEW", 100, 100, 100, 100, 100,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  45,  64 }, /* MEW          (0X15) */
+		{ 0X16,    "GYARADOS",  95, 125,  79,  81, 100,    TYPE_WATER,   TYPE_FLYING,  45, 214 }, /* GYARADOS     (0X16) */
+		{ 0X17,    "SHELLDER",  30,  65, 100,  40,  45,    TYPE_WATER,    TYPE_WATER, 190,  97 }, /* SHELLDER     (0X17) */
+		{ 0X18,   "TENTACOOL",  40,  40,  35,  70, 100,    TYPE_WATER,   TYPE_POISON, 190, 105 }, /* TENTACOOL    (0X18) */
+		{ 0X19,      "GASTLY",  30,  35,  30,  80, 100,    TYPE_GHOST,   TYPE_POISON, 190,  95 }, /* GASTLY       (0X19) */
+		{ 0X1A,     "SCYTHER",  70, 110,  80, 105,  55,      TYPE_BUG,   TYPE_FLYING,  45, 187 }, /* SCYTHER      (0X1A) */
+		{ 0X1B,      "STARYU",  30,  45,  55,  85,  70,    TYPE_WATER,    TYPE_WATER, 225, 106 }, /* STARYU       (0X1B) */
+		{ 0X1C,   "BLASTOISE",  79,  83, 100,  78,  85,    TYPE_WATER,    TYPE_WATER,  45, 210 }, /* BLASTOISE    (0X1C) */
+		{ 0X1D,      "PINSIR",  65, 125, 100,  85,  55,      TYPE_BUG,      TYPE_BUG,  45, 200 }, /* PINSIR       (0X1D) */
+		{ 0X1E,     "TANGELA",  65,  55, 115,  60, 100,    TYPE_GRASS,    TYPE_GRASS,  45, 166 }, /* TANGELA      (0X1E) */
+		{ 0X1F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X1F) */
+		{ 0X20,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X20) */
+		{ 0X21,   "GROWLITHE",  55,  70,  45,  60,  50,     TYPE_FIRE,     TYPE_FIRE, 190,  91 }, /* GROWLITHE    (0X21) */
+		{ 0X22,        "ONIX",  35,  45, 160,  70,  30,     TYPE_ROCK,   TYPE_GROUND,  45, 108 }, /* ONIX         (0X22) */
+		{ 0X23,      "FEAROW",  65,  90,  65, 100,  61,   TYPE_NORMAL,   TYPE_FLYING,  90, 162 }, /* FEAROW       (0X23) */
+		{ 0X24,      "PIDGEY",  40,  45,  40,  56,  35,   TYPE_NORMAL,   TYPE_FLYING, 255,  55 }, /* PIDGEY       (0X24) */
+		{ 0X25,    "SLOWPOKE",  90,  65,  65,  15,  40,    TYPE_WATER,  TYPE_PSYCHIC, 190,  99 }, /* SLOWPOKE     (0X25) */
+		{ 0X26,     "KADABRA",  40,  35,  30, 105, 120,  TYPE_PSYCHIC,  TYPE_PSYCHIC, 100, 145 }, /* KADABRA      (0X26) */
+		{ 0X27,    "GRAVELER",  55,  95, 115,  35,  45,     TYPE_ROCK,   TYPE_GROUND, 120, 134 }, /* GRAVELER     (0X27) */
+		{ 0X28,     "CHANSEY", 250,   5,   5,  50, 105,   TYPE_NORMAL,   TYPE_NORMAL,  30, 255 }, /* CHANSEY      (0X28) */
+		{ 0X29,     "MACHOKE",  80, 100,  70,  45,  50, TYPE_FIGHTING, TYPE_FIGHTING,  90, 146 }, /* MACHOKE      (0X29) */
+		{ 0X2A,    "MR. MIME",  40,  45,  65,  90, 100,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  45, 136 }, /* MR_MIME      (0X2A) */
+		{ 0X2B,   "HITMONLEE",  50, 120,  53,  87,  35, TYPE_FIGHTING, TYPE_FIGHTING,  45, 139 }, /* HITMONLEE    (0X2B) */
+		{ 0X2C,  "HITMONCHAN",  50, 105,  79,  76,  35, TYPE_FIGHTING, TYPE_FIGHTING,  45, 140 }, /* HITMONCHAN   (0X2C) */
+		{ 0X2D,       "ARBOK",  60,  85,  69,  80,  65,   TYPE_POISON,   TYPE_POISON,  90, 147 }, /* ARBOK        (0X2D) */
+		{ 0X2E,    "PARASECT",  60,  95,  80,  30,  80,      TYPE_BUG,    TYPE_GRASS,  75, 128 }, /* PARASECT     (0X2E) */
+		{ 0X2F,     "PSYDUCK",  50,  52,  48,  55,  50,    TYPE_WATER,    TYPE_WATER, 190,  80 }, /* PSYDUCK      (0X2F) */
+		{ 0X30,     "DROWZEE",  60,  48,  45,  42,  90,  TYPE_PSYCHIC,  TYPE_PSYCHIC, 190, 102 }, /* DROWZEE      (0X30) */
+		{ 0X31,       "GOLEM",  80, 110, 130,  45,  55,     TYPE_ROCK,   TYPE_GROUND,  45, 177 }, /* GOLEM        (0X31) */
+		{ 0X32,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X32) */
+		{ 0X33,      "MAGMAR",  65,  95,  57,  93,  85,     TYPE_FIRE,     TYPE_FIRE,  45, 167 }, /* MAGMAR       (0X33) */
+		{ 0X34,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X34) */
+		{ 0X35,  "ELECTABUZZ",  65,  83,  57, 105,  85, TYPE_ELECTRIC, TYPE_ELECTRIC,  45, 156 }, /* ELECTABUZZ   (0X35) */
+		{ 0X36,    "MAGNETON",  50,  60,  95,  70, 120, TYPE_ELECTRIC, TYPE_ELECTRIC,  60, 161 }, /* MAGNETON     (0X36) */
+		{ 0X37,     "KOFFING",  40,  65,  95,  35,  60,   TYPE_POISON,   TYPE_POISON, 190, 114 }, /* KOFFING      (0X37) */
+		{ 0X38,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X38) */
+		{ 0X39,      "MANKEY",  40,  80,  35,  70,  35, TYPE_FIGHTING, TYPE_FIGHTING, 190,  74 }, /* MANKEY       (0X39) */
+		{ 0X3A,        "SEEL",  65,  45,  55,  45,  70,    TYPE_WATER,    TYPE_WATER, 190, 100 }, /* SEEL         (0X3A) */
+		{ 0X3B,     "DIGLETT",  10,  55,  25,  95,  45,   TYPE_GROUND,   TYPE_GROUND, 255,  81 }, /* DIGLETT      (0X3B) */
+		{ 0X3C,      "TAUROS",  75, 100,  95, 110,  70,   TYPE_NORMAL,   TYPE_NORMAL,  45, 211 }, /* TAUROS       (0X3C) */
+		{ 0X3D,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X3D) */
+		{ 0X3E,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X3E) */
+		{ 0X3F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X3F) */
+		{ 0X40,   "FARFETCHD",  52,  65,  55,  60,  58,   TYPE_NORMAL,   TYPE_FLYING,  45,  94 }, /* FARFETCH_D   (0X40) */
+		{ 0X41,     "VENONAT",  60,  55,  50,  45,  40,      TYPE_BUG,   TYPE_POISON, 190,  75 }, /* VENONAT      (0X41) */
+		{ 0X42,   "DRAGONITE",  91, 134,  95,  80, 100,   TYPE_DRAGON,   TYPE_FLYING,  45, 218 }, /* DRAGONITE    (0X42) */
+		{ 0X43,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X43) */
+		{ 0X44,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X44) */
+		{ 0X45,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X45) */
+		{ 0X46,       "DODUO",  35,  85,  45,  75,  35,   TYPE_NORMAL,   TYPE_FLYING, 190,  96 }, /* DODUO        (0X46) */
+		{ 0X47,     "POLIWAG",  40,  50,  40,  90,  40,    TYPE_WATER,    TYPE_WATER, 255,  77 }, /* POLIWAG      (0X47) */
+		{ 0X48,        "JYNX",  65,  50,  35,  95,  95,      TYPE_ICE,  TYPE_PSYCHIC,  45, 137 }, /* JYNX         (0X48) */
+		{ 0X49,     "MOLTRES",  90, 100,  90,  90, 125,     TYPE_FIRE,   TYPE_FLYING,   3, 217 }, /* MOLTRES      (0X49) */
+		{ 0X4A,    "ARTICUNO",  90,  85, 100,  85, 125,      TYPE_ICE,   TYPE_FLYING,   3, 215 }, /* ARTICUNO     (0X4A) */
+		{ 0X4B,      "ZAPDOS",  90,  90,  85, 100, 125, TYPE_ELECTRIC,   TYPE_FLYING,   3, 216 }, /* ZAPDOS       (0X4B) */
+		{ 0X4C,       "DITTO",  48,  48,  48,  48,  48,   TYPE_NORMAL,   TYPE_NORMAL,  35,  61 }, /* DITTO        (0X4C) */
+		{ 0X4D,      "MEOWTH",  40,  45,  35,  90,  40,   TYPE_NORMAL,   TYPE_NORMAL, 255,  69 }, /* MEOWTH       (0X4D) */
+		{ 0X4E,      "KRABBY",  30, 105,  90,  50,  25,    TYPE_WATER,    TYPE_WATER, 225, 115 }, /* KRABBY       (0X4E) */
+		{ 0X4F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X4F) */
+		{ 0X50,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X50) */
+		{ 0X51,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X51) */
+		{ 0X52,      "VULPIX",  38,  41,  40,  65,  65,     TYPE_FIRE,     TYPE_FIRE, 190,  63 }, /* VULPIX       (0X52) */
+		{ 0X53,   "NINETALES",  73,  76,  75, 100, 100,     TYPE_FIRE,     TYPE_FIRE,  75, 178 }, /* NINETALES    (0X53) */
+		{ 0X54,     "PIKACHU",  35,  55,  30,  90,  50, TYPE_ELECTRIC, TYPE_ELECTRIC, 190,  82 }, /* PIKACHU      (0X54) */
+		{ 0X55,      "RAICHU",  60,  90,  55, 100,  90, TYPE_ELECTRIC, TYPE_ELECTRIC,  75, 122 }, /* RAICHU       (0X55) */
+		{ 0X56,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X56) */
+		{ 0X57,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X57) */
+		{ 0X58,     "DRATINI",  41,  64,  45,  50,  50,   TYPE_DRAGON,   TYPE_DRAGON,  45,  67 }, /* DRATINI      (0X58) */
+		{ 0X59,   "DRAGONAIR",  61,  84,  65,  70,  70,   TYPE_DRAGON,   TYPE_DRAGON,  45, 144 }, /* DRAGONAIR    (0X59) */
+		{ 0X5A,      "KABUTO",  30,  80,  90,  55,  45,     TYPE_ROCK,    TYPE_WATER,  45, 119 }, /* KABUTO       (0X5A) */
+		{ 0X5B,    "KABUTOPS",  60, 115, 105,  80,  70,     TYPE_ROCK,    TYPE_WATER,  45, 201 }, /* KABUTOPS     (0X5B) */
+		{ 0X5C,      "HORSEA",  30,  40,  70,  60,  70,    TYPE_WATER,    TYPE_WATER, 225,  83 }, /* HORSEA       (0X5C) */
+		{ 0X5D,      "SEADRA",  55,  65,  95,  85,  95,    TYPE_WATER,    TYPE_WATER,  75, 155 }, /* SEADRA       (0X5D) */
+		{ 0X5E,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X5E) */
+		{ 0X5F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X5F) */
+		{ 0X60,   "SANDSHREW",  50,  75,  85,  40,  30,   TYPE_GROUND,   TYPE_GROUND, 255,  93 }, /* SANDSHREW    (0X60) */
+		{ 0X61,   "SANDSLASH",  75, 100, 110,  65,  55,   TYPE_GROUND,   TYPE_GROUND,  90, 163 }, /* SANDSLASH    (0X61) */
+		{ 0X62,     "OMANYTE",  35,  40, 100,  35,  90,     TYPE_ROCK,    TYPE_WATER,  45, 120 }, /* OMANYTE      (0X62) */
+		{ 0X63,     "OMASTAR",  70,  60, 125,  55, 115,     TYPE_ROCK,    TYPE_WATER,  45, 199 }, /* OMASTAR      (0X63) */
+		{ 0X64,  "JIGGLYPUFF", 115,  45,  20,  20,  25,   TYPE_NORMAL,   TYPE_NORMAL, 170,  76 }, /* JIGGLYPUFF   (0X64) */
+		{ 0X65,  "WIGGLYTUFF", 140,  70,  45,  45,  50,   TYPE_NORMAL,   TYPE_NORMAL,  50, 109 }, /* WIGGLYTUFF   (0X65) */
+		{ 0X66,       "EEVEE",  55,  55,  50,  55,  65,   TYPE_NORMAL,   TYPE_NORMAL,  45,  92 }, /* EEVEE        (0X66) */
+		{ 0X67,     "FLAREON",  65, 130,  60,  65, 110,     TYPE_FIRE,     TYPE_FIRE,  45, 198 }, /* FLAREON      (0X67) */
+		{ 0X68,     "JOLTEON",  65,  65,  60, 130, 110, TYPE_ELECTRIC, TYPE_ELECTRIC,  45, 197 }, /* JOLTEON      (0X68) */
+		{ 0X69,    "VAPOREON", 130,  65,  60,  65, 110,    TYPE_WATER,    TYPE_WATER,  45, 196 }, /* VAPOREON     (0X69) */
+		{ 0X6A,      "MACHOP",  70,  80,  50,  35,  35, TYPE_FIGHTING, TYPE_FIGHTING, 180,  88 }, /* MACHOP       (0X6A) */
+		{ 0X6B,       "ZUBAT",  40,  45,  35,  55,  40,   TYPE_POISON,   TYPE_FLYING, 255,  54 }, /* ZUBAT        (0X6B) */
+		{ 0X6C,       "EKANS",  35,  60,  44,  55,  40,   TYPE_POISON,   TYPE_POISON, 255,  62 }, /* EKANS        (0X6C) */
+		{ 0X6D,       "PARAS",  35,  70,  55,  25,  55,      TYPE_BUG,    TYPE_GRASS, 190,  70 }, /* PARAS        (0X6D) */
+		{ 0X6E,   "POLIWHIRL",  65,  65,  65,  90,  50,    TYPE_WATER,    TYPE_WATER, 120, 131 }, /* POLIWHIRL    (0X6E) */
+		{ 0X6F,   "POLIWRATH",  90,  85,  95,  70,  70,    TYPE_WATER, TYPE_FIGHTING,  45, 185 }, /* POLIWRATH    (0X6F) */
+		{ 0X70,      "WEEDLE",  40,  35,  30,  50,  20,      TYPE_BUG,   TYPE_POISON, 255,  52 }, /* WEEDLE       (0X70) */
+		{ 0X71,      "KAKUNA",  45,  25,  50,  35,  25,      TYPE_BUG,   TYPE_POISON, 120,  71 }, /* KAKUNA       (0X71) */
+		{ 0X72,    "BEEDRILL",  65,  80,  40,  75,  45,      TYPE_BUG,   TYPE_POISON,  45, 159 }, /* BEEDRILL     (0X72) */
+		{ 0X73,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X73) */
+		{ 0X74,      "DODRIO",  60, 110,  70, 100,  60,   TYPE_NORMAL,   TYPE_FLYING,  45, 158 }, /* DODRIO       (0X74) */
+		{ 0X75,    "PRIMEAPE",  65, 105,  60,  95,  60, TYPE_FIGHTING, TYPE_FIGHTING,  75, 149 }, /* PRIMEAPE     (0X75) */
+		{ 0X76,     "DUGTRIO",  35,  80,  50, 120,  70,   TYPE_GROUND,   TYPE_GROUND,  50, 153 }, /* DUGTRIO      (0X76) */
+		{ 0X77,    "VENOMOTH",  70,  65,  60,  90,  90,      TYPE_BUG,   TYPE_POISON,  75, 138 }, /* VENOMOTH     (0X77) */
+		{ 0X78,     "DEWGONG",  90,  70,  80,  70,  95,    TYPE_WATER,      TYPE_ICE,  75, 176 }, /* DEWGONG      (0X78) */
+		{ 0X79,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X79) */
+		{ 0X7A,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X7A) */
+		{ 0X7B,    "CATERPIE",  45,  30,  35,  45,  20,      TYPE_BUG,      TYPE_BUG, 255,  53 }, /* CATERPIE     (0X7B) */
+		{ 0X7C,     "METAPOD",  50,  20,  55,  30,  25,      TYPE_BUG,      TYPE_BUG, 120,  72 }, /* METAPOD      (0X7C) */
+		{ 0X7D,  "BUTTERFREE",  60,  45,  50,  70,  80,      TYPE_BUG,   TYPE_FLYING,  45, 160 }, /* BUTTERFREE   (0X7D) */
+		{ 0X7E,     "MACHAMP",  90, 130,  80,  55,  65, TYPE_FIGHTING, TYPE_FIGHTING,  45, 193 }, /* MACHAMP      (0X7E) */
+		{ 0X7F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X7F) */
+		{ 0X80,     "GOLDUCK",  80,  82,  78,  85,  80,    TYPE_WATER,    TYPE_WATER,  75, 174 }, /* GOLDUCK      (0X80) */
+		{ 0X81,       "HYPNO",  85,  73,  70,  67, 115,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  75, 165 }, /* HYPNO        (0X81) */
+		{ 0X82,      "GOLBAT",  75,  80,  70,  90,  75,   TYPE_POISON,   TYPE_FLYING,  90, 171 }, /* GOLBAT       (0X82) */
+		{ 0X83,      "MEWTWO", 106, 110,  90, 130, 154,  TYPE_PSYCHIC,  TYPE_PSYCHIC,   3, 220 }, /* MEWTWO       (0X83) */
+		{ 0X84,     "SNORLAX", 160, 110,  65,  30,  65,   TYPE_NORMAL,   TYPE_NORMAL,  25, 154 }, /* SNORLAX      (0X84) */
+		{ 0X85,    "MAGIKARP",  20,  10,  55,  80,  20,    TYPE_WATER,    TYPE_WATER, 255,  20 }, /* MAGIKARP     (0X85) */
+		{ 0X86,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X86) */
+		{ 0X87,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X87) */
+		{ 0X88,         "MUK", 105, 105,  75,  50,  65,   TYPE_POISON,   TYPE_POISON,  75, 157 }, /* MUK          (0X88) */
+		{ 0X89,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X89) */
+		{ 0X8A,     "KINGLER",  55, 130, 115,  75,  50,    TYPE_WATER,    TYPE_WATER,  60, 206 }, /* KINGLER      (0X8A) */
+		{ 0X8B,    "CLOYSTER",  50,  95, 180,  70,  85,    TYPE_WATER,      TYPE_ICE,  60, 203 }, /* CLOYSTER     (0X8B) */
+		{ 0X8C,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X8C) */
+		{ 0X8D,   "ELECTRODE",  60,  50,  70, 140,  80, TYPE_ELECTRIC, TYPE_ELECTRIC,  60, 150 }, /* ELECTRODE    (0X8D) */
+		{ 0X8E,    "CLEFABLE",  95,  70,  73,  60,  85,   TYPE_NORMAL,   TYPE_NORMAL,  25, 129 }, /* CLEFABLE     (0X8E) */
+		{ 0X8F,     "WEEZING",  65,  90, 120,  60,  85,   TYPE_POISON,   TYPE_POISON,  60, 173 }, /* WEEZING      (0X8F) */
+		{ 0X90,     "PERSIAN",  65,  70,  60, 115,  65,   TYPE_NORMAL,   TYPE_NORMAL,  90, 148 }, /* PERSIAN      (0X90) */
+		{ 0X91,     "MAROWAK",  60,  80, 110,  45,  50,   TYPE_GROUND,   TYPE_GROUND,  75, 124 }, /* MAROWAK      (0X91) */
+		{ 0X92,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X92) */
+		{ 0X93,     "HAUNTER",  45,  50,  45,  95, 115,    TYPE_GHOST,   TYPE_POISON,  90, 126 }, /* HAUNTER      (0X93) */
+		{ 0X94,        "ABRA",  25,  20,  15,  90, 105,  TYPE_PSYCHIC,  TYPE_PSYCHIC, 200,  73 }, /* ABRA         (0X94) */
+		{ 0X95,    "ALAKAZAM",  55,  50,  45, 120, 135,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  50, 186 }, /* ALAKAZAM     (0X95) */
+		{ 0X96,   "PIDGEOTTO",  63,  60,  55,  71,  50,   TYPE_NORMAL,   TYPE_FLYING, 120, 113 }, /* PIDGEOTTO    (0X96) */
+		{ 0X97,     "PIDGEOT",  83,  80,  75,  91,  70,   TYPE_NORMAL,   TYPE_FLYING,  45, 172 }, /* PIDGEOT      (0X97) */
+		{ 0X98,     "STARMIE",  60,  75,  85, 115, 100,    TYPE_WATER,  TYPE_PSYCHIC,  60, 207 }, /* STARMIE      (0X98) */
+		{ 0X99,   "BULBASAUR",  45,  49,  49,  45,  65,    TYPE_GRASS,   TYPE_POISON,  45,  64 }, /* BULBASAUR    (0X99) */
+		{ 0X9A,    "VENUSAUR",  80,  82,  83,  80, 100,    TYPE_GRASS,   TYPE_POISON,  45, 208 }, /* VENUSAUR     (0X9A) */
+		{ 0X9B,  "TENTACRUEL",  80,  70,  65, 100, 120,    TYPE_WATER,   TYPE_POISON,  60, 205 }, /* TENTACRUEL   (0X9B) */
+		{ 0X9C,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X9C) */
+		{ 0X9D,     "GOLDEEN",  45,  67,  60,  63,  50,    TYPE_WATER,    TYPE_WATER, 225, 111 }, /* GOLDEEN      (0X9D) */
+		{ 0X9E,     "SEAKING",  80,  92,  65,  68,  80,    TYPE_WATER,    TYPE_WATER,  60, 170 }, /* SEAKING      (0X9E) */
+		{ 0X9F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X9F) */
+		{ 0XA0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XA0) */
+		{ 0XA1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XA1) */
+		{ 0XA2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XA2) */
+		{ 0XA3,      "PONYTA",  50,  85,  55,  90,  65,     TYPE_FIRE,     TYPE_FIRE, 190, 152 }, /* PONYTA       (0XA3) */
+		{ 0XA4,    "RAPIDASH",  65, 100,  70, 105,  80,     TYPE_FIRE,     TYPE_FIRE,  60, 192 }, /* RAPIDASH     (0XA4) */
+		{ 0XA5,     "RATTATA",  30,  56,  35,  72,  25,   TYPE_NORMAL,   TYPE_NORMAL, 255,  57 }, /* RATTATA      (0XA5) */
+		{ 0XA6,    "RATICATE",  55,  81,  60,  97,  50,   TYPE_NORMAL,   TYPE_NORMAL,  90, 116 }, /* RATICATE     (0XA6) */
+		{ 0XA7,    "NIDORINO",  61,  72,  57,  65,  55,   TYPE_POISON,   TYPE_POISON, 120, 118 }, /* NIDORINO     (0XA7) */
+		{ 0XA8,    "NIDORINA",  70,  62,  67,  56,  55,   TYPE_POISON,   TYPE_POISON, 120, 117 }, /* NIDORINA     (0XA8) */
+		{ 0XA9,     "GEODUDE",  40,  80, 100,  20,  30,     TYPE_ROCK,   TYPE_GROUND, 255,  86 }, /* GEODUDE      (0XA9) */
+		{ 0XAA,     "PORYGON",  65,  60,  70,  40,  75,   TYPE_NORMAL,   TYPE_NORMAL,  45, 130 }, /* PORYGON      (0XAA) */
+		{ 0XAB,  "AERODACTYL",  80, 105,  65, 130,  60,     TYPE_ROCK,   TYPE_FLYING,  45, 202 }, /* AERODACTYL   (0XAB) */
+		{ 0XAC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XAC) */
+		{ 0XAD,   "MAGNEMITE",  25,  35,  70,  45,  95, TYPE_ELECTRIC, TYPE_ELECTRIC, 190,  89 }, /* MAGNEMITE    (0XAD) */
+		{ 0XAE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XAE) */
+		{ 0XAF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XAF) */
+		{ 0XB0,  "CHARMANDER",  39,  52,  43,  65,  50,     TYPE_FIRE,     TYPE_FIRE,  45,  65 }, /* CHARMANDER   (0XB0) */
+		{ 0XB1,    "SQUIRTLE",  44,  48,  65,  43,  50,    TYPE_WATER,    TYPE_WATER,  45,  66 }, /* SQUIRTLE     (0XB1) */
+		{ 0XB2,  "CHARMELEON",  58,  64,  58,  80,  65,     TYPE_FIRE,     TYPE_FIRE,  45, 142 }, /* CHARMELEON   (0XB2) */
+		{ 0XB3,   "WARTORTLE",  59,  63,  80,  58,  65,    TYPE_WATER,    TYPE_WATER,  45, 143 }, /* WARTORTLE    (0XB3) */
+		{ 0XB4,   "CHARIZARD",  78,  84,  78, 100,  85,     TYPE_FIRE,   TYPE_FLYING,  45, 209 }, /* CHARIZARD    (0XB4) */
+		{ 0XB5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XB5) */
+		{ 0XB6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XB6) */
+		{ 0XB7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XB7) */
+		{ 0XB8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XB8) */
+		{ 0XB9,      "ODDISH",  45,  50,  55,  30,  75,    TYPE_GRASS,   TYPE_POISON, 255,  78 }, /* ODDISH       (0XB9) */
+		{ 0XBA,       "GLOOM",  60,  65,  70,  40,  85,    TYPE_GRASS,   TYPE_POISON, 120, 132 }, /* GLOOM        (0XBA) */
+		{ 0XBB,   "VILEPLUME",  75,  80,  85,  50, 100,    TYPE_GRASS,   TYPE_POISON,  45, 184 }, /* VILEPLUME    (0XBB) */
+		{ 0XBC,  "BELLSPROUT",  50,  75,  35,  40,  70,    TYPE_GRASS,   TYPE_POISON, 255,  84 }, /* BELLSPROUT   (0XBC) */
+		{ 0XBD,  "WEEPINBELL",  65,  90,  50,  55,  85,    TYPE_GRASS,   TYPE_POISON, 120, 151 }, /* WEEPINBELL   (0XBD) */
+		{ 0XBE,  "VICTREEBEL",  80, 105,  65,  70, 100,    TYPE_GRASS,   TYPE_POISON,  45, 191 }, /* VICTREEBEL   (0XBE) */
+		{ 0XBF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XBF) */
+		{ 0XC0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC0) */
+		{ 0XC1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC1) */
+		{ 0XC2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC2) */
+		{ 0XC3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC3) */
+		{ 0XC4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC4) */
+		{ 0XC5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC5) */
+		{ 0XC6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC6) */
+		{ 0XC7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC7) */
+		{ 0XC8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC8) */
+		{ 0XC9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC9) */
+		{ 0XCA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XCA) */
+		{ 0XCB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XCB) */
+		{ 0XCC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XCC) */
+		{ 0XCD,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XCD) */
+		{ 0XCE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XCE) */
+		{ 0XCF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XCF) */
+		{ 0XD0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD0) */
+		{ 0XD1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD1) */
+		{ 0XD2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD2) */
+		{ 0XD3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD3) */
+		{ 0XD4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD4) */
+		{ 0XD5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD5) */
+		{ 0XD6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD6) */
+		{ 0XD7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD7) */
+		{ 0XD8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD8) */
+		{ 0XD9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD9) */
+		{ 0XDA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XDA) */
+		{ 0XDB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XDB) */
+		{ 0XDC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XDC) */
+		{ 0XDD,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XDD) */
+		{ 0XDE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XDE) */
+		{ 0XDF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XDF) */
+		{ 0XE0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE0) */
+		{ 0XE1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE1) */
+		{ 0XE2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE2) */
+		{ 0XE3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE3) */
+		{ 0XE4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE4) */
+		{ 0XE5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE5) */
+		{ 0XE6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE6) */
+		{ 0XE7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE7) */
+		{ 0XE8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE8) */
+		{ 0XE9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE9) */
+		{ 0XEA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XEA) */
+		{ 0XEB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XEB) */
+		{ 0XEC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XEC) */
+		{ 0XED,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XED) */
+		{ 0XEE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XEE) */
+		{ 0XEF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XEF) */
+		{ 0XF0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF0) */
+		{ 0XF1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF1) */
+		{ 0XF2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF2) */
+		{ 0XF3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF3) */
+		{ 0XF4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF4) */
+		{ 0XF5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF5) */
+		{ 0XF6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF6) */
+		{ 0XF7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF7) */
+		{ 0XF8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF8) */
+		{ 0XF9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF9) */
+		{ 0XFA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XFA) */
+		{ 0XFB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XFB) */
+		{ 0XFC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XFC) */
+		{ 0XFD,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XFD) */
+		{ 0XFE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XFE) */
+		{ 0XFF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XFF) */
 	};
 }

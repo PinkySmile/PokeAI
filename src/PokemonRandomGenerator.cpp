@@ -19,17 +19,14 @@ namespace PokemonGen1
 	
 	unsigned PokemonRandomGenerator::operator()()
 	{
-		return this->_random();
+		return (*this)(0, UINT32_MAX);
 	}
 
 	unsigned PokemonRandomGenerator::operator()(unsigned int start, unsigned int end)
 	{
-		unsigned randomNumber = (*this)();
+		std::uniform_int_distribution dist{start, end};
 
-		randomNumber = (randomNumber * static_cast<float>(end - start) / UINT32_MAX) + start;
-		if (randomNumber == end)
-			return end - 1;
-		return randomNumber;
+		return dist.operator()(this->_random);
 	}
 
 	unsigned PokemonRandomGenerator::operator()(unsigned int end)
