@@ -197,7 +197,7 @@ void commandLine(const std::string &trainerName)
 	PokemonGen1::GameHandle handler(
 		[](const ByteHandle &byteHandle, const LoopHandle &loopHandler, const std::string &ip, unsigned short port)
 		{
-			return new BGBHandler(byteHandle, byteHandle, loopHandler, ip, port, false);
+			return new BGBHandler(byteHandle, byteHandle, loopHandler, ip, port, getenv("MAX_DEBUG"));
 		},
 		[&nextAction](PokemonGen1::GameHandle &handle) {
 			PokemonGen1::BattleAction action = nextAction;
@@ -213,7 +213,7 @@ void commandLine(const std::string &trainerName)
 		trainerName,
 		nullptr,
 		false,
-		false
+		getenv("MIN_DEBUG")
 	);
 
 	handler.addPokemonToTeam(
