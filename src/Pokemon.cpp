@@ -599,8 +599,6 @@ namespace PokemonGen1
 		//Moves ID
 		for (const Move &move : this->_moveSet)
 			result.push_back(move.getID());
-		for (int i = this->_moveSet.size(); i < 4; i++)
-			result.push_back(0x00);
 
 		//Trainer ID
 		result.push_back(0x00);
