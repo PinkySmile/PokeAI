@@ -35,8 +35,7 @@ namespace PokemonGen1
 		if (this->_nickname.size() > 10) {
 			this->_log(" Warning : nickname is too big");
 			this->_nickname = this->_nickname.substr(0, 10);
-		} else if (this->_nickname.empty())
-			this->_nickname = this->_name;
+		}
 		for (int i = moveSet.size(); i < 4; i++)
 			this->_moveSet.push_back(availableMoves[0]);
 	}
@@ -83,8 +82,6 @@ namespace PokemonGen1
 		this->_moveSet[1].setPP(data[30] & 0b111111U);
 		this->_moveSet[2].setPP(data[31] & 0b111111U);
 		this->_moveSet[3].setPP(data[32] & 0b111111U);
-		if (this->_nickname.empty())
-			this->_nickname = this->_name;
 	}
 
 	BaseStats Pokemon::makeStats(unsigned char level, const PokemonBase &base)
@@ -557,9 +554,13 @@ namespace PokemonGen1
 
 	std::string Pokemon::getName() const
 	{
+		std::string str = this->getNickname();
+
+		if (str.empty())
+			str = this->getSpeciesName();
 		if (this->_enemy)
-			return "Enemy " + this->_nickname;
-		return this->_nickname;
+			return "Enemy " + str;
+		return str;
 	}
 
 	double Pokemon::getAccuracy() const
@@ -684,6 +685,11 @@ namespace PokemonGen1
 	std::string Pokemon::getSpeciesName() const
 	{
 		return this->_name;
+	}
+
+	std::string Pokemon::getNickname() const
+	{
+		return this->_nickname;
 	}
 
 	void Pokemon::transform(const PokemonGen1::Pokemon &target)

@@ -63,7 +63,8 @@ void BGBHandler::disconnect()
 
 void BGBHandler::log(const std::string &string, std::ostream &stream)
 {
-	while (this->_logging);
+	while (this->_logging)
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	this->_logging = true;
 	if (this->_log)
 		stream << "[BGBHandler]: " << string << std::endl;
@@ -94,10 +95,12 @@ void BGBHandler::_sendPacket(const BGBHandler::BGBPacket &packet)
 	buffer[5] = (static_cast<unsigned char>(packet.i1) >> 8LU);
 	buffer[6] = (static_cast<unsigned char>(packet.i1) >> 16LU);
 	buffer[7] = (static_cast<unsigned char>(packet.i1) >> 24LU);
-	this->_socket.send({
-		buffer,
-		sizeof(buffer)
-	});
+	try {
+		this->_socket.send({
+			buffer,
+			sizeof(buffer)
+		});
+	} catch (std::exception &) {}
 }
 
 BGBHandler::BGBPacket BGBHandler::_getNextPacket()

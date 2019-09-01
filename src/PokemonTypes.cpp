@@ -317,7 +317,7 @@ std::string typeToString(PokemonTypes type)
 	case TYPE_DRAGON:
 		return "Dragon";
 	default:
-		return "???";
+		return "Unknown";
 	}
 }
 

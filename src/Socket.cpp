@@ -14,11 +14,11 @@
 #	include <sys/select.h>
 	typedef fd_set FD_SET;
 #endif
-
+/*
 #ifndef closesocket
 #define closesocket(socket) close(socket)
 #endif
-
+*/
 #include <iostream>
 
 std::string Socket::getLastSocketError()
@@ -100,7 +100,7 @@ void Socket::connect(unsigned int ip, unsigned short portno)
 
 	/* connect the socket */
 	if (::connect(this->_sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-		throw ConnectException(std::string("Cannot connect to ") + inet_ntoa(serv_addr.sin_addr));
+		throw ConnectException(std::string("Cannot connect to ") + inet_ntoa(serv_addr.sin_addr) + " on port " + std::to_string(portno));
 	this->_opened = true;
 	this->_remote = ip;
 }

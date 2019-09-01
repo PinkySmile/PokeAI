@@ -454,6 +454,11 @@ namespace PokemonGen1
 		return this->_emulator && this->_emulator->isConnected();
 	}
 
+	bool GameHandle::isReady()
+	{
+		return this->_ready;
+	}
+
 	std::vector<unsigned char> GameHandle::convertString(const std::string &str)
 	{
 		std::vector<unsigned char> result;

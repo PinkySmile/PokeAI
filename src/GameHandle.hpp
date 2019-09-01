@@ -162,6 +162,7 @@ namespace PokemonGen1
 		Gen1ConnectionStage getStage() const;
 		void logBattle(const std::string &message);
 		bool isConnected();
+		bool isReady();
 		void setTeamSize(unsigned size);
 		const std::vector<Pokemon> &getPokemonTeam();
 		const BattleState &getBattleState();
