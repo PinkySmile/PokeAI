@@ -35,6 +35,7 @@ tgui::TextBox::Ptr makeTextBox(tgui::Layout x, tgui::Layout y, tgui::Layout widt
 	box->setSize({width, height});
 	box->setText(placeholder);
 	box->setReadOnly(true);
+	box->setEnabled(false);
 	return box;
 }
 
@@ -71,7 +72,6 @@ void updatePokemonTeam(tgui::Gui &gui, PokemonGen1::GameHandle &game)
 		auto &pkmn = game.getPokemonTeam()[i];
 
 		gui.get("pkmnFrontButton" + std::to_string(i))->setVisible(true);
-		gui.get("pkmnFrontButton" + std::to_string(i))->setEnabled(true);
 		gui.remove(gui.get("pkmnFront" + std::to_string(i)));
 		gui.add(makePicture("assets/front_sprites/" + std::to_string(pkmn.getID()) + "_front.png", 300 + (i % 3) * 150, 50 + (i / 3) * 300, 96, 96), "pkmnFront" + std::to_string(i));
 		gui.remove(gui.get("type1" + std::to_string(i)));
@@ -79,35 +79,31 @@ void updatePokemonTeam(tgui::Gui &gui, PokemonGen1::GameHandle &game)
 		if (pkmn.getTypes().first != pkmn.getTypes().second) {
 			gui.remove(gui.get("type2" + std::to_string(i)));
 			gui.add(makePicture("assets/types/type_" + toLower(typeToString(pkmn.getTypes().second)) + ".png", 348 + (i % 3) * 150, 150 + (i / 3) * 300, 48, 16), "type2" + std::to_string(i));
-		} else {
+		} else
 			gui.get("type2" + std::to_string(i))->setVisible(false);
-			gui.get("type2" + std::to_string(i))->setEnabled(false);
-		}
 		gui.get("name" + std::to_string(i))->setVisible(true);
-		gui.get("name" + std::to_string(i))->setEnabled(true);
 		gui.get<tgui::TextBox>("name" + std::to_string(i))->setText(intToHex(pkmn.getID()) + " " + pkmn.getSpeciesName());
 		gui.get("nickname" + std::to_string(i))->setVisible(true);
-		gui.get("nickname" + std::to_string(i))->setEnabled(true);
 		gui.get<tgui::TextBox>("nickname" + std::to_string(i))->setText(pkmn.getNickname());
+		for (int j = 0; j < 4; j++) {
+			gui.get("move" + std::to_string(j) + std::to_string(i))->setVisible(true);
+			gui.get<tgui::Button>("move" + std::to_string(j) + std::to_string(i))->setText(game.getPokemonTeam()[i].getMoveSet()[j].getName());
+		}
 	}
 
 	for (unsigned i = game.getPokemonTeam().size(); i < 6; i++) {
 		gui.get("pkmnFrontButton" + std::to_string(i))->setVisible(false);
-		gui.get("pkmnFrontButton" + std::to_string(i))->setEnabled(false);
 		gui.get("pkmnFront" + std::to_string(i))->setVisible(false);
-		gui.get("pkmnFront" + std::to_string(i))->setEnabled(false);
 		gui.get("type1" + std::to_string(i))->setVisible(false);
-		gui.get("type1" + std::to_string(i))->setEnabled(false);
 		gui.get("type2" + std::to_string(i))->setVisible(false);
-		gui.get("type2" + std::to_string(i))->setEnabled(false);
 		gui.get("name" + std::to_string(i))->setVisible(false);
-		gui.get("name" + std::to_string(i))->setEnabled(false);
 		gui.get("nickname" + std::to_string(i))->setVisible(false);
-		gui.get("nickname" + std::to_string(i))->setEnabled(false);
+		for (unsigned j = 0; j < 4; j++)
+			gui.get("move" + std::to_string(j) + std::to_string(i))->setVisible(false);
 	}
 }
 
-void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &panel, PokemonGen1::GameHandle &game, unsigned &id)
+void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selectPkmnMenu2, PokemonGen1::GameHandle &game, unsigned &id, unsigned &menu)
 {
 	gui.removeAllWidgets();
 	gui.add(makeTypeBox(10, 10, 200, 25, "address"), "ip");
@@ -149,28 +145,25 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &panel, PokemonGen1::GameHandle &
 		game.setReady(!game.isReady());
 	}), "ready");
 	gui.add(makeTextBox(10, 580, 200, 50, "Disconnected"), "status");
-	gui.get<tgui::TextBox>("errorBox")->setEnabled(false);
 
 	tgui::Scrollbar::Ptr scrollbar = tgui::Scrollbar::create();
 	scrollbar->setPosition(780, 10);
 	scrollbar->setSize(18, 620);
 	scrollbar->setMaximum(6384);
 	scrollbar->setViewportSize(640);
-	scrollbar->connect("ValueChanged", [&panel](tgui::Scrollbar::Ptr scrollbar){
+	scrollbar->connect("ValueChanged", [&selectPkmnMenu](tgui::Scrollbar::Ptr scrollbar){
 		for (int i = 0; i < 256; i++) {
-			panel.get("pkmnSelect" + std::to_string(i))->setPosition(10 + (i % 6) * 128, 10 + (i / 6) * 148 - scrollbar->getValue());
-			panel.get("pkmnFrontSelect" + std::to_string(i))->setPosition(11 + (i % 6) * 128, 11 + (i / 6) * 148 - scrollbar->getValue());
-			panel.get("pkmnNameSelect" + std::to_string(i))->setPosition(11 + (i % 6) * 128, 138 + (i / 6) * 148 - scrollbar->getValue());
+			selectPkmnMenu.get("pkmnSelect" + std::to_string(i))->setPosition(10 + (i % 6) * 128, 10 + (i / 6) * 148 - scrollbar->getValue());
+			selectPkmnMenu.get("pkmnFrontSelect" + std::to_string(i))->setPosition(11 + (i % 6) * 128, 11 + (i / 6) * 148 - scrollbar->getValue());
+			selectPkmnMenu.get("pkmnNameSelect" + std::to_string(i))->setPosition(11 + (i % 6) * 128, 138 + (i / 6) * 148 - scrollbar->getValue());
 		}
 	}, scrollbar);
-	panel.add(scrollbar, "scrollbar");
+	selectPkmnMenu.add(scrollbar, "scrollbar");
 
 	for (int i = 0; i < 256; i++) {
-		panel.add(makeButton("", 10 + (i % 6) * 128, 10 + (i / 6) * 148, [i, &gui, &panel, &game, &id](tgui::Button::Ptr){
-			for (auto &widget : gui.getWidgets()) {
-				widget->setEnabled(true);
+		selectPkmnMenu.add(makeButton("", 10 + (i % 6) * 128, 10 + (i / 6) * 148, [i, &gui, &selectPkmnMenu, &game, &id](tgui::Button::Ptr){
+			for (auto &widget : gui.getWidgets())
 				widget->setVisible(true);
-			}
 			game.changePokemon(
 				id,
 				game.getPokemonTeam()[id].getNickname(),
@@ -179,19 +172,15 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &panel, PokemonGen1::GameHandle &
 				std::vector<PokemonGen1::Move>(game.getPokemonTeam()[id].getMoveSet())
 			);
 			updatePokemonTeam(gui, game);
-			for (auto &widget : panel.getWidgets()) {
-				widget->setEnabled(false);
+			for (auto &widget : selectPkmnMenu.getWidgets())
 				widget->setVisible(false);
-			}
 		}, 128, 128), "pkmnSelect" + std::to_string(i));
-		panel.add(makePicture("assets/front_sprites/" + std::to_string(i) + "_front.png", 11 + (i % 6) * 128, 11 + (i / 6) * 148, 126, 126), "pkmnFrontSelect" + std::to_string(i));
-		panel.add(makeTextBox(10 + (i % 6) * 128, 138 + (i / 6) * 148, 128, 20, intToHex(i) +  " " + PokemonGen1::pokemonList[i].name), "pkmnNameSelect" + std::to_string(i));
+		selectPkmnMenu.add(makePicture("assets/front_sprites/" + std::to_string(i) + "_front.png", 11 + (i % 6) * 128, 11 + (i / 6) * 148, 126, 126), "pkmnFrontSelect" + std::to_string(i));
+		selectPkmnMenu.add(makeTextBox(10 + (i % 6) * 128, 138 + (i / 6) * 148, 128, 20, intToHex(i) +  " " + PokemonGen1::pokemonList[i].name), "pkmnNameSelect" + std::to_string(i));
 	}
 
-	for (auto &widget : panel.getWidgets()) {
-		widget->setEnabled(false);
+	for (auto &widget : selectPkmnMenu.getWidgets())
 		widget->setVisible(false);
-	}
 
 	tgui::Slider::Ptr slider = tgui::Slider::create();
 	slider->setPosition(300, 10);
@@ -209,16 +198,12 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &panel, PokemonGen1::GameHandle &
 	gui.add(slider);
 
 	for (int i = 0; i < 6; i++) {
-		gui.add(makeButton("", 300 + (i % 3) * 150, 50 + (i / 3) * 300, [&gui, &id, &panel](tgui::Button::Ptr button){
+		gui.add(makeButton("", 300 + (i % 3) * 150, 50 + (i / 3) * 300, [&gui, &id, &selectPkmnMenu](tgui::Button::Ptr button){
 			id = std::stol(gui.getWidgetName(button).substr(15));
-			for (auto &widget : gui.getWidgets()) {
-				widget->setEnabled(false);
+			for (auto &widget : gui.getWidgets())
 				widget->setVisible(false);
-			}
-			for (auto &widget : panel.getWidgets()) {
-				widget->setEnabled(true);
+			for (auto &widget : selectPkmnMenu.getWidgets())
 				widget->setVisible(true);
-			}
 		}, 96, 96), "pkmnFrontButton" + std::to_string(i));
 		gui.add(makePicture("assets/front_sprites/1_front.png", 300 + (i % 3) * 150, 50 + (i / 3) * 300, 96, 96), "pkmnFront" + std::to_string(i));
 		gui.add(makePicture("assets/types/type_ground.png", 300 + (i % 3) * 150, 150 + (i / 3) * 300, 48, 16), "type1" + std::to_string(i));
@@ -226,7 +211,9 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &panel, PokemonGen1::GameHandle &
 		gui.add(makeTextBox(300 + (i % 3) * 150, 170 + (i / 3) * 300, 96, 20, "01 RHYDON"), "name" + std::to_string(i));
 		gui.add(makeTypeBox(300 + (i % 3) * 150, 190 + (i / 3) * 300, 96, 20, ""), "nickname" + std::to_string(i));
 		for (int j = 0; j < 4; j++)
-			gui.add(makeTextBox(300 + (i % 3) * 150, 210 + (i / 3) * 300 + 20 * j, 96, 20, game.getPokemonTeam()[i].getMoveSet()[j].getName()), "attack" + std::to_string(j) + std::to_string(i));
+			gui.add(makeButton(game.getPokemonTeam()[i].getMoveSet()[j].getName(), 300 + (i % 3) * 150, 210 + (i / 3) * 300 + 20 * j, [](tgui::Button::Ptr button){
+
+			}, 96, 20), "move" + std::to_string(j) + std::to_string(i));
 		gui.get("nickname" + std::to_string(i))->connect("TextChanged", [&gui, &game](tgui::TextBox::Ptr box){
 			if (box->getText().getSize() > 10) {
 				box->setText(box->getText().substring(0, 10));
@@ -249,9 +236,11 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &panel, PokemonGen1::GameHandle &
 void mainMenu(tgui::Gui &gui, sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName)
 {
 	unsigned id = 0;
+	unsigned menu = 0;
 	tgui::Gui panel = tgui::Gui(window);
+	tgui::Gui panel2 = tgui::Gui(window);
 
-	makeMainMenuGUI(gui, panel, game, id);
+	makeMainMenuGUI(gui, panel, panel2, game, id, menu);
 	window.setTitle(trainerName + " - Main menu");
 	while (window.isOpen()) {
 		sf::Event event;
@@ -259,8 +248,16 @@ void mainMenu(tgui::Gui &gui, sf::RenderWindow &window, PokemonGen1::GameHandle 
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed)
 				window.close();
-			gui.handleEvent(event);
-			panel.handleEvent(event);
+			switch (menu) {
+			case 0:
+				gui.handleEvent(event);
+				break;
+			case 1:
+				panel.handleEvent(event);
+				break;
+			default:
+				panel2.handleEvent(event);
+			}
 		}
 
 		gui.get<tgui::Button>("ready")->setText(game.isReady() ? "You are ready for battle" : "You are not ready");
@@ -270,6 +267,8 @@ void mainMenu(tgui::Gui &gui, sf::RenderWindow &window, PokemonGen1::GameHandle 
 				gui.get<tgui::TextBox>("status")->setText("Opponent not ready");
 				break;
 			case PokemonGen1::PINGING_OPPONENT:
+				gui.get<tgui::TextBox>("status")->setText("Waiting for opponent to save the game");
+                                break;
 			case PokemonGen1::ROOM_CHOOSE:
 				gui.get<tgui::TextBox>("status")->setText("Choosing colosseum");
 				break;

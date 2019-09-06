@@ -10,10 +10,10 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (argc == 1 || strcmp(argv[1], "commandLine") == 0)
-		commandLine(argc > 2 ? argv[2] : "PokeAI");
-	else if (strcmp(argv[1], "gui") == 0)
+	if (argc == 1 || strcmp(argv[1], "gui") == 0)
 		gui(argc > 2 ? argv[2] : "PokeAI");
+	else if (strcmp(argv[1], "commandLine") == 0)
+		commandLine(argc > 2 ? argv[2] : "PokeAI");
 	else
 		std::cout << "Invalid mode '" << argv[1] << "'. Valid modes are 'commandLine'" << std::endl;
 	return EXIT_SUCCESS;
