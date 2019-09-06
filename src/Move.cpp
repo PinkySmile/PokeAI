@@ -189,6 +189,26 @@ namespace PokemonGen1
 		return true;
 	}
 
+	MoveCategory Move::getCategory() const
+	{
+		return this->_category;
+	}
+
+	unsigned char Move::getAccuracy() const
+	{
+		return this->_accuracy;
+	}
+
+	PokemonTypes Move::getType() const
+	{
+		return this->_type;
+	}
+
+	unsigned char Move::getPower() const
+	{
+		return this->_power;
+	}
+
 	char Move::getPriority() const
 	{
 		return this->_priority;

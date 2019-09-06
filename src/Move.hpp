@@ -245,13 +245,17 @@ namespace PokemonGen1
 			const std::function<bool(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)> &&missCallback = nullptr
 		);
 
-		char getPriority() const;
+		unsigned char getAccuracy() const;
+		MoveCategory getCategory() const;
 		bool makesInvulnerable() const;
 		unsigned char getMaxPP() const;
+		unsigned char getPower() const;
 		unsigned char getPPUp() const;
+		PokemonTypes getType() const;
 		unsigned char getPP() const;
 		unsigned char getID() const;
 		std::string getName() const;
+		char getPriority() const;
 		bool isFinished() const;
 
 		void glitch();
