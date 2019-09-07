@@ -41,6 +41,7 @@ if (WIN32)
 		sfml-graphics
 		sfml-system
 		sfml-window
+		sfml-audio
 	)
 else (WIN32)
 	target_link_libraries(
@@ -50,5 +51,6 @@ else (WIN32)
 		sfml-graphics
 		sfml-system
 		sfml-window
+		sfml-audio
 	)
 endif (WIN32)

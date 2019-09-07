@@ -3,6 +3,7 @@
 //
 
 #include <TGUI/TGUI.hpp>
+#include <SFML/Audio.hpp>
 #include <utility>
 #include "gui.hpp"
 #include "GameHandle.hpp"
@@ -82,7 +83,7 @@ void updatePokemonTeam(tgui::Gui &gui, PokemonGen1::GameHandle &game)
 		} else
 			gui.get("type2" + std::to_string(i))->setVisible(false);
 		gui.get("name" + std::to_string(i))->setVisible(true);
-		gui.get<tgui::TextBox>("name" + std::to_string(i))->setText(intToHex(pkmn.getID()) + " " + pkmn.getSpeciesName());
+		gui.get<tgui::TextBox>("name" + std::to_string(i))->setText(pkmn.getSpeciesName());
 		gui.get("nickname" + std::to_string(i))->setVisible(true);
 		gui.get<tgui::TextBox>("nickname" + std::to_string(i))->setText(pkmn.getNickname());
 		for (int j = 0; j < 4; j++) {
@@ -106,9 +107,11 @@ void updatePokemonTeam(tgui::Gui &gui, PokemonGen1::GameHandle &game)
 void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selectMovePanel, PokemonGen1::GameHandle &game, unsigned &id, unsigned &menu)
 {
 	gui.removeAllWidgets();
+	selectMovePanel.removeAllWidgets();
+	selectPkmnMenu.removeAllWidgets();
 	gui.add(makeTypeBox(10, 10, 200, 25, "address"), "ip");
 	gui.add(makeTypeBox(10, 40, 200, 25, "port"), "port");
-	gui.add(makeButton("Connect", 10, 70, [&game, &gui](tgui::Button::Ptr button){
+	gui.add(makeButton(game.isConnected() ? "Disconnect" : "Connect", 10, 70, [&game, &gui](tgui::Button::Ptr button){
 		if (game.isConnected()) {
 			gui.get<tgui::TextBox>("ip")->setEnabled(true);
 			gui.get<tgui::TextBox>("port")->setEnabled(true);
@@ -169,10 +172,10 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selec
 		gui.add(makePicture("assets/front_sprites/1_front.png", 300 + (i % 3) * 150, 50 + (i / 3) * 300, 96, 96), "pkmnFront" + std::to_string(i));
 		gui.add(makePicture("assets/types/type_ground.png", 300 + (i % 3) * 150, 150 + (i / 3) * 300, 48, 16), "type1" + std::to_string(i));
 		gui.add(makePicture("assets/types/type_rock.png", 348 + (i % 3) * 150, 150 + (i / 3) * 300, 48, 16), "type2" + std::to_string(i));
-		gui.add(makeTextBox(300 + (i % 3) * 150, 170 + (i / 3) * 300, 96, 20, "01 RHYDON"), "name" + std::to_string(i));
+		gui.add(makeTextBox(300 + (i % 3) * 150, 170 + (i / 3) * 300, 96, 20, "RHYDON"), "name" + std::to_string(i));
 		gui.add(makeTypeBox(300 + (i % 3) * 150, 190 + (i / 3) * 300, 96, 20, ""), "nickname" + std::to_string(i));
 		for (int j = 0; j < 4; j++)
-			gui.add(makeButton(game.getPokemonTeam()[i].getMoveSet()[j].getName(), 300 + (i % 3) * 150, 210 + (i / 3) * 300 + 20 * j, [&id, &gui, &menu](tgui::Button::Ptr button) {
+			gui.add(makeButton("--", 300 + (i % 3) * 150, 210 + (i / 3) * 300 + 20 * j, [&id, &gui, &menu](tgui::Button::Ptr button) {
 				id = std::stol(gui.getWidgetName(button).substr(4));
 				menu = 2;
 			}, 96, 20), "move" + std::to_string(j) + std::to_string(i));
@@ -287,18 +290,20 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selec
 			, 11 + (i % 3) * 256, 26 + (i / 3) * 148, 32, 14
 		), "moveSelectCategoryPicture" + std::to_string(i));
 	}
+	updatePokemonTeam(gui, game);
 }
 
-void mainMenu(tgui::Gui &gui, sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName)
+void mainMenu(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName)
 {
 	unsigned id = 0;
 	unsigned menu = 0;
+	tgui::Gui gui{window};
 	tgui::Gui panel = tgui::Gui(window);
 	tgui::Gui panel2 = tgui::Gui(window);
 
 	makeMainMenuGUI(gui, panel, panel2, game, id, menu);
 	window.setTitle(trainerName + " - Main menu");
-	while (window.isOpen()) {
+	while (window.isOpen() && game.getStage() != PokemonGen1::BATTLE) {
 		sf::Event event;
 
 		while (window.pollEvent(event)) {
@@ -355,6 +360,30 @@ void mainMenu(tgui::Gui &gui, sf::RenderWindow &window, PokemonGen1::GameHandle 
 	}
 }
 
+void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName)
+{
+	sf::Music loop;
+	sf::Music start;
+
+	window.setTitle(trainerName + " - Challenging " + game.getBattleState().opponentName);
+	start.openFromFile("assets/sounds/battle_intro.wav");
+	start.play();
+	loop.openFromFile("assets/sounds/battle_loop.wav");
+	loop.setLoop(true);
+	while (window.isOpen() && game.getStage() == PokemonGen1::BATTLE) {
+		sf::Event event;
+
+		while (window.pollEvent(event)) {
+			if (event.type == sf::Event::Closed)
+				window.close();
+		}
+		if (start.getStatus() != sf::Music::Playing && loop.getStatus() != sf::Music::Playing)
+			loop.play();
+		window.clear();
+		window.display();
+	}
+}
+
 void gui(const std::string &trainerName)
 {
 	PokemonGen1::BattleAction nextAction = PokemonGen1::NoAction;
@@ -380,10 +409,12 @@ void gui(const std::string &trainerName)
 		getenv("MIN_DEBUG")
 	);
 	sf::RenderWindow window{{800, 640}, trainerName};
-	tgui::Gui gui{window};
 
 	handler.setTeamSize(6);
 	window.setFramerateLimit(60);
 	handler.setReady(false);
-	mainMenu(gui, window, handler, trainerName);
+	while (window.isOpen()) {
+		mainMenu(window, handler, trainerName);
+		battle(window, handler, trainerName);
+	}
 }
