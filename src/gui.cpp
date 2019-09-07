@@ -261,6 +261,7 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selec
 		}
 		stream << "Power:      " << (move.getPower() ? std::to_string(move.getPower()) : "--") << std::endl;
 		stream << "Accuracy: " << (move.getAccuracy() <= 100 ? std::to_string(move.getAccuracy()) : "--") << std::endl;
+		stream << static_cast<int>(move.getPP()) << "/" << static_cast<int>(move.getMaxPP()) << " PP" << std::endl;
 
 		selectMovePanel.add(makeTextBox(10 + (i % 3) * 256, 10 + (i / 3) * 148, 256, 128, stream.str()), "moveSelect" + std::to_string(i));
 		selectMovePanel.add(makeButton(move.getName(), 10 + (i % 3) * 256, 10 + (i / 3) * 148, [&menu, i, &gui, &selectMovePanel, &game, &id](tgui::Button::Ptr) {
