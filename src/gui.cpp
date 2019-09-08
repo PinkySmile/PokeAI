@@ -415,26 +415,18 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::
 	float		seconds;
 	unsigned char	selectedMenu = 0;
 	sf::View	view{{320, 288}, {640, 576}};
-	PokemonGen1::BattleState state;
 
-	log.emplace_back("test");
-	game.setTeamSize(5);
-	state.opponentName = "Ash";
-	for (const auto &o : game.getPokemonTeam()) {
-		state.team.push_back(o);
-		state.opponentTeam.push_back(o);
-	}
 	window.setView(view);
 	text.setFont(ressources.font);
 	text.setCharacterSize(32);
-	text.setFillColor({0, 0, 0, 255});
+	text.setFillColor({39, 39, 39, 255});
 	text.setLineSpacing(2);
 	window.setTitle(trainerName + " - Challenging " + game.getBattleState().opponentName);
 	ressources.start.play();
 	ressources.loop.setLoop(true);
 	while (window.isOpen() && game.getStage() == PokemonGen1::BATTLE) {
 		sf::Event event;
-		//const auto &state = game.getBattleState();
+		const auto &state = game.getBattleState();
 
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed)
