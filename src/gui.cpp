@@ -18,7 +18,11 @@ struct BattleRessources {
 	sf::Texture				balls[4];
 	sf::Texture				pokemonsBack[256];
 	sf::Texture				pokemonsFront[256];
+	sf::Texture				trainer[2][2];
 	sf::SoundBuffer				hitSounds[3];
+	sf::SoundBuffer				trainerLand;
+	sf::Texture				textBox;
+	sf::Texture				arrow;
 };
 
 std::string intToHex(unsigned char i)
@@ -156,9 +160,6 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selec
 		}
 	}), "connect");
 	gui.add(makeTextBox(10, 100, 200, 100), "errorBox");
-	gui.add(makeButton("You are not ready", 10, 550, [&game](tgui::Button::Ptr){
-		game.setReady(!game.isReady());
-	}), "ready");
 	gui.add(makeTextBox(10, 580, 200, 50, "Disconnected"), "status");
 
 	tgui::Slider::Ptr slider = tgui::Slider::create();
@@ -208,6 +209,16 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selec
 			);
 		}, gui.get<tgui::TextBox>("nickname" + std::to_string(i)));
 	}
+
+	gui.add(makeButton("You are not ready", 10, 550, [&game, &gui, slider](tgui::Button::Ptr){
+		slider->setEnabled(game.isReady());
+		for (int i = 0; i < 6; i++) {
+			gui.get("pkmnFrontButton" + std::to_string(i))->setEnabled(game.isReady());
+			for (int j = 0; j < 4; j++)
+				gui.get("move" + std::to_string(j) + std::to_string(i))->setEnabled(game.isReady());
+		}
+		game.setReady(!game.isReady());
+	}), "ready");
 
 
 	//Pokemon select
@@ -367,23 +378,66 @@ void mainMenu(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std
 	}
 }
 
-void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName, BattleRessources &ressources, std::vector<std::string> &log)
+void drawSprite(sf::RenderWindow &window, sf::Sprite &sprite, sf::Texture &texture, int x, int y, unsigned width, unsigned height)
 {
+	sprite.setTexture(texture, true);
+	sprite.setPosition(x, y);
+	sprite.setScale(static_cast<float>(width) / texture.getSize().x, static_cast<float>(height) / texture.getSize().y);
+	window.draw(sprite);
+}
+
+void playSound(sf::Sound &sound, sf::SoundBuffer &buffer)
+{
+	sound.setBuffer(buffer);
+	sound.play();
+}
+
+void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName, BattleRessources &ressources, std::vector<std::string> &log, PokemonGen1::BattleAction &nextAction)
+{
+	sf::RectangleShape rect;
+	sf::Sprite	sprite;
+	sf::Sound	sound;
+	sf::Clock	clock;
+	float		last = 0;
+	float		seconds;
+	unsigned char	selectedMenu = 0;
+
 	window.setTitle(trainerName + " - Challenging " + game.getBattleState().opponentName);
 	ressources.start.play();
 	ressources.loop.setLoop(true);
 	while (window.isOpen() && game.getStage() == PokemonGen1::BATTLE) {
 		sf::Event event;
 
+
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed)
 				window.close();
 		}
-		if (ressources.start.getStatus() != sf::Music::Playing && ressources.loop.getStatus() != sf::Music::Playing)
+
+		window.clear({255, 255, 255, 255});
+
+
+		seconds = clock.getElapsedTime().asSeconds();
+
+		drawSprite(window, sprite, ressources.textBox, 0, 426, 800, 214);
+		if (seconds < 4) {
+
+		} else if (seconds < 5) {
+			drawSprite(window, sprite, ressources.trainer[0][1], -280 + 792 * (seconds - 4), 0, 280, 250);
+			drawSprite(window, sprite, ressources.trainer[0][0], 792 * (5 - seconds), 176, 280, 250);
+		} else {
+			if (last < 5)
+				playSound(sound, ressources.trainerLand);
+			drawSprite(window, sprite, ressources.trainer[1][1], 510, 0, 280, 250);
+			drawSprite(window, sprite, ressources.trainer[1][0], 10, 176, 280, 250);
+		}
+		last = seconds;
+		if (seconds + 1. / 60 >= ressources.start.getDuration().asSeconds() && ressources.loop.getStatus() != sf::Music::Playing)
 			ressources.loop.play();
-		window.clear();
 		window.display();
 	}
+	ressources.start.stop();
+	ressources.loop.stop();
 }
 
 void loadRessources(BattleRessources &ressources)
@@ -419,6 +473,16 @@ void loadRessources(BattleRessources &ressources)
 		} catch (std::out_of_range &) {
 			ressources.types[typeToString(static_cast<PokemonTypes>(i))].loadFromFile("assets/types/type_" + toLower(typeToString(static_cast<PokemonTypes>(i))) + ".png");
 		}
+
+	ressources.trainer[0][0].loadFromFile("assets/back_sprites/trainer_shadow_back.png");
+	ressources.trainer[0][1].loadFromFile("assets/front_sprites/trainer_shadow_front.png");
+	ressources.trainer[1][0].loadFromFile("assets/back_sprites/trainer_back.png");
+	ressources.trainer[1][1].loadFromFile("assets/front_sprites/trainer_front.png");
+
+	ressources.trainerLand.loadFromFile("assets/sounds/trainer_land.wav");
+
+	ressources.textBox.loadFromFile("assets/text_box.png");
+	ressources.arrow.loadFromFile("assets/arrow.png");
 }
 
 void gui(const std::string &trainerName)
@@ -455,6 +519,6 @@ void gui(const std::string &trainerName)
 	handler.setReady(false);
 	while (window.isOpen()) {
 		mainMenu(window, handler, trainerName, ressources);
-		battle(window, handler, trainerName, ressources, battleLog);
+		battle(window, handler, trainerName, ressources, battleLog, nextAction);
 	}
 }
