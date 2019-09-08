@@ -9,6 +9,18 @@
 #include "GameHandle.hpp"
 #include "BgbHandler.hpp"
 
+struct BattleRessources {
+	sf::Music				loop;
+	sf::Music				start;
+	sf::Font				font;
+	sf::Texture				categories[3];
+	std::map<std::string, sf::Texture>	types;
+	sf::Texture				balls[4];
+	sf::Texture				pokemonsBack[256];
+	sf::Texture				pokemonsFront[256];
+	sf::SoundBuffer				hitSounds[3];
+};
+
 std::string intToHex(unsigned char i)
 {
 	std::stringstream stream;
@@ -51,9 +63,9 @@ tgui::TextBox::Ptr makeTypeBox(tgui::Layout x, tgui::Layout y, tgui::Layout widt
 	return box;
 }
 
-tgui::Picture::Ptr makePicture(const std::string &path, tgui::Layout x, tgui::Layout y, tgui::Layout width, tgui::Layout height)
+tgui::Picture::Ptr makePicture(const tgui::Texture &texture, tgui::Layout x, tgui::Layout y, tgui::Layout width, tgui::Layout height)
 {
-	tgui::Picture::Ptr pic = tgui::Picture::create(path);
+	tgui::Picture::Ptr pic = tgui::Picture::create(texture);
 
 	pic->setPosition(std::move(x), std::move(y));
 	pic->setSize({std::move(width), std::move(height)});
@@ -67,19 +79,19 @@ std::string toLower(std::string str)
 	return str;
 }
 
-void updatePokemonTeam(tgui::Gui &gui, PokemonGen1::GameHandle &game)
+void updatePokemonTeam(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleRessources &ressources)
 {
 	for (unsigned i = 0; i < game.getPokemonTeam().size(); i++) {
 		auto &pkmn = game.getPokemonTeam()[i];
 
 		gui.get("pkmnFrontButton" + std::to_string(i))->setVisible(true);
 		gui.remove(gui.get("pkmnFront" + std::to_string(i)));
-		gui.add(makePicture("assets/front_sprites/" + std::to_string(pkmn.getID()) + "_front.png", 300 + (i % 3) * 150, 50 + (i / 3) * 300, 96, 96), "pkmnFront" + std::to_string(i));
+		gui.add(makePicture(ressources.pokemonsFront[pkmn.getID()], 300 + (i % 3) * 150, 50 + (i / 3) * 300, 96, 96), "pkmnFront" + std::to_string(i));
 		gui.remove(gui.get("type1" + std::to_string(i)));
-		gui.add(makePicture("assets/types/type_" + toLower(typeToString(pkmn.getTypes().first)) + ".png", 300 + (i % 3) * 150, 150 + (i / 3) * 300, 48, 16), "type1" + std::to_string(i));
+		gui.add(makePicture(ressources.types[typeToString(pkmn.getTypes().first)], 300 + (i % 3) * 150, 150 + (i / 3) * 300, 48, 16), "type1" + std::to_string(i));
 		if (pkmn.getTypes().first != pkmn.getTypes().second) {
 			gui.remove(gui.get("type2" + std::to_string(i)));
-			gui.add(makePicture("assets/types/type_" + toLower(typeToString(pkmn.getTypes().second)) + ".png", 348 + (i % 3) * 150, 150 + (i / 3) * 300, 48, 16), "type2" + std::to_string(i));
+			gui.add(makePicture(ressources.types[typeToString(pkmn.getTypes().second)], 348 + (i % 3) * 150, 150 + (i / 3) * 300, 48, 16), "type2" + std::to_string(i));
 		} else
 			gui.get("type2" + std::to_string(i))->setVisible(false);
 		gui.get("name" + std::to_string(i))->setVisible(true);
@@ -104,7 +116,7 @@ void updatePokemonTeam(tgui::Gui &gui, PokemonGen1::GameHandle &game)
 	}
 }
 
-void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selectMovePanel, PokemonGen1::GameHandle &game, unsigned &id, unsigned &menu)
+void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selectMovePanel, PokemonGen1::GameHandle &game, unsigned &id, unsigned &menu, BattleRessources &ressources)
 {
 	gui.removeAllWidgets();
 	selectMovePanel.removeAllWidgets();
@@ -155,23 +167,23 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selec
 	slider->setValue(6);
 	slider->setMaximum(6);
 	slider->setMinimum(1);
-	slider->connect("ValueChanged", [&game, &gui](tgui::Slider::Ptr slider) {
+	slider->connect("ValueChanged", [&game, &gui, &ressources](tgui::Slider::Ptr slider) {
 		slider->setValue(static_cast<int>(slider->getValue()));
 		if (slider->getValue() != game.getPokemonTeam().size()) {
 			game.setTeamSize(slider->getValue());
-			updatePokemonTeam(gui, game);
+			updatePokemonTeam(gui, game, ressources);
 		}
 	}, slider);
 	gui.add(slider);
 
 	for (int i = 0; i < 6; i++) {
-		gui.add(makeButton("", 300 + (i % 3) * 150, 50 + (i / 3) * 300, [&menu, &gui, &id, &selectPkmnMenu](tgui::Button::Ptr button){
+		gui.add(makeButton("", 300 + (i % 3) * 150, 50 + (i / 3) * 300, [&menu, &gui, &id](tgui::Button::Ptr button){
 			id = std::stol(gui.getWidgetName(button).substr(15));
 			menu = 1;
 		}, 96, 96), "pkmnFrontButton" + std::to_string(i));
-		gui.add(makePicture("assets/front_sprites/1_front.png", 300 + (i % 3) * 150, 50 + (i / 3) * 300, 96, 96), "pkmnFront" + std::to_string(i));
-		gui.add(makePicture("assets/types/type_ground.png", 300 + (i % 3) * 150, 150 + (i / 3) * 300, 48, 16), "type1" + std::to_string(i));
-		gui.add(makePicture("assets/types/type_rock.png", 348 + (i % 3) * 150, 150 + (i / 3) * 300, 48, 16), "type2" + std::to_string(i));
+		gui.add(makePicture(ressources.pokemonsFront[1], 300 + (i % 3) * 150, 50 + (i / 3) * 300, 96, 96), "pkmnFront" + std::to_string(i));
+		gui.add(makePicture(ressources.types["ground"], 300 + (i % 3) * 150, 150 + (i / 3) * 300, 48, 16), "type1" + std::to_string(i));
+		gui.add(makePicture(ressources.types["rock"], 348 + (i % 3) * 150, 150 + (i / 3) * 300, 48, 16), "type2" + std::to_string(i));
 		gui.add(makeTextBox(300 + (i % 3) * 150, 170 + (i / 3) * 300, 96, 20, "RHYDON"), "name" + std::to_string(i));
 		gui.add(makeTypeBox(300 + (i % 3) * 150, 190 + (i / 3) * 300, 96, 20, ""), "nickname" + std::to_string(i));
 		for (int j = 0; j < 4; j++)
@@ -214,7 +226,7 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selec
 	selectPkmnMenu.add(scrollbar, "scrollbar");
 
 	for (int i = 0; i < 256; i++) {
-		selectPkmnMenu.add(makeButton("", 10 + (i % 6) * 128, 10 + (i / 6) * 148, [&menu, i, &gui, &selectPkmnMenu, &game, &id](tgui::Button::Ptr){
+		selectPkmnMenu.add(makeButton("", 10 + (i % 6) * 128, 10 + (i / 6) * 148, [&menu, i, &gui, &ressources, &game, &id](tgui::Button::Ptr){
 			game.changePokemon(
 				id,
 				game.getPokemonTeam()[id].getNickname(),
@@ -222,10 +234,10 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selec
 				PokemonGen1::pokemonList.at(i),
 				std::vector<PokemonGen1::Move>(game.getPokemonTeam()[id].getMoveSet())
 			);
-			updatePokemonTeam(gui, game);
+			updatePokemonTeam(gui, game, ressources);
 			menu = 0;
 		}, 128, 128), "pkmnSelect" + std::to_string(i));
-		selectPkmnMenu.add(makePicture("assets/front_sprites/" + std::to_string(i) + "_front.png", 11 + (i % 6) * 128, 11 + (i / 6) * 148, 126, 126), "pkmnFrontSelect" + std::to_string(i));
+		selectPkmnMenu.add(makePicture(ressources.pokemonsFront[i], 11 + (i % 6) * 128, 11 + (i / 6) * 148, 126, 126), "pkmnFrontSelect" + std::to_string(i));
 		selectPkmnMenu.add(makeTextBox(10 + (i % 6) * 128, 138 + (i / 6) * 148, 128, 20, intToHex(i) +  " " + PokemonGen1::pokemonList[i].name), "pkmnNameSelect" + std::to_string(i));
 	}
 
@@ -267,7 +279,7 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selec
 		stream << static_cast<int>(move.getPP()) << "/" << static_cast<int>(move.getMaxPP()) << " PP" << std::endl;
 
 		selectMovePanel.add(makeTextBox(10 + (i % 3) * 256, 10 + (i / 3) * 148, 256, 128, stream.str()), "moveSelect" + std::to_string(i));
-		selectMovePanel.add(makeButton(move.getName(), 10 + (i % 3) * 256, 10 + (i / 3) * 148, [&menu, i, &gui, &selectMovePanel, &game, &id](tgui::Button::Ptr) {
+		selectMovePanel.add(makeButton(move.getName(), 10 + (i % 3) * 256, 10 + (i / 3) * 148, [&menu, i, &gui, &ressources, &game, &id](tgui::Button::Ptr) {
 			std::vector<PokemonGen1::Move> moves = game.getPokemonTeam()[id % 10].getMoveSet();
 
 			moves[id / 10] = PokemonGen1::availableMoves.at(i);
@@ -279,21 +291,16 @@ void makeMainMenuGUI(tgui::Gui &gui, tgui::Gui &selectPkmnMenu, tgui::Gui &selec
 				PokemonGen1::pokemonList.at(game.getPokemonTeam()[id % 10].getID()),
 				moves
 			);
-			updatePokemonTeam(gui, game);
+			updatePokemonTeam(gui, game, ressources);
 			menu = 0;
 		}, 100, 16), "moveSelectButton" + std::to_string(i));
-		selectMovePanel.add(makePicture("assets/types/type_" + toLower(typeToString(move.getType())) + ".png", 217 + (i % 3) * 256, 11 + (i / 3) * 148, 48, 16), "moveSelectTypePicture" + std::to_string(i));
-		selectMovePanel.add(makePicture(
-			move.getCategory() == PokemonGen1::PHYSICAL ? "assets/physical.png" : (
-			move.getCategory() == PokemonGen1::SPECIAL ? "assets/special.png" :
-			"assets/status.png")
-			, 11 + (i % 3) * 256, 26 + (i / 3) * 148, 32, 14
-		), "moveSelectCategoryPicture" + std::to_string(i));
+		selectMovePanel.add(makePicture(ressources.types[typeToString(move.getType())], 217 + (i % 3) * 256, 11 + (i / 3) * 148, 48, 16), "moveSelectTypePicture" + std::to_string(i));
+		selectMovePanel.add(makePicture(ressources.categories[move.getCategory()], 11 + (i % 3) * 256, 26 + (i / 3) * 148, 32, 14), "moveSelectCategoryPicture" + std::to_string(i));
 	}
-	updatePokemonTeam(gui, game);
+	updatePokemonTeam(gui, game, ressources);
 }
 
-void mainMenu(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName)
+void mainMenu(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName, BattleRessources &ressources)
 {
 	unsigned id = 0;
 	unsigned menu = 0;
@@ -301,7 +308,7 @@ void mainMenu(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std
 	tgui::Gui panel = tgui::Gui(window);
 	tgui::Gui panel2 = tgui::Gui(window);
 
-	makeMainMenuGUI(gui, panel, panel2, game, id, menu);
+	makeMainMenuGUI(gui, panel, panel2, game, id, menu, ressources);
 	window.setTitle(trainerName + " - Main menu");
 	while (window.isOpen() && game.getStage() != PokemonGen1::BATTLE) {
 		sf::Event event;
@@ -360,16 +367,11 @@ void mainMenu(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std
 	}
 }
 
-void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName)
+void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName, BattleRessources &ressources, std::vector<std::string> &log)
 {
-	sf::Music loop;
-	sf::Music start;
-
 	window.setTitle(trainerName + " - Challenging " + game.getBattleState().opponentName);
-	start.openFromFile("assets/sounds/battle_intro.wav");
-	start.play();
-	loop.openFromFile("assets/sounds/battle_loop.wav");
-	loop.setLoop(true);
+	ressources.start.play();
+	ressources.loop.setLoop(true);
 	while (window.isOpen() && game.getStage() == PokemonGen1::BATTLE) {
 		sf::Event event;
 
@@ -377,15 +379,51 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::
 			if (event.type == sf::Event::Closed)
 				window.close();
 		}
-		if (start.getStatus() != sf::Music::Playing && loop.getStatus() != sf::Music::Playing)
-			loop.play();
+		if (ressources.start.getStatus() != sf::Music::Playing && ressources.loop.getStatus() != sf::Music::Playing)
+			ressources.loop.play();
 		window.clear();
 		window.display();
 	}
 }
 
+void loadRessources(BattleRessources &ressources)
+{
+	ressources.start.openFromFile("assets/sounds/battle_intro.wav");
+	ressources.loop.openFromFile("assets/sounds/battle_loop.wav");
+
+	ressources.categories[0].loadFromFile("assets/move_categories/physical.png");
+	ressources.categories[1].loadFromFile("assets/move_categories/special.png");
+	ressources.categories[2].loadFromFile("assets/move_categories/status.png");
+
+	for (int i = 0; i < 256; i++)
+		if (!ressources.pokemonsBack[i].loadFromFile("assets/back_sprites/" + std::to_string(i) + "_back.png"))
+			ressources.pokemonsBack[i].loadFromFile("assets/back_sprites/missingno_back.png");
+
+	for (int i = 0; i < 256; i++)
+		if (!ressources.pokemonsFront[i].loadFromFile("assets/front_sprites/" + std::to_string(i) + "_front.png"))
+			ressources.pokemonsFront[i].loadFromFile("assets/front_sprites/missingno_front.png");
+
+	ressources.balls[0].loadFromFile("assets/pokeballs/pkmnOK.png");
+	ressources.balls[1].loadFromFile("assets/pokeballs/pkmnNO.png");
+	ressources.balls[2].loadFromFile("assets/pokeballs/pkmnFNT.png");
+	ressources.balls[3].loadFromFile("assets/pokeballs/pkmnSTATUS.png");
+
+	ressources.font.loadFromFile("assets/font.ttf");
+	ressources.hitSounds[0].loadFromFile("assets/sounds/not_effective_hit_sound.wav");
+	ressources.hitSounds[1].loadFromFile("assets/sounds/hit_sound.wav");
+	ressources.hitSounds[2].loadFromFile("assets/sounds/very_effective_hit_sound.wav");
+
+	for (int i = 0; i <= TYPE_DRAGON; i++)
+		try {
+			ressources.types.at(typeToString(static_cast<PokemonTypes>(i)));
+		} catch (std::out_of_range &) {
+			ressources.types[typeToString(static_cast<PokemonTypes>(i))].loadFromFile("assets/types/type_" + toLower(typeToString(static_cast<PokemonTypes>(i))) + ".png");
+		}
+}
+
 void gui(const std::string &trainerName)
 {
+	std::vector<std::string> battleLog;
 	PokemonGen1::BattleAction nextAction = PokemonGen1::NoAction;
 	PokemonGen1::GameHandle handler(
 		[](const ByteHandle &byteHandle, const LoopHandle &loopHandler, const std::string &ip, unsigned short port)
@@ -404,17 +442,19 @@ void gui(const std::string &trainerName)
 			return action;
 		},
 		trainerName,
-		nullptr,
+		[&battleLog](const std::string &msg){ battleLog.push_back(msg); },
 		false,
 		getenv("MIN_DEBUG")
 	);
 	sf::RenderWindow window{{800, 640}, trainerName};
+	BattleRessources ressources;
 
+	loadRessources(ressources);
 	handler.setTeamSize(6);
 	window.setFramerateLimit(60);
 	handler.setReady(false);
 	while (window.isOpen()) {
-		mainMenu(window, handler, trainerName);
-		battle(window, handler, trainerName);
+		mainMenu(window, handler, trainerName, ressources);
+		battle(window, handler, trainerName, ressources, battleLog);
 	}
 }

@@ -148,7 +148,7 @@ namespace PokemonGen1
 	** From Rhydon
 	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/PK1.cs#L376
 	*/
-	enum PokemonType
+	enum PokemonSpiecies
 	{
 		Rhydon = 0x01,
 		Kangaskhan = 0x02,
