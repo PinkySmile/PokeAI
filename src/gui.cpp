@@ -21,7 +21,7 @@ struct BattleRessources {
 	sf::Texture				trainer[2][2];
 	sf::SoundBuffer				hitSounds[3];
 	sf::SoundBuffer				trainerLand;
-	sf::Texture				textBox;
+	sf::Texture				boxes[3];
 	sf::Texture				arrow;
 };
 
@@ -319,6 +319,7 @@ void mainMenu(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std
 	tgui::Gui panel = tgui::Gui(window);
 	tgui::Gui panel2 = tgui::Gui(window);
 
+	window.setSize({800, 640});
 	makeMainMenuGUI(gui, panel, panel2, game, id, menu, ressources);
 	window.setTitle(trainerName + " - Main menu");
 	while (window.isOpen() && game.getStage() != PokemonGen1::BATTLE) {
@@ -378,11 +379,15 @@ void mainMenu(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std
 	}
 }
 
-void drawSprite(sf::RenderWindow &window, sf::Sprite &sprite, sf::Texture &texture, int x, int y, unsigned width, unsigned height)
+void drawSprite(sf::RenderWindow &window, sf::Sprite &sprite, sf::Texture &texture, int x, int y, int width = 0, int height = 0)
 {
 	sprite.setTexture(texture, true);
 	sprite.setPosition(x, y);
-	sprite.setScale(static_cast<float>(width) / texture.getSize().x, static_cast<float>(height) / texture.getSize().y);
+
+	sprite.setScale(
+		!width ?  1 : static_cast<float>(width) /  texture.getSize().x,
+		!height ? 1 : static_cast<float>(height) / texture.getSize().y
+	);
 	window.draw(sprite);
 }
 
@@ -392,22 +397,44 @@ void playSound(sf::Sound &sound, sf::SoundBuffer &buffer)
 	sound.play();
 }
 
+void drawText(sf::RenderWindow &window, sf::Text &text, const std::string &str, int x, int y)
+{
+	text.setString(str);
+	text.setPosition(x, y);
+	window.draw(text);
+}
+
 void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName, BattleRessources &ressources, std::vector<std::string> &log, PokemonGen1::BattleAction &nextAction)
 {
 	sf::RectangleShape rect;
 	sf::Sprite	sprite;
 	sf::Sound	sound;
 	sf::Clock	clock;
+	sf::Text	text;
 	float		last = 0;
 	float		seconds;
 	unsigned char	selectedMenu = 0;
+	sf::View	view{{320, 288}, {640, 576}};
+	PokemonGen1::BattleState state;
 
+	log.emplace_back("test");
+	game.setTeamSize(5);
+	state.opponentName = "Ash";
+	for (const auto &o : game.getPokemonTeam()) {
+		state.team.push_back(o);
+		state.opponentTeam.push_back(o);
+	}
+	window.setView(view);
+	text.setFont(ressources.font);
+	text.setCharacterSize(32);
+	text.setFillColor({0, 0, 0, 255});
+	text.setLineSpacing(2);
 	window.setTitle(trainerName + " - Challenging " + game.getBattleState().opponentName);
 	ressources.start.play();
 	ressources.loop.setLoop(true);
-	while (window.isOpen() && game.getStage() == PokemonGen1::BATTLE) {
+	while (window.isOpen()){// && game.getStage() == PokemonGen1::BATTLE) {
 		sf::Event event;
-
+		//const auto &state = game.getBattleState();
 
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed)
@@ -419,17 +446,46 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::
 
 		seconds = clock.getElapsedTime().asSeconds();
 
-		drawSprite(window, sprite, ressources.textBox, 0, 426, 800, 214);
-		if (seconds < 4) {
+		drawSprite(window, sprite, ressources.boxes[0], 0, 384);
+		if (seconds < 3.5) {
+			window.clear({255, 255, 255, 255});
+			drawSprite(window, sprite, ressources.boxes[1], 96, 144);
+			drawText(window, text, trainerName, 144, 192);
+			for (unsigned i = 0; i < state.team.size(); i++)
+				drawSprite(window, sprite, ressources.balls[
+					state.team[i].hasStatus(static_cast<PokemonGen1::StatusChange>(0xFF)) ? 3 : (state.team[i].getHealth() ? 0 : 2)
+				], 320 + 32 * i, 224);
+
+			drawText(window, text, state.opponentName, 144, 320);
+			for (unsigned i = 0; i < state.opponentTeam.size(); i++)
+				drawSprite(window, sprite, ressources.balls[
+					state.opponentTeam[i].hasStatus(static_cast<PokemonGen1::StatusChange>(0xFF)) ? 3 : (state.opponentTeam[i].getHealth() ? 0 : 2)
+				], 320 + 32 * i, 352);
 
 		} else if (seconds < 5) {
-			drawSprite(window, sprite, ressources.trainer[0][1], -280 + 792 * (seconds - 4), 0, 280, 250);
-			drawSprite(window, sprite, ressources.trainer[0][0], 792 * (5 - seconds), 176, 280, 250);
+			drawSprite(window, sprite, ressources.trainer[0][1], -224 + 632 * (seconds - 3.5) / 1.5, 0);
+			drawSprite(window, sprite, ressources.trainer[0][0], 640 * (5 - seconds) / 1.5, 160);
+
 		} else {
 			if (last < 5)
 				playSound(sound, ressources.trainerLand);
-			drawSprite(window, sprite, ressources.trainer[1][1], 510, 0, 280, 250);
-			drawSprite(window, sprite, ressources.trainer[1][0], 10, 176, 280, 250);
+			drawSprite(window, sprite, ressources.trainer[1][1], 408, 0);
+			drawSprite(window, sprite, ressources.trainer[1][0], 8, 160);
+
+			drawSprite(window, sprite, ressources.boxes[2], 0, 32);
+			for (int i = 6; i-- > 0; )
+				drawSprite(window, sprite, ressources.balls[
+					static_cast<unsigned>(i) >= state.team.size() ? 1 : (state.team[i].hasStatus(static_cast<PokemonGen1::StatusChange>(0xFF)) ? 3 : (state.team[i].getHealth() ? 0 : 2))
+				], 32 + 32 * i, 32);
+
+			drawSprite(window, sprite, ressources.boxes[2], 640, 320, -ressources.boxes[2].getSize().x);
+			for (unsigned i = 0; i < 6; i++)
+				drawSprite(window, sprite, ressources.balls[
+					i >= state.opponentTeam.size() ? 1 : (state.opponentTeam[i].hasStatus(static_cast<PokemonGen1::StatusChange>(0xFF)) ? 3 : (state.opponentTeam[i].getHealth() ? 0 : 2))
+				], 416 + 32 * i, 318);
+
+			drawText(window, text, log[0].substr(0, (seconds - 5) * 15), 32, 448);
+
 		}
 		last = seconds;
 		if (seconds + 1. / 60 >= ressources.start.getDuration().asSeconds() && ressources.loop.getStatus() != sf::Music::Playing)
@@ -438,6 +494,10 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::
 	}
 	ressources.start.stop();
 	ressources.loop.stop();
+
+	view.setSize(window.getSize().x, window.getSize().y);
+	view.setCenter(window.getSize().x / 2., window.getSize().y / 2.);
+	window.setView(view);
 }
 
 void loadRessources(BattleRessources &ressources)
@@ -480,9 +540,11 @@ void loadRessources(BattleRessources &ressources)
 	ressources.trainer[1][1].loadFromFile("assets/front_sprites/trainer_front.png");
 
 	ressources.trainerLand.loadFromFile("assets/sounds/trainer_land.wav");
-
-	ressources.textBox.loadFromFile("assets/text_box.png");
 	ressources.arrow.loadFromFile("assets/arrow.png");
+
+	ressources.boxes[0].loadFromFile("assets/text_box.png");
+	ressources.boxes[1].loadFromFile("assets/VS_box.png");
+	ressources.boxes[2].loadFromFile("assets/pkmns_border.png");
 }
 
 void gui(const std::string &trainerName)
@@ -518,7 +580,7 @@ void gui(const std::string &trainerName)
 	window.setFramerateLimit(60);
 	handler.setReady(false);
 	while (window.isOpen()) {
-		mainMenu(window, handler, trainerName, ressources);
+		//mainMenu(window, handler, trainerName, ressources);
 		battle(window, handler, trainerName, ressources, battleLog, nextAction);
 	}
 }
