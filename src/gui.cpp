@@ -432,7 +432,7 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::
 	window.setTitle(trainerName + " - Challenging " + game.getBattleState().opponentName);
 	ressources.start.play();
 	ressources.loop.setLoop(true);
-	while (window.isOpen()){// && game.getStage() == PokemonGen1::BATTLE) {
+	while (window.isOpen() && game.getStage() == PokemonGen1::BATTLE) {
 		sf::Event event;
 		//const auto &state = game.getBattleState();
 
@@ -580,7 +580,7 @@ void gui(const std::string &trainerName)
 	window.setFramerateLimit(60);
 	handler.setReady(false);
 	while (window.isOpen()) {
-		//mainMenu(window, handler, trainerName, ressources);
+		mainMenu(window, handler, trainerName, ressources);
 		battle(window, handler, trainerName, ressources, battleLog, nextAction);
 	}
 }
