@@ -24,6 +24,7 @@ struct BattleRessources {
 	sf::SoundBuffer				battleCries[256];
 	sf::Texture				boxes[3];
 	sf::Texture				arrow;
+	sf::Texture				hpOverlay;
 };
 
 std::string intToHex(unsigned char i)
@@ -405,8 +406,25 @@ void drawText(sf::RenderWindow &window, sf::Text &text, const std::string &str, 
 	window.draw(text);
 }
 
+void displayOpponentStats(sf::RenderWindow &window, sf::Text &text, sf::RectangleShape rect, sf::Sprite &sprite, BattleRessources &ressources, const PokemonGen1::Pokemon &pkmn)
+{
+	float percent = static_cast<float>(pkmn.getHealth()) / pkmn.getMaxHealth();
+
+	drawSprite(window, sprite, ressources.boxes[2], 32, 64);
+	drawSprite(window, sprite, ressources.pokemonsFront[pkmn.getID()], 408, 0);
+	rect.setFillColor(
+		percent >= 0.5 ? sf::Color{0, 255, 0, 255} : (
+		percent >= 0.1 ? sf::Color{255, 255, 0, 255} : sf::Color{255, 0, 0, 255})
+	);
+	rect.setSize({192 * percent, 16});
+	rect.setPosition(124, 68);
+	window.draw(rect);
+	drawSprite(window, sprite, ressources.hpOverlay, 64, 64);
+}
+
 void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName, BattleRessources &ressources, std::vector<std::string> &log, const PokemonGen1::BattleState &state)
 {
+	sf::RectangleShape rect;
 	float		last = 0;
 	float		seconds;
 	sf::View	view{{320, 288}, {640, 576}};
@@ -508,19 +526,22 @@ void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHand
 			drawSprite(window, sprite, ressources.pokemonsFront[state.opponentTeam[state.opponentPokemonOnField].getID()], 408, 0);
 			drawSprite(window, sprite, ressources.trainer[1][0], 8, 160);
 			drawText(window, text, log[0], 32, 440);
+
 		} else if (seconds < 14.2) {
-			drawSprite(window, sprite, ressources.pokemonsFront[state.opponentTeam[state.opponentPokemonOnField].getID()], 408, 0);
 			drawSprite(window, sprite, ressources.trainer[1][0], 8 - 256 * (seconds - 14) * 5, 160);
 			drawText(window, text, log[0], 32, 440);
-			//displayOpponentStats(window, text, sprite, ressources, state.opponentTeam[state.opponentPokemonOnField]);
+			displayOpponentStats(window, text, rect, sprite, ressources, state.opponentTeam[state.opponentPokemonOnField]);
+
 		} else if (seconds < 14.5) {
 			if (last <= 14.2)
 				log.erase(log.begin());
-			drawSprite(window, sprite, ressources.pokemonsFront[state.opponentTeam[state.opponentPokemonOnField].getID()], 408, 0);
 			drawText(window, text, log[0].substr(0, (seconds - 14.2) * 15), 32, 440);
+			displayOpponentStats(window, text, rect, sprite, ressources, state.opponentTeam[state.opponentPokemonOnField]);
+
 		} else {
-			drawSprite(window, sprite, ressources.pokemonsFront[state.opponentTeam[state.opponentPokemonOnField].getID()], 408, 0);
 			drawText(window, text, log[0].substr(0, (seconds - 14.2) * 15), 32, 440);
+			displayOpponentStats(window, text, rect, sprite, ressources, state.opponentTeam[state.opponentPokemonOnField]);
+
 		}
 
 		last = seconds;
@@ -540,7 +561,8 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::
 	sf::Clock	clock;
 	unsigned char	selectedMenu = 0;
 	sf::View	view{{320, 288}, {640, 576}};
-	PokemonGen1::BattleState state;
+	const auto &state = game.getBattleState();
+	/*PokemonGen1::BattleState state;
 
 	log.emplace_back("Ash\nwants to fight!");
 	log.emplace_back("Ash sent\nout RHYDON!");
@@ -550,7 +572,7 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::
 	state.opponentPokemonOnField = 0;
 	for (const auto &o : game.getPokemonTeam())
 		state.team.push_back(o);
-	state.opponentTeam.push_back(state.team[0]);
+	state.opponentTeam.push_back(state.team[0]);*/
 	window.setSize({640, 576});
 	window.setView(view);
 	text.setFont(ressources.font);
@@ -562,9 +584,8 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::
 	ressources.loop.setLoop(true);
 	executeBattleStartAnimation(window, game, trainerName, ressources, log, state);
 	clock.restart();
-	while (window.isOpen()){//} && game.getStage() == PokemonGen1::BATTLE) {
+	while (window.isOpen() && game.getStage() == PokemonGen1::BATTLE) {
 		sf::Event event;
-		//const auto &state = game.getBattleState();
 
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed)
@@ -581,6 +602,7 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::
 
 	view.setSize(window.getSize().x, window.getSize().y);
 	view.setCenter(window.getSize().x / 2., window.getSize().y / 2.);
+	window.setSize({800, 640});
 	window.setView(view);
 }
 
@@ -624,6 +646,7 @@ void loadRessources(BattleRessources &ressources)
 	ressources.trainer[1][1].loadFromFile("assets/front_sprites/trainer_front.png");
 
 	ressources.trainerLand.loadFromFile("assets/sounds/trainer_land.wav");
+	ressources.hpOverlay.loadFromFile("assets/hp_overlay.png");
 	ressources.arrow.loadFromFile("assets/arrow.png");
 
 	ressources.boxes[0].loadFromFile("assets/text_box.png");
@@ -667,7 +690,7 @@ void gui(const std::string &trainerName)
 	window.setFramerateLimit(60);
 	handler.setReady(false);
 	while (window.isOpen()) {
-		//mainMenu(window, handler, trainerName, ressources);
+		mainMenu(window, handler, trainerName, ressources);
 		battle(window, handler, trainerName, ressources, battleLog, nextAction);
 	}
 }
