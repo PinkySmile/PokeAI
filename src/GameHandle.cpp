@@ -487,6 +487,13 @@ namespace PokemonGen1
 		if (this->_logMsg)
 			displayPacket(this->_receiveBuffer);
 
+		for (unsigned i = 0; i < this->_receiveBuffer.size(); i++) {
+			if (this->_receiveBuffer[i] == UNAVAILABLE_BYTE) {
+				this->_receiveBuffer.erase(this->_receiveBuffer.begin() + i);
+				i--;
+			}
+		}
+
 		/* HEADER PACKET */
 		while (this->_receiveBuffer[0] == SYNC_BYTE)
 			this->_receiveBuffer.erase(this->_receiveBuffer.begin());
