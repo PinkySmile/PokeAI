@@ -47,7 +47,7 @@ namespace PokemonGen1
 		_emulator{nullptr},
 		_trainerName(trainerName),
 		_isPlayer2(player2),
-		_randomGenerator(time(nullptr)),
+		_randomGenerator(),
 		_battleLogger(battleLogger),
 		_battleHandler(battleHandler)
 	{
@@ -264,7 +264,7 @@ namespace PokemonGen1
 		Pokemon &opponent = this->_state.opponentTeam[this->_state.opponentPokemonOnField];
 		int aiPriorityFactor = ai.getPriorityFactor(this->_state.nextAction - Attack1);
 		int opponentPriorityFactor = opponent.getPriorityFactor(this->_state.nextOpponentAction - Attack1);
-		bool aiStart = aiPriorityFactor > opponentPriorityFactor || (aiPriorityFactor == opponentPriorityFactor && !this->_randomGenerator(2));
+		bool aiStart = aiPriorityFactor > opponentPriorityFactor || (aiPriorityFactor == opponentPriorityFactor && this->_randomGenerator() < 0x80);
 
 		if (!ai.getHealth())
 			return;
@@ -372,6 +372,33 @@ namespace PokemonGen1
 		this->_state.opponentTeam[this->_state.opponentPokemonOnField].endTurn();
 		this->_log(this->_state.team[this->_state.pokemonOnField].dump());
 		this->_log(this->_state.opponentTeam[this->_state.opponentPokemonOnField].dump());
+
+		bool teamOK = false;
+
+		for (const auto &pkmn : this->_state.team)
+			if (pkmn.getHealth()) {
+				teamOK = true;
+				break;
+			}
+
+		if (!teamOK){
+			this->logBattle(this->_trainerName + " is out of usable pokemon");
+			this->logBattle(this->_trainerName + " blacked out!");
+			this->_stage = PING_POKEMON_EXCHANGE;
+			return;
+		}
+
+		for (const auto &pkmn : this->_state.opponentTeam)
+			if (pkmn.getHealth()) {
+				teamOK = true;
+				break;
+			}
+
+		if (!teamOK){
+			this->logBattle(this->_trainerName + " defeated " + this->_state.opponentName);
+			this->_stage = PING_POKEMON_EXCHANGE;
+			return;
+		}
 	}
 
 	Gen1ConnectionStage GameHandle::getStage() const
@@ -541,8 +568,9 @@ namespace PokemonGen1
 		std::vector<std::vector<unsigned char>> packet;
 		std::vector<unsigned char> buffer;
 
+		this->_randomGenerator.makeRandomList(10);
 		packet.emplace_back();
-		packet.push_back(HEADER_PACKET);
+		packet.push_back(this->_randomGenerator.getList());
 
 		this->_log("Making packet for trainer " + this->_trainerName);
 		buffer = this->convertString(this->_trainerName);

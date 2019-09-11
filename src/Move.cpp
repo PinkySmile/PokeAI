@@ -113,7 +113,7 @@ namespace PokemonGen1
 		std::string msg = this->_keepGoingMsg;
 
 		if (!this->_nbHit) {
-			unsigned random = owner.getRandomGenerator()(255);
+			unsigned random = owner.getRandomGenerator()();
 			double count = 0;
 
 			for (const auto &val : this->_nbRuns) {
@@ -157,7 +157,7 @@ namespace PokemonGen1
 		else
 			logger(owner.getName() + " used " + this->_name);
 
-		unsigned random = owner.getRandomGenerator()(0, 255);
+		unsigned random = owner.getRandomGenerator()();
 
 		if (this->_accuracy <= 100 && (random / 2.55 >= this->_accuracy * multiplier || random == 255)) {
 			if (this->_needRecharge)
@@ -172,15 +172,15 @@ namespace PokemonGen1
 		if (!target.getHealth())
 			return true;
 
-		if (owner.getRandomGenerator()(0, 255) / 255. < this->_statusChange.prob)
+		if (owner.getRandomGenerator()() < this->_statusChange.prob * 256)
 			target.addStatus(this->_statusChange.status);
 
 		for (const auto &val : this->_foeChange)
-			if (owner.getRandomGenerator()(0, 255) / 255. < val.prob)
+			if (owner.getRandomGenerator()() < val.prob * 256)
 				target.changeStat(val.stat, val.nb);
 
 		for (const auto &val : this->_ownerChange)
-			if (owner.getRandomGenerator()(0, 255) / 255. < val.prob)
+			if (owner.getRandomGenerator()() < val.prob * 256)
 				owner.changeStat(val.stat, val.nb);
 
 		if (this->_hitCallback)

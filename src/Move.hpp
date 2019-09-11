@@ -97,7 +97,7 @@
 }
 
 #define DEAL_0_5_TO_1_5_LEVEL_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
-	target.takeDamage(owner.getLevel() * (owner.getRandomGenerator()(50, 151) / 100.));\
+	target.takeDamage(owner.getLevel() * (100 * owner.getRandomGenerator()() / 255. + 50));\
 	return true;\
 }
 
@@ -136,7 +136,12 @@
 }
 
 #define USE_RANDOM_MOVE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
-	owner.useMove(availableMoves[owner.getRandomGenerator()(1, 0xA5)], target);\
+	unsigned index;\
+\
+	do {\
+		index = owner.getRandomGenerator()();\
+	} while (!index || index >= 0xA5);\
+	owner.useMove(availableMoves[index], target);\
 	return true;\
 }
 

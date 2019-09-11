@@ -125,9 +125,9 @@ namespace PokemonGen1
 			return true;
 		switch (status) {
 		case STATUS_ASLEEP:
-			return this->addStatus(STATUS_ASLEEP_FOR_1_TURN, this->_random(1, 7));
+			return this->addStatus(STATUS_ASLEEP_FOR_1_TURN, this->_random() / 37 + 1);
 		case STATUS_CONFUSED:
-			return this->addStatus(STATUS_CONFUSED_FOR_1_TURN, this->_random(1, 4));
+			return this->addStatus(STATUS_CONFUSED_FOR_1_TURN, (this->_random() & 3) + 2);
 		default:
 			return this->addStatus(status, 1);
 		}
@@ -336,22 +336,25 @@ namespace PokemonGen1
 				this->_currentStatus &= 0xFF00U;
 			}
 			return;
-		} else if ((this->_currentStatus & STATUS_PARALYZED) && this->_random(1, 4) == 1) {
-			this->_log(" is fully paralyzed!");
-			this->_lastUsedMove = DEFAULT_MOVE(0x00);
-			return;
-		} else if (this->_currentStatus & STATUS_FROZEN) {
+		}
+		if (this->_currentStatus & STATUS_FROZEN) {
 			this->_log(" is frozen solid!");
 			return;
-		} else if ((this->_currentStatus & STATUS_CONFUSED)) {
+		}
+		if ((this->_currentStatus & STATUS_CONFUSED)) {
 			this->_log(" is confused!");
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
-			if (this->_random(1, 2) == 1) {
+			if (this->_random() < 0x80) {
 				this->_log(" hurts itself in it's confusion!");
 				this->dealDamage(*this, 40, TYPE_0x0A, PHYSICAL, 0);
 				this->_lastUsedMove = DEFAULT_MOVE(0x00);
 				return;
 			}
+		}
+		if ((this->_currentStatus & STATUS_PARALYZED) && this->_random() < 0x40) {
+			this->_log(" is fully paralyzed!");
+			this->_lastUsedMove = DEFAULT_MOVE(0x00);
+			return;
 		}
 		if (moveSlot >= 4)
 			this->useMove(availableMoves[Struggle], target);
@@ -490,7 +493,7 @@ namespace PokemonGen1
 
 	unsigned Pokemon::dealDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, double critRate) const
 	{
-		bool critical = (this->_random(255) < (this->_baseStats.SPD * critRate / 2));
+		bool critical = (this->_random() < (this->_baseStats.SPD * critRate / 2));
 		unsigned defense;
 		unsigned attack;
 		unsigned level = this->_level * (1 + critical);
@@ -533,7 +536,7 @@ namespace PokemonGen1
 
 		//From Zarel/honko-damagecalc ->
 		//https://github.com/Zarel/honko-damagecalc/blob/dfff275e362ede0857b7564b3e5e2e6fc0e6782d/calc/src/mechanics/gen1.ts#L95
-		double damages = floor(
+		double damages = fmax(
 			(
 				fmin(
 					997,
@@ -545,7 +548,8 @@ namespace PokemonGen1
 						) / 50
 					)
 				) + 2
-			) * effectiveness * this->_random(217, 255) / 255
+			) * effectiveness * (this->_random() * 39 / 255 + 217) / 255,
+			1
 		);
 
 		target.takeDamage(floor(damages));

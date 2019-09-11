@@ -3,34 +3,42 @@
 //
 
 #include "PokemonRandomGenerator.hpp"
+#include "GameHandle.hpp"
 
 namespace PokemonGen1
 {
-	PokemonRandomGenerator::PokemonRandomGenerator(unsigned int seed) :
-		_random(seed),
-		_seed(seed)
+	PokemonRandomGenerator::PokemonRandomGenerator() :
+		_random(time(nullptr))
 	{
 	}
 
-	unsigned PokemonRandomGenerator::getSeed()
+	void PokemonRandomGenerator::makeRandomList(unsigned int size)
 	{
-		return this->_seed;
-	}
-	
-	unsigned PokemonRandomGenerator::operator()()
-	{
-		return (*this)(0, UINT32_MAX);
-	}
+		std::uniform_int_distribution distribution{0, UNAVAILABLE_BYTE - 1};
 
-	unsigned PokemonRandomGenerator::operator()(unsigned int start, unsigned int end)
-	{
-		std::uniform_int_distribution dist{start, end};
-
-		return dist.operator()(this->_random);
+		this->_currentIndex = 0;
+		this->_numbers.clear();
+		while (size--)
+			this->_numbers.push_back(distribution(this->_random));
 	}
 
-	unsigned PokemonRandomGenerator::operator()(unsigned int end)
+	const std::vector<unsigned char>& PokemonRandomGenerator::getList()
 	{
-		return (*this)(0, end);
+		return this->_numbers;
+	}
+
+	void PokemonRandomGenerator::setList(const std::vector<unsigned char> &list)
+	{
+		this->_numbers = list;
+		this->_currentIndex = 0;
+	}
+
+	unsigned char PokemonRandomGenerator::operator()()
+	{
+		unsigned char value = this->_numbers[this->_currentIndex];
+
+		this->_currentIndex++;
+		this->_currentIndex %= this->_numbers.size();
+		return value;
 	}
 }
