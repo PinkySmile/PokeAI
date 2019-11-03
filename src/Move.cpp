@@ -223,7 +223,7 @@ namespace PokemonGen1
 
 	//This is only relevant for Gen 1 (Some moves changed)
 	const std::vector<Move> availableMoves{
-		{0x00, "--"          , TYPE_NORMAL  , PHYSICAL,   0,   0, 0},
+		{0x00, "-"           , TYPE_NORMAL  , PHYSICAL,   0,   0, 0},
 		{0x01, "Pound"       , TYPE_NORMAL  , PHYSICAL,  40, 100, 35},
 		{0x02, "Karate Chop" , TYPE_NORMAL  , PHYSICAL,  50, 100, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},
 		{0x03, "DoubleSlap"  , TYPE_NORMAL  , PHYSICAL,  15,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
@@ -286,7 +286,7 @@ namespace PokemonGen1
 		{0x3C, "Psybeam"     , TYPE_PSYCHIC , SPECIAL ,  65, 100, 20, {STATUS_CONFUSED, 0.1}},
 		{0x3D, "Bubblebeam"  , TYPE_WATER   , SPECIAL ,  65, 100, 20, NO_STATUS_CHANGE, {}, {{STATS_SPD, -1, 0.1}}},
 		{0x3E, "Aurora Beam" , TYPE_ICE     , SPECIAL ,  65, 100, 20, NO_STATUS_CHANGE, {}, {{STATS_ATK, -1, 0.1}}},
-		{0x3F, "Hyper Beam"  , TYPE_NORMAL  , SPECIAL , 150,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, true},
+		{0x3F, "Hyper Beam"  , TYPE_NORMAL  , SPECIAL , 150,  90,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, true},
 		{0x40, "Peck"        , TYPE_FLYING  , PHYSICAL,  35, 100, 35},
 		{0x41, "Drill Peck"  , TYPE_FLYING  , PHYSICAL,  80, 100, 20},
 		{0x42, "Submission"  , TYPE_FIGHTING, PHYSICAL,  80,  80, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_QUATER_MOVE_DAMAGE},
@@ -310,7 +310,7 @@ namespace PokemonGen1
 		{0x54, "ThunderShock", TYPE_ELECTRIC, SPECIAL ,  40, 100, 30, {STATUS_PARALYZED, 0.1}},
 		{0x55, "Thunderbolt" , TYPE_ELECTRIC, SPECIAL ,  90, 100, 15, {STATUS_PARALYZED, 0.1}},
 		{0x56, "Thunder Wave", TYPE_ELECTRIC, STATUS  ,   0, 100, 30, {STATUS_PARALYZED, 1}},
-		{0x57, "Thunder"     , TYPE_ELECTRIC, SPECIAL , 120,  70, 30, {STATUS_PARALYZED, 0.1}},
+		{0x57, "Thunder"     , TYPE_ELECTRIC, SPECIAL , 120,  70, 10, {STATUS_PARALYZED, 0.1}},
 		{0x58, "Rock Throw"  , TYPE_ROCK    , PHYSICAL,  50,  65, 15},
 		{0x59, "Earthquake"  , TYPE_GROUND  , PHYSICAL, 100, 100, 10},
 		{0x5A, "Fissure"     , TYPE_GROUND  , PHYSICAL,   0,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ONE_HIT_KO_HANDLE},

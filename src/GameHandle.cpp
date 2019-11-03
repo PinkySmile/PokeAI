@@ -325,6 +325,7 @@ namespace PokemonGen1
 			case Attack2:
 			case Attack3:
 			case Attack4:
+			case StruggleMove:
 				AIAttack = true;
 				break;
 			default:
@@ -347,15 +348,16 @@ namespace PokemonGen1
 			case Switch6:
 				if (!opponentFainted) {
 					this->_state.opponentTeam[this->_state.opponentPokemonOnField].switched();
-					this->logBattle(this->_state.opponentName + " withdrew " + this->_state.opponentTeam[this->_state.opponentPokemonOnField].getName());
+					this->logBattle(this->_state.opponentName + " withdrew " + this->_state.opponentTeam[this->_state.opponentPokemonOnField].getNickname());
 				}
 				this->_state.opponentPokemonOnField = this->_state.nextOpponentAction - Switch1;
-				this->logBattle(this->_state.opponentName + " sent out " + this->_state.opponentTeam[this->_state.opponentPokemonOnField].getName());
+				this->logBattle(this->_state.opponentName + " sent out " + this->_state.opponentTeam[this->_state.opponentPokemonOnField].getNickname());
 				break;
 			case Attack1:
 			case Attack2:
 			case Attack3:
 			case Attack4:
+			case StruggleMove:
 				opponentAttack = true;
 				break;
 			default:
@@ -553,7 +555,7 @@ namespace PokemonGen1
 		for (Pokemon &pkmn : this->_state.opponentTeam)
 			this->_log(pkmn.dump());
 		this->logBattle(this->_state.opponentName + " wants to fight!");
-		this->logBattle(this->_state.opponentName + " sent out " + this->_state.opponentTeam[0].getName() + "!");
+		this->logBattle(this->_state.opponentName + " sent out " + this->_state.opponentTeam[0].getNickname() + "!");
 		this->logBattle(this->_pkmns[0].getName() + " go!");
 	}
 
