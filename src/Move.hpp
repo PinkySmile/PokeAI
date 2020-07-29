@@ -155,10 +155,10 @@
 	return true;\
 }
 
-#define DREAM_EATER [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define DREAM_EATER [](Pokemon &owner, Pokemon &target, unsigned damages, bool, const std::function<void(const std::string &msg)> &){\
 	if (!target.hasStatus(STATUS_ASLEEP))\
 		return false;\
-	owner.takeDamage(-owner.dealDamage(target, 100, TYPE_PSYCHIC, SPECIAL, DEFAULT_CRIT_CHANCE) / 2);\
+	owner.takeDamage(-damages / 2);\
 	return true;\
 }
 

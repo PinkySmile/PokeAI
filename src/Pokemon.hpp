@@ -96,6 +96,14 @@ namespace PokemonGen1
 		double _getUpgradedStat(unsigned short baseValue, char upgradeStage) const;
 
 	public:
+		struct DamageResult {
+			bool critical;
+			unsigned damages;
+			bool affect;
+			bool isVeryEffective;
+			bool isNotVeryEffective;
+		};
+
 		Pokemon(PokemonRandomGenerator &random, GameHandle &game, const std::string &nickname, unsigned char level, const PokemonBase &base, const std::vector<Move> &moveSet, bool enemy = false);
 		Pokemon(PokemonRandomGenerator &random, GameHandle &game, const std::string &nickname, const std::vector<byte> &data, bool enemy = false);
 
@@ -112,7 +120,7 @@ namespace PokemonGen1
 		void takeDamage(int damage);
 		void attack(unsigned char moveSlot, Pokemon &target);
 		bool canGetHitBy(unsigned char moveId);
-		unsigned dealDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, double critChance) const;
+		DamageResult calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, double critRate) const;
 		void endTurn();
 		void switched();
 		int getPriorityFactor(unsigned char moveSlot);

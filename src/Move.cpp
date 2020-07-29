@@ -157,6 +157,17 @@ namespace PokemonGen1
 			return false;
 		}
 
+		Pokemon::DamageResult damages{
+			.critical = false,
+			.damages = 0,
+			.affect = true,
+			.isVeryEffective = false,
+			.isNotVeryEffective = false,
+		};
+
+		if (this->_power)
+			damages = owner.calcDamage(target, this->_power, this->_type, this->_category, this->_critChance);
+
 		if (this->_accuracy <= 100) {
 			unsigned random = owner.getRandomGenerator()();
 
@@ -169,7 +180,18 @@ namespace PokemonGen1
 			}
 		}
 
-		unsigned damages = !this->_power ? 0 : owner.dealDamage(target, this->_power, this->_type, this->_category, this->_critChance);
+		if (!damages.affect)
+			logger("It doesn't affect " + target.getName());
+
+		if (damages.critical)
+			logger("Critical hit !");
+
+		if (damages.isNotVeryEffective)
+			logger("It's not very effective");
+
+		if (damages.isVeryEffective)
+			logger("It's super very effective");
+		target.takeDamage(damages.damages);
 
 		if (!target.getHealth())
 			return true;
@@ -186,7 +208,7 @@ namespace PokemonGen1
 				owner.changeStat(val.stat, val.nb);
 
 		if (this->_hitCallback)
-			return this->_hitCallback(owner, target, damages, this->isFinished(), logger);
+			return this->_hitCallback(owner, target, damages.damages, this->isFinished(), logger);
 
 		return true;
 	}
@@ -232,9 +254,9 @@ namespace PokemonGen1
 		{0x04, "Comet Punch" , TYPE_NORMAL  , PHYSICAL,  18,  85, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		{0x05, "Mega Punch"  , TYPE_NORMAL  , PHYSICAL,  80,  85, 20},
 		{0x06, "Pay Day"     , TYPE_NORMAL  , PHYSICAL,  40, 100, 20},
-		{0x07, "Fire Punch"  , TYPE_FIRE    , PHYSICAL,  75, 100, 15, {STATUS_BURNED, 0.1}},
-		{0x08, "Ice Punch"   , TYPE_ICE     , PHYSICAL,  75, 100, 15, {STATUS_FROZEN, 0.1}},
-		{0x09, "ThunderPunch", TYPE_ELECTRIC, PHYSICAL,  75, 100, 15, {STATUS_PARALYZED, 0.1}},
+		{0x07, "Fire Punch"  , TYPE_FIRE    , SPECIAL,   75, 100, 15, {STATUS_BURNED, 0.1}},
+		{0x08, "Ice Punch"   , TYPE_ICE     , SPECIAL,   75, 100, 15, {STATUS_FROZEN, 0.1}},
+		{0x09, "ThunderPunch", TYPE_ELECTRIC, SPECIAL,   75, 100, 15, {STATUS_PARALYZED, 0.1}},
 		{0x0A, "Scratch"     , TYPE_NORMAL  , PHYSICAL,  40, 100, 35},
 		{0x0B, "ViceGrip"    , TYPE_NORMAL  , PHYSICAL,  55, 100, 30},
 		{0x0C, "Guillotine"  , TYPE_NORMAL  , PHYSICAL,   0,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ONE_HIT_KO_HANDLE},

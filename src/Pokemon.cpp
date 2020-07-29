@@ -345,7 +345,7 @@ namespace PokemonGen1
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if (this->_random() >= 0x80) {
 				this->_log(" hurts itself in it's confusion!");
-				this->dealDamage(*this, 40, TYPE_0x0A, PHYSICAL, 0);
+				this->takeDamage(this->calcDamage(*this, 40, TYPE_0x0A, PHYSICAL, 0).damages);
 				this->_lastUsedMove = DEFAULT_MOVE(0x00);
 				return;
 			}
@@ -492,18 +492,23 @@ namespace PokemonGen1
 		}
 	}
 
-	unsigned Pokemon::dealDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, double critRate) const
+	Pokemon::DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, double critRate) const
 	{
+		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
+
+		if (effectiveness == 0)
+			return {
+				.critical = false,
+				.damages = 0,
+				.affect = false,
+				.isVeryEffective = false,
+				.isNotVeryEffective = false,
+			};
+
 		bool critical = (this->_random() < (this->_baseStats.SPD / 2 * critRate));
 		unsigned defense;
 		unsigned attack;
 		unsigned level = this->_level * (1 + critical);
-		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
-
-		if (effectiveness == 0) {
-			this->_game.logBattle("It doesn't affect " + target.getName());
-			return 0;
-		}
 
 		switch (category) {
 		case SPECIAL:
@@ -515,22 +520,19 @@ namespace PokemonGen1
 			defense = critical ? target.getRawDefense() : target.getDefense();
 			break;
 		default:
-			return 0;
+			return {
+				.critical = false,
+				.damages = 0,
+				.affect = true,
+				.isVeryEffective = false,
+				.isNotVeryEffective = false,
+			};
 		}
 
 		if (attack > 255 || defense > 255) {
 			attack = attack / 4 % 256;
 			defense = defense / 4 % 256;
 		}
-
-		if (critical)
-			this->_game.logBattle("Critical hit !");
-
-		if (effectiveness < 1)
-			this->_game.logBattle("It's not very effective");
-
-		if (effectiveness > 1)
-			this->_game.logBattle("It's super very effective");
 
 		if (this->_types.first == damageType || this->_types.second == damageType)
 			effectiveness *= 1.5;
@@ -560,8 +562,13 @@ namespace PokemonGen1
 			1
 		);
 
-		target.takeDamage(floor(damages));
-		return floor(damages);
+		return {
+			.critical = critical,
+			.damages = static_cast<unsigned int>(floor(damages)),
+			.affect = true,
+			.isVeryEffective = effectiveness > 1,
+			.isNotVeryEffective = effectiveness < 1,
+		};
 	}
 
 	std::string Pokemon::getName() const
