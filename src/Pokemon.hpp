@@ -21,27 +21,27 @@ namespace PokemonGen1
 	class GameHandle;
 
 	struct PokemonBase {
-		unsigned char	id;
-		std::string	name;
-		unsigned	HP;
-		unsigned short	ATK;
-		unsigned short	DEF;
-		unsigned short	SPD;
-		unsigned short	SPE;
-		PokemonTypes	typeA;
-		PokemonTypes	typeB;
-		unsigned char	catchRate;
-		unsigned int	baseXpYield;
+		unsigned char  id;
+		std::string    name;
+		unsigned       HP;
+		unsigned short ATK;
+		unsigned short DEF;
+		unsigned short SPD;
+		unsigned short SPE;
+		PokemonTypes   typeA;
+		PokemonTypes   typeB;
+		unsigned char  catchRate;
+		unsigned int   baseXpYield;
 	};
 
 	struct BaseStats
 	{
-		unsigned	HP;
-		unsigned	maxHP;
-		unsigned short	ATK;
-		unsigned short	DEF;
-		unsigned short	SPD;
-		unsigned short	SPE;
+		unsigned       HP;
+		unsigned       maxHP;
+		unsigned short ATK;
+		unsigned short DEF;
+		unsigned short SPD;
+		unsigned short SPE;
 	};
 
 	struct UpgradableStats {
@@ -59,32 +59,38 @@ namespace PokemonGen1
 	class Pokemon {
 	private:
 		struct PokemonState {
-			unsigned char				id;
-			std::vector<Move>			moves;
-			std::pair<PokemonTypes, PokemonTypes>	types;
+			unsigned char                         id;
+			std::vector<Move>                     moves;
+			std::pair<PokemonTypes, PokemonTypes> types;
 		};
 
-		PokemonState				_oldState{};
-		unsigned char				_id;
-		bool					_enemy;
-		Move					_lastUsedMove;
-		PokemonRandomGenerator			&_random;
-		std::string				_nickname;
-		std::string				_name;
-		BaseStats				_baseStats;
-		UpgradableStats				_upgradedStats;
-		std::vector<Move>			_moveSet;
-		std::pair<PokemonTypes, PokemonTypes>	_types;
-		unsigned char				_level;
-		unsigned char				_catchRate;
-		bool					_transformed = false;
-		bool					_wrapped = false;
-		bool					_storingDamages;
-		unsigned int				_damagesStored;
-		unsigned char				_badPoisonStage = 0;
-		unsigned short				_currentStatus;
-		double					_globalCritRatio;
-		GameHandle				&_game;
+		PokemonState                          _oldState{};
+		unsigned char                         _id;
+		bool                                  _flinched = false;
+		bool                                  _needsRecharge = false;
+		bool                                  _invincible = false;
+		bool                                  _chargingUp = false;
+		bool                                  _thrashing = false;
+		bool                                  _enraged = false;
+		bool                                  _enemy;
+		Move                                  _lastUsedMove;
+		PokemonRandomGenerator	              &_random;
+		std::string                           _nickname;
+		std::string                           _name;
+		BaseStats                             _baseStats;
+		UpgradableStats                       _upgradedStats;
+		std::vector<Move>                     _moveSet;
+		std::pair<PokemonTypes, PokemonTypes> _types;
+		unsigned char                         _level;
+		unsigned char                         _catchRate;
+		bool                                  _transformed = false;
+		bool                                  _wrapped = false;
+		bool                                  _storingDamages;
+		unsigned int                          _damagesStored;
+		unsigned char                         _badPoisonStage = 0;
+		unsigned short                        _currentStatus;
+		double                                _globalCritRatio;
+		GameHandle                            &_game;
 
 		void _log(const std::string &msg) const;
 		double _getUpgradedStat(unsigned short baseValue, char upgradeStage) const;
@@ -148,7 +154,7 @@ namespace PokemonGen1
 	** From Rhydon
 	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/PK1.cs#L376
 	*/
-	enum PokemonSpiecies
+	enum PokemonSpecies
 	{
 		Rhydon = 0x01,
 		Kangaskhan = 0x02,

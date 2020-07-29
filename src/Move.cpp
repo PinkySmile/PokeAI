@@ -113,7 +113,7 @@ namespace PokemonGen1
 		std::string msg = this->_keepGoingMsg;
 
 		if (!this->_nbHit) {
-			unsigned random = owner.getRandomGenerator()();
+			unsigned random = this->_nbRuns.size() == 1 ? 0 : owner.getRandomGenerator()();
 			double count = 0;
 
 			for (const auto &val : this->_nbRuns) {
@@ -139,11 +139,16 @@ namespace PokemonGen1
 			return true;
 		}
 
+		if (!msg.empty())
+			logger(owner.getName() + msg);
+		else
+			logger(owner.getName() + " used " + this->_name);
+
 		if (getAttackDamageMultiplier(this->_type, target.getTypes()) == 0) {
 			logger("It doesn't affect " + target.getName());
 			if (this->_missCallback)
 				this->_missCallback(owner, target, logger);
-			return false;
+			return true;
 		}
 
 		if (!target.canGetHitBy(this->_id)) {
@@ -152,19 +157,16 @@ namespace PokemonGen1
 			return false;
 		}
 
-		if (!msg.empty())
-			logger(owner.getName() + msg);
-		else
-			logger(owner.getName() + " used " + this->_name);
+		if (this->_accuracy <= 100) {
+			unsigned random = owner.getRandomGenerator()();
 
-		unsigned random = owner.getRandomGenerator()();
-
-		if (this->_accuracy <= 100 && (random / 2.55 >= this->_accuracy * multiplier || random == 255)) {
-			if (this->_needRecharge)
-				this->_nbHit = 0;
-			if (this->_missCallback)
-				this->_missCallback(owner, target, logger);
-			return false;
+			if ((random / 2.55 >= this->_accuracy * multiplier || random == 255)) {
+				if (this->_needRecharge)
+					this->_nbHit = 0;
+				if (this->_missCallback)
+					this->_missCallback(owner, target, logger);
+				return false;
+			}
 		}
 
 		unsigned damages = !this->_power ? 0 : owner.dealDamage(target, this->_power, this->_type, this->_category, this->_critChance);
@@ -172,7 +174,7 @@ namespace PokemonGen1
 		if (!target.getHealth())
 			return true;
 
-		if (owner.getRandomGenerator()() < this->_statusChange.prob * 256)
+		if (this->_statusChange.prob && owner.getRandomGenerator()() < this->_statusChange.prob * 256)
 			target.addStatus(this->_statusChange.status);
 
 		for (const auto &val : this->_foeChange)

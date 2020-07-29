@@ -322,11 +322,6 @@ namespace PokemonGen1
 
 	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
 	{
-		if (this->_wrapped) {
-			this->_log(" can't move!");
-			return;
-		}
-
 		if (this->_currentStatus & STATUS_ASLEEP) {
 			this->_currentStatus--;
 			if (this->_currentStatus)
@@ -341,17 +336,21 @@ namespace PokemonGen1
 			this->_log(" is frozen solid!");
 			return;
 		}
+		if (this->_wrapped) {
+			this->_log(" can't move!");
+			return;
+		}
 		if ((this->_currentStatus & STATUS_CONFUSED)) {
 			this->_log(" is confused!");
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
-			if (this->_random() < 0x80) {
+			if (this->_random() >= 0x80) {
 				this->_log(" hurts itself in it's confusion!");
 				this->dealDamage(*this, 40, TYPE_0x0A, PHYSICAL, 0);
 				this->_lastUsedMove = DEFAULT_MOVE(0x00);
 				return;
 			}
 		}
-		if ((this->_currentStatus & STATUS_PARALYZED) && this->_random() < 0x40) {
+		if ((this->_currentStatus & STATUS_PARALYZED) && this->_random() < 0x3F) {
 			this->_log(" is fully paralyzed!");
 			this->_lastUsedMove = DEFAULT_MOVE(0x00);
 			return;
@@ -457,7 +456,7 @@ namespace PokemonGen1
 	{
 		if (moveId == Swift || moveId == Transform || moveId == Dig)
 			return true;
-		return this->_lastUsedMove.isFinished() || !this->_lastUsedMove.makesInvulnerable();
+		return !this->_invincible;
 	}
 
 	std::pair<PokemonTypes, PokemonTypes> Pokemon::getTypes() const
@@ -487,13 +486,15 @@ namespace PokemonGen1
 
 	void Pokemon::glitchHyperBeam()
 	{
-		if (this->_lastUsedMove.getID() == Hyper_Beam)
+		if (this->_lastUsedMove.getID() == Hyper_Beam) {
+			this->_needsRecharge = false;
 			this->_lastUsedMove.glitch();
+		}
 	}
 
 	unsigned Pokemon::dealDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, double critRate) const
 	{
-		bool critical = (this->_random() < (this->_baseStats.SPD * critRate / 2));
+		bool critical = (this->_random() < (this->_baseStats.SPD / 2 * critRate));
 		unsigned defense;
 		unsigned attack;
 		unsigned level = this->_level * (1 + critical);
@@ -534,6 +535,13 @@ namespace PokemonGen1
 		if (this->_types.first == damageType || this->_types.second == damageType)
 			effectiveness *= 1.5;
 
+		unsigned char r;
+
+		do {
+			r = this->_random();
+			r = (r >> 1U) | ((r & 0x01U) << 7U);
+		} while (r < 217);
+
 		//From Zarel/honko-damagecalc ->
 		//https://github.com/Zarel/honko-damagecalc/blob/dfff275e362ede0857b7564b3e5e2e6fc0e6782d/calc/src/mechanics/gen1.ts#L95
 		double damages = fmax(
@@ -548,7 +556,7 @@ namespace PokemonGen1
 						) / 50
 					)
 				) + 2
-			) * effectiveness * (this->_random() * 39 / 255 + 217) / 255,
+			) * effectiveness * r / 255,
 			1
 		);
 

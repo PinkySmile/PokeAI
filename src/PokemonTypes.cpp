@@ -4,6 +4,7 @@
 
 #include <map>
 #include <string>
+#include <stdexcept>
 #include "PokemonTypes.hpp"
 
 /*

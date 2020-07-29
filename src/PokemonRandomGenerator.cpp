@@ -14,7 +14,7 @@ namespace PokemonGen1
 
 	void PokemonRandomGenerator::makeRandomList(unsigned int size)
 	{
-		std::uniform_int_distribution distribution{0, UNAVAILABLE_BYTE - 1};
+		std::uniform_int_distribution distribution{0, SYNC_BYTE - 1};
 
 		this->_currentIndex = 0;
 		this->_numbers.clear();
@@ -38,7 +38,11 @@ namespace PokemonGen1
 		unsigned char value = this->_numbers[this->_currentIndex];
 
 		this->_currentIndex++;
-		this->_currentIndex %= this->_numbers.size();
+		if (this->_numbers.size() == this->_currentIndex) {
+			this->_currentIndex = 0;
+			for (auto &elem : this->_numbers)
+				elem = elem * 5 + 1;
+		}
 		return value;
 	}
 }

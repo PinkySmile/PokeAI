@@ -298,6 +298,33 @@ namespace PokemonGen1
 		bool opponentAttack = false;
 		bool AIFainted = !this->_state.team[this->_state.pokemonOnField].getHealth();
 		bool opponentFainted = !this->_state.opponentTeam[this->_state.opponentPokemonOnField].getHealth();
+		bool allyTeamOK = false;
+		bool oppoTeamOK = false;
+
+		for (const auto &pkmn : this->_state.team)
+			if (pkmn.getHealth()) {
+				allyTeamOK = true;
+				break;
+			}
+
+		if (!allyTeamOK){
+			this->logBattle(this->_trainerName + " is out of usable pokemon");
+			this->logBattle(this->_trainerName + " blacked out!");
+			this->_stage = PING_POKEMON_EXCHANGE;
+			return;
+		}
+
+		for (const auto &pkmn : this->_state.opponentTeam)
+			if (pkmn.getHealth()) {
+				oppoTeamOK = true;
+				break;
+			}
+
+		if (!oppoTeamOK){
+			this->logBattle(this->_trainerName + " defeated " + this->_state.opponentName);
+			this->_stage = PING_POKEMON_EXCHANGE;
+			return;
+		}
 
 		if (this->_state.nextAction == NoAction)
 			this->_state.nextAction = this->_battleHandler(*this);
@@ -326,6 +353,8 @@ namespace PokemonGen1
 			case Attack3:
 			case Attack4:
 			case StruggleMove:
+				if (!allyTeamOK)
+					this->_log("Warning: Invalid AI move " + std::to_string(this->_state.nextAction));
 				AIAttack = true;
 				break;
 			default:
@@ -358,6 +387,8 @@ namespace PokemonGen1
 			case Attack3:
 			case Attack4:
 			case StruggleMove:
+				if (!oppoTeamOK)
+					this->_log("Warning: Invalid opponent move " + std::to_string(this->_state.nextAction));
 				opponentAttack = true;
 				break;
 			default:
@@ -374,33 +405,6 @@ namespace PokemonGen1
 		this->_state.opponentTeam[this->_state.opponentPokemonOnField].endTurn();
 		this->_log(this->_state.team[this->_state.pokemonOnField].dump());
 		this->_log(this->_state.opponentTeam[this->_state.opponentPokemonOnField].dump());
-
-		bool teamOK = false;
-
-		for (const auto &pkmn : this->_state.team)
-			if (pkmn.getHealth()) {
-				teamOK = true;
-				break;
-			}
-
-		if (!teamOK){
-			this->logBattle(this->_trainerName + " is out of usable pokemon");
-			this->logBattle(this->_trainerName + " blacked out!");
-			this->_stage = PING_POKEMON_EXCHANGE;
-			return;
-		}
-
-		for (const auto &pkmn : this->_state.opponentTeam)
-			if (pkmn.getHealth()) {
-				teamOK = true;
-				break;
-			}
-
-		if (!teamOK){
-			this->logBattle(this->_trainerName + " defeated " + this->_state.opponentName);
-			this->_stage = PING_POKEMON_EXCHANGE;
-			return;
-		}
 	}
 
 	Gen1ConnectionStage GameHandle::getStage() const
@@ -570,7 +574,10 @@ namespace PokemonGen1
 		std::vector<std::vector<unsigned char>> packet;
 		std::vector<unsigned char> buffer;
 
-		this->_randomGenerator.makeRandomList(10);
+		//this->_randomGenerator.makeRandomList(9);
+		this->_randomGenerator.setList({
+			0xC9, 0x91, 0xB6, 0x9B, 0x05, 0x09, 0x69, 0xBA, 0x40
+		});
 		packet.emplace_back();
 		packet.push_back(this->_randomGenerator.getList());
 
