@@ -574,10 +574,10 @@ namespace PokemonGen1
 		std::vector<std::vector<unsigned char>> packet;
 		std::vector<unsigned char> buffer;
 
-		//this->_randomGenerator.makeRandomList(9);
-		this->_randomGenerator.setList({
+		this->_randomGenerator.makeRandomList(9);
+		/*this->_randomGenerator.setList({
 			0xC9, 0x91, 0xB6, 0x9B, 0x05, 0x09, 0x69, 0xBA, 0x40
-		});
+		});*/
 		packet.emplace_back();
 		packet.push_back(this->_randomGenerator.getList());
 
