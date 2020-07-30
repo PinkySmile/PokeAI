@@ -509,7 +509,7 @@ namespace PokemonGen1
 				.isNotVeryEffective = false,
 			};
 
-		bool critical = (this->_random() < (this->_baseStats.SPD / 2 * critRate));
+		bool critical = (this->_random() < (pokemonList[this->_id].SPD / 2 * critRate));
 		unsigned defense;
 		unsigned attack;
 		unsigned level = this->_level * (1 + critical);

@@ -219,7 +219,7 @@ namespace PokemonGen1
 			if (
 				this->_syncSignalsReceived >= 9 - (2 * this->_sendBufferIndex.first) &&
 				this->_syncSignalsSent >= 9 - (2 * this->_sendBufferIndex.first)
-				) {
+			) {
 				this->_sendBufferIndex.first++;
 				this->_sendBufferIndex.second = 0;
 			}

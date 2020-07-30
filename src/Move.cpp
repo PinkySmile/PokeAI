@@ -116,6 +116,7 @@ namespace PokemonGen1
 			unsigned random = this->_nbRuns.size() == 1 ? 0 : owner.getRandomGenerator()();
 			double count = 0;
 
+			//TODO: Change this
 			for (const auto &val : this->_nbRuns) {
 				count += val.prob;
 				if (random / 255. < count) {
