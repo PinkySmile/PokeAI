@@ -195,7 +195,7 @@ namespace PokemonGen1
 		if (this->_moveSet.empty())
 			stream << "No moves, ";
 		for (const Move &move : this->_moveSet)
-			stream << move.getName() << ", ";
+			stream << move.getName() << " " << move.getPP() << "/" << move.getMaxPP() << "PP, ";
 		return stream.str().substr(0, stream.str().size() - 2);
 	}
 

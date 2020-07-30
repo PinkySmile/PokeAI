@@ -64,10 +64,10 @@ bool handleCommand(const std::string &command, PokemonGen1::GameHandle &game, Po
 	} else if (command == "setPkmn") {
 		std::cin >> arg;
 		try {
-			unsigned id = std::stoul(arg);
+			unsigned index = std::stoul(arg);
 
 			std::cin >> arg;
-			unsigned index = std::stoul(arg);
+			unsigned id = std::stoul(arg);
 
 			std::cin >> arg;
 			unsigned level = std::stoul(arg);
@@ -132,11 +132,13 @@ bool handleCommand(const std::string &command, PokemonGen1::GameHandle &game, Po
 		std::cout << "disconnect" << std::endl;
 		std::cout << "connect <ip> <port>" << std::endl;
 		std::cout << "teamSize <newSize>" << std::endl;
-		std::cout << "setPkmn <id> <index> <level> <nbrOfMove> [<move1> <move2> ...] <nickname>" << std::endl;
+		std::cout << "setPkmn <index> <id> <level> <nbrOfMove> [<move1> <move2> ...] <nickname>" << std::endl;
 		std::cout << "teamSize <newSize>" << std::endl;
 		std::cout << "action Attack1|Attack2|Attack3|Attack4|Switch1|Switch2|Switch3|Switch4|Switch5|Switch6|Run|Struggle" << std::endl;
 		std::cout << "moves" << std::endl;
 		std::cout << "pokemons" << std::endl;
+		std::cout << "move <move_name>" << std::endl;
+		std::cout << "pokemon <pokemon_name>" << std::endl;
 		std::cout << "state" << std::endl;
 	} else if (command == "moves") {
 		for (auto &move : PokemonGen1::availableMoves)
@@ -144,6 +146,30 @@ bool handleCommand(const std::string &command, PokemonGen1::GameHandle &game, Po
 	} else if (command == "pokemons") {
 		for (auto &pkmn : PokemonGen1::pokemonList)
 			std::cout << static_cast<int>(pkmn.id) << ": " << pkmn.name << std::endl;
+	} else if (command == "move") {
+		std::string name;
+
+		std::getline(std::cin, name);
+		while (name[0] == ' ')
+			name.erase(name.begin());
+		while (!name.empty() && std::isspace(*name.end()))
+			name.pop_back();
+		std::cout << "Searching move '" << name << "'" << std::endl;
+		for (auto &move : PokemonGen1::availableMoves)
+			if (move.getName().find(name) != std::string::npos)
+				std::cout << static_cast<int>(move.getID()) << ": " << move.getName() << std::endl;
+	} else if (command == "pokemon") {
+		std::string name;
+
+		std::getline(std::cin, name);
+		while (!name.empty() && std::isspace(name[0]))
+			name.erase(name.begin());
+		while (!name.empty() && std::isspace(*name.end()))
+			name.pop_back();
+		std::cout << "Searching pokemon '" << name << "'" << std::endl;
+		for (auto &pkmn : PokemonGen1::pokemonList)
+			if (pkmn.name.find(name) != std::string::npos)
+				std::cout << static_cast<int>(pkmn.id) << ": " << pkmn.name << std::endl;
 	} else if (command == "state") {
 		auto &state = game.getBattleState();
 
