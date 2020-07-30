@@ -59,6 +59,7 @@ namespace PokemonGen1
 	class Pokemon {
 	private:
 		struct PokemonState {
+			BaseStats                             stats;
 			unsigned char                         id;
 			std::vector<Move>                     moves;
 			std::pair<PokemonTypes, PokemonTypes> types;
@@ -150,6 +151,7 @@ namespace PokemonGen1
 		const Move &getLastUsedMove() const;
 		std::pair<PokemonTypes, PokemonTypes> getTypes() const;
 		const std::vector<Move> getMoveSet() const;
+		BaseStats getBaseStats() const;
 		UpgradableStats getStatsUpgradeStages() const;
 		std::string getSpeciesName() const;
 

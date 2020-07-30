@@ -405,6 +405,33 @@ namespace PokemonGen1
 		this->_state.opponentTeam[this->_state.opponentPokemonOnField].endTurn();
 		this->_log(this->_state.team[this->_state.pokemonOnField].dump());
 		this->_log(this->_state.opponentTeam[this->_state.opponentPokemonOnField].dump());
+
+		allyTeamOK = false;
+		oppoTeamOK = false;
+		for (const auto &pkmn : this->_state.team)
+			if (pkmn.getHealth()) {
+				allyTeamOK = true;
+				break;
+			}
+
+		if (!allyTeamOK){
+			this->logBattle(this->_trainerName + " is out of usable pokemon");
+			this->logBattle(this->_trainerName + " blacked out!");
+			this->_stage = PING_POKEMON_EXCHANGE;
+			return;
+		}
+
+		for (const auto &pkmn : this->_state.opponentTeam)
+			if (pkmn.getHealth()) {
+				oppoTeamOK = true;
+				break;
+			}
+
+		if (!oppoTeamOK){
+			this->logBattle(this->_trainerName + " defeated " + this->_state.opponentName);
+			this->_stage = PING_POKEMON_EXCHANGE;
+			return;
+		}
 	}
 
 	Gen1ConnectionStage GameHandle::getStage() const

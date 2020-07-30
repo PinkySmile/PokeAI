@@ -191,7 +191,9 @@ namespace PokemonGen1
 
 		if (damages.isVeryEffective)
 			logger("It's super very effective");
-		target.takeDamage(damages.damages);
+
+		if (this->_power)
+			target.takeDamage(damages.damages);
 
 		if (!target.getHealth())
 			return true;

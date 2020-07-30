@@ -48,8 +48,8 @@ namespace PokemonGen1
 		_nickname{nickname},
 		_name{pokemonList[data[0]].name},
 		_baseStats{
-			static_cast<unsigned      >(fmin(999, fmax(1, NBR_2B(data[1],  data[2])))),   //HP
-			static_cast<unsigned      >(fmin(999, fmax(1, NBR_2B(data[34], data[35])))), //maxHP
+			static_cast<unsigned>(fmin(999, fmax(1, NBR_2B(data[1],  data[2])))),   //HP
+			static_cast<unsigned>(fmin(999, fmax(1, NBR_2B(data[34], data[35])))), //maxHP
 			static_cast<unsigned short>(fmin(999, fmax(1, NBR_2B(data[36], data[37])))), //ATK
 			static_cast<unsigned short>(fmin(999, fmax(1, NBR_2B(data[38], data[39])))), //DEF
 			static_cast<unsigned short>(fmin(999, fmax(1, NBR_2B(data[40], data[41])))), //SPD
@@ -92,9 +92,11 @@ namespace PokemonGen1
 			);
 		};
 
+		auto hp = fmin(999, fmax(1, fct(base.HP))) + 5 + level;
+
 		return {
-			static_cast<unsigned      >(fmin(999, fmax(1, fct(base.HP)))),
-			static_cast<unsigned      >(fmin(999, fmax(1, fct(base.HP)))),
+			static_cast<unsigned>(hp),
+			static_cast<unsigned>(hp),
 			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.ATK)))),
 			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.DEF)))),
 			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.SPD)))),
@@ -200,9 +202,11 @@ namespace PokemonGen1
 	void Pokemon::switched()
 	{
 		this->resetStatsChanges();
+		this->_lastUsedMove = DEFAULT_MOVE(0x00);
 		if (this->_transformed) {
 			this->_id = this->_oldState.id;
 			this->_moveSet = this->_oldState.moves;
+			this->_baseStats= this->_oldState.stats;
 			this->_types = this->_oldState.types;
 			this->_transformed = false;
 		}
@@ -655,7 +659,7 @@ namespace PokemonGen1
 
 		//PP Ups and moves PP
 		for (const Move &move : this->_moveSet)
-			result.push_back(((move.getPPUp() & 0b11U) << 6U) + (move.getPP() & 0b111111U));
+			result.push_back(((move.getPPUp() & 0b11U) << 6U) | (move.getPP() & 0b111111U));
 		for (int i = this->_moveSet.size(); i < 4; i++)
 			result.push_back(0x00);
 
@@ -713,17 +717,28 @@ namespace PokemonGen1
 
 	void Pokemon::transform(const PokemonGen1::Pokemon &target)
 	{
-		if (!this->_transformed) {
-			this->_oldState.id = this->_id;
-			this->_oldState.moves = this->_moveSet;
-			this->_oldState.types = this->_types;
-		}
+		this->_oldState.id = this->_id;
+		this->_oldState.moves = this->_moveSet;
+		this->_oldState.types = this->_types;
+		this->_oldState.stats = this->_baseStats;
+
+		auto stats = target.getBaseStats();
+
+		this->_baseStats.ATK = stats.ATK;
+		this->_baseStats.DEF = stats.DEF;
+		this->_baseStats.SPD = stats.SPD;
+		this->_baseStats.SPE = stats.SPE;
 		this->_upgradedStats = target.getStatsUpgradeStages();
 		this->_moveSet = target.getMoveSet();
 		this->_types = target.getTypes();
 		for (auto &move : this->_moveSet)
 			move.setPP(5);
 		this->_transformed = true;
+	}
+
+	BaseStats Pokemon::getBaseStats() const
+	{
+		return this->_baseStats;
 	}
 
 	/*
