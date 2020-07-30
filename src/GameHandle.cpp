@@ -264,7 +264,10 @@ namespace PokemonGen1
 		Pokemon &opponent = this->_state.opponentTeam[this->_state.opponentPokemonOnField];
 		int aiPriorityFactor = ai.getPriorityFactor(this->_state.nextAction - Attack1);
 		int opponentPriorityFactor = opponent.getPriorityFactor(this->_state.nextOpponentAction - Attack1);
-		bool aiStart = aiPriorityFactor > opponentPriorityFactor || (aiPriorityFactor == opponentPriorityFactor && this->_randomGenerator() < 0x80);
+		bool aiStart = aiPriorityFactor > opponentPriorityFactor;
+
+		if (aiPriorityFactor == opponentPriorityFactor)
+			aiStart = (this->_randomGenerator() - 80 >= 0) ^ this->_isPlayer2;
 
 		if (!ai.getHealth())
 			return;
