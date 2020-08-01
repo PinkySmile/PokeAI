@@ -229,6 +229,7 @@ namespace PokemonGen1
 				this->_interpretPacket();
 				this->_stage = BATTLE;
 				this->_done = false;
+				this->_syncSignalsReceived = 0;
 				this->_state.pokemonOnField = 0;
 				this->_state.opponentPokemonOnField = 0;
 				this->_state.team.clear();
@@ -248,11 +249,20 @@ namespace PokemonGen1
 			} else if (byte == 0) {
 				if (this->_state.nextOpponentAction == NoAction)
 					break;
-				this->_executeBattleActions();
 				this->_state.nextAction = NoAction;
 				this->_state.nextOpponentAction = NoAction;
-			} else if (byte != UNAVAILABLE_BYTE)
-				this->_state.nextOpponentAction = static_cast<BattleAction>(byte);
+			} else if (byte != UNAVAILABLE_BYTE) {
+				if (!this->_state.nextAction) {
+					byte = UNAVAILABLE_BYTE;
+					break;
+				}
+				byte = this->_state.nextAction;
+				if (!this->_state.nextOpponentAction) {
+					this->_state.nextOpponentAction = static_cast<BattleAction>(byte);
+					this->_executeBattleActions();
+				}
+			} else
+				this->_syncSignalsReceived = 0;
 			break;
 		}
 		return byte;
@@ -329,7 +339,7 @@ namespace PokemonGen1
 			return;
 		}
 
-		if (this->_state.nextAction == NoAction)
+		if (this->_state.nextAction == NoAction && !this->_state.nextOpponentAction)
 			this->_state.nextAction = this->_battleHandler(*this);
 
 		if (AIFainted || !opponentFainted)
@@ -493,10 +503,16 @@ namespace PokemonGen1
 			val = 200;
 			break;
 		case BATTLE:
-			handle.sendByte(this->_state.nextOpponentAction ? this->_state.nextAction : NoAction);
-			if (this->_state.nextAction == NoAction)
+			if (this->_state.nextOpponentAction) {
+				handle.sendByte(0x00);
+				val = 100;
+			} else if (this->_state.nextAction == NoAction) {
 				this->_state.nextAction = this->_battleHandler(*this);
-			val = 1900;
+				val = 100;
+			} else {
+				handle.sendByte(this->_state.nextAction);
+				val = 500;
+			}
 			break;
 		default:
 			val = 0;

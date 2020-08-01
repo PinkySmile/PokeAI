@@ -139,16 +139,22 @@ namespace PokemonGen1
 	{
 		if (status == STATUS_NONE)
 			return false;
+
 		if (status == STATUS_BURNED && (this->_types.first == TYPE_FIRE || this->_types.second == TYPE_FIRE))
 			return false;
+
 		if (
 			(status == STATUS_POISONED || status == STATUS_BADLY_POISONED) &&
 			(this->_types.first == TYPE_POISON || this->_types.second == TYPE_POISON)
 		)
 			return false;
+
+		if (this->hasStatus(status))
+			return false;
+
 		if (
 			(
-				status & STATUS_ASLEEP ||
+				(status & STATUS_ASLEEP) ||
 				status == STATUS_BURNED ||
 				status == STATUS_POISONED ||
 				status == STATUS_BADLY_POISONED ||
@@ -166,7 +172,8 @@ namespace PokemonGen1
 			return false;
 
 		this->_log(" is now " + statusToString(status));
-		this->_badPoisonStage = 1;
+		if (status == STATUS_BADLY_POISONED)
+			this->_badPoisonStage = 1;
 		this->_currentStatus |= (status * duration);
 		return true;
 	}
@@ -195,7 +202,7 @@ namespace PokemonGen1
 		if (this->_moveSet.empty())
 			stream << "No moves, ";
 		for (const Move &move : this->_moveSet)
-			stream << move.getName() << " " << move.getPP() << "/" << move.getMaxPP() << "PP, ";
+			stream << move.getName() << " " << std::dec << static_cast<int>(move.getPP()) << "/" << static_cast<int>(move.getMaxPP()) << "PP, ";
 		return stream.str().substr(0, stream.str().size() - 2);
 	}
 
@@ -349,7 +356,7 @@ namespace PokemonGen1
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if (this->_random() >= 0x80) {
 				this->_log(" hurts itself in it's confusion!");
-				this->takeDamage(this->calcDamage(*this, 40, TYPE_0x0A, PHYSICAL, 0).damages);
+				this->takeDamage(this->calcDamage(*this, 40, TYPE_0x0A, PHYSICAL, false).damages);
 				this->_lastUsedMove = DEFAULT_MOVE(0x00);
 				return;
 			}
@@ -442,6 +449,9 @@ namespace PokemonGen1
 
 	void Pokemon::takeDamage(int damage)
 	{
+		if (!this->_baseStats.HP)
+			return;
+
 		if (!damage)
 			damage = 1;
 
@@ -496,7 +506,7 @@ namespace PokemonGen1
 		}
 	}
 
-	Pokemon::DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, double critRate) const
+	Pokemon::DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, bool critical) const
 	{
 		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
 
@@ -509,7 +519,6 @@ namespace PokemonGen1
 				.isNotVeryEffective = false,
 			};
 
-		bool critical = (this->_random() < (pokemonList[this->_id].SPD / 2 * critRate));
 		unsigned defense;
 		unsigned attack;
 		unsigned level = this->_level * (1 + critical);

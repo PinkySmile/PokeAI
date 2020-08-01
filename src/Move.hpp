@@ -13,11 +13,11 @@
 #include "StatsChange.hpp"
 
 
-#define DEFAULT_MOVE(id) {id, "Move "#id, TYPE_NORMAL, PHYSICAL, 0, 0, 0}
+#define DEFAULT_MOVE(id) Move{id, "Move "#id, TYPE_NORMAL, PHYSICAL, 0, 0, 0}
 #define NO_STATS_CHANGE {}, {}
-#define DEFAULT_HITS {{1, 1}}
+#define DEFAULT_HITS {1, 1}
 #define ONE_RUN DEFAULT_HITS, ""
-#define TWO_TO_FIVE_HITS {{2, 0.375}, {3, 0.375}, {4, 0.125}, {5, 0.125}}
+#define TWO_TO_FIVE_HITS {2, 5}
 #define DEFAULT_CRIT_CHANCE (1)
 #define NO_STATUS_CHANGE {STATUS_NONE, 0}
 #define NO_LOADING false, ""
@@ -193,13 +193,8 @@ namespace PokemonGen1
 			char		nb;
 			double		prob;
 		};
-		struct HitsProb {
-			unsigned	count;
-			double		prob;
-		};
 
 	private:
-
 		std::function<bool (Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun, const std::function<void(const std::string &msg)> &)> _hitCallback;
 		std::function<bool (Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)> _missCallback;
 		double _critChance;
@@ -215,8 +210,8 @@ namespace PokemonGen1
 		unsigned char _maxpp;
 		unsigned char _nbHit;
 		unsigned char _accuracy;
-		std::vector<HitsProb> _nbRuns;
-		std::vector<HitsProb> _nbHits;
+		std::pair<unsigned, unsigned> _nbRuns;
+		std::pair<unsigned, unsigned> _nbHits;
 		StatusChangeProb _statusChange;
 		std::vector<StatsChangeProb> _ownerChange;
 		std::vector<StatsChangeProb> _foeChange;
@@ -237,8 +232,8 @@ namespace PokemonGen1
 			StatusChangeProb statusChange = NO_STATUS_CHANGE,
 			std::vector<StatsChangeProb> ownerChange = {},
 			std::vector<StatsChangeProb> foeChange = {},
-			std::vector<HitsProb> nbHits = DEFAULT_HITS,
-			std::vector<HitsProb> nbRuns = DEFAULT_HITS,
+			std::pair<unsigned, unsigned> nbHits = DEFAULT_HITS,
+			std::pair<unsigned, unsigned> nbRuns = DEFAULT_HITS,
 			const std::string &keepGoingMsg = "",
 			char priority = 0,
 			double critChance = DEFAULT_CRIT_CHANCE,

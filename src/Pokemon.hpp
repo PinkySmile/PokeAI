@@ -121,7 +121,7 @@ namespace PokemonGen1
 		void takeDamage(int damage);
 		void attack(unsigned char moveSlot, Pokemon &target);
 		bool canGetHitBy(unsigned char moveId);
-		DamageResult calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, double critRate) const;
+		DamageResult calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, bool critical) const;
 		void endTurn();
 		void switched();
 		int getPriorityFactor(unsigned char moveSlot);
