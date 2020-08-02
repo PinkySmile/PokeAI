@@ -39,6 +39,8 @@ enum PokemonTypes {
 	TYPE_PSYCHIC,
 	TYPE_ICE,
 	TYPE_DRAGON,
+	TYPE_NEUTRAL_PHYSICAL = 0x100,
+	TYPE_NEUTRAL_SPECIAL = 0x101
 };
 
 std::string typeToString(PokemonTypes);

@@ -527,13 +527,27 @@ namespace PokemonGen1
 		unsigned defense;
 		unsigned attack;
 		unsigned level = this->_level * (1 + critical);
-
-		switch (category) {
-		case SPECIAL:
+		switch (damageType) {
+		case TYPE_FIRE:
+		case TYPE_WATER:
+		case TYPE_GRASS:
+		case TYPE_ELECTRIC:
+		case TYPE_ICE:
+		case TYPE_PSYCHIC:
+		case TYPE_DRAGON:
+		case TYPE_NEUTRAL_SPECIAL:
 			attack  = critical ? this->getRawSpecial()  : this->getSpecial();
 			defense = critical ? target.getRawSpecial() : target.getSpecial();
 			break;
-		case PHYSICAL:
+		case TYPE_NORMAL:
+		case TYPE_FIGHTING:
+		case TYPE_FLYING:
+		case TYPE_POISON:
+		case TYPE_GROUND:
+		case TYPE_ROCK:
+		case TYPE_BUG:
+		case TYPE_GHOST:
+		case TYPE_NEUTRAL_PHYSICAL:
 			attack =  critical ? this->getRawAttack()   : this->getAttack();
 			defense = critical ? target.getRawDefense() : target.getDefense();
 			break;
@@ -551,9 +565,6 @@ namespace PokemonGen1
 			attack = attack / 4 % 256;
 			defense = defense / 4 % 256;
 		}
-
-		if (this->_types.first == damageType || this->_types.second == damageType)
-			effectiveness *= 1.5;
 
 		unsigned char r;
 
@@ -576,9 +587,11 @@ namespace PokemonGen1
 						) / 50
 					)
 				) + 2
-			) * effectiveness * r / 255,
+			),
 			1
 		);
+
+		damages *= effectiveness * r * (1 + (this->_types.first == damageType || this->_types.second == damageType) / 2.) / 255;
 
 		return {
 			.critical = critical,

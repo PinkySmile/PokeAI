@@ -160,9 +160,11 @@ namespace PokemonGen1
 		};
 
 		if (this->_power) {
-			bool critical = (target.getRandomGenerator()() < (pokemonList[owner.getID()].SPD / 2 * this->_critChance));
+			unsigned char r = target.getRandomGenerator()();
+			unsigned char spd = pokemonList[owner.getID()].SPD / 2;
 
-			damages = owner.calcDamage(target, this->_power, this->_type, this->_category, critical);
+			r = (r << 3U) | ((r & 0b11100000U) >> 5U);
+			damages = owner.calcDamage(target, this->_power, this->_type, this->_category, (r < (spd * this->_critChance)));
 		}
 
 		if (this->_accuracy <= 100) {
