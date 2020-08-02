@@ -127,6 +127,7 @@ namespace PokemonGen1
 		int getPriorityFactor(unsigned char moveSlot);
 		void setWrapped(bool isWrapped);
 		void glitchHyperBeam();
+		void setRecharging(bool recharging = true);
 		void transform(const Pokemon &target);
 		std::vector<unsigned char> encode() const;
 		std::string dump() const;

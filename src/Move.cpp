@@ -124,8 +124,6 @@ namespace PokemonGen1
 					this->_nbHit = owner.getRandomGenerator()() & 3U;
 				this->_nbHit += this->_nbRuns.first;
 			}
-			if (this->_needRecharge)
-				this->_nbHit++;
 			if (this->_needLoading) {
 				logger(owner.getName() + " " + this->_loadingMsg);
 				return true;
@@ -134,11 +132,6 @@ namespace PokemonGen1
 		}
 
 		this->_nbHit--;
-
-		if (!this->_nbHit && this->_needRecharge) {
-			logger(owner.getName() + " must recharge!");
-			return true;
-		}
 
 		if (!msg.empty())
 			logger(owner.getName() + msg);
@@ -176,12 +169,12 @@ namespace PokemonGen1
 			unsigned random = owner.getRandomGenerator()();
 
 			if ((random / 2.55 >= this->_accuracy * multiplier || random == 255)) {
-				if (this->_needRecharge)
-					this->_nbHit = 0;
+				this->_nbHit = 0;
 				if (this->_missCallback)
 					this->_missCallback(owner, target, logger);
 				return false;
-			}
+			} else if (!this->_nbHit)
+				owner.setRecharging(this->_needRecharge);
 		}
 
 		if (!damages.affect)

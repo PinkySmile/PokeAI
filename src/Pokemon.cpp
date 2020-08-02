@@ -239,28 +239,19 @@ namespace PokemonGen1
 
 	void Pokemon::useMove(const Move &move, Pokemon &target)
 	{
-		//TODO: Implement the Hyper beam glitch
-		if (this->_lastUsedMove.isFinished()) {
-			if (move.getID() == Struggle) {
-				Move struggle = move;
-
-				if (!struggle.attack(*this, target,[this](const std::string &msg) { this->_game.logBattle(msg); }))
-					this->_log("'s attack missed!");
-				return;
-			}
+		if (this->_lastUsedMove.isFinished())
 			this->_lastUsedMove = move;
-		}
 		if (!this->_lastUsedMove.attack(*this, target, [this](const std::string &msg) { this->_game.logBattle(msg); }))
 			this->_log("'s attack missed!");
 	}
 
 	void Pokemon::storeDamages(bool active)
 	{
-		this->_storingDamages = active;
 		if (!active)
 			this->_damagesStored = 0;
-		else
+		else if (!this->_storingDamages)
 			this->_log(" is storing damages");
+		this->_storingDamages = active;
 	}
 
 	bool Pokemon::hasStatus(StatusChange status) const
@@ -314,6 +305,7 @@ namespace PokemonGen1
 
 	void Pokemon::endTurn()
 	{
+		this->_flinched = false;
 		if (this->_currentStatus & STATUS_BURNED) {
 			this->_log(" is hurt by the burn!");
 			this->takeDamage(this->getHealth() / 16);
@@ -333,6 +325,23 @@ namespace PokemonGen1
 
 	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
 	{
+		if (this->_needsRecharge) {
+			this->_needsRecharge = false;
+			this->_game.logBattle(this->getName() + " must recharge!");
+			return;
+		}
+
+		if (this->_wrapped) {
+			this->_log(" can't move!");
+			return;
+		}
+
+		if (this->_flinched) {
+			this->_flinched = false;
+			this->_log(" flinched!");
+			return;
+		}
+
 		if (this->_currentStatus & STATUS_ASLEEP) {
 			this->_currentStatus--;
 			if (this->_currentStatus)
@@ -345,10 +354,6 @@ namespace PokemonGen1
 		}
 		if (this->_currentStatus & STATUS_FROZEN) {
 			this->_log(" is frozen solid!");
-			return;
-		}
-		if (this->_wrapped) {
-			this->_log(" can't move!");
 			return;
 		}
 		if ((this->_currentStatus & STATUS_CONFUSED)) {
@@ -748,6 +753,11 @@ namespace PokemonGen1
 	BaseStats Pokemon::getBaseStats() const
 	{
 		return this->_baseStats;
+	}
+
+	void Pokemon::setRecharging(bool recharging)
+	{
+		this->_needsRecharge = recharging;
 	}
 
 	/*
