@@ -20,6 +20,8 @@ namespace PokemonGen1
 		this->_numbers.clear();
 		while (size--)
 			this->_numbers.push_back(distribution(this->_random));
+		if (!this->_numbers.empty() && !this->_numbers[0])
+			this->_numbers[0] = 1;
 	}
 
 	const std::vector<unsigned char>& PokemonRandomGenerator::getList()
@@ -31,6 +33,8 @@ namespace PokemonGen1
 	{
 		this->_numbers = list;
 		this->_currentIndex = 0;
+		if (!this->_numbers.empty() && !this->_numbers[0])
+			this->_numbers[0] = 1;
 	}
 
 	unsigned char PokemonRandomGenerator::operator()()
