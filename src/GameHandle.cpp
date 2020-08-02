@@ -236,6 +236,7 @@ namespace PokemonGen1
 				for (Pokemon &pkmn : this->_pkmns)
 					this->_state.team.emplace_back(pkmn);
 				this->_state.nextAction = NoAction;
+				this->_state.nextOpponentAction = NoAction;
 				this->_log("Done: going to battle");
 			}
 			if (byte == SYNC_BYTE)
@@ -256,11 +257,11 @@ namespace PokemonGen1
 					byte = UNAVAILABLE_BYTE;
 					break;
 				}
-				byte = this->_state.nextAction;
 				if (!this->_state.nextOpponentAction) {
 					this->_state.nextOpponentAction = static_cast<BattleAction>(byte);
 					this->_executeBattleActions();
 				}
+				byte = this->_state.nextAction;
 			} else
 				this->_syncSignalsReceived = 0;
 			break;
