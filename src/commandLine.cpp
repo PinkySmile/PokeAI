@@ -51,7 +51,7 @@ bool handleCommand(const std::string &command, PokemonGen1::GameHandle &game, Po
 	if (command == "action") {
 		std::cin >> arg;
 		action = getAction(arg);
-		if (!action)
+		if (action)
 			std::cout << "Your next battle action will be " << arg << std::endl;
 	} else if (command == "teamSize") {
 		std::cin >> arg;
