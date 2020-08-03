@@ -104,14 +104,13 @@ namespace PokemonGen1
 
 	void Move::glitch()
 	{
-		this->_nbHit = 2;
+		this->_nbHit = 1;
 	}
 
 	bool Move::attack(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)
 	{
 		double multiplier = target.getEvasion() * owner.getAccuracy();
 		std::string msg = this->_keepGoingMsg;
-		unsigned hits = 0;
 
 		if (!this->_nbHit) {
 			if (this->_nbRuns.second == this->_nbRuns.first)
@@ -191,6 +190,8 @@ namespace PokemonGen1
 		if (damages.isVeryEffective)
 			logger("It's super effective");
 
+		unsigned hits = 0;
+
 		if (this->_nbHits.second == this->_nbHits.first)
 			hits = this->_nbHits.first;
 		else if (this->_nbHits.second - 1 == this->_nbHits.first)
@@ -198,8 +199,8 @@ namespace PokemonGen1
 		else if (this->_nbHits.second - 3 == this->_nbHits.first) {
 			hits = owner.getRandomGenerator()() & 3U;
 			if (hits >= 2)
-				hits= owner.getRandomGenerator()() & 3U;
-			hits += this->_nbRuns.first;
+				hits = owner.getRandomGenerator()() & 3U;
+			hits += this->_nbHits.first;
 		}
 
 		if (hits > 1)
@@ -212,10 +213,11 @@ namespace PokemonGen1
 			if (this->_statusChange.prob && owner.getRandomGenerator()() < this->_statusChange.prob * 256)
 				target.addStatus(this->_statusChange.status);
 
-			if (this->_hitCallback)
-				return this->_hitCallback(owner, target, damages.damages, this->isFinished(), logger);
 			hits--;
 		}
+
+		if (this->_hitCallback)
+			return this->_hitCallback(owner, target, damages.damages, this->isFinished(), logger);
 
 		for (const auto &val : this->_foeChange)
 			if (owner.getRandomGenerator()() < val.prob * 256)
