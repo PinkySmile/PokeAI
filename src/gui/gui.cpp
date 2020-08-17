@@ -27,7 +27,9 @@ std::string toLower(std::string str)
 	return str;
 }
 
-void populatePokemonPanel(tgui::Panel::Ptr panel, PokemonGen1::Pokemon &pkmn, BattleResources &resources)
+void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleResources &resources, std::string &lastIp, std::string &lastPort);
+
+void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleResources &resources, std::string &lastIp, std::string &lastPort, unsigned index, tgui::Panel::Ptr panel, PokemonGen1::Pokemon &pkmn)
 {
 	panel->loadWidgetsFromFile("assets/pkmnPanel.gui");
 
@@ -48,6 +50,7 @@ void populatePokemonPanel(tgui::Panel::Ptr panel, PokemonGen1::Pokemon &pkmn, Ba
 	auto name = panel->get<tgui::TextBox>("SpeciesName");
 	auto nick = panel->get<tgui::EditBox>("Nickname");
 	auto level = panel->get<tgui::EditBox>("Level");
+	auto remove = panel->get<tgui::Button>("Remove");
 	auto &moveSet = pkmn.getMoveSet();
 
 	for (size_t i = 0; i < moveSet.size(); i++) {
@@ -65,6 +68,28 @@ void populatePokemonPanel(tgui::Panel::Ptr panel, PokemonGen1::Pokemon &pkmn, Ba
 
 	nick->onTextChange.connect([&pkmn, nick]{
 		pkmn.setNickname(nick->getText());
+	});
+	level->onTextChange.connect([&pkmn, level, hp, atk, def, spd, spe]{
+		if (level->getText().isEmpty())
+			return;
+
+		auto newLevel = std::stoul(level->getText().toAnsiString());
+
+		if (newLevel > 255) {
+			newLevel = 255;
+			level->setText("255");
+		}
+
+		pkmn.setLevel(newLevel);
+		hp->setText(std::to_string(pkmn.getBaseStats().HP));
+		atk->setText(std::to_string(pkmn.getBaseStats().ATK));
+		def->setText(std::to_string(pkmn.getBaseStats().DEF));
+		spd->setText(std::to_string(pkmn.getBaseStats().SPD));
+		spe->setText(std::to_string(pkmn.getBaseStats().SPE));
+	});
+	remove->onClick.connect([index, &window, &gui, &game, &resources, &lastIp, &lastPort]{
+		game.deletePokemon(index);
+		makeMainMenuGUI(window, gui, game, resources, lastIp, lastPort);
 	});
 
 	type1->setPosition(5, 100);
@@ -155,7 +180,7 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::Game
 	for (auto &pkmnPan : panels)
 		pkmnPan->removeAllWidgets();
 	for (unsigned i = 0; i < game.getPokemonTeam().size(); i++)
-		populatePokemonPanel(panels[i], game.getPokemon(i), resources);
+		populatePokemonPanel(window, gui, game, resources, lastIp, lastPort, i, panels[i], game.getPokemon(i));
 	for (unsigned i = game.getPokemonTeam().size(); i < 6; i++) {
 		tgui::Button::Ptr but = tgui::Button::create("+");
 

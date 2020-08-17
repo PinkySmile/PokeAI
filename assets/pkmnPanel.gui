@@ -21,14 +21,6 @@ Renderer.1 {
 }
 
 Renderer.2 {
-    backgroundcolor = transparent;
-    bordercolor = #3C3C3C;
-    borders = (0, 0, 0, 0);
-    textcolor = #3C3C3C;
-    texturebackground = None;
-}
-
-Renderer.3 {
     backgroundcolor = #F5F5F5;
     backgroundcolordisabled = #E6E6E6;
     backgroundcolorhover = white;
@@ -48,6 +40,14 @@ Renderer.3 {
     texturedisabled = None;
     texturefocused = None;
     texturehover = None;
+}
+
+Renderer.3 {
+    backgroundcolor = transparent;
+    bordercolor = #3C3C3C;
+    borders = (0, 0, 0, 0);
+    textcolor = #3C3C3C;
+    texturebackground = None;
 }
 
 Renderer.4 {
@@ -111,7 +111,7 @@ Label.Label1 {
     Size = (37.2, 18);
     Text = Level;
     TextSize = 13;
-    renderer = &2;
+    renderer = &3;
 }
 
 EditBox.Nickname {
@@ -120,17 +120,17 @@ EditBox.Nickname {
     Size = (107.333, 22);
     Text = Rhydon;
     TextSize = 13;
-    renderer = &3;
+    renderer = &2;
 }
 
 EditBox.Level {
     Alignment = Right;
-    InputValidator = "100|[0-9]{1,2}";
+    InputValidator = "[0-9]+";
     Position = (75, 175);
     Size = (37.3333, 22);
     Text = 1;
     TextSize = 13;
-    renderer = &3;
+    renderer = &2;
 }
 
 Button.Move1 {
@@ -192,7 +192,7 @@ Label.Label2 {
     Size = (20.2, 18);
     Text = HP;
     TextSize = 13;
-    renderer = &2;
+    renderer = &3;
 }
 
 TextBox.HP {
@@ -224,7 +224,7 @@ Label.Label3 {
     Size = (27.2, 18);
     Text = ATK;
     TextSize = 13;
-    renderer = &2;
+    renderer = &3;
 }
 
 Label.Label4 {
@@ -234,7 +234,7 @@ Label.Label4 {
     Size = (28.2, 18);
     Text = DEF;
     TextSize = 13;
-    renderer = &2;
+    renderer = &3;
 }
 
 Label.Label5 {
@@ -244,7 +244,7 @@ Label.Label5 {
     Size = (29.2, 18);
     Text = SPD;
     TextSize = 13;
-    renderer = &2;
+    renderer = &3;
 }
 
 Label.Label6 {
@@ -254,7 +254,7 @@ Label.Label6 {
     Size = (27.2, 18);
     Text = SPE;
     TextSize = 13;
-    renderer = &2;
+    renderer = &3;
 }
 
 TextBox.SPD {
