@@ -20,7 +20,9 @@ namespace PokemonGen1
 		_random{random},
 		_nickname{nickname},
 		_name{base.name},
-		_baseStats{makeStats(level, base)},
+		_dvs{0xF, 0xF, 0xF, 0xF, 0xF, 0xF},
+		_statExps{0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF},
+		_baseStats{makeStats(level, base, this->_dvs, this->_statExps)},
 		_upgradedStats{0, 0, 0, 0, 0, 0},
 		_moveSet{moveSet},
 		_types{base.typeA, base.typeB},
@@ -47,6 +49,22 @@ namespace PokemonGen1
 		_random{random},
 		_nickname{nickname},
 		_name{pokemonList[data[0]].name},
+		_dvs{
+			(data[27] & 0x1U) | ((data[27] & 0b1000U) >> 3U) | ((data[28] & 0b1U) << 2U) | (data[28] & 0b1000U),
+			(data[27] & 0x1U) | ((data[27] & 0b1000U) >> 3U) | ((data[28] & 0b1U) << 2U) | (data[28] & 0b1000U),
+			static_cast<unsigned short>((data[28] >> 4U) & 0xFU),
+			static_cast<unsigned short>((data[28] >> 0U) & 0xFU),
+			static_cast<unsigned short>((data[27] >> 4U) & 0xFU),
+			static_cast<unsigned short>((data[27] >> 0U) & 0xFU)
+		},
+		_statExps{
+			NBR_2B(data[17], data[18]),
+			NBR_2B(data[17], data[18]),
+			NBR_2B(data[19], data[20]),
+			NBR_2B(data[21], data[22]),
+			NBR_2B(data[23], data[24]),
+			NBR_2B(data[25], data[26]),
+		},
 		_baseStats{
 			static_cast<unsigned>(fmin(999, fmax(1, NBR_2B(data[1],  data[2])))),   //HP
 			static_cast<unsigned>(fmin(999, fmax(1, NBR_2B(data[34], data[35])))), //maxHP
@@ -84,23 +102,34 @@ namespace PokemonGen1
 		this->_moveSet[3].setPP(data[32] & 0b111111U);
 	}
 
-	BaseStats Pokemon::makeStats(unsigned char level, const PokemonBase &base)
+	BaseStats Pokemon::makeStats(unsigned char level, const PokemonBase &base, const BaseStats &dvs, const BaseStats &evs)
 	{
-		std::function<unsigned short(unsigned short)> fct = [level](unsigned short val){
-			return static_cast<unsigned short>(
-				(2 * (val + 15.) + 63.75) * level / 100.0 + 5
-			);
+		std::function<unsigned short(unsigned short, unsigned short, unsigned short)> fct =
+		[level](unsigned short baseStat, unsigned short IV, unsigned short EV){
+			unsigned short E = // Fixed formula via http://www.smogon.com/ingame/guides/rby_gsc_stats
+				std::floor(
+					std::min<unsigned>(
+						255,
+						std::floor(
+							std::sqrt(
+								std::max(0, EV - 1)
+							) + 1
+						)
+					) / 4.0
+				);
+
+			return std::floor<unsigned short>((2 * (baseStat + IV) + E) * level / 100.0 + 5);
 		};
 
-		auto hp = fmin(999, fmax(1, fct(base.HP))) + 5 + level;
+		auto hp = fmin(999, fmax(1, fct(base.HP, dvs.HP, evs.HP) + 5 + level));
 
 		return {
 			static_cast<unsigned>(hp),
 			static_cast<unsigned>(hp),
-			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.ATK)))),
-			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.DEF)))),
-			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.SPD)))),
-			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.SPE))))
+			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.ATK, dvs.ATK, evs.ATK)))),
+			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.DEF, dvs.DEF, evs.DEF)))),
+			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.SPD, dvs.SPD, evs.SPD)))),
+			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.SPE, dvs.SPE, evs.SPE))))
 		};
 	}
 
@@ -627,7 +656,7 @@ namespace PokemonGen1
 	{
 		std::vector<unsigned char> result;
 
-		//Sprite (and battle cry) ID
+		//Sprite (and battle cry) ID aka species
 		result.push_back(this->_id);
 
 		//Current HP
@@ -771,6 +800,53 @@ namespace PokemonGen1
 	void Pokemon::setRecharging(bool recharging)
 	{
 		this->_needsRecharge = recharging;
+	}
+
+	const BaseStats &Pokemon::getDvs() const
+	{
+		return this->_dvs;
+	}
+
+	const BaseStats &Pokemon::getStatExps() const
+	{
+		return this->_statExps;
+	}
+
+	void Pokemon::setStatExps(const BaseStats &statExps)
+	{
+		this->_statExps = statExps;
+	}
+
+	void Pokemon::setId(unsigned char id)
+	{
+		auto &base = pokemonList[id];
+
+		this->_id = base.id;
+		this->_name = base.name;
+		this->_baseStats = makeStats(this->_level, base, this->_dvs, this->_statExps);
+		this->_catchRate = base.catchRate;
+	}
+
+	void Pokemon::setNickname(const std::string &nickname)
+	{
+		this->_nickname = nickname;
+		if (this->_nickname.size() > 10) {
+			this->_log(" Warning : nickname is too big");
+			this->_nickname = this->_nickname.substr(0, 10);
+		}
+	}
+
+	void Pokemon::setLevel(unsigned char level)
+	{
+		this->_level = level;
+		this->_baseStats = makeStats(level, pokemonList[this->getID()], this->_dvs, this->_statExps);
+	}
+
+	void Pokemon::setMove(unsigned char index, const Move &move)
+	{
+		if (index > 4)
+			throw std::out_of_range("");
+		this->_moveSet[index] = move;
 	}
 
 	/*

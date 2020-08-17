@@ -160,11 +160,15 @@ namespace PokemonGen1
 
 		Gen1ConnectionStage getStage() const;
 		void logBattle(const std::string &message);
-		bool isConnected();
-		bool isReady();
+		bool isConnected() const;
+		bool isReady() const;
 		void setTeamSize(unsigned size);
-		const std::vector<Pokemon> &getPokemonTeam();
-		const BattleState &getBattleState();
+		void deletePokemon(unsigned char index);
+		Pokemon &getPokemon(unsigned index);
+		const std::vector<Pokemon> &getPokemonTeam() const;
+		const BattleState &getBattleState() const;
+		const std::string &getTrainerName() const;
+		void setTrainerName(const std::string &trainerName);
 
 		static std::vector<unsigned char> convertString(const std::string &str);
 		static std::string convertString(const std::vector<unsigned char> &str);

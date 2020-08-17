@@ -78,6 +78,8 @@ namespace PokemonGen1
 		PokemonRandomGenerator	              &_random;
 		std::string                           _nickname;
 		std::string                           _name;
+		BaseStats                             _dvs;
+		BaseStats                             _statExps;
 		BaseStats                             _baseStats;
 		UpgradableStats                       _upgradedStats;
 		std::vector<Move>                     _moveSet;
@@ -132,6 +134,11 @@ namespace PokemonGen1
 		std::vector<unsigned char> encode() const;
 		std::string dump() const;
 
+		void setId(unsigned char id);
+		void setNickname(const std::string &nickname);
+		void setLevel(unsigned char level);
+		void setMove(unsigned char index, const Move &move);
+
 		PokemonRandomGenerator &getRandomGenerator();
 		unsigned char getID() const;
 		unsigned getDamagesStored() const;
@@ -155,10 +162,13 @@ namespace PokemonGen1
 		BaseStats getBaseStats() const;
 		UpgradableStats getStatsUpgradeStages() const;
 		std::string getSpeciesName() const;
+		const BaseStats &getDvs() const;
+		const BaseStats &getStatExps() const;
+		void setStatExps(const BaseStats &statExps);
 
 		void setTypes(std::pair<PokemonTypes, PokemonTypes> types);
 
-		static BaseStats makeStats(unsigned char level, const PokemonBase &base);
+		static BaseStats makeStats(unsigned char level, const PokemonBase &base, const BaseStats &dvs, const BaseStats &evs);
 	};
 
 	/*

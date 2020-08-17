@@ -89,17 +89,17 @@ namespace PokemonGen1
 					PokemonGen1::pokemonList[PokemonGen1::Rhydon],
 					std::vector<PokemonGen1::Move>{
 						PokemonGen1::availableMoves[PokemonGen1::Tackle],
-						PokemonGen1::availableMoves[PokemonGen1::Tail_Whip],
+						PokemonGen1::availableMoves[PokemonGen1::Tail_Whip]
 					}
 				);
 	}
 
-	const std::vector<Pokemon> &GameHandle::getPokemonTeam()
+	const std::vector<Pokemon> &GameHandle::getPokemonTeam() const
 	{
 		return this->_pkmns;
 	}
 
-	const BattleState &GameHandle::getBattleState()
+	const BattleState &GameHandle::getBattleState() const
 	{
 		return this->_state;
 	}
@@ -262,8 +262,12 @@ namespace PokemonGen1
 					this->_executeBattleActions();
 				}
 				byte = this->_state.nextAction;
-			} else
+				handle.sendByte(0x00);
+			} else if (this->_state.nextOpponentAction) {
+				this->_state.nextAction = NoAction;
+				this->_state.nextOpponentAction = NoAction;
 				this->_syncSignalsReceived = 0;
+			}
 			break;
 		}
 		return byte;
@@ -506,13 +510,13 @@ namespace PokemonGen1
 		case BATTLE:
 			if (this->_state.nextOpponentAction) {
 				handle.sendByte(0x00);
-				val = 100;
+				val = 200;
 			} else if (this->_state.nextAction == NoAction) {
 				this->_state.nextAction = this->_battleHandler(*this);
 				val = 100;
 			} else {
 				handle.sendByte(this->_state.nextAction);
-				val = 500;
+				val = 400;
 			}
 			break;
 		default:
@@ -529,12 +533,12 @@ namespace PokemonGen1
 		this->_log("Connected to " + ip + ":" + std::to_string(port));
 	}
 
-	bool GameHandle::isConnected()
+	bool GameHandle::isConnected() const
 	{
 		return this->_emulator && this->_emulator->isConnected();
 	}
 
-	bool GameHandle::isReady()
+	bool GameHandle::isReady() const
 	{
 		return this->_ready;
 	}
@@ -685,6 +689,41 @@ namespace PokemonGen1
 			for (auto &p : packet)
 				displayPacket(p);
 		return packet;
+	}
+
+	const std::string &GameHandle::getTrainerName() const
+	{
+		return this->_trainerName;
+	}
+
+	void GameHandle::setTrainerName(const std::string &trainerName)
+	{
+		this->_trainerName = trainerName;
+	}
+
+	void GameHandle::deletePokemon(unsigned char index)
+	{
+		if (index >= this->_pkmns.size() || this->_pkmns.size() <= 1)
+			return;
+
+		std::vector<Pokemon> buffer;
+
+		if (this->_pkmns.size() <= index)
+			throw std::out_of_range("Out of range");
+
+		for (size_t i = 0; i < this->_pkmns.size(); i++) {
+			if (i != index)
+				buffer.push_back(this->_pkmns[i]);
+		}
+
+		this->_pkmns.clear();
+		for (const Pokemon &pkmn : buffer)
+			this->_pkmns.push_back(pkmn);
+	}
+
+	Pokemon &GameHandle::getPokemon(unsigned int index)
+	{
+		return this->_pkmns.at(index);
 	}
 
 	/*

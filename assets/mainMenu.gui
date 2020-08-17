@@ -1,0 +1,208 @@
+Renderer.1 {
+    backgroundcolor = #F5F5F5;
+    backgroundcolordisabled = #E6E6E6;
+    backgroundcolordown = #EBEBEB;
+    backgroundcolorhover = white;
+    bordercolor = #3C3C3C;
+    bordercolordisabled = #7D7D7D;
+    bordercolordown = black;
+    bordercolorfocused = #1E1EB4;
+    bordercolorhover = black;
+    borders = (1, 1, 1, 1);
+    textcolor = #3C3C3C;
+    textcolordisabled = #7D7D7D;
+    textcolordown = black;
+    textcolorhover = black;
+    texture = None;
+    texturedisabled = None;
+    texturedown = None;
+    texturefocused = None;
+    texturehover = None;
+}
+
+Renderer.2 {
+    backgroundcolor = #F5F5F5;
+    backgroundcolordisabled = #E6E6E6;
+    backgroundcolorhover = white;
+    bordercolor = #3C3C3C;
+    bordercolordisabled = #7D7D7D;
+    bordercolorhover = black;
+    borders = (1, 1, 1, 1);
+    caretcolor = black;
+    caretwidth = 1;
+    defaulttextcolor = #A0A0A0;
+    padding = (0, 0, 0, 0);
+    selectedtextbackgroundcolor = #006EFF;
+    selectedtextcolor = white;
+    textcolor = #3C3C3C;
+    textcolordisabled = #7D7D7D;
+    texture = None;
+    texturedisabled = None;
+    texturefocused = None;
+    texturehover = None;
+}
+
+Renderer.3 {
+    backgroundcolor = #DDDDDD;
+    bordercolor = black;
+    texturebackground = None;
+}
+
+Button.Connect {
+    Position = (70, 40);
+    Size = (90, 22);
+    Text = Connect;
+    TextSize = 13;
+    renderer = &1;
+}
+
+EditBox.IP {
+    DefaultText = IP;
+    Position = (10, 10);
+    Size = (150, 22);
+    TextSize = 13;
+    renderer = &2;
+}
+
+EditBox.Port {
+    DefaultText = Port;
+    Position = (10, 40);
+    Size = (50, 22);
+    TextSize = 13;
+    renderer = &2;
+}
+
+Panel.Team {
+    Position = (170, 10);
+    Size = (620, 620);
+
+    Renderer {
+        backgroundcolor = white;
+        bordercolor = black;
+        texturebackground = None;
+    }
+
+    Label.Label1 {
+        AutoSize = true;
+        Position = (10, 10);
+        ScrollbarPolicy = Never;
+        Size = (39.2, 18);
+        Text = Team;
+        TextSize = 13;
+
+        Renderer {
+            backgroundcolor = transparent;
+            bordercolor = #3C3C3C;
+            borders = (0, 0, 0, 0);
+            textcolor = #3C3C3C;
+            texturebackground = None;
+        }
+    }
+
+    Panel.Pkmn1 {
+        Position = (10, 30);
+        Size = ((&.w - 40) / 3, (&.h - 50) / 2);
+        renderer = &3;
+    }
+
+    Panel.Pkmn2 {
+        Position = ((pkmn1.x + pkmn1.w) + 10, 30);
+        Size = ((&.w - 40) / 3, (&.h - 50) / 2);
+        renderer = &3;
+    }
+
+    Panel.Pkmn3 {
+        Position = ((pkmn2.x + pkmn2.w) + 10, 30);
+        Size = ((&.w - 40) / 3, (&.h - 50) / 2);
+        renderer = &3;
+    }
+
+    Panel.Pkmn4 {
+        Position = (10, (pkmn1.y + pkmn1.h) + 10);
+        Size = ((&.w - 40) / 3, (&.h - 50) / 2);
+        renderer = &3;
+    }
+
+    Panel.Pkmn5 {
+        Position = ((pkmn4.x + pkmn4.w) + 10, (pkmn2.y + pkmn2.h) + 10);
+        Size = ((&.w - 40) / 3, (&.h - 50) / 2);
+        renderer = &3;
+    }
+
+    Panel.Pkmn6 {
+        Position = ((pkmn5.x + pkmn5.w) + 10, (pkmn3.y + pkmn3.h) + 10);
+        Size = ((&.w - 40) / 3, (&.h - 50) / 2);
+        renderer = &3;
+    }
+}
+
+Button.Ready {
+    Position = (10, 530);
+    Size = (150, 22);
+    Text = "You are not ready";
+    TextSize = 13;
+    renderer = &1;
+}
+
+TextBox.Status {
+    HorizontalScrollbarPolicy = Never;
+    MaximumCharacters = 0;
+    Position = (10, 560);
+    Size = (150, 70);
+    Text = "";
+    TextSize = 13;
+
+    Renderer {
+        backgroundcolor = white;
+        bordercolor = black;
+        borders = (1, 1, 1, 1);
+        caretcolor = black;
+        caretwidth = 1;
+        padding = (0, 0, 0, 0);
+        selectedtextbackgroundcolor = #006EFF;
+        selectedtextcolor = white;
+        textcolor = #3C3C3C;
+        texturebackground = None;
+    }
+}
+
+EditBox.Name {
+    DefaultText = "Trainer name";
+    MaximumCharacters = 10;
+    Position = (10, 500);
+    Size = (150, 22);
+    TextSize = 13;
+    renderer = &2;
+}
+
+TextBox.Error {
+    Enabled = false;
+    HorizontalScrollbarPolicy = Never;
+    MaximumCharacters = 0;
+    Position = (10, 70);
+    Size = (150, 115);
+    Text = "";
+    TextSize = 13;
+
+    Renderer {
+        backgroundcolor = transparent;
+        bordercolor = transparent;
+        borders = (0, 0, 0, 0);
+        caretcolor = rgba(255, 255, 255, 215);
+        selectedtextbackgroundcolor = rgba(0, 110, 200, 130);
+        selectedtextcolor = rgba(255, 255, 255, 245);
+        textcolor = red;
+        texturebackground = None;
+
+        scrollbar {
+            arrowbackgroundcolor = rgba(160, 160, 160, 215);
+            arrowbackgroundcolorhover = rgba(170, 170, 170, 215);
+            arrowcolor = rgba(200, 200, 200, 215);
+            arrowcolorhover = rgba(225, 225, 225, 215);
+            thumbcolor = rgba(185, 185, 185, 215);
+            thumbcolorhover = rgba(195, 195, 195, 215);
+            trackcolor = rgba(160, 160, 160, 215);
+            trackcolorhover = rgba(170, 170, 170, 215);
+        }
+    }
+}

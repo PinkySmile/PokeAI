@@ -43,7 +43,7 @@ public:
 	virtual void reply(unsigned char byte) = 0;
 	virtual void disconnect() = 0;
 
-	bool isConnected()
+	bool isConnected() const
 	{
 		return !this->_disconnected;
 	}
