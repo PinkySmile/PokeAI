@@ -73,5 +73,10 @@ public:
 	explicit NotImplementedException(const std::string &msg) : BaseException(msg) {};
 };
 
+class InvalidStateException : public BaseException {
+public:
+	explicit InvalidStateException(const std::string &msg) : BaseException(msg) {};
+};
+
 
 #endif //POKE_AI_EXCEPTION_HPP

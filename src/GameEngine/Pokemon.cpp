@@ -556,27 +556,13 @@ namespace PokemonGen1
 		unsigned defense;
 		unsigned attack;
 		unsigned level = this->_level * (1 + critical);
-		switch (damageType) {
-		case TYPE_FIRE:
-		case TYPE_WATER:
-		case TYPE_GRASS:
-		case TYPE_ELECTRIC:
-		case TYPE_ICE:
-		case TYPE_PSYCHIC:
-		case TYPE_DRAGON:
-		case TYPE_NEUTRAL_SPECIAL:
+
+		switch (category) {
+		case SPECIAL:
 			attack  = critical ? this->getRawSpecial()  : this->getSpecial();
 			defense = critical ? target.getRawSpecial() : target.getSpecial();
 			break;
-		case TYPE_NORMAL:
-		case TYPE_FIGHTING:
-		case TYPE_FLYING:
-		case TYPE_POISON:
-		case TYPE_GROUND:
-		case TYPE_ROCK:
-		case TYPE_BUG:
-		case TYPE_GHOST:
-		case TYPE_NEUTRAL_PHYSICAL:
+		case PHYSICAL:
 			attack =  critical ? this->getRawAttack()   : this->getAttack();
 			defense = critical ? target.getRawDefense() : target.getDefense();
 			break;

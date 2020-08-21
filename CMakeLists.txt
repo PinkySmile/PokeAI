@@ -31,7 +31,10 @@ add_executable(
 	src/GameEngine/PokemonTypes.cpp
 	src/commandLine.cpp
 	src/commandLine.hpp
-	src/gui/gui.cpp src/gui/gui.hpp src/gui/battle.cpp)
+	src/gui/gui.cpp
+	src/gui/gui.hpp
+	src/gui/battle.cpp
+)
 
 if (WIN32)
 	target_link_libraries(
