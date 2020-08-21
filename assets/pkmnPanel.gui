@@ -165,26 +165,6 @@ Button.Move4 {
     renderer = &1;
 }
 
-Picture.Type1 {
-    Position = (5, 100);
-    Size = (44, 16);
-
-    Renderer {
-        texture = "assets/types/type_ground.png";
-        transparenttexture = false;
-    }
-}
-
-Picture.Type2 {
-    Position = (52, 100);
-    Size = (44, 16);
-
-    Renderer {
-        texture = "assets/types/type_rock.png";
-        transparenttexture = false;
-    }
-}
-
 Label.Label2 {
     AutoSize = true;
     Position = (127, 121);

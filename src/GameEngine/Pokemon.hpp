@@ -157,7 +157,7 @@ namespace PokemonGen1
 		unsigned char getID() const;
 		unsigned getDamagesStored() const;
 		unsigned getSpeed() const;
-		unsigned getLevel() const;
+		unsigned char getLevel() const;
 		unsigned getAttack() const;
 		unsigned getSpecial() const;
 		unsigned getDefense() const;

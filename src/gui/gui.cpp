@@ -82,7 +82,9 @@ void applyFilters(unsigned sorting, std::string query, std::vector<std::pair<uns
 	std::sort(panels.begin(), panels.end(), sortingAlgos[sorting]);
 }
 
-void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleResources &resources, unsigned index, PokemonGen1::Pokemon &pkmn)
+void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleResources &resources, std::string &lastIp, std::string &lastPort, unsigned index, tgui::Panel::Ptr panel, PokemonGen1::Pokemon &pkmn);
+
+void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleResources &resources, unsigned index, PokemonGen1::Pokemon &pkmn, sf::RenderWindow &window, std::string &lastIp, std::string &lastPort, tgui::Panel::Ptr pkmnPan)
 {
 	auto bigPan = tgui::Panel::create({"100%", "100%"});
 	auto panel = tgui::ScrollablePanel::create({"&.w - 20", "&.h - 50"});
@@ -138,17 +140,20 @@ void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 		auto spd = pan->get<tgui::TextBox>("SPD");
 		auto spe = pan->get<tgui::TextBox>("SPE");
 		auto name = pan->get<tgui::TextBox>("SpeciesName");
+		auto &stats = base.statsAtLevel[pkmn.getLevel()];
 
 		name->setText(strToUpper(base.name));
-		hp->setText(std::to_string(base.statsAtLevel[100].HP));
-		atk->setText(std::to_string(base.statsAtLevel[100].ATK));
-		def->setText(std::to_string(base.statsAtLevel[100].DEF));
-		spd->setText(std::to_string(base.statsAtLevel[100].SPD));
-		spe->setText(std::to_string(base.statsAtLevel[100].SPE));
+		hp->setText(std::to_string(stats.HP));
+		atk->setText(std::to_string(stats.ATK));
+		def->setText(std::to_string(stats.DEF));
+		spd->setText(std::to_string(stats.SPD));
+		spe->setText(std::to_string(stats.SPE));
 		sprite->setImage(resources.pokemonsFront[i]);
 
-		sprite->onClick.connect([bigPan, &gui]{
+		sprite->onClick.connect([&window, &lastIp, &lastPort, pkmnPan, &resources, bigPan, &gui, index, &pkmn, &game, i]{
+			game.changePokemon(index, pkmn.getNickname(), pkmn.getLevel(), PokemonGen1::pokemonList[i], pkmn.getMoveSet());
 			gui.remove(bigPan);
+			populatePokemonPanel(window, gui, game, resources, lastIp, lastPort, index, pkmnPan, game.getPokemon(index));
 		});
 
 		type1->setPosition(115, 152);
@@ -228,8 +233,8 @@ void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1:
 		game.deletePokemon(index);
 		makeMainMenuGUI(window, gui, game, resources, lastIp, lastPort);
 	});
-	sprite->onClick.connect([&gui, &game, &resources, index, &pkmn]{
-		openChangePkmnBox(gui, game, resources, index, pkmn);
+	sprite->onClick.connect([&gui, &game, &resources, index, &pkmn, &window, &lastIp, &lastPort, panel]{
+		openChangePkmnBox(gui, game, resources, index, pkmn, window, lastIp, lastPort, panel);
 	});
 
 	type1->setPosition(5, 100);

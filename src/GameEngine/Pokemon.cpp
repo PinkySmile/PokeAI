@@ -408,7 +408,7 @@ namespace PokemonGen1
 		}
 	}
 
-	unsigned Pokemon::getLevel() const
+	unsigned char Pokemon::getLevel() const
 	{
 		return this->_level;
 	}
