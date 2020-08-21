@@ -20,6 +20,15 @@ namespace PokemonGen1
 {
 	class GameHandle;
 
+	struct BaseStats {
+		unsigned       HP;
+		unsigned       maxHP;
+		unsigned short ATK;
+		unsigned short DEF;
+		unsigned short SPD;
+		unsigned short SPE;
+	};
+
 	struct PokemonBase {
 		unsigned char  id;
 		std::string    name;
@@ -32,16 +41,21 @@ namespace PokemonGen1
 		PokemonTypes   typeB;
 		unsigned char  catchRate;
 		unsigned int   baseXpYield;
-	};
+		BaseStats      statsAtLevel[256];
 
-	struct BaseStats
-	{
-		unsigned       HP;
-		unsigned       maxHP;
-		unsigned short ATK;
-		unsigned short DEF;
-		unsigned short SPD;
-		unsigned short SPE;
+		PokemonBase(
+			unsigned char  id,
+			std::string    name,
+			unsigned       HP,
+			unsigned short ATK,
+			unsigned short DEF,
+			unsigned short SPD,
+			unsigned short SPE,
+			PokemonTypes   typeA,
+			PokemonTypes   typeB,
+			unsigned char  catchRate,
+			unsigned int   baseXpYield
+		);
 	};
 
 	struct UpgradableStats {

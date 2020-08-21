@@ -29,6 +29,143 @@ std::string toLower(std::string str)
 
 void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleResources &resources, std::string &lastIp, std::string &lastPort);
 
+void movePanels(const std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>> &panels)
+{
+	for (unsigned i = 0; i < panels.size(); i++)
+		panels[i].second->setPosition(28 + i % 3 * 248, 10 + i / 3 * 190);
+}
+
+void applyFilters(unsigned sorting, std::string query, std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>> &panels)
+{
+	std::vector<std::function<bool(const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2)>> sortingAlgos = {
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = PokemonGen1::pokemonList[p1.first];
+			auto &base2 = PokemonGen1::pokemonList[p2.first];
+
+			if (base1.name == base2.name)
+				return p1.first < p2.first;
+			return base2.name == "MISSINGNO." || (
+				base1.name != "MISSINGNO." &&
+				base1.name < base2.name
+			);
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = PokemonGen1::pokemonList[p1.first];
+			auto &base2 = PokemonGen1::pokemonList[p2.first];
+
+			if (base1.name == base2.name)
+				return p1.first < p2.first;
+			return base2.name == "MISSINGNO." || (
+				base1.name != "MISSINGNO." &&
+				base1.name > base2.name
+			);
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			return p1.first < p2.first;
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			return p1.first > p2.first;
+		}
+	};
+
+	if (!query.empty()) {
+		query = toLower(query);
+
+		panels.erase(std::remove_if(
+			panels.begin(),
+			panels.end(),
+			[&query](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1) {
+				return toLower(PokemonGen1::pokemonList[p1.first].name).find(query) == std::string::npos;
+			}
+		), panels.end());
+	}
+	std::sort(panels.begin(), panels.end(), sortingAlgos[sorting]);
+}
+
+void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleResources &resources, unsigned index, PokemonGen1::Pokemon &pkmn)
+{
+	auto bigPan = tgui::Panel::create({"100%", "100%"});
+	auto panel = tgui::ScrollablePanel::create({"&.w - 20", "&.h - 50"});
+	auto basePanel = tgui::ScrollablePanel::create({220, 170});
+	auto panels = std::make_shared<std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>>>(PokemonGen1::pokemonList.size());
+	auto displayedPanels = std::make_shared<std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>>>(PokemonGen1::pokemonList.size());
+	auto filter = tgui::EditBox::create();
+	auto sorting = tgui::ComboBox::create();
+
+	filter->setSize({"&.w * 70 / 100 - 20", 20});
+	sorting->setSize({"&.w * 30 / 100 - 10", 20});
+
+	filter->setDefaultText("Search");
+	sorting->addItem("Sort A -> Z");
+	sorting->addItem("Sort Z -> A");
+	sorting->addItem("Sort by ascending ID");
+	sorting->addItem("Sort by descending ID");
+	sorting->setSelectedItemByIndex(0);
+
+	filter->onTextChange.connect([displayedPanels, panels, filter, sorting]{
+		for (auto &panel : *panels)
+			panel.second->setPosition(-200, -200);
+		*displayedPanels = *panels;
+		applyFilters(sorting->getSelectedItemIndex(), filter->getText(), *displayedPanels);
+		movePanels(*displayedPanels);
+	});
+	sorting->onItemSelect.connect([displayedPanels, panels, filter, sorting]{
+		for (auto &panel : *panels)
+			panel.second->setPosition(-200, -200);
+		*displayedPanels = *panels;
+		applyFilters(sorting->getSelectedItemIndex(), filter->getText(), *displayedPanels);
+		movePanels(*displayedPanels);
+	});
+
+	filter->setPosition(10, 10);
+	sorting->setPosition("&.w * 70 / 100", 10);
+	panel->setPosition(10, 40);
+
+	bigPan->add(sorting);
+	bigPan->add(filter);
+
+	basePanel->loadWidgetsFromFile("assets/pkmnPreview.gui");
+
+	for (unsigned i = 0; i < panels->size(); i++) {
+		auto &pan = (panels->operator[](i) = {i, tgui::ScrollablePanel::copy(basePanel)}).second;
+		auto &base = PokemonGen1::pokemonList[i];
+		auto type1 = tgui::Picture::create(resources.types[typeToString(base.typeA)]);
+		auto type2 = tgui::Picture::create(resources.types[typeToString(base.typeB)]);
+		auto sprite = pan->get<tgui::BitmapButton>("Species");
+		auto hp = pan->get<tgui::TextBox>("HP");
+		auto atk = pan->get<tgui::TextBox>("ATK");
+		auto def = pan->get<tgui::TextBox>("DEF");
+		auto spd = pan->get<tgui::TextBox>("SPD");
+		auto spe = pan->get<tgui::TextBox>("SPE");
+		auto name = pan->get<tgui::TextBox>("SpeciesName");
+
+		name->setText(strToUpper(base.name));
+		hp->setText(std::to_string(base.statsAtLevel[100].HP));
+		atk->setText(std::to_string(base.statsAtLevel[100].ATK));
+		def->setText(std::to_string(base.statsAtLevel[100].DEF));
+		spd->setText(std::to_string(base.statsAtLevel[100].SPD));
+		spe->setText(std::to_string(base.statsAtLevel[100].SPE));
+		sprite->setImage(resources.pokemonsFront[i]);
+
+		sprite->onClick.connect([bigPan, &gui]{
+			gui.remove(bigPan);
+		});
+
+		type1->setPosition(115, 152);
+		type2->setPosition(170, 152);
+		type2->setVisible(base.typeA != base.typeB);
+		pan->add(type1);
+		pan->add(type2);
+
+		panel->add(pan);
+	}
+	*displayedPanels = *panels;
+	applyFilters(0, "", *displayedPanels);
+	movePanels(*displayedPanels);
+	bigPan->add(panel);
+	gui.add(bigPan);
+}
+
 void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleResources &resources, std::string &lastIp, std::string &lastPort, unsigned index, tgui::Panel::Ptr panel, PokemonGen1::Pokemon &pkmn)
 {
 	panel->loadWidgetsFromFile("assets/pkmnPanel.gui");
@@ -90,6 +227,9 @@ void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1:
 	remove->onClick.connect([index, &window, &gui, &game, &resources, &lastIp, &lastPort]{
 		game.deletePokemon(index);
 		makeMainMenuGUI(window, gui, game, resources, lastIp, lastPort);
+	});
+	sprite->onClick.connect([&gui, &game, &resources, index, &pkmn]{
+		openChangePkmnBox(gui, game, resources, index, pkmn);
 	});
 
 	type1->setPosition(5, 100);
@@ -187,7 +327,10 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::Game
 		but->setPosition(10, 10);
 		but->setSize({"&.w - 20", "&.h - 20"});
 		but->onClick.connect([&window, &gui, &game, &resources, &lastPort, &lastIp]{
-			game.setTeamSize(game.getPokemonTeam().size() + 1);
+			auto size = game.getPokemonTeam().size();
+
+			game.setTeamSize(size + 1);
+			game.getPokemon(size).setLevel(100);
 			makeMainMenuGUI(window, gui, game, resources, lastIp, lastPort);
 		});
 		panels[i]->add(but);

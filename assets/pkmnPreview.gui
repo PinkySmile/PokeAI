@@ -1,0 +1,166 @@
+Renderer.1 {
+    backgroundcolor = transparent;
+    bordercolor = #3C3C3C;
+    borders = (0, 0, 0, 0);
+    textcolor = #3C3C3C;
+    texturebackground = None;
+}
+
+Renderer.2 {
+    backgroundcolor = white;
+    bordercolor = black;
+    borders = (1, 1, 1, 1);
+    caretcolor = black;
+    caretwidth = 1;
+    padding = (0, 0, 0, 0);
+    selectedtextbackgroundcolor = #006EFF;
+    selectedtextcolor = white;
+    textcolor = #3C3C3C;
+    texturebackground = None;
+}
+
+BitmapButton.Species {
+    Image = "assets/front_sprites/1_front.png";
+    ImageScaling = 1;
+    Position = (5, 5);
+    Size = (140, 140);
+    TextSize = 13;
+
+    Renderer {
+        backgroundcolor = #F5F5F5;
+        backgroundcolordisabled = #E6E6E6;
+        backgroundcolordown = #EBEBEB;
+        backgroundcolorhover = white;
+        bordercolor = #3C3C3C;
+        bordercolordisabled = #7D7D7D;
+        bordercolordown = black;
+        bordercolorfocused = #1E1EB4;
+        bordercolorhover = black;
+        borders = (1, 1, 1, 1);
+        textcolor = #3C3C3C;
+        textcolordisabled = #7D7D7D;
+        textcolordown = black;
+        textcolorhover = black;
+        texture = None;
+        texturedisabled = None;
+        texturedown = None;
+        texturefocused = None;
+        texturehover = None;
+    }
+}
+
+TextBox.SpeciesName {
+    HorizontalScrollbarPolicy = Never;
+    MaximumCharacters = 0;
+    Position = (5, 150);
+    ReadOnly = true;
+    Size = (107.333, 20);
+    Text = Rhydon;
+    TextSize = 13;
+    renderer = &2;
+}
+
+Label.Label2 {
+    AutoSize = true;
+    Position = (157, 6);
+    ScrollbarPolicy = Never;
+    Size = (20.2, 18);
+    Text = HP;
+    TextSize = 13;
+    renderer = &1;
+}
+
+TextBox.HP {
+    HorizontalScrollbarPolicy = Never;
+    MaximumCharacters = 0;
+    Position = (180, 5);
+    ReadOnly = true;
+    Size = (37.333, 20);
+    Text = 999;
+    TextSize = 13;
+    renderer = &2;
+}
+
+TextBox.ATK {
+    HorizontalScrollbarPolicy = Never;
+    MaximumCharacters = 0;
+    Position = (180, 35);
+    ReadOnly = true;
+    Size = (37.333, 20);
+    Text = 999;
+    TextSize = 13;
+    renderer = &2;
+}
+
+Label.Label3 {
+    AutoSize = true;
+    Position = (147, 36);
+    ScrollbarPolicy = Never;
+    Size = (27.2, 18);
+    Text = ATK;
+    TextSize = 13;
+    renderer = &1;
+}
+
+Label.Label4 {
+    AutoSize = true;
+    Position = (147, 66);
+    ScrollbarPolicy = Never;
+    Size = (28.2, 18);
+    Text = DEF;
+    TextSize = 13;
+    renderer = &1;
+}
+
+Label.Label5 {
+    AutoSize = true;
+    Position = (147, 96);
+    ScrollbarPolicy = Never;
+    Size = (29.2, 18);
+    Text = SPD;
+    TextSize = 13;
+    renderer = &1;
+}
+
+Label.Label6 {
+    AutoSize = true;
+    Position = (147, 126);
+    ScrollbarPolicy = Never;
+    Size = (27.2, 18);
+    Text = SPE;
+    TextSize = 13;
+    renderer = &1;
+}
+
+TextBox.SPD {
+    HorizontalScrollbarPolicy = Never;
+    MaximumCharacters = 0;
+    Position = (180, 95);
+    ReadOnly = true;
+    Size = (37.333, 20);
+    Text = 999;
+    TextSize = 13;
+    renderer = &2;
+}
+
+TextBox.DEF {
+    HorizontalScrollbarPolicy = Never;
+    MaximumCharacters = 0;
+    Position = (180, 65);
+    ReadOnly = true;
+    Size = (37.333, 20);
+    Text = 999;
+    TextSize = 13;
+    renderer = &2;
+}
+
+TextBox.SPE {
+    HorizontalScrollbarPolicy = Never;
+    MaximumCharacters = 0;
+    Position = (180, 125);
+    ReadOnly = true;
+    Size = (37.333, 20);
+    Text = 999;
+    TextSize = 13;
+    renderer = &2;
+}

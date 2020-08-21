@@ -835,6 +835,35 @@ namespace PokemonGen1
 		this->_moveSet[index] = move;
 	}
 
+	PokemonBase::PokemonBase(
+		unsigned char id,
+		std::string name,
+		unsigned int HP,
+		unsigned short ATK,
+		unsigned short DEF,
+		unsigned short SPD,
+		unsigned short SPE,
+		PokemonTypes typeA,
+		PokemonTypes typeB,
+		unsigned char catchRate,
+		unsigned int baseXpYield
+	) :
+		id(id),
+		name(name),
+		HP(HP),
+		ATK(ATK),
+		DEF(DEF),
+		SPD(SPD),
+		SPE(SPE),
+		typeA(typeA),
+		typeB(typeB),
+		catchRate(catchRate),
+		baseXpYield(baseXpYield)
+	{
+		for (int i = 0; i < 256; i++)
+			this->statsAtLevel[i] = Pokemon::makeStats(i, *this, {0xF, 0xF, 0xF, 0xF, 0xF, 0xF}, {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF});
+	}
+
 	/*
 	** From Rhydon
 	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/Tables.cs#L425
