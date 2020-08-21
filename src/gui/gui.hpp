@@ -8,7 +8,7 @@
 #include <string>
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
-#include "../GameHandle.hpp"
+#include "../GameEngine/GameHandle.hpp"
 
 struct BattleResources {
 	sf::Music				loop;

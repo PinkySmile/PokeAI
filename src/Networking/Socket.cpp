@@ -6,7 +6,7 @@
 #include <sstream>
 #include <unistd.h>
 #include "Socket.hpp"
-#include "Exception.hpp"
+#include "../Exception.hpp"
 
 #ifndef _WIN32
 #	include <netdb.h>

@@ -6,7 +6,7 @@
 #include <SFML/Audio.hpp>
 #include <algorithm>
 #include "gui.hpp"
-#include "../BgbHandler.hpp"
+#include "../Networking/BgbHandler.hpp"
 
 std::string strToUpper(std::string str)
 {

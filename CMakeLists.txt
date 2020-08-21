@@ -10,25 +10,25 @@ endif (CMAKE_COMPILER_IS_GNUCC AND CMAKE_BUILD_TYPE MATCHES Debug)
 add_executable(
 	PokeAI
 	src/main.cpp
-	src/Socket.cpp
-	src/Socket.hpp
-	src/BgbHandler.cpp
-	src/BgbHandler.hpp
-	src/GameHandle.cpp
-	src/GameHandle.hpp
-	src/EmulatorHandle.hpp
-	src/Pokemon.cpp
-	src/Pokemon.hpp
-	src/PokemonTypes.hpp
-	src/Move.hpp
-	src/Move.cpp
-	src/Move.hpp
-	src/StatusChange.hpp
-	src/StatsChange.hpp
-	src/PokemonRandomGenerator.cpp
-	src/PokemonRandomGenerator.hpp
-	src/StatusChange.cpp
-	src/PokemonTypes.cpp
+	src/Networking/Socket.cpp
+	src/Networking/Socket.hpp
+	src/Networking/BgbHandler.cpp
+	src/Networking/BgbHandler.hpp
+	src/GameEngine/GameHandle.cpp
+	src/GameEngine/GameHandle.hpp
+	src/Networking/EmulatorHandle.hpp
+	src/GameEngine/Pokemon.cpp
+	src/GameEngine/Pokemon.hpp
+	src/GameEngine/PokemonTypes.hpp
+	src/GameEngine/Move.hpp
+	src/GameEngine/Move.cpp
+	src/GameEngine/Move.hpp
+	src/GameEngine/StatusChange.hpp
+	src/GameEngine/StatsChange.hpp
+	src/GameEngine/PokemonRandomGenerator.cpp
+	src/GameEngine/PokemonRandomGenerator.hpp
+	src/GameEngine/StatusChange.cpp
+	src/GameEngine/PokemonTypes.cpp
 	src/commandLine.cpp
 	src/commandLine.hpp
 	src/gui/gui.cpp src/gui/gui.hpp src/gui/battle.cpp)

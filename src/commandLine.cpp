@@ -5,9 +5,9 @@
 #include <string>
 #include <future>
 #include "commandLine.hpp"
-#include "Pokemon.hpp"
-#include "BgbHandler.hpp"
-#include "GameHandle.hpp"
+#include "GameEngine/Pokemon.hpp"
+#include "Networking/BgbHandler.hpp"
+#include "GameEngine/GameHandle.hpp"
 
 #ifndef _WIN32
 #include <sys/select.h>

@@ -4,7 +4,7 @@
 
 #include <thread>
 #include "GameHandle.hpp"
-#include "Exception.hpp"
+#include "../Exception.hpp"
 
 namespace PokemonGen1
 {
