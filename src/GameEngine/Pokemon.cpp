@@ -150,6 +150,7 @@ namespace PokemonGen1
 
 	bool Pokemon::addStatus(StatusChange status)
 	{
+		//TODO: Add the Sleep + Hyper beam glitch
 		if (status == STATUS_NONE)
 			return true;
 		switch (status) {
@@ -435,28 +436,7 @@ namespace PokemonGen1
 		if (!nb)
 			return;
 
-		switch (stat) {
-		case STATS_ATK:
-			statName = "ATTACK";
-			break;
-		case STATS_DEF:
-			statName = "DEFENSE";
-			break;
-		case STATS_SPD:
-			statName = "SPEED";
-			break;
-		case STATS_SPE:
-			statName = "SPECIAL";
-			break;
-		case STATS_ESQ:
-			statName = "EVADE";
-			break;
-		case STATS_PRE:
-			statName = "ACCURACY";
-			break;
-		default:
-			return;
-		}
+		statName = statToString(stat);
 
 		if ((stats[stat] >= 6 && nb > 0) || (stats[stat] <= -6 && nb < 0)) {
 			this->_game.logBattle("Nothing happened.");

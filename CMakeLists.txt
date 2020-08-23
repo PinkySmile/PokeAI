@@ -34,7 +34,7 @@ add_executable(
 	src/gui/gui.cpp
 	src/gui/gui.hpp
 	src/gui/battle.cpp
-)
+	src/GameEngine/StatsChange.cpp)
 
 if (WIN32)
 	target_link_libraries(

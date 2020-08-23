@@ -2,6 +2,7 @@
 // Created by Gegel85 on 14/07/2019.
 //
 
+#include <sstream>
 #include "Pokemon.hpp"
 #include "Move.hpp"
 #include "../Exception.hpp"
@@ -29,7 +30,9 @@ namespace PokemonGen1
 		bool invulnerableDuringLoading,
 		bool needRecharge,
 		const std::function<bool(Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun, const std::function<void(const std::string &msg)> &logger)> &&hitCallback,
-		const std::function<bool(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)> &&missCallback
+		const std::string &hitCallBackDescription,
+		const std::function<bool(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)> &&missCallback,
+		const std::string &missCallBackDescription
 	) :
 		_hitCallback(hitCallback),
 		_missCallback(missCallback),
@@ -54,40 +57,94 @@ namespace PokemonGen1
 		_priority(priority),
 		_needLoading(needLoading),
 		_invulnerableDuringLoading(invulnerableDuringLoading),
-		_needRecharge(needRecharge)
+		_needRecharge(needRecharge),
+		_hitCallBackDescription(hitCallBackDescription),
+		_missCallBackDescription(missCallBackDescription)
 	{
-		if (category == STATUS)
-			return;
+		if (category != STATUS)
+			switch (type) {
+			case TYPE_FIRE:
+			case TYPE_WATER:
+			case TYPE_GRASS:
+			case TYPE_ELECTRIC:
+			case TYPE_ICE:
+			case TYPE_PSYCHIC:
+			case TYPE_DRAGON:
+			case TYPE_NEUTRAL_SPECIAL:
+				if (category != SPECIAL)
+					throw InvalidStateException(this->_name + " is invalid: Type " + typeToString(type) + " expects category SPECIAL.");
+				break;
+			case TYPE_NORMAL:
+			case TYPE_FIGHTING:
+			case TYPE_FLYING:
+			case TYPE_POISON:
+			case TYPE_GROUND:
+			case TYPE_ROCK:
+			case TYPE_BUG:
+			case TYPE_GHOST:
+			case TYPE_NEUTRAL_PHYSICAL:
+				if (category != PHYSICAL)
+					throw InvalidStateException(this->_name + " is invalid: Type " + typeToString(type) + " expects category PHYSICAL.");
+				break;
+			default:
+				throw InvalidStateException(this->_name + " is invalid: Type is invalid.");
+			}
 
-		switch (type) {
-		case TYPE_FIRE:
-		case TYPE_WATER:
-		case TYPE_GRASS:
-		case TYPE_ELECTRIC:
-		case TYPE_ICE:
-		case TYPE_PSYCHIC:
-		case TYPE_DRAGON:
-		case TYPE_NEUTRAL_SPECIAL:
-			if (category != SPECIAL)
-				throw InvalidStateException(this->_name + " is invalid: Type " + typeToString(type) + " expects category SPECIAL.");
-			break;
-		case TYPE_NORMAL:
-		case TYPE_FIGHTING:
-		case TYPE_FLYING:
-		case TYPE_POISON:
-		case TYPE_GROUND:
-		case TYPE_ROCK:
-		case TYPE_BUG:
-		case TYPE_GHOST:
-		case TYPE_NEUTRAL_PHYSICAL:
-			if (category != PHYSICAL)
-				throw InvalidStateException(this->_name + " is invalid: Type " + typeToString(type) + " expects category PHYSICAL.");
-			break;
-		default:
-			throw InvalidStateException(this->_name + " is invalid: Type is invalid.");
+		std::stringstream stream;
+
+		if (this->_critChance != DEFAULT_CRIT_CHANCE)
+			stream << "Crit multiplier: " << this->_critChance << std::endl;
+		if (this->_needRecharge)
+			stream << "Needs to recharge" << std::endl;
+		if (this->_needLoading)
+			stream << "Needs to load" << std::endl;
+		if (this->_invulnerableDuringLoading)
+			stream << "Has invulnerability during loading turn" << std::endl;
+		if (this->_nbHits.first != 1 || this->_nbHits.second != 1) {
+			stream << "Can hit " << this->_nbHits.first;
+			if (this->_nbHits.first != this->_nbHits.second)
+				stream << " to " << this->_nbHits.second;
+			stream << " times" << std::endl;
 		}
+		if (this->_nbRuns.first != 1 || this->_nbRuns.second != 1) {
+			stream << "Keep going for " << this->_nbRuns.first;
+			if (this->_nbRuns.first != this->_nbRuns.second)
+				stream << " to " << this->_nbRuns.second;
+			stream <<" turns" << std::endl;
+		}
+		if (this->_priority)
+			stream << "Priority: " << static_cast<int>(this->_priority) << std::endl;
+		if (this->_statusChange.prob != 0) {
+			if (this->_statusChange.prob >= 1)
+				stream << "Makes foe ";
+			else
+				stream << (this->_statusChange.prob * 100) << "% chance to make foe ";
+			stream << statusToString(this->_statusChange.status) << std::endl;
+		}
+		for (auto &change : this->_ownerChange) {
+			if (change.prob >= 1)
+				stream << (change.nb > 0 ? "Increase" : "Decrease");
+			else
+				stream << "Has " << (change.prob * 100) << "% chance to " << (change.nb > 0 ? "increase" : "decrease");
+			stream << " user's " << statToString(change.stat);
+			stream << " by " << std::abs(change.nb) << " stage" << (std::abs(change.nb) != 1 ? "s" : "") << std::endl;
+		}
+		for (auto &change : this->_foeChange) {
+			if (change.prob >= 1)
+				stream << (change.nb > 0 ? "Increase" : "Decrease");
+			else
+				stream << "Has " << (change.prob * 100) << "% chance to " << (change.nb > 0 ? "increase" : "decrease");
+			stream << " foe's " << statToString(change.stat);
+			stream << " by " << std::abs(change.nb) << " stage" << (std::abs(change.nb) != 1 ? "s" : "") << std::endl;
+		}
+		if (!this->_hitCallBackDescription.empty())
+			stream << "On hit: " << this->_hitCallBackDescription << std::endl;
+		if (!this->_missCallBackDescription.empty())
+			stream << "On miss: " << this->_missCallBackDescription << std::endl;
+		this->_fullDescription = stream.str();
+		for (auto it = this->_fullDescription.end(); it != this->_fullDescription.begin() && std::isspace(*(it - 1)); it--)
+			this->_fullDescription.erase(it - 1);
 	}
-
 
 	bool Move::isFinished() const
 	{
@@ -287,6 +344,11 @@ namespace PokemonGen1
 		return this->_priority;
 	}
 
+	const std::string &Move::getDescription() const
+	{
+		return this->_fullDescription;
+	}
+
 	/*
 	** From pokemondb, bulbapedia and Rhydon
 	** https://pokemondb.net/move/generation/1
@@ -322,7 +384,7 @@ namespace PokemonGen1
 		Move{0x17, "Stomp"       , TYPE_NORMAL  , PHYSICAL,  65, 100, 20},
 		Move{0x18, "Double Kick" , TYPE_FIGHTING, PHYSICAL,  65, 100, 20},
 		Move{0x19, "Mega Kick"   , TYPE_NORMAL  , PHYSICAL, 120,  75,  5},
-		Move{0x1A, "Jump Kick"   , TYPE_FIGHTING, PHYSICAL,  70,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, nullptr, TAKE_1DAMAGE},
+		Move{0x1A, "Jump Kick"   , TYPE_FIGHTING, PHYSICAL,  70,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NO_CALLBACK, TAKE_1DAMAGE},
 		Move{0x1B, "Rolling Kick", TYPE_FIGHTING, PHYSICAL,  60,  85, 15},
 		Move{0x1C, "Sand-Attack" , TYPE_NORMAL  , STATUS  ,   0, 100, 15},
 		Move{0x1D, "Headbutt"    , TYPE_NORMAL  , PHYSICAL,  70, 100, 15},
@@ -332,9 +394,9 @@ namespace PokemonGen1
 		Move{0x21, "Tackle"      , TYPE_NORMAL  , PHYSICAL,  35,  95, 35},
 		Move{0x22, "Body Slam"   , TYPE_NORMAL  , PHYSICAL,  85, 100, 15},
 		Move{0x23, "Wrap"        , TYPE_NORMAL  , PHYSICAL,  15,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, WRAP_TARGET, GLITCH_HYPER_BEAM},
-		Move{0x24, "Take down"   , TYPE_NORMAL  , PHYSICAL,  90,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_QUATER_MOVE_DAMAGE},
+		Move{0x24, "Take down"   , TYPE_NORMAL  , PHYSICAL,   90, 85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_QUARTER_MOVE_DAMAGE},
 		Move{0x25, "Thrash"      , TYPE_NORMAL  , PHYSICAL,  90, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, "'s thrashing about!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CONFUSE_ON_LAST},
-		Move{0x26, "Double Edge" , TYPE_NORMAL  , PHYSICAL, 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_QUATER_MOVE_DAMAGE},
+		Move{0x26, "Double Edge" , TYPE_NORMAL  , PHYSICAL, 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_QUARTER_MOVE_DAMAGE},
 		Move{0x27, "Tail Whip"   , TYPE_NORMAL  , STATUS  ,   0, 100, 30, NO_STATUS_CHANGE, {}, {{STATS_DEF, -1, 1}}},
 		Move{0x28, "Poison Sting", TYPE_POISON  , PHYSICAL,  15, 100, 35, {STATUS_POISONED, 0.3}},
 		Move{0x29, "Twineedle"   , TYPE_BUG     , PHYSICAL,  25, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, {2, 2}},
@@ -346,11 +408,11 @@ namespace PokemonGen1
 		Move{0x2F, "Sing"        , TYPE_NORMAL  , STATUS  ,   0,  55, 15, {STATUS_ASLEEP, 1}},
 		Move{0x30, "Supersonic"  , TYPE_NORMAL  , STATUS  ,   0,  55, 20, {STATUS_CONFUSED, 1}},
 		Move{0x31, "SonicBoom"   , TYPE_NORMAL  , STATUS  ,   0,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_20_DAMAGE},
-		Move{0x32, "Disable"     , TYPE_NORMAL  , STATUS  ,   0,  55, 20}, //TODO: Code this move
+		Move{0x32, "Disable"     , TYPE_NORMAL  , STATUS  ,   0,  55, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code this move
 		Move{0x33, "Acid"        , TYPE_POISON  , PHYSICAL,  40, 100, 30},
 		Move{0x34, "Ember"       , TYPE_FIRE    , SPECIAL ,  40, 100, 25, {STATUS_BURNED, 0.1}},
 		Move{0x35, "Flamethrower", TYPE_FIRE    , SPECIAL ,  95, 100, 25, {STATUS_BURNED, 0.1}},
-		Move{0x36, "Mist"        , TYPE_NORMAL  , STATUS  ,   0, 255, 30}, //TODO: Code this move
+		Move{0x36, "Mist"        , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code this move
 		Move{0x37, "Water Gun"   , TYPE_WATER   , SPECIAL ,  40, 100, 25},
 		Move{0x38, "Hydro Pump"  , TYPE_WATER   , SPECIAL , 120,  80,  5},
 		Move{0x39, "Surf"        , TYPE_WATER   , SPECIAL ,  90, 100, 15},
@@ -362,9 +424,9 @@ namespace PokemonGen1
 		Move{0x3F, "Hyper Beam"  , TYPE_NORMAL  , PHYSICAL, 150,  90,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, true},
 		Move{0x40, "Peck"        , TYPE_FLYING  , PHYSICAL,  35, 100, 35},
 		Move{0x41, "Drill Peck"  , TYPE_FLYING  , PHYSICAL,  80, 100, 20},
-		Move{0x42, "Submission"  , TYPE_FIGHTING, PHYSICAL,  80,  80, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_QUATER_MOVE_DAMAGE},
+		Move{0x42, "Submission"  , TYPE_FIGHTING, PHYSICAL,  80, 80, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_QUARTER_MOVE_DAMAGE},
 		Move{0x43, "Low Kick"    , TYPE_FIGHTING, PHYSICAL,  50, 100, 20},
-		Move{0x44, "Counter"     , TYPE_FIGHTING, PHYSICAL,  80,  80, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, -5}, //TODO: Code this move
+		Move{0x44, "Counter"     , TYPE_FIGHTING, PHYSICAL,  80,  80, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, -5, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code this move
 		Move{0x45, "Seismic Toss", TYPE_FIGHTING, PHYSICAL,   0, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_LVL_AS_DAMAGE},
 		Move{0x46, "Strength"    , TYPE_NORMAL  , PHYSICAL,  80, 100, 15},
 		Move{0x47, "Absorb"      , TYPE_GRASS   , SPECIAL ,  20, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ABSORB_HALF_DAMAGE},
@@ -409,10 +471,10 @@ namespace PokemonGen1
 		Move{0x6E, "Withdraw"    , TYPE_WATER   , STATUS  ,   0, 255, 40, NO_STATUS_CHANGE, {{STATS_DEF, 1, 1}}},
 		Move{0x6F, "Defense Curl", TYPE_NORMAL  , STATUS  ,   0, 255, 40, NO_STATUS_CHANGE, {{STATS_DEF, 1, 1}}},
 		Move{0x70, "Barrier"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, {{STATS_DEF, 2, 1}}},
-		Move{0x71, "Light Screen", TYPE_PSYCHIC , STATUS  ,   0, 255, 30}, //TODO: Code the move
+		Move{0x71, "Light Screen", TYPE_PSYCHIC , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code the move
 		Move{0x72, "Haze"        , TYPE_ICE     , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CANCEL_STATS_CHANGE},
-		Move{0x73, "Reflect"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 20}, //TODO: Code the move
-		Move{0x74, "Focus Energy", TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SET_USER_CRIT_RATIO_TO_1_HALF},
+		Move{0x73, "Reflect"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code the move
+		Move{0x74, "Focus Energy", TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SET_USER_CRIT_RATIO_TO_1_QUARTER},
 		Move{0x75, "Bide"        , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {2, 3}, "", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, STORE_DAMAGES},
 		Move{0x76, "Metronome"   , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, USE_RANDOM_MOVE},
 		Move{0x77, "Mirror Move" , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, USE_LAST_FOE_MOVE},
@@ -424,7 +486,7 @@ namespace PokemonGen1
 		Move{0x7D, "Bone Club"   , TYPE_GROUND  , PHYSICAL,  65,  85, 20},
 		Move{0x7E, "Fire Blast"  , TYPE_FIRE    , SPECIAL , 120,  85,  5, {STATUS_BURNED, 0.1}},
 		Move{0x7F, "Waterfall"   , TYPE_WATER   , SPECIAL ,  80, 120, 15},
-		Move{0x80, "Clamp"       , TYPE_WATER   , SPECIAL,  35,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, WRAP_TARGET, GLITCH_HYPER_BEAM},
+		Move{0x80, "Clamp"       , TYPE_WATER   , SPECIAL,   35,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, WRAP_TARGET, GLITCH_HYPER_BEAM},
 		Move{0x81, "Swift"       , TYPE_NORMAL  , PHYSICAL,  60, 255, 20},
 		Move{0x82, "Skull Bash"  , TYPE_NORMAL  , PHYSICAL, 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("lowered it's head")},
 		Move{0x83, "Spike Cannon", TYPE_NORMAL  , PHYSICAL,  20, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
@@ -432,9 +494,9 @@ namespace PokemonGen1
 		Move{0x85, "Amnesia"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {{STATS_SPE, 2, 1}}},
 		Move{0x86, "Kinesis"     , TYPE_PSYCHIC , STATUS  ,   0,  80, 15, NO_STATUS_CHANGE, {}, {{STATS_PRE, -1, 1}}},
 		Move{0x87, "Softboiled"  , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEAL_HALF_HEALTH},
-		Move{0x88, "Hi Jump Kick", TYPE_FIGHTING, PHYSICAL,  85,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, nullptr, TAKE_1DAMAGE},
+		Move{0x88, "Hi Jump Kick", TYPE_FIGHTING, PHYSICAL,  85,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NO_CALLBACK, TAKE_1DAMAGE},
 		Move{0x89, "Glare"       , TYPE_NORMAL  , STATUS  ,   0,  75, 30},
-		Move{0x8A, "Dream Eater" , TYPE_PSYCHIC , STATUS  ,   0, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DREAM_EATER},
+		Move{0x8A, "Dream Eater" , TYPE_PSYCHIC , STATUS  ,   0, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ABSORB_HALF_DAMAGE},
 		Move{0x8B, "Poison Gas"  , TYPE_POISON  , STATUS  ,   0,  55, 40, {STATUS_POISONED, 1}},
 		Move{0x8C, "Barrage"     , TYPE_NORMAL  , PHYSICAL,  15,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x8D, "Leech Life"  , TYPE_BUG     , PHYSICAL,  20, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ABSORB_HALF_DAMAGE},
@@ -452,16 +514,16 @@ namespace PokemonGen1
 		Move{0x99, "Explosion"   , TYPE_NORMAL  , PHYSICAL, 340, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SUICIDE, SUICIDE_MISS},
 		Move{0x9A, "Fury Swipes" , TYPE_NORMAL  , PHYSICAL,  18,  80, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x9B, "Bonemerang"  , TYPE_GROUND  , PHYSICAL,  50,  90, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, {2, 2}},
-		Move{0x9C, "Rest"        , TYPE_PSYCHIC , STATUS  ,   0,   0, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEAL_ALL_HEALTH_AND_SLEEP},
+		Move{0x9C, "Rest"        , TYPE_PSYCHIC , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEAL_ALL_HEALTH_AND_SLEEP},
 		Move{0x9D, "Rock Slide"  , TYPE_ROCK    , PHYSICAL,  75,  90, 10},
 		Move{0x9E, "Hyper Fang"  , TYPE_NORMAL  , PHYSICAL,  80,  90, 15},
 		Move{0x9F, "Sharpen"     , TYPE_NORMAL  , STATUS  ,   0,   0, 30, NO_STATUS_CHANGE, {{STATS_ATK, 1, 1}}},
-		Move{0xA0, "Conversion"  , TYPE_NORMAL  , STATUS  ,   0,   0, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CONVERSION},
+		Move{0xA0, "Conversion"  , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CONVERSION},
 		Move{0xA1, "Tri Attack"  , TYPE_NORMAL  , PHYSICAL,  80, 100, 10},
 		Move{0xA2, "Super Fang"  , TYPE_NORMAL  , PHYSICAL,   0,  90, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_HALF_HP_DAMAGE},
 		Move{0xA3, "Slash"       , TYPE_NORMAL  , PHYSICAL,  70, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},
-		Move{0xA4, "Substitute"  , TYPE_NORMAL  , STATUS  ,   0,   0, 10}, //TODO: code this move
-		Move{0xA5, "Struggle"    , TYPE_NORMAL  , PHYSICAL,  50, 100,  0, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_HALF_MOVE_DAMAGE},
+		Move{0xA4, "Substitute"  , TYPE_NORMAL  , STATUS  ,   0,   0, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: code this move
+		Move{0xA5, "Struggle"    , TYPE_NORMAL  , PHYSICAL,  50, 100,  63, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_HALF_MOVE_DAMAGE},
 		DEFAULT_MOVE(0xA6),
 		DEFAULT_MOVE(0xA7),
 		DEFAULT_MOVE(0xA8),

@@ -29,6 +29,7 @@ namespace PokemonGen1
 		case STATUS_ASLEEP_FOR_6_TURN:
 		case STATUS_ASLEEP_FOR_7_TURN:
 			return "asleep";
+		case STATUS_CONFUSED:
 		case STATUS_CONFUSED_FOR_1_TURN:
 		case STATUS_CONFUSED_FOR_2_TURN:
 		case STATUS_CONFUSED_FOR_3_TURN:

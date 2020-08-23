@@ -1,0 +1,158 @@
+Renderer.1 {
+    backgroundcolor = transparent;
+    bordercolor = #3C3C3C;
+    borders = (0, 0, 0, 0);
+    textcolor = #3C3C3C;
+    texturebackground = None;
+}
+
+Renderer.2 {
+    backgroundcolor = #F5F5F5;
+    backgroundcolordisabled = #E6E6E6;
+    backgroundcolorhover = white;
+    bordercolor = #3C3C3C;
+    bordercolordisabled = #7D7D7D;
+    bordercolorhover = black;
+    borders = (1, 1, 1, 1);
+    caretcolor = black;
+    caretwidth = 1;
+    defaulttextcolor = #A0A0A0;
+    padding = (0, 0, 0, 0);
+    selectedtextbackgroundcolor = #006EFF;
+    selectedtextcolor = white;
+    textcolor = #3C3C3C;
+    textcolordisabled = #7D7D7D;
+    texture = None;
+    texturedisabled = None;
+    texturefocused = None;
+    texturehover = None;
+}
+
+Button.Name {
+    Size = (110, 22);
+    Text = Name;
+    TextSize = 13;
+
+    Renderer {
+        backgroundcolor = #F5F5F5;
+        backgroundcolordisabled = #E6E6E6;
+        backgroundcolordown = #EBEBEB;
+        backgroundcolorhover = white;
+        bordercolor = #3C3C3C;
+        bordercolordisabled = #7D7D7D;
+        bordercolordown = black;
+        bordercolorfocused = #1E1EB4;
+        bordercolorhover = black;
+        borders = (1, 1, 1, 1);
+        textcolor = #3C3C3C;
+        textcolordisabled = #7D7D7D;
+        textcolordown = black;
+        textcolorhover = black;
+        texture = None;
+        texturedisabled = None;
+        texturedown = None;
+        texturefocused = None;
+        texturehover = None;
+    }
+}
+
+Label.Label1 {
+    AutoSize = true;
+    Position = (0, 27.5);
+    ScrollbarPolicy = Never;
+    Size = (43.2, 18);
+    Text = Power;
+    TextSize = 13;
+    renderer = &1;
+}
+
+Label.Label2 {
+    AutoSize = true;
+    Position = (90, 27.5);
+    ScrollbarPolicy = Never;
+    Size = (62.2, 18);
+    Text = Accuracy;
+    TextSize = 13;
+    renderer = &1;
+}
+
+TextBox.AdditionalEffects {
+    HorizontalScrollbarPolicy = Never;
+    MaximumCharacters = 0;
+    Position = (0, 50);
+    ReadOnly = true;
+    Size = (240, 100);
+    Text = "";
+    TextSize = 13;
+
+    Renderer {
+        backgroundcolor = white;
+        bordercolor = black;
+        borders = (1, 1, 1, 1);
+        caretcolor = black;
+        caretwidth = 1;
+        padding = (0, 0, 0, 0);
+        selectedtextbackgroundcolor = #006EFF;
+        selectedtextcolor = white;
+        textcolor = #3C3C3C;
+        texturebackground = None;
+    }
+}
+
+Label.Label3 {
+    AutoSize = true;
+    Position = (136, 3);
+    ScrollbarPolicy = Never;
+    Size = (19.2, 18);
+    Text = PP;
+    TextSize = 13;
+    renderer = &1;
+}
+
+EditBox.PPs {
+    Alignment = Center;
+    Position = (156, 1);
+    ReadOnly = true;
+    Size = (30, 20);
+    TextSize = 13;
+
+    Renderer {
+        backgroundcolor = #F5F5F5;
+        backgroundcolordisabled = #E6E6E6;
+        backgroundcolorhover = white;
+        bordercolor = #3C3C3C;
+        bordercolordisabled = #7D7D7D;
+        bordercolorhover = black;
+        borders = (1, 1, 1, 1);
+        caretcolor = black;
+        caretwidth = 1;
+        defaulttextcolor = #A0A0A0;
+        padding = (0, 0, 0, 0);
+        selectedtextbackgroundcolor = #006EFF;
+        selectedtextcolor = white;
+        textcolor = #3C3C3C;
+        textcolordisabled = #7D7D7D;
+        texture = None;
+        texturedisabled = None;
+        texturefocused = None;
+        texturehover = None;
+    }
+}
+
+EditBox.Accuracy {
+    Alignment = Center;
+    Position = (155, 27.5);
+    ReadOnly = true;
+    Size = (37, 20);
+    TextSize = 13;
+    renderer = &2;
+}
+
+EditBox.Power {
+    Alignment = Center;
+    Position = (45, 27.5);
+    ReadOnly = true;
+    Size = (37, 20);
+    TextSize = 13;
+    renderer = &2;
+}
