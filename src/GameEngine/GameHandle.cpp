@@ -592,7 +592,7 @@ namespace PokemonGen1
 
 		unsigned char nbPkmns = this->_receiveBuffer[0];
 
-		this->_log("He has " + std::to_string(nbPkmns) + " pokémon(s)");
+		this->_log("They have " + std::to_string(nbPkmns) + " pokémon(s)");
 		this->_receiveBuffer.erase(this->_receiveBuffer.begin());
 		for (int i = 0; i < nbPkmns; i++)
 			this->_log("Pokémon " + std::to_string(i) + ": " + pokemonList[this->_receiveBuffer[i]].name);

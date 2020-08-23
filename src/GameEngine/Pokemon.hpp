@@ -72,6 +72,53 @@ namespace PokemonGen1
 
 	class Pokemon {
 	private:
+		enum PacketElems {
+			PACK_SPECIES,
+			PACK_HP_HB,
+			PACK_HP_LB,
+			PACK_DUNNO_WHAT_ITS_FOR,
+			PACK_STATUS,
+			PACK_TYPEA,
+			PACK_TYPEB,
+			PACK_CATCH_RATE,
+			PACK_MOVE1,
+			PACK_MOVE2,
+			PACK_MOVE3,
+			PACK_MOVE4,
+			PACK_TID_HB,
+			PACK_TID_LB,
+			PACK_EXP_HB,
+			PACK_EXP_MB,
+			PACK_EXP_LB,
+			PACK_STAT_EXP_HP_HB,
+			PACK_STAT_EXP_HP_LB,
+			PACK_STAT_EXP_ATK_HB,
+			PACK_STAT_EXP_ATK_LB,
+			PACK_STAT_EXP_DEF_HB,
+			PACK_STAT_EXP_DEF_LB,
+			PACK_STAT_EXP_SPD_HB,
+			PACK_STAT_EXP_SPD_LB,
+			PACK_STAT_EXP_SPE_HB,
+			PACK_STAT_EXP_SPE_LB,
+			PACK_DVS_SPD_SPE,
+			PACK_DVS_ATK_DEF,
+			PACK_PPS_MOVE1,
+			PACK_PPS_MOVE2,
+			PACK_PPS_MOVE3,
+			PACK_PPS_MOVE4,
+			PACK_CURR_LEVEL,
+			PACK_MAX_HP_HB,
+			PACK_MAX_HP_LB,
+			PACK_ATK_HB,
+			PACK_ATK_LB,
+			PACK_DEF_HB,
+			PACK_DEF_LB,
+			PACK_SPD_HB,
+			PACK_SPD_LB,
+			PACK_SPE_HB,
+			PACK_SPE_LB,
+		};
+
 		struct PokemonState {
 			BaseStats                             stats;
 			unsigned char                         id;

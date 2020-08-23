@@ -43,63 +43,61 @@ namespace PokemonGen1
 	}
 
 	Pokemon::Pokemon(PokemonRandomGenerator &random, GameHandle &game, const std::string &nickname, const std::vector<byte> &data, bool enemy) :
-		_id(data[0]),
+		_id(data[PACK_SPECIES]),
 		_enemy(enemy),
 		_lastUsedMove(DEFAULT_MOVE(0x00)),
 		_random{random},
 		_nickname{nickname},
 		_name{pokemonList[data[0]].name},
 		_dvs{
-			(data[27] & 0x1U) | ((data[27] & 0b1000U) >> 3U) | ((data[28] & 0b1U) << 2U) | (data[28] & 0b1000U),
-			(data[27] & 0x1U) | ((data[27] & 0b1000U) >> 3U) | ((data[28] & 0b1U) << 2U) | (data[28] & 0b1000U),
-			static_cast<unsigned short>((data[28] >> 4U) & 0xFU),
-			static_cast<unsigned short>((data[28] >> 0U) & 0xFU),
-			static_cast<unsigned short>((data[27] >> 4U) & 0xFU),
-			static_cast<unsigned short>((data[27] >> 0U) & 0xFU)
+			0,
+			0,
+			static_cast<unsigned short>((data[PACK_DVS_ATK_DEF] >> 4U) & 0xFU),
+			static_cast<unsigned short>((data[PACK_DVS_ATK_DEF] >> 0U) & 0xFU),
+			static_cast<unsigned short>((data[PACK_DVS_SPD_SPE] >> 4U) & 0xFU),
+			static_cast<unsigned short>((data[PACK_DVS_SPD_SPE] >> 0U) & 0xFU)
 		},
 		_statExps{
-			NBR_2B(data[17], data[18]),
-			NBR_2B(data[17], data[18]),
-			NBR_2B(data[19], data[20]),
-			NBR_2B(data[21], data[22]),
-			NBR_2B(data[23], data[24]),
-			NBR_2B(data[25], data[26]),
+			NBR_2B(data[PACK_STAT_EXP_HP_HB], data[PACK_STAT_EXP_HP_LB]),
+			NBR_2B(data[PACK_STAT_EXP_HP_HB], data[PACK_STAT_EXP_HP_LB]),
+			NBR_2B(data[PACK_STAT_EXP_ATK_HB], data[PACK_STAT_EXP_ATK_LB]),
+			NBR_2B(data[PACK_STAT_EXP_DEF_HB], data[PACK_STAT_EXP_DEF_LB]),
+			NBR_2B(data[PACK_STAT_EXP_SPD_HB], data[PACK_STAT_EXP_SPD_LB]),
+			NBR_2B(data[PACK_STAT_EXP_SPE_HB], data[PACK_STAT_EXP_SPE_LB]),
 		},
 		_baseStats{
-			static_cast<unsigned>(fmin(999, fmax(1, NBR_2B(data[1],  data[2])))),   //HP
-			static_cast<unsigned>(fmin(999, fmax(1, NBR_2B(data[34], data[35])))), //maxHP
-			static_cast<unsigned short>(fmin(999, fmax(1, NBR_2B(data[36], data[37])))), //ATK
-			static_cast<unsigned short>(fmin(999, fmax(1, NBR_2B(data[38], data[39])))), //DEF
-			static_cast<unsigned short>(fmin(999, fmax(1, NBR_2B(data[40], data[41])))), //SPD
-			static_cast<unsigned short>(fmin(999, fmax(1, NBR_2B(data[42], data[43]))))  //SPE
+			static_cast<unsigned>(NBR_2B(data[PACK_HP_HB],  data[PACK_HP_LB])),
+			static_cast<unsigned>(NBR_2B(data[PACK_MAX_HP_HB], data[PACK_MAX_HP_LB])),
+			static_cast<unsigned short>(NBR_2B(data[PACK_ATK_HB], data[PACK_ATK_LB])), //ATK
+			static_cast<unsigned short>(NBR_2B(data[PACK_DEF_HB], data[PACK_DEF_LB])), //DEF
+			static_cast<unsigned short>(NBR_2B(data[PACK_SPD_HB], data[PACK_SPD_LB])), //SPD
+			static_cast<unsigned short>(NBR_2B(data[PACK_SPE_HB], data[PACK_SPE_LB]))  //SPE
 		},
 		_upgradedStats{0, 0, 0, 0, 0, 0},
-		_moveSet{
-			availableMoves[data[8]],
-			availableMoves[data[9]],
-			availableMoves[data[10]],
-			availableMoves[data[11]]
-		},
 		_types{
-			static_cast<PokemonTypes>(data[5]),
-			static_cast<PokemonTypes>(data[6])
+			static_cast<PokemonTypes>(data[PACK_TYPEA]),
+			static_cast<PokemonTypes>(data[PACK_TYPEB])
 		},
-		_level{data[33]},
-		_catchRate{data[7]},
+		_level{data[PACK_CURR_LEVEL]},
+		_catchRate{data[PACK_CATCH_RATE]},
 		_storingDamages(false),
 		_damagesStored(0),
-		_currentStatus{data[4]},
+		_currentStatus{data[PACK_STATUS]},
 		_globalCritRatio(-1),
 		_game(game)
 	{
-		this->_moveSet[0].setPPUp(data[29] >> 6U);
-		this->_moveSet[1].setPPUp(data[30] >> 6U);
-		this->_moveSet[2].setPPUp(data[31] >> 6U);
-		this->_moveSet[3].setPPUp(data[32] >> 6U);
-		this->_moveSet[0].setPP(data[29] & 0b111111U);
-		this->_moveSet[1].setPP(data[30] & 0b111111U);
-		this->_moveSet[2].setPP(data[31] & 0b111111U);
-		this->_moveSet[3].setPP(data[32] & 0b111111U);
+		this->_dvs.maxHP = this->_dvs.HP =
+			((this->_dvs.ATK & 0x1U) << 3U) |
+			((this->_dvs.DEF & 0b1U) << 2U) |
+			((this->_dvs.SPD & 0b1U) << 1U) |
+			((this->_dvs.SPE & 0b1U) << 0U);
+
+		this->_moveSet.reserve(4);
+		for (int i = 0; i < 4; i++) {
+			this->_moveSet.push_back(availableMoves[data[PACK_MOVE1]]);
+			this->_moveSet[i].setPPUp(data[PACK_PPS_MOVE1 + i] >> 6U);
+			this->_moveSet[i].setPP(data[PACK_PPS_MOVE1 + i] & 0b111111U);
+		}
 	}
 
 	BaseStats Pokemon::makeStats(unsigned char level, const PokemonBase &base, const BaseStats &dvs, const BaseStats &evs)
@@ -665,6 +663,8 @@ namespace PokemonGen1
 		//Moves ID
 		for (const Move &move : this->_moveSet)
 			result.push_back(move.getID());
+		for (int i = this->_moveSet.size(); i < 4; i++)
+			result.push_back(0x00);
 
 		//Trainer ID
 		result.push_back(0x00);
@@ -676,28 +676,28 @@ namespace PokemonGen1
 		result.push_back(0x00);
 
 		//StatEXP HP
-		result.push_back(0x00);
-		result.push_back(0x00);
+		result.push_back(this->_statExps.HP >> 8U);
+		result.push_back(this->_statExps.HP >> 0U);
 
 		//StatEXP ATK
-		result.push_back(0x00);
-		result.push_back(0x00);
+		result.push_back(this->_statExps.ATK >> 8U);
+		result.push_back(this->_statExps.ATK >> 0U);
 
 		//StatEXP DEF
-		result.push_back(0x00);
-		result.push_back(0x00);
+		result.push_back(this->_statExps.DEF >> 8U);
+		result.push_back(this->_statExps.DEF >> 0U);
 
 		//StatEXP SPD
-		result.push_back(0x00);
-		result.push_back(0x00);
+		result.push_back(this->_statExps.SPD >> 8U);
+		result.push_back(this->_statExps.SPD >> 0U);
 
 		//StatEXP SPE
-		result.push_back(0x00);
-		result.push_back(0x00);
+		result.push_back(this->_statExps.SPE >> 8U);
+		result.push_back(this->_statExps.SPE >> 0U);
 
 		//DVs
-		result.push_back(0xFF);
-		result.push_back(0xFF);
+		result.push_back(this->_dvs.SPD << 4U | this->_dvs.SPE);
+		result.push_back(this->_dvs.ATK << 4U | this->_dvs.DEF);
 
 		//PP Ups and moves PP
 		for (const Move &move : this->_moveSet)
@@ -766,6 +766,7 @@ namespace PokemonGen1
 
 		auto stats = target.getBaseStats();
 
+		this->_id = target.getID();
 		this->_baseStats.ATK = stats.ATK;
 		this->_baseStats.DEF = stats.DEF;
 		this->_baseStats.SPD = stats.SPD;
