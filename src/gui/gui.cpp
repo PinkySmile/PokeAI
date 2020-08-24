@@ -39,7 +39,7 @@ void moveMovePanels(const std::vector<std::pair<unsigned, tgui::ScrollablePanel:
 		panels[i].second->setPosition(i % 3 * 250, 10 + i / 3 * 160);
 }
 
-void applyMoveFilters(unsigned sorting, std::string query, std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>> &panels)
+void applyMoveFilters(unsigned sorting, std::string query, const std::string &type, std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>> &panels)
 {
 	std::vector<std::function<bool(const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2)>> sortingAlgos = {
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
@@ -94,6 +94,14 @@ void applyMoveFilters(unsigned sorting, std::string query, std::vector<std::pair
 			}
 		), panels.end());
 	}
+	if (!type.empty())
+		panels.erase(std::remove_if(
+			panels.begin(),
+			panels.end(),
+			[&type](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1) {
+				return typeToString(PokemonGen1::availableMoves[p1.first].getType()) != type;
+			}
+		), panels.end());
 	std::sort(panels.begin(), panels.end(), sortingAlgos[sorting]);
 }
 
@@ -105,10 +113,12 @@ void openChangeMoveBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 	auto panels = std::make_shared<std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>>>(PokemonGen1::availableMoves.size());
 	auto displayedPanels = std::make_shared<std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>>>(PokemonGen1::availableMoves.size());
 	auto filter = tgui::EditBox::create();
+	auto typeFilter = tgui::ComboBox::create();
 	auto sorting = tgui::ComboBox::create();
 
-	filter->setSize({"&.w * 70 / 100 - 20", 20});
-	sorting->setSize({"&.w * 30 / 100 - 10", 20});
+	filter->setSize("&.w * 50 / 100 - 30", 20);
+	typeFilter->setSize("&.w * 20 / 100 - 20", 20);
+	sorting->setSize("&.w * 30 / 100 - 10", 20);
 
 	filter->setDefaultText("Search");
 	sorting->addItem("Sort A -> Z");
@@ -118,21 +128,42 @@ void openChangeMoveBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 	sorting->addItem("Sort by descending ID");
 	sorting->setSelectedItemByIndex(0);
 
-	auto refresh = [displayedPanels, panels, filter, sorting]{
+	typeFilter->addItem("--Filter by type--", "");
+	typeFilter->addItem("Normal", "Normal");
+	typeFilter->addItem("Fighting", "Fighting");
+	typeFilter->addItem("Fly", "Fly");
+	typeFilter->addItem("Poison", "Poison");
+	typeFilter->addItem("Ground", "Ground");
+	typeFilter->addItem("Rock", "Rock");
+	typeFilter->addItem("Bug", "Bug");
+	typeFilter->addItem("Ghost", "Ghost");
+	typeFilter->addItem("Fire", "Fire");
+	typeFilter->addItem("Water", "Water");
+	typeFilter->addItem("Grass", "Grass");
+	typeFilter->addItem("Electric", "Electric");
+	typeFilter->addItem("Psy", "Psy");
+	typeFilter->addItem("Ice", "Ice");
+	typeFilter->addItem("Dragon", "Dragon");
+	typeFilter->setSelectedItemByIndex(0);
+
+	auto refresh = [displayedPanels, panels, filter, sorting, typeFilter]{
 		for (auto &panel : *panels)
 			panel.second->setPosition(-200, -200);
 		*displayedPanels = *panels;
-		applyMoveFilters(sorting->getSelectedItemIndex(), filter->getText(), *displayedPanels);
+		applyMoveFilters(sorting->getSelectedItemIndex(), filter->getText(), typeFilter->getSelectedItemId(), *displayedPanels);
 		moveMovePanels(*displayedPanels);
 	};
 
 	filter->onTextChange.connect(refresh);
 	sorting->onItemSelect.connect(refresh);
+	typeFilter->onItemSelect.connect(refresh);
 
 	filter->setPosition(10, 10);
 	sorting->setPosition("&.w * 70 / 100", 10);
+	typeFilter->setPosition("&.w * 50 / 100", 10);
 	panel->setPosition(10, 40);
 
+	bigPan->add(typeFilter);
 	bigPan->add(sorting);
 	bigPan->add(filter);
 
@@ -172,7 +203,7 @@ void openChangeMoveBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 		panel->add(pan);
 	}
 	*displayedPanels = *panels;
-	applyMoveFilters(0, "", *displayedPanels);
+	applyMoveFilters(0, "", "", *displayedPanels);
 	moveMovePanels(*displayedPanels);
 	bigPan->add(panel);
 	gui.add(bigPan);
@@ -255,8 +286,8 @@ void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 		for (auto &panel : *panels)
 			panel.second->setPosition(-200, -200);
 		*displayedPanels = *panels;
-		applyMoveFilters(sorting->getSelectedItemIndex(), filter->getText(), *displayedPanels);
-		moveMovePanels(*displayedPanels);
+		applyPkmnsFilters(sorting->getSelectedItemIndex(), filter->getText(), *displayedPanels);
+		movePkmnsPanels(*displayedPanels);
 	};
 
 	filter->onTextChange.connect(refresh);
