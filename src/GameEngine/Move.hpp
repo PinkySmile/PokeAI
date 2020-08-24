@@ -13,7 +13,7 @@
 #include "StatsChange.hpp"
 
 
-#define DEFAULT_MOVE(id) Move{id, "Move "#id, TYPE_NORMAL, PHYSICAL, 0, 0, 0}
+#define DEFAULT_MOVE(id) Move{id, "Move "#id, TYPE_INVALID, STATUS, 0, 0, 0, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, nullptr, "This move is invalid and will cause desync when used"}
 #define NO_STATS_CHANGE {}, {}
 #define DEFAULT_HITS {1, 1}
 #define ONE_RUN DEFAULT_HITS, ""

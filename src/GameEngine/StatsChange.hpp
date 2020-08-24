@@ -16,7 +16,7 @@ namespace PokemonGen1
 		STATS_SPD,
 		STATS_SPE,
 		STATS_ESQ,
-		STATS_PRE,
+		STATS_ACC,
 	};
 
 	std::string statToString(StatsChange stat);

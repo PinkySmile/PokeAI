@@ -19,7 +19,7 @@ namespace PokemonGen1
 			return "SPECIAL";
 		case STATS_ESQ:
 			return "EVADE";
-		case STATS_PRE:
+		case STATS_ACC:
 			return "ACCURACY";
 		default:
 			return "???";

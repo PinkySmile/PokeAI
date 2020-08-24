@@ -959,7 +959,7 @@ namespace PokemonGen1
 	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/Tables.cs#L202
 	*/
 	const std::vector<PokemonBase> pokemonList{
-		{ 0X00,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X00) */
+		{ 0X00,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,  0,   0 }, /* MISSINGNO.   (0X00) */
 		{ 0X01,      "RHYDON", 105, 130, 120,  40,  45,   TYPE_GROUND,     TYPE_ROCK,  60, 204 }, /* RHYDON       (0X01) */
 		{ 0X02,  "KANGASKHAN", 105,  95,  80,  90,  40,   TYPE_NORMAL,   TYPE_NORMAL,  45, 175 }, /* KANGASKHAN   (0X02) */
 		{ 0X03,    "NIDORAN~",  46,  57,  40,  50,  40,   TYPE_POISON,   TYPE_POISON, 235,  60 }, /* NIDORAN_M    (0X03) */
@@ -990,8 +990,8 @@ namespace PokemonGen1
 		{ 0X1C,   "BLASTOISE",  79,  83, 100,  78,  85,    TYPE_WATER,    TYPE_WATER,  45, 210 }, /* BLASTOISE    (0X1C) */
 		{ 0X1D,      "PINSIR",  65, 125, 100,  85,  55,      TYPE_BUG,      TYPE_BUG,  45, 200 }, /* PINSIR       (0X1D) */
 		{ 0X1E,     "TANGELA",  65,  55, 115,  60, 100,    TYPE_GRASS,    TYPE_GRASS,  45, 166 }, /* TANGELA      (0X1E) */
-		{ 0X1F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X1F) */
-		{ 0X20,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X20) */
+		{ 0X1F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X1F) */
+		{ 0X20,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X20) */
 		{ 0X21,   "GROWLITHE",  55,  70,  45,  60,  50,     TYPE_FIRE,     TYPE_FIRE, 190,  91 }, /* GROWLITHE    (0X21) */
 		{ 0X22,        "ONIX",  35,  45, 160,  70,  30,     TYPE_ROCK,   TYPE_GROUND,  45, 108 }, /* ONIX         (0X22) */
 		{ 0X23,      "FEAROW",  65,  90,  65, 100,  61,   TYPE_NORMAL,   TYPE_FLYING,  90, 162 }, /* FEAROW       (0X23) */
@@ -1009,26 +1009,26 @@ namespace PokemonGen1
 		{ 0X2F,     "PSYDUCK",  50,  52,  48,  55,  50,    TYPE_WATER,    TYPE_WATER, 190,  80 }, /* PSYDUCK      (0X2F) */
 		{ 0X30,     "DROWZEE",  60,  48,  45,  42,  90,  TYPE_PSYCHIC,  TYPE_PSYCHIC, 190, 102 }, /* DROWZEE      (0X30) */
 		{ 0X31,       "GOLEM",  80, 110, 130,  45,  55,     TYPE_ROCK,   TYPE_GROUND,  45, 177 }, /* GOLEM        (0X31) */
-		{ 0X32,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X32) */
+		{ 0X32,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X32) */
 		{ 0X33,      "MAGMAR",  65,  95,  57,  93,  85,     TYPE_FIRE,     TYPE_FIRE,  45, 167 }, /* MAGMAR       (0X33) */
-		{ 0X34,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X34) */
+		{ 0X34,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X34) */
 		{ 0X35,  "ELECTABUZZ",  65,  83,  57, 105,  85, TYPE_ELECTRIC, TYPE_ELECTRIC,  45, 156 }, /* ELECTABUZZ   (0X35) */
 		{ 0X36,    "MAGNETON",  50,  60,  95,  70, 120, TYPE_ELECTRIC, TYPE_ELECTRIC,  60, 161 }, /* MAGNETON     (0X36) */
 		{ 0X37,     "KOFFING",  40,  65,  95,  35,  60,   TYPE_POISON,   TYPE_POISON, 190, 114 }, /* KOFFING      (0X37) */
-		{ 0X38,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X38) */
+		{ 0X38,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X38) */
 		{ 0X39,      "MANKEY",  40,  80,  35,  70,  35, TYPE_FIGHTING, TYPE_FIGHTING, 190,  74 }, /* MANKEY       (0X39) */
 		{ 0X3A,        "SEEL",  65,  45,  55,  45,  70,    TYPE_WATER,    TYPE_WATER, 190, 100 }, /* SEEL         (0X3A) */
 		{ 0X3B,     "DIGLETT",  10,  55,  25,  95,  45,   TYPE_GROUND,   TYPE_GROUND, 255,  81 }, /* DIGLETT      (0X3B) */
 		{ 0X3C,      "TAUROS",  75, 100,  95, 110,  70,   TYPE_NORMAL,   TYPE_NORMAL,  45, 211 }, /* TAUROS       (0X3C) */
-		{ 0X3D,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X3D) */
-		{ 0X3E,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X3E) */
-		{ 0X3F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X3F) */
+		{ 0X3D,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X3D) */
+		{ 0X3E,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X3E) */
+		{ 0X3F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X3F) */
 		{ 0X40,   "FARFETCHD",  52,  65,  55,  60,  58,   TYPE_NORMAL,   TYPE_FLYING,  45,  94 }, /* FARFETCH_D   (0X40) */
 		{ 0X41,     "VENONAT",  60,  55,  50,  45,  40,      TYPE_BUG,   TYPE_POISON, 190,  75 }, /* VENONAT      (0X41) */
 		{ 0X42,   "DRAGONITE",  91, 134,  95,  80, 100,   TYPE_DRAGON,   TYPE_FLYING,  45, 218 }, /* DRAGONITE    (0X42) */
-		{ 0X43,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X43) */
-		{ 0X44,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X44) */
-		{ 0X45,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X45) */
+		{ 0X43,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X43) */
+		{ 0X44,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X44) */
+		{ 0X45,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X45) */
 		{ 0X46,       "DODUO",  35,  85,  45,  75,  35,   TYPE_NORMAL,   TYPE_FLYING, 190,  96 }, /* DODUO        (0X46) */
 		{ 0X47,     "POLIWAG",  40,  50,  40,  90,  40,    TYPE_WATER,    TYPE_WATER, 255,  77 }, /* POLIWAG      (0X47) */
 		{ 0X48,        "JYNX",  65,  50,  35,  95,  95,      TYPE_ICE,  TYPE_PSYCHIC,  45, 137 }, /* JYNX         (0X48) */
@@ -1038,23 +1038,23 @@ namespace PokemonGen1
 		{ 0X4C,       "DITTO",  48,  48,  48,  48,  48,   TYPE_NORMAL,   TYPE_NORMAL,  35,  61 }, /* DITTO        (0X4C) */
 		{ 0X4D,      "MEOWTH",  40,  45,  35,  90,  40,   TYPE_NORMAL,   TYPE_NORMAL, 255,  69 }, /* MEOWTH       (0X4D) */
 		{ 0X4E,      "KRABBY",  30, 105,  90,  50,  25,    TYPE_WATER,    TYPE_WATER, 225, 115 }, /* KRABBY       (0X4E) */
-		{ 0X4F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X4F) */
-		{ 0X50,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X50) */
-		{ 0X51,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X51) */
+		{ 0X4F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X4F) */
+		{ 0X50,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X50) */
+		{ 0X51,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X51) */
 		{ 0X52,      "VULPIX",  38,  41,  40,  65,  65,     TYPE_FIRE,     TYPE_FIRE, 190,  63 }, /* VULPIX       (0X52) */
 		{ 0X53,   "NINETALES",  73,  76,  75, 100, 100,     TYPE_FIRE,     TYPE_FIRE,  75, 178 }, /* NINETALES    (0X53) */
 		{ 0X54,     "PIKACHU",  35,  55,  30,  90,  50, TYPE_ELECTRIC, TYPE_ELECTRIC, 190,  82 }, /* PIKACHU      (0X54) */
 		{ 0X55,      "RAICHU",  60,  90,  55, 100,  90, TYPE_ELECTRIC, TYPE_ELECTRIC,  75, 122 }, /* RAICHU       (0X55) */
-		{ 0X56,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X56) */
-		{ 0X57,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X57) */
+		{ 0X56,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X56) */
+		{ 0X57,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X57) */
 		{ 0X58,     "DRATINI",  41,  64,  45,  50,  50,   TYPE_DRAGON,   TYPE_DRAGON,  45,  67 }, /* DRATINI      (0X58) */
 		{ 0X59,   "DRAGONAIR",  61,  84,  65,  70,  70,   TYPE_DRAGON,   TYPE_DRAGON,  45, 144 }, /* DRAGONAIR    (0X59) */
 		{ 0X5A,      "KABUTO",  30,  80,  90,  55,  45,     TYPE_ROCK,    TYPE_WATER,  45, 119 }, /* KABUTO       (0X5A) */
 		{ 0X5B,    "KABUTOPS",  60, 115, 105,  80,  70,     TYPE_ROCK,    TYPE_WATER,  45, 201 }, /* KABUTOPS     (0X5B) */
 		{ 0X5C,      "HORSEA",  30,  40,  70,  60,  70,    TYPE_WATER,    TYPE_WATER, 225,  83 }, /* HORSEA       (0X5C) */
 		{ 0X5D,      "SEADRA",  55,  65,  95,  85,  95,    TYPE_WATER,    TYPE_WATER,  75, 155 }, /* SEADRA       (0X5D) */
-		{ 0X5E,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X5E) */
-		{ 0X5F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X5F) */
+		{ 0X5E,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X5E) */
+		{ 0X5F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X5F) */
 		{ 0X60,   "SANDSHREW",  50,  75,  85,  40,  30,   TYPE_GROUND,   TYPE_GROUND, 255,  93 }, /* SANDSHREW    (0X60) */
 		{ 0X61,   "SANDSLASH",  75, 100, 110,  65,  55,   TYPE_GROUND,   TYPE_GROUND,  90, 163 }, /* SANDSLASH    (0X61) */
 		{ 0X62,     "OMANYTE",  35,  40, 100,  35,  90,     TYPE_ROCK,    TYPE_WATER,  45, 120 }, /* OMANYTE      (0X62) */
@@ -1074,38 +1074,38 @@ namespace PokemonGen1
 		{ 0X70,      "WEEDLE",  40,  35,  30,  50,  20,      TYPE_BUG,   TYPE_POISON, 255,  52 }, /* WEEDLE       (0X70) */
 		{ 0X71,      "KAKUNA",  45,  25,  50,  35,  25,      TYPE_BUG,   TYPE_POISON, 120,  71 }, /* KAKUNA       (0X71) */
 		{ 0X72,    "BEEDRILL",  65,  80,  40,  75,  45,      TYPE_BUG,   TYPE_POISON,  45, 159 }, /* BEEDRILL     (0X72) */
-		{ 0X73,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X73) */
+		{ 0X73,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X73) */
 		{ 0X74,      "DODRIO",  60, 110,  70, 100,  60,   TYPE_NORMAL,   TYPE_FLYING,  45, 158 }, /* DODRIO       (0X74) */
 		{ 0X75,    "PRIMEAPE",  65, 105,  60,  95,  60, TYPE_FIGHTING, TYPE_FIGHTING,  75, 149 }, /* PRIMEAPE     (0X75) */
 		{ 0X76,     "DUGTRIO",  35,  80,  50, 120,  70,   TYPE_GROUND,   TYPE_GROUND,  50, 153 }, /* DUGTRIO      (0X76) */
 		{ 0X77,    "VENOMOTH",  70,  65,  60,  90,  90,      TYPE_BUG,   TYPE_POISON,  75, 138 }, /* VENOMOTH     (0X77) */
 		{ 0X78,     "DEWGONG",  90,  70,  80,  70,  95,    TYPE_WATER,      TYPE_ICE,  75, 176 }, /* DEWGONG      (0X78) */
-		{ 0X79,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X79) */
-		{ 0X7A,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X7A) */
+		{ 0X79,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X79) */
+		{ 0X7A,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X7A) */
 		{ 0X7B,    "CATERPIE",  45,  30,  35,  45,  20,      TYPE_BUG,      TYPE_BUG, 255,  53 }, /* CATERPIE     (0X7B) */
 		{ 0X7C,     "METAPOD",  50,  20,  55,  30,  25,      TYPE_BUG,      TYPE_BUG, 120,  72 }, /* METAPOD      (0X7C) */
 		{ 0X7D,  "BUTTERFREE",  60,  45,  50,  70,  80,      TYPE_BUG,   TYPE_FLYING,  45, 160 }, /* BUTTERFREE   (0X7D) */
 		{ 0X7E,     "MACHAMP",  90, 130,  80,  55,  65, TYPE_FIGHTING, TYPE_FIGHTING,  45, 193 }, /* MACHAMP      (0X7E) */
-		{ 0X7F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X7F) */
+		{ 0X7F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X7F) */
 		{ 0X80,     "GOLDUCK",  80,  82,  78,  85,  80,    TYPE_WATER,    TYPE_WATER,  75, 174 }, /* GOLDUCK      (0X80) */
 		{ 0X81,       "HYPNO",  85,  73,  70,  67, 115,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  75, 165 }, /* HYPNO        (0X81) */
 		{ 0X82,      "GOLBAT",  75,  80,  70,  90,  75,   TYPE_POISON,   TYPE_FLYING,  90, 171 }, /* GOLBAT       (0X82) */
 		{ 0X83,      "MEWTWO", 106, 110,  90, 130, 154,  TYPE_PSYCHIC,  TYPE_PSYCHIC,   3, 220 }, /* MEWTWO       (0X83) */
 		{ 0X84,     "SNORLAX", 160, 110,  65,  30,  65,   TYPE_NORMAL,   TYPE_NORMAL,  25, 154 }, /* SNORLAX      (0X84) */
 		{ 0X85,    "MAGIKARP",  20,  10,  55,  80,  20,    TYPE_WATER,    TYPE_WATER, 255,  20 }, /* MAGIKARP     (0X85) */
-		{ 0X86,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X86) */
-		{ 0X87,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X87) */
+		{ 0X86,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X86) */
+		{ 0X87,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X87) */
 		{ 0X88,         "MUK", 105, 105,  75,  50,  65,   TYPE_POISON,   TYPE_POISON,  75, 157 }, /* MUK          (0X88) */
-		{ 0X89,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X89) */
+		{ 0X89,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X89) */
 		{ 0X8A,     "KINGLER",  55, 130, 115,  75,  50,    TYPE_WATER,    TYPE_WATER,  60, 206 }, /* KINGLER      (0X8A) */
 		{ 0X8B,    "CLOYSTER",  50,  95, 180,  70,  85,    TYPE_WATER,      TYPE_ICE,  60, 203 }, /* CLOYSTER     (0X8B) */
-		{ 0X8C,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X8C) */
+		{ 0X8C,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X8C) */
 		{ 0X8D,   "ELECTRODE",  60,  50,  70, 140,  80, TYPE_ELECTRIC, TYPE_ELECTRIC,  60, 150 }, /* ELECTRODE    (0X8D) */
 		{ 0X8E,    "CLEFABLE",  95,  70,  73,  60,  85,   TYPE_NORMAL,   TYPE_NORMAL,  25, 129 }, /* CLEFABLE     (0X8E) */
 		{ 0X8F,     "WEEZING",  65,  90, 120,  60,  85,   TYPE_POISON,   TYPE_POISON,  60, 173 }, /* WEEZING      (0X8F) */
 		{ 0X90,     "PERSIAN",  65,  70,  60, 115,  65,   TYPE_NORMAL,   TYPE_NORMAL,  90, 148 }, /* PERSIAN      (0X90) */
 		{ 0X91,     "MAROWAK",  60,  80, 110,  45,  50,   TYPE_GROUND,   TYPE_GROUND,  75, 124 }, /* MAROWAK      (0X91) */
-		{ 0X92,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X92) */
+		{ 0X92,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X92) */
 		{ 0X93,     "HAUNTER",  45,  50,  45,  95, 115,    TYPE_GHOST,   TYPE_POISON,  90, 126 }, /* HAUNTER      (0X93) */
 		{ 0X94,        "ABRA",  25,  20,  15,  90, 105,  TYPE_PSYCHIC,  TYPE_PSYCHIC, 200,  73 }, /* ABRA         (0X94) */
 		{ 0X95,    "ALAKAZAM",  55,  50,  45, 120, 135,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  50, 186 }, /* ALAKAZAM     (0X95) */
@@ -1115,13 +1115,13 @@ namespace PokemonGen1
 		{ 0X99,   "BULBASAUR",  45,  49,  49,  45,  65,    TYPE_GRASS,   TYPE_POISON,  45,  64 }, /* BULBASAUR    (0X99) */
 		{ 0X9A,    "VENUSAUR",  80,  82,  83,  80, 100,    TYPE_GRASS,   TYPE_POISON,  45, 208 }, /* VENUSAUR     (0X9A) */
 		{ 0X9B,  "TENTACRUEL",  80,  70,  65, 100, 120,    TYPE_WATER,   TYPE_POISON,  60, 205 }, /* TENTACRUEL   (0X9B) */
-		{ 0X9C,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X9C) */
+		{ 0X9C,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X9C) */
 		{ 0X9D,     "GOLDEEN",  45,  67,  60,  63,  50,    TYPE_WATER,    TYPE_WATER, 225, 111 }, /* GOLDEEN      (0X9D) */
 		{ 0X9E,     "SEAKING",  80,  92,  65,  68,  80,    TYPE_WATER,    TYPE_WATER,  60, 170 }, /* SEAKING      (0X9E) */
-		{ 0X9F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0X9F) */
-		{ 0XA0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XA0) */
-		{ 0XA1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XA1) */
-		{ 0XA2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XA2) */
+		{ 0X9F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X9F) */
+		{ 0XA0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XA0) */
+		{ 0XA1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XA1) */
+		{ 0XA2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XA2) */
 		{ 0XA3,      "PONYTA",  50,  85,  55,  90,  65,     TYPE_FIRE,     TYPE_FIRE, 190, 152 }, /* PONYTA       (0XA3) */
 		{ 0XA4,    "RAPIDASH",  65, 100,  70, 105,  80,     TYPE_FIRE,     TYPE_FIRE,  60, 192 }, /* RAPIDASH     (0XA4) */
 		{ 0XA5,     "RATTATA",  30,  56,  35,  72,  25,   TYPE_NORMAL,   TYPE_NORMAL, 255,  57 }, /* RATTATA      (0XA5) */
@@ -1131,89 +1131,89 @@ namespace PokemonGen1
 		{ 0XA9,     "GEODUDE",  40,  80, 100,  20,  30,     TYPE_ROCK,   TYPE_GROUND, 255,  86 }, /* GEODUDE      (0XA9) */
 		{ 0XAA,     "PORYGON",  65,  60,  70,  40,  75,   TYPE_NORMAL,   TYPE_NORMAL,  45, 130 }, /* PORYGON      (0XAA) */
 		{ 0XAB,  "AERODACTYL",  80, 105,  65, 130,  60,     TYPE_ROCK,   TYPE_FLYING,  45, 202 }, /* AERODACTYL   (0XAB) */
-		{ 0XAC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XAC) */
+		{ 0XAC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XAC) */
 		{ 0XAD,   "MAGNEMITE",  25,  35,  70,  45,  95, TYPE_ELECTRIC, TYPE_ELECTRIC, 190,  89 }, /* MAGNEMITE    (0XAD) */
-		{ 0XAE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XAE) */
-		{ 0XAF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XAF) */
+		{ 0XAE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XAE) */
+		{ 0XAF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XAF) */
 		{ 0XB0,  "CHARMANDER",  39,  52,  43,  65,  50,     TYPE_FIRE,     TYPE_FIRE,  45,  65 }, /* CHARMANDER   (0XB0) */
 		{ 0XB1,    "SQUIRTLE",  44,  48,  65,  43,  50,    TYPE_WATER,    TYPE_WATER,  45,  66 }, /* SQUIRTLE     (0XB1) */
 		{ 0XB2,  "CHARMELEON",  58,  64,  58,  80,  65,     TYPE_FIRE,     TYPE_FIRE,  45, 142 }, /* CHARMELEON   (0XB2) */
 		{ 0XB3,   "WARTORTLE",  59,  63,  80,  58,  65,    TYPE_WATER,    TYPE_WATER,  45, 143 }, /* WARTORTLE    (0XB3) */
 		{ 0XB4,   "CHARIZARD",  78,  84,  78, 100,  85,     TYPE_FIRE,   TYPE_FLYING,  45, 209 }, /* CHARIZARD    (0XB4) */
-		{ 0XB5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XB5) */
-		{ 0XB6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XB6) */
-		{ 0XB7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XB7) */
-		{ 0XB8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XB8) */
+		{ 0XB5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XB5) */
+		{ 0XB6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XB6) */
+		{ 0XB7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XB7) */
+		{ 0XB8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XB8) */
 		{ 0XB9,      "ODDISH",  45,  50,  55,  30,  75,    TYPE_GRASS,   TYPE_POISON, 255,  78 }, /* ODDISH       (0XB9) */
 		{ 0XBA,       "GLOOM",  60,  65,  70,  40,  85,    TYPE_GRASS,   TYPE_POISON, 120, 132 }, /* GLOOM        (0XBA) */
 		{ 0XBB,   "VILEPLUME",  75,  80,  85,  50, 100,    TYPE_GRASS,   TYPE_POISON,  45, 184 }, /* VILEPLUME    (0XBB) */
 		{ 0XBC,  "BELLSPROUT",  50,  75,  35,  40,  70,    TYPE_GRASS,   TYPE_POISON, 255,  84 }, /* BELLSPROUT   (0XBC) */
 		{ 0XBD,  "WEEPINBELL",  65,  90,  50,  55,  85,    TYPE_GRASS,   TYPE_POISON, 120, 151 }, /* WEEPINBELL   (0XBD) */
 		{ 0XBE,  "VICTREEBEL",  80, 105,  65,  70, 100,    TYPE_GRASS,   TYPE_POISON,  45, 191 }, /* VICTREEBEL   (0XBE) */
-		{ 0XBF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XBF) */
-		{ 0XC0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC0) */
-		{ 0XC1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC1) */
-		{ 0XC2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC2) */
-		{ 0XC3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC3) */
-		{ 0XC4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC4) */
-		{ 0XC5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC5) */
-		{ 0XC6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC6) */
-		{ 0XC7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC7) */
-		{ 0XC8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC8) */
-		{ 0XC9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XC9) */
-		{ 0XCA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XCA) */
-		{ 0XCB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XCB) */
-		{ 0XCC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XCC) */
-		{ 0XCD,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XCD) */
-		{ 0XCE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XCE) */
-		{ 0XCF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XCF) */
-		{ 0XD0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD0) */
-		{ 0XD1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD1) */
-		{ 0XD2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD2) */
-		{ 0XD3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD3) */
-		{ 0XD4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD4) */
-		{ 0XD5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD5) */
-		{ 0XD6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD6) */
-		{ 0XD7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD7) */
-		{ 0XD8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD8) */
-		{ 0XD9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XD9) */
-		{ 0XDA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XDA) */
-		{ 0XDB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XDB) */
-		{ 0XDC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XDC) */
-		{ 0XDD,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XDD) */
-		{ 0XDE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XDE) */
-		{ 0XDF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XDF) */
-		{ 0XE0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE0) */
-		{ 0XE1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE1) */
-		{ 0XE2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE2) */
-		{ 0XE3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE3) */
-		{ 0XE4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE4) */
-		{ 0XE5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE5) */
-		{ 0XE6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE6) */
-		{ 0XE7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE7) */
-		{ 0XE8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE8) */
-		{ 0XE9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XE9) */
-		{ 0XEA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XEA) */
-		{ 0XEB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XEB) */
-		{ 0XEC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XEC) */
-		{ 0XED,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XED) */
-		{ 0XEE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XEE) */
-		{ 0XEF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XEF) */
-		{ 0XF0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF0) */
-		{ 0XF1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF1) */
-		{ 0XF2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF2) */
-		{ 0XF3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF3) */
-		{ 0XF4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF4) */
-		{ 0XF5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF5) */
-		{ 0XF6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF6) */
-		{ 0XF7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF7) */
-		{ 0XF8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF8) */
-		{ 0XF9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XF9) */
-		{ 0XFA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XFA) */
-		{ 0XFB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XFB) */
-		{ 0XFC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XFC) */
-		{ 0XFD,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XFD) */
-		{ 0XFE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XFE) */
-		{ 0XFF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_NORMAL,   TYPE_NORMAL,   0,   0 }, /* MISSINGNO.   (0XFF) */
+		{ 0XBF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XBF) */
+		{ 0XC0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC0) */
+		{ 0XC1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC1) */
+		{ 0XC2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC2) */
+		{ 0XC3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC3) */
+		{ 0XC4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC4) */
+		{ 0XC5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC5) */
+		{ 0XC6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC6) */
+		{ 0XC7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC7) */
+		{ 0XC8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC8) */
+		{ 0XC9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC9) */
+		{ 0XCA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XCA) */
+		{ 0XCB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XCB) */
+		{ 0XCC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XCC) */
+		{ 0XCD,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XCD) */
+		{ 0XCE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XCE) */
+		{ 0XCF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XCF) */
+		{ 0XD0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD0) */
+		{ 0XD1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD1) */
+		{ 0XD2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD2) */
+		{ 0XD3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD3) */
+		{ 0XD4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD4) */
+		{ 0XD5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD5) */
+		{ 0XD6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD6) */
+		{ 0XD7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD7) */
+		{ 0XD8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD8) */
+		{ 0XD9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD9) */
+		{ 0XDA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XDA) */
+		{ 0XDB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XDB) */
+		{ 0XDC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XDC) */
+		{ 0XDD,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XDD) */
+		{ 0XDE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XDE) */
+		{ 0XDF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XDF) */
+		{ 0XE0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE0) */
+		{ 0XE1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE1) */
+		{ 0XE2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE2) */
+		{ 0XE3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE3) */
+		{ 0XE4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE4) */
+		{ 0XE5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE5) */
+		{ 0XE6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE6) */
+		{ 0XE7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE7) */
+		{ 0XE8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE8) */
+		{ 0XE9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE9) */
+		{ 0XEA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XEA) */
+		{ 0XEB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XEB) */
+		{ 0XEC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XEC) */
+		{ 0XED,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XED) */
+		{ 0XEE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XEE) */
+		{ 0XEF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XEF) */
+		{ 0XF0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF0) */
+		{ 0XF1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF1) */
+		{ 0XF2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF2) */
+		{ 0XF3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF3) */
+		{ 0XF4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF4) */
+		{ 0XF5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF5) */
+		{ 0XF6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF6) */
+		{ 0XF7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF7) */
+		{ 0XF8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF8) */
+		{ 0XF9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF9) */
+		{ 0XFA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XFA) */
+		{ 0XFB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XFB) */
+		{ 0XFC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XFC) */
+		{ 0XFD,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XFD) */
+		{ 0XFE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XFE) */
+		{ 0XFF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XFF) */
 	};
 }

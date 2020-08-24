@@ -144,6 +144,7 @@ void openChangeMoveBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 	typeFilter->addItem("Psy", "Psy");
 	typeFilter->addItem("Ice", "Ice");
 	typeFilter->addItem("Dragon", "Dragon");
+	typeFilter->addItem("???", "Unknown");
 	typeFilter->setSelectedItemByIndex(0);
 
 	auto refresh = [displayedPanels, panels, filter, sorting, typeFilter]{
@@ -215,7 +216,7 @@ void movePkmnsPanels(const std::vector<std::pair<unsigned, tgui::ScrollablePanel
 		panels[i].second->setPosition(28 + i % 3 * 248, 10 + i / 3 * 190);
 }
 
-void applyPkmnsFilters(unsigned sorting, std::string query, std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>> &panels)
+void applyPkmnsFilters(unsigned sorting, std::string query, const std::string &type, std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>> &panels)
 {
 	std::vector<std::function<bool(const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2)>> sortingAlgos = {
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
@@ -259,6 +260,16 @@ void applyPkmnsFilters(unsigned sorting, std::string query, std::vector<std::pai
 			}
 		), panels.end());
 	}
+	if (!type.empty())
+		panels.erase(std::remove_if(
+			panels.begin(),
+			panels.end(),
+			[&type](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1) {
+				auto &base = PokemonGen1::pokemonList[p1.first];
+
+				return typeToString(base.typeA) != type && typeToString(base.typeB) != type;
+			}
+		), panels.end());
 	std::sort(panels.begin(), panels.end(), sortingAlgos[sorting]);
 }
 
@@ -271,9 +282,11 @@ void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 	auto displayedPanels = std::make_shared<std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>>>(PokemonGen1::pokemonList.size());
 	auto filter = tgui::EditBox::create();
 	auto sorting = tgui::ComboBox::create();
+	auto typeFilter = tgui::ComboBox::create();
 
-	filter->setSize({"&.w * 70 / 100 - 20", 20});
-	sorting->setSize({"&.w * 30 / 100 - 10", 20});
+	filter->setSize("&.w * 50 / 100 - 30", 20);
+	typeFilter->setSize("&.w * 20 / 100 - 20", 20);
+	sorting->setSize("&.w * 30 / 100 - 10", 20);
 
 	filter->setDefaultText("Search");
 	sorting->addItem("Sort A -> Z");
@@ -282,21 +295,43 @@ void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 	sorting->addItem("Sort by descending ID");
 	sorting->setSelectedItemByIndex(0);
 
-	auto refresh = [displayedPanels, panels, filter, sorting]{
+	typeFilter->addItem("--Filter by type--", "");
+	typeFilter->addItem("Normal", "Normal");
+	typeFilter->addItem("Fighting", "Fighting");
+	typeFilter->addItem("Fly", "Fly");
+	typeFilter->addItem("Poison", "Poison");
+	typeFilter->addItem("Ground", "Ground");
+	typeFilter->addItem("Rock", "Rock");
+	typeFilter->addItem("Bug", "Bug");
+	typeFilter->addItem("Ghost", "Ghost");
+	typeFilter->addItem("Fire", "Fire");
+	typeFilter->addItem("Water", "Water");
+	typeFilter->addItem("Grass", "Grass");
+	typeFilter->addItem("Electric", "Electric");
+	typeFilter->addItem("Psy", "Psy");
+	typeFilter->addItem("Ice", "Ice");
+	typeFilter->addItem("Dragon", "Dragon");
+	typeFilter->addItem("???", "???");
+	typeFilter->setSelectedItemByIndex(0);
+
+	auto refresh = [displayedPanels, panels, filter, sorting, typeFilter]{
 		for (auto &panel : *panels)
 			panel.second->setPosition(-200, -200);
 		*displayedPanels = *panels;
-		applyPkmnsFilters(sorting->getSelectedItemIndex(), filter->getText(), *displayedPanels);
+		applyPkmnsFilters(sorting->getSelectedItemIndex(), filter->getText(), typeFilter->getSelectedItemId(), *displayedPanels);
 		movePkmnsPanels(*displayedPanels);
 	};
 
 	filter->onTextChange.connect(refresh);
 	sorting->onItemSelect.connect(refresh);
+	typeFilter->onItemSelect.connect(refresh);
 
 	filter->setPosition(10, 10);
 	sorting->setPosition("&.w * 70 / 100", 10);
+	typeFilter->setPosition("&.w * 50 / 100", 10);
 	panel->setPosition(10, 40);
 
+	bigPan->add(typeFilter);
 	bigPan->add(sorting);
 	bigPan->add(filter);
 
@@ -339,7 +374,7 @@ void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 		panel->add(pan);
 	}
 	*displayedPanels = *panels;
-	applyPkmnsFilters(0, "", *displayedPanels);
+	applyPkmnsFilters(0, "", "", *displayedPanels);
 	movePkmnsPanels(*displayedPanels);
 	bigPan->add(panel);
 	gui.add(bigPan);
@@ -465,6 +500,7 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::Game
 				widget->setEnabled(!game.isReady());
 	});
 	name->setText(game.getTrainerName());
+	connect->setText(!game.isConnected() ? "Connect" : "Disconnect");
 	connect->onClick.connect([&game, connect, error, port, ip]{
 		error->setText("");
 		if (game.isConnected()) {
