@@ -602,7 +602,8 @@ namespace PokemonGen1
 
 		this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 44 * 6 + 66);
 		this->_state.opponentTeam.clear();
-		for (int i = 0; i < 6; i++) {
+		this->_state.opponentTeam.reserve(nbPkmns);
+		for (int i = 0; i < nbPkmns; i++) {
 			this->_state.opponentTeam.emplace_back(this->_randomGenerator, *this, this->convertString(this->_receiveBuffer), pkmnData, true);
 			this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 11);
 			pkmnData.erase(pkmnData.begin(), pkmnData.begin() + 44);
