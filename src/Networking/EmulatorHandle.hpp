@@ -38,6 +38,7 @@ protected:
 	{};
 
 public:
+	virtual ~EmulatorHandle() = default;
 	virtual void log(const std::string &string, std::ostream &stream = std::cout) = 0;
 	virtual void sendByte(unsigned char byte) = 0;
 	virtual void reply(unsigned char byte) = 0;

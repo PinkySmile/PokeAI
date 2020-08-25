@@ -326,7 +326,7 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 			drawSprite(window, sprite, resources.choicesHUD, 256, 384);
 			drawSprite(window, sprite, resources.arrows[1], 288 + 192 * (selectedMenu % 2), 448 + 64 * (selectedMenu / 2));
 		} else if (menu == 1) {
-			auto &move = state.team[state.pokemonOnField].getMoveSet()[selectedMenu];
+			auto move = state.team[state.pokemonOnField].getMoveSet()[selectedMenu];
 
 			drawSprite(window, sprite, resources.attackHUD, 0, 256);
 			for (int i = 0; i < 4; i++)
