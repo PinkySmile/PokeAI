@@ -10,7 +10,6 @@
 typedef fd_set FD_SET;
 typedef struct timeval TIMEVAL;
 #endif
-#include <cassert>
 #include "BgbHandler.hpp"
 #include "../Exception.hpp"
 
@@ -109,6 +108,8 @@ BGBHandler::BGBPacket BGBHandler::_getNextPacket()
 	FD_SET set;
 	TIMEVAL timestruct{10, 0};
 
+	FD_ZERO(&set);
+	FD_SET(this->_socket.getSockFd(), &set);
 	if (select(FD_SETSIZE, &set, nullptr, nullptr, &timestruct) == 0)
 		throw TimeOutException("Connection timed out after 10 seconds");
 
