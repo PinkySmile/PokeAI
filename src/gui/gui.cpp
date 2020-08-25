@@ -105,7 +105,7 @@ void applyMoveFilters(unsigned sorting, std::string query, const std::string &ty
 	std::sort(panels.begin(), panels.end(), sortingAlgos[sorting]);
 }
 
-void openChangeMoveBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleResources &resources, unsigned pkmnIndex, PokemonGen1::Pokemon &pkmn, unsigned moveIndex, tgui::Button::Ptr moveButton)
+void openChangeMoveBox(tgui::Gui &gui, BattleResources &resources, PokemonGen1::Pokemon &pkmn, unsigned moveIndex, tgui::Button::Ptr moveButton)
 {
 	auto bigPan = tgui::Panel::create({"100%", "100%"});
 	auto panel = tgui::ScrollablePanel::create({"&.w - 20", "&.h - 50"});
@@ -182,11 +182,8 @@ void openChangeMoveBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 		auto effects = pan->get<tgui::TextBox>("AdditionalEffects");
 
 		name->setText(strToUpper(move.getName()));
-		name->onClick.connect([&move, moveButton, bigPan, &gui, moveIndex, pkmnIndex, &pkmn, &game]{
-			auto moves = pkmn.getMoveSet();
-
-			moves[moveIndex] = move;
-			game.changePokemon(pkmnIndex, pkmn.getNickname(), pkmn.getLevel(), PokemonGen1::pokemonList[pkmn.getID()], moves);
+		name->onClick.connect([&move, moveButton, bigPan, &gui, moveIndex, &pkmn]{
+			pkmn.setMove(moveIndex, move);
 			gui.remove(bigPan);
 			moveButton->setText(move.getName());
 		});
@@ -406,8 +403,8 @@ void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1:
 
 	for (size_t i = 0; i < moveSet.size(); i++) {
 		moves[i]->setText(moveSet[i].getName());
-		moves[i]->onClick.connect([i, index, &gui, &game, &pkmn, moves, &resources]{
-			openChangeMoveBox(gui, game, resources, index, pkmn, i, moves[i]);
+		moves[i]->onClick.connect([i, &gui, &pkmn, moves, &resources]{
+			openChangeMoveBox(gui,  resources, pkmn, i, moves[i]);
 		});
 	}
 	level->setText(std::to_string(pkmn.getLevel()));

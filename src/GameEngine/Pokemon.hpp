@@ -195,7 +195,7 @@ namespace PokemonGen1
 		std::vector<unsigned char> encode() const;
 		std::string dump() const;
 
-		void setId(unsigned char id);
+		void setId(unsigned char id, bool recomputeStats = true);
 		void setNickname(const std::string &nickname);
 		void setLevel(unsigned char level);
 		void setMove(unsigned char index, const Move &move);

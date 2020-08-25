@@ -148,7 +148,7 @@ TextBox.Status {
     HorizontalScrollbarPolicy = Never;
     MaximumCharacters = 0;
     Position = (10, 560);
-    Size = (150, 70);
+    Size = (150, 40);
     Text = "";
     TextSize = 13;
 
@@ -204,5 +204,25 @@ TextBox.Error {
             trackcolor = rgba(160, 160, 160, 215);
             trackcolorhover = rgba(170, 170, 170, 215);
         }
+    }
+}
+
+ProgressBar.Progress {
+    Maximum = 100;
+    Minimum = 0;
+    Position = (10, 610);
+    Size = (150, 22);
+    TextSize = 13;
+    Value = 0;
+
+    Renderer {
+        backgroundcolor = #F5F5F5;
+        bordercolor = black;
+        borders = (1, 1, 1, 1);
+        fillcolor = #006EFF;
+        textcolor = #3C3C3C;
+        textcolorfilled = white;
+        texturebackground = None;
+        texturefill = None;
     }
 }

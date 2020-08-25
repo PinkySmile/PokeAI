@@ -94,7 +94,7 @@ namespace PokemonGen1
 
 		this->_moveSet.reserve(4);
 		for (int i = 0; i < 4; i++) {
-			this->_moveSet.push_back(availableMoves[data[PACK_MOVE1]]);
+			this->_moveSet.push_back(availableMoves[data[PACK_MOVE1 + i]]);
 			this->_moveSet[i].setPPUp(data[PACK_PPS_MOVE1 + i] >> 6U);
 			this->_moveSet[i].setPP(data[PACK_PPS_MOVE1 + i] & 0b111111U);
 		}
@@ -522,6 +522,7 @@ namespace PokemonGen1
 	{
 		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
 
+		std::cout << effectiveness << std::endl;
 		if (effectiveness == 0)
 			return {
 				.critical = false,
@@ -784,14 +785,16 @@ namespace PokemonGen1
 		this->_statExps = statExps;
 	}
 
-	void Pokemon::setId(unsigned char id)
+	void Pokemon::setId(unsigned char id, bool recomputeStats)
 	{
 		auto &base = pokemonList[id];
 
 		this->_id = base.id;
 		this->_name = base.name;
-		this->_baseStats = makeStats(this->_level, base, this->_dvs, this->_statExps);
-		this->_catchRate = base.catchRate;
+		if (recomputeStats) {
+			this->_baseStats = makeStats(this->_level, base, this->_dvs, this->_statExps);
+			this->_catchRate = base.catchRate;
+		}
 	}
 
 	void Pokemon::setNickname(const std::string &nickname)
