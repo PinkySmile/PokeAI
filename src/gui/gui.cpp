@@ -575,10 +575,13 @@ void mainMenu(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleRes
 		window.display();
 
 		auto status = gui.get<tgui::TextBox>("Status");
+		auto progress = gui.get<tgui::ProgressBar>("Progress");
 
-		if (!status)
+		if (!status || !progress)
 			return;
 
+		progress->setValue(game.getBattleSendingProgress().first);
+		progress->setMaximum(game.getBattleSendingProgress().second);
 		if (game.isConnected())
 			switch (game.getStage()) {
 			case PokemonGen1::PKMN_CENTER:

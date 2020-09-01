@@ -28,7 +28,7 @@
 
 //Miss callbacks
 #define GLITCH_HYPER_BEAM [](Pokemon &, Pokemon &target, const std::function<void(const std::string &msg)> &){\
-	target.glitchHyperBeam();\
+	target.setRecharging(false);\
 	return true;\
 }, "Removes the opponent recharge state and will make the target use it's move once more"
 
@@ -94,6 +94,8 @@
 }, "Deal 40 damages"
 
 #define DEAL_LVL_AS_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+	if (!owner.getLevel())\
+		return true;\
 	target.takeDamage(owner.getLevel());\
 	return true;\
 }, "Deal the user's level as raw damages"
@@ -170,6 +172,11 @@
 	target.takeDamage(target.getHealth() / 2);\
 	return true;\
 }, "Deal half foe's HP"
+
+#define MIMIC_MOVE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+	owner.useMove(target.getLastUsedMove(), target);\
+	return true;\
+}, "Use last foe's used move"
 
 namespace PokemonGen1
 {
@@ -248,6 +255,9 @@ namespace PokemonGen1
 			const std::function<bool(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)> &&missCallback = nullptr,
 			const std::string &missCallBackDescription = ""
 		);
+		Move(const Move &);
+
+		Move &operator=(const Move &);
 
 		unsigned char getAccuracy() const;
 		MoveCategory getCategory() const;

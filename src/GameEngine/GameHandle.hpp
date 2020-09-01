@@ -168,6 +168,7 @@ namespace PokemonGen1
 		const std::vector<Pokemon> &getPokemonTeam() const;
 		const BattleState &getBattleState() const;
 		const std::string &getTrainerName() const;
+		std::pair<unsigned, unsigned> getBattleSendingProgress();
 		void setTrainerName(const std::string &trainerName);
 
 		static std::vector<unsigned char> convertString(const std::string &str);

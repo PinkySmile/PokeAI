@@ -146,6 +146,69 @@ namespace PokemonGen1
 			this->_fullDescription.erase(it - 1);
 	}
 
+	Move::Move(const Move &other) :
+		_hitCallback(other._hitCallback),
+		_missCallback(other._missCallback),
+		_critChance(other._critChance),
+		_loadingMsg(other._loadingMsg),
+		_keepGoingMsg(other._keepGoingMsg),
+		_name(other._name),
+		_type(other._type),
+		_category(other._category),
+		_power(other._power),
+		_id(other._id),
+		_pp(other._maxpp),
+		_ppup(other._ppup),
+		_maxpp(other._maxpp),
+		_nbHit(0),
+		_accuracy(other._accuracy),
+		_nbRuns(other._nbRuns),
+		_nbHits(other._nbHits),
+		_statusChange(other._statusChange),
+		_ownerChange(other._ownerChange),
+		_foeChange(other._foeChange),
+		_priority(other._priority),
+		_needLoading(other._needLoading),
+		_invulnerableDuringLoading(other._invulnerableDuringLoading),
+		_needRecharge(other._needRecharge),
+		_hitCallBackDescription(other._hitCallBackDescription),
+		_missCallBackDescription(other._missCallBackDescription),
+		_fullDescription(other._fullDescription)
+	{
+	}
+
+	Move &Move::operator=(const Move &other)
+	{
+		this->_hitCallback = other._hitCallback;
+		this->_missCallback = other._missCallback;
+		this->_critChance = other._critChance;
+		this->_loadingMsg = other._loadingMsg;
+		this->_keepGoingMsg = other._keepGoingMsg;
+		this->_name = other._name;
+		this->_type = other._type;
+		this->_category = other._category;
+		this->_power = other._power;
+		this->_id = other._id;
+		this->_pp = other._maxpp;
+		this->_ppup = other._ppup;
+		this->_maxpp = other._maxpp;
+		this->_nbHit = 0;
+		this->_accuracy = other._accuracy;
+		this->_nbRuns = other._nbRuns;
+		this->_nbHits = other._nbHits;
+		this->_statusChange = other._statusChange;
+		this->_ownerChange = other._ownerChange;
+		this->_foeChange = other._foeChange;
+		this->_priority = other._priority;
+		this->_needLoading = other._needLoading;
+		this->_invulnerableDuringLoading = other._invulnerableDuringLoading;
+		this->_needRecharge = other._needRecharge;
+		this->_hitCallBackDescription = other._hitCallBackDescription;
+		this->_missCallBackDescription = other._missCallBackDescription;
+		this->_fullDescription = other._fullDescription;
+		return *this;
+	}
+
 	bool Move::isFinished() const
 	{
 		return this->_nbHit == 0;
@@ -201,6 +264,7 @@ namespace PokemonGen1
 		double multiplier = target.getEvasion() * owner.getAccuracy();
 		std::string msg = this->_keepGoingMsg;
 
+		owner.setInvincible(false);
 		if (!this->_nbHit) {
 			if (this->_nbRuns.second == this->_nbRuns.first)
 				this->_nbHit = this->_nbRuns.first;
@@ -233,12 +297,6 @@ namespace PokemonGen1
 			return true;
 		}
 
-		if (!target.canGetHitBy(this->_id)) {
-			if (this->_missCallback)
-				this->_missCallback(owner, target, logger);
-			return false;
-		}
-
 		Pokemon::DamageResult damages{
 			.critical = false,
 			.damages = 0,
@@ -258,13 +316,15 @@ namespace PokemonGen1
 		if (this->_accuracy <= 100) {
 			unsigned random = owner.getRandomGenerator()();
 
-			if ((random / 2.55 >= this->_accuracy * multiplier || random == 255)) {
+			if (random / 2.55 >= this->_accuracy * multiplier || random == 255 || !target.canGetHit()) {
 				this->_nbHit = 0;
 				if (this->_missCallback)
 					this->_missCallback(owner, target, logger);
 				return false;
-			} else if (!this->_nbHit)
+			} else if (!this->_nbHit) {
 				owner.setRecharging(this->_needRecharge);
+				owner.setInvincible(this->_invulnerableDuringLoading);
+			}
 		}
 
 		if (!damages.affect)
@@ -295,15 +355,16 @@ namespace PokemonGen1
 		if (hits > 1)
 			logger("Hits " + std::to_string(hits) + " times !");
 
-		while (hits > 0) {
-			if (this->_power)
-				target.takeDamage(damages.damages);
+		if (this->_power)
+			target.takeDamage(damages.damages * hits);
 
-			if (this->_statusChange.prob && owner.getRandomGenerator()() < this->_statusChange.prob * 256)
-				target.addStatus(this->_statusChange.status);
-
-			hits--;
+		if (!target.getHealth()) {
+			owner.setRecharging(false);
+			return true;
 		}
+
+		if (this->_statusChange.prob && owner.getRandomGenerator()() < this->_statusChange.prob * 256)
+			target.addStatus(this->_statusChange.status);
 
 		if (this->_hitCallback)
 			return this->_hitCallback(owner, target, damages.damages, this->isFinished(), logger);
@@ -358,7 +419,7 @@ namespace PokemonGen1
 
 	//This is only relevant for Gen 1 (Some moves changed)
 	const std::vector<Move> availableMoves{
-		Move{0x00, "-"           , TYPE_INVALID  , STATUS,   0,   0, 0, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, nullptr, "No move. This move is invalid and will cause desync when used."},
+		Move{0x00, "-"           , TYPE_INVALID , STATUS,    0,    0,  0, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, nullptr, "No move. This move is invalid and will cause desync when used."},
 		Move{0x01, "Pound"       , TYPE_NORMAL  , PHYSICAL,  40, 100, 35},
 		Move{0x02, "Karate Chop" , TYPE_NORMAL  , PHYSICAL,  50, 100, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},
 		Move{0x03, "DoubleSlap"  , TYPE_NORMAL  , PHYSICAL,  15,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
@@ -449,7 +510,7 @@ namespace PokemonGen1
 		Move{0x58, "Rock Throw"  , TYPE_ROCK    , PHYSICAL,  50,  65, 15},
 		Move{0x59, "Earthquake"  , TYPE_GROUND  , PHYSICAL, 100, 100, 10},
 		Move{0x5A, "Fissure"     , TYPE_GROUND  , PHYSICAL,   0,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ONE_HIT_KO_HANDLE},
-		Move{0x5B, "Dig"         , TYPE_GROUND  , PHYSICAL,  80, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("dug a hole"), true},
+		Move{0x5B, "Dig"         , TYPE_GROUND  , PHYSICAL, 100, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("dug a hole"), true},
 		Move{0x5C, "Toxic"       , TYPE_POISON  , STATUS  ,   0,  85, 10, {STATUS_BADLY_POISONED, 1}},
 		Move{0x5D, "Confusion"   , TYPE_PSYCHIC , SPECIAL ,  50, 100, 25, {STATUS_CONFUSED, 0.1}},
 		Move{0x5E, "Psychic"     , TYPE_PSYCHIC , SPECIAL ,  90, 100, 10, NO_STATUS_CHANGE, {}, {{STATS_SPE, -1, 0.3}}},
@@ -460,7 +521,7 @@ namespace PokemonGen1
 		Move{0x63, "Rage"        , TYPE_NORMAL  , PHYSICAL,  20, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {0xFFFFFFFF, 0xFFFFFFFF}},
 		Move{0x64, "Teleport"    , TYPE_NORMAL  , STATUS  ,   0, 255, 20},
 		Move{0x65, "Night Shade" , TYPE_GHOST   , PHYSICAL,   0, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_LVL_AS_DAMAGE},
-		Move{0x66, "Mimic"       , TYPE_NORMAL  , STATUS  ,   0, 255, 10},
+		Move{0x66, "Mimic"       , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, MIMIC_MOVE},
 		Move{0x67, "Screech"     , TYPE_NORMAL  , STATUS  ,   0,  85, 40, NO_STATUS_CHANGE, {}, {{STATS_DEF, -2, 1}}},
 		Move{0x68, "Double Team" , TYPE_NORMAL  , STATUS  ,   0, 255, 15, NO_STATUS_CHANGE, {{STATS_ESQ, 1, 1}}},
 		Move{0x69, "Recover"     , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEAL_HALF_HEALTH},

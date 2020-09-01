@@ -727,6 +727,21 @@ namespace PokemonGen1
 		return this->_pkmns.at(index);
 	}
 
+	std::pair<unsigned, unsigned> GameHandle::getBattleSendingProgress()
+	{
+		if (this->getStage() != EXCHANGE_POKEMONS)
+			return {0, 0};
+
+		std::pair<unsigned, unsigned> progress;
+
+		for (unsigned i = 0; i < this->_sendBufferIndex.first; i++)
+			progress.first += this->_sendBuffer[i].size();
+		progress.first += this->_sendBufferIndex.second;
+		for (auto &elem : this->_sendBuffer)
+			progress.second += elem.size();
+		return progress;
+	}
+
 	/*
 	** From Rhydon
 	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/Encoding.cs#L122

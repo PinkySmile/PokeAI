@@ -129,11 +129,8 @@ namespace PokemonGen1
 		PokemonState                          _oldState{};
 		unsigned char                         _id;
 		bool                                  _flinched = false;
-		bool                                  _needsRecharge = false;
+		unsigned char                         _needsRecharge = 0;
 		bool                                  _invincible = false;
-		bool                                  _chargingUp = false;
-		bool                                  _thrashing = false;
-		bool                                  _enraged = false;
 		bool                                  _enemy;
 		Move                                  _lastUsedMove;
 		PokemonRandomGenerator	              &_random;
@@ -183,18 +180,18 @@ namespace PokemonGen1
 		bool hasStatus(StatusChange status) const;
 		void takeDamage(int damage);
 		void attack(unsigned char moveSlot, Pokemon &target);
-		bool canGetHitBy(unsigned char moveId);
+		bool canGetHit();
 		DamageResult calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, bool critical) const;
 		void endTurn();
 		void switched();
 		int getPriorityFactor(unsigned char moveSlot);
 		void setWrapped(bool isWrapped);
-		void glitchHyperBeam();
 		void setRecharging(bool recharging = true);
 		void transform(const Pokemon &target);
 		std::vector<unsigned char> encode() const;
 		std::string dump() const;
 
+		void setInvincible(bool invincible);
 		void setId(unsigned char id, bool recomputeStats = true);
 		void setNickname(const std::string &nickname);
 		void setLevel(unsigned char level);

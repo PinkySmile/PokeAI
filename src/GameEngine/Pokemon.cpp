@@ -269,8 +269,10 @@ namespace PokemonGen1
 	{
 		if (this->_lastUsedMove.isFinished())
 			this->_lastUsedMove = move;
-		if (!this->_lastUsedMove.attack(*this, target, [this](const std::string &msg) { this->_game.logBattle(msg); }))
+		if (!this->_lastUsedMove.attack(*this, target, [this](const std::string &msg) { this->_game.logBattle(msg); })) {
 			this->_log("'s attack missed!");
+			//this->_lastUsedMove.missed();
+		}
 	}
 
 	void Pokemon::storeDamages(bool active)
@@ -354,7 +356,6 @@ namespace PokemonGen1
 	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
 	{
 		if (this->_needsRecharge) {
-			this->_needsRecharge = false;
 			this->_game.logBattle(this->getName() + " must recharge!");
 			return;
 		}
@@ -365,7 +366,6 @@ namespace PokemonGen1
 		}
 
 		if (this->_flinched) {
-			this->_flinched = false;
 			this->_log(" flinched!");
 			return;
 		}
@@ -388,6 +388,7 @@ namespace PokemonGen1
 			this->_log(" is confused!");
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if (this->_random() >= 0x80) {
+				this->setInvincible(false);
 				this->_log(" hurts itself in it's confusion!");
 				this->takeDamage(this->calcDamage(*this, 40, TYPE_0x0A, PHYSICAL, false).damages);
 				this->_lastUsedMove = DEFAULT_MOVE(0x00);
@@ -478,10 +479,8 @@ namespace PokemonGen1
 			this->_log(" fainted");
 	}
 
-	bool Pokemon::canGetHitBy(unsigned char moveId)
+	bool Pokemon::canGetHit()
 	{
-		if (moveId == Swift || moveId == Transform || moveId == Dig)
-			return true;
 		return !this->_invincible;
 	}
 
@@ -510,19 +509,10 @@ namespace PokemonGen1
 		return this->_baseStats.DEF;
 	}
 
-	void Pokemon::glitchHyperBeam()
-	{
-		if (this->_lastUsedMove.getID() == Hyper_Beam) {
-			this->_needsRecharge = false;
-			this->_lastUsedMove.glitch();
-		}
-	}
-
 	Pokemon::DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, bool critical) const
 	{
 		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
 
-		std::cout << effectiveness << std::endl;
 		if (effectiveness == 0)
 			return {
 				.critical = false,
@@ -767,7 +757,7 @@ namespace PokemonGen1
 
 	void Pokemon::setRecharging(bool recharging)
 	{
-		this->_needsRecharge = recharging;
+		this->_needsRecharge = recharging * 2;
 	}
 
 	const BaseStats &Pokemon::getDvs() const
@@ -817,6 +807,11 @@ namespace PokemonGen1
 		if (index > 4)
 			throw std::out_of_range("");
 		this->_moveSet[index] = move;
+	}
+
+	void Pokemon::setInvincible(bool invincible)
+	{
+		this->_invincible = invincible;
 	}
 
 	PokemonBase::PokemonBase(
