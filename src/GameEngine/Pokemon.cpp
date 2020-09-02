@@ -466,7 +466,7 @@ namespace PokemonGen1
 			return;
 
 		if (!damage)
-			damage = 1;
+			return;
 
 		if (damage > static_cast<int>(this->_baseStats.HP))
 			this->_baseStats.HP = 0;

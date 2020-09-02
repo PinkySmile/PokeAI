@@ -229,6 +229,7 @@ void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHand
 	log.erase(log.begin());
 }
 
+//TODO: Rewrite all of this mess
 void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResources &resources, std::vector<std::string> &log, PokemonGen1::BattleAction &nextAction)
 {
 	int		menu = 0;
@@ -253,6 +254,13 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 	clock.restart();
 	while (window.isOpen() && game.getStage() == PokemonGen1::BATTLE) {
 		sf::Event event;
+
+		if (!log.empty())
+			menu = 4;
+		else if (game.getBattleState().nextAction)
+			menu = 3;
+		else if (menu == 3)
+			menu = 1;
 
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed)
@@ -280,10 +288,8 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 							for (int i = 0; i < 4; i++)
 								if (state.team[state.pokemonOnField].getMoveSet()[i].getPP() != 0)
 									menu = 1;
-							if (menu == 0) {
+							if (menu == 0)
 								nextAction = PokemonGen1::StruggleMove;
-								menu = 3;
-							}
 						} else if (selectedMenu == 1) {
 							menu = 2;
 							selectedMenu = 0;
@@ -396,5 +402,6 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 	view.setCenter(window.getSize().x / 2., window.getSize().y / 2.);
 	window.setSize({800, 640});
 	window.setView(view);
+	log.clear();
 }
 

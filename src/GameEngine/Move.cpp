@@ -264,6 +264,12 @@ namespace PokemonGen1
 		double multiplier = target.getEvasion() * owner.getAccuracy();
 		std::string msg = this->_keepGoingMsg;
 
+		if (!target.canGetHit() && this->_accuracy <= 100) {
+			if (this->_missCallback)
+				this->_missCallback(owner, target, logger);
+			return false;
+		}
+
 		owner.setInvincible(false);
 		if (!this->_nbHit) {
 			if (this->_nbRuns.second == this->_nbRuns.first)
@@ -278,6 +284,7 @@ namespace PokemonGen1
 			}
 			if (this->_needLoading) {
 				logger(owner.getName() + " " + this->_loadingMsg);
+				owner.setInvincible(this->_invulnerableDuringLoading);
 				return true;
 			}
 			msg = "";
@@ -316,15 +323,13 @@ namespace PokemonGen1
 		if (this->_accuracy <= 100) {
 			unsigned random = owner.getRandomGenerator()();
 
-			if (random / 2.55 >= this->_accuracy * multiplier || random == 255 || !target.canGetHit()) {
+			if (random / 2.55 >= this->_accuracy * multiplier || random == 255) {
 				this->_nbHit = 0;
 				if (this->_missCallback)
 					this->_missCallback(owner, target, logger);
 				return false;
-			} else if (!this->_nbHit) {
+			} else if (!this->_nbHit)
 				owner.setRecharging(this->_needRecharge);
-				owner.setInvincible(this->_invulnerableDuringLoading);
-			}
 		}
 
 		if (!damages.affect)

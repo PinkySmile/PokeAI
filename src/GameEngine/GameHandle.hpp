@@ -7,6 +7,7 @@
 
 
 #include <memory>
+#include <map>
 #include "Pokemon.hpp"
 #include "PokemonRandomGenerator.hpp"
 #include "../Networking/EmulatorHandle.hpp"
@@ -21,13 +22,43 @@
 
 #define CHAR_INVALID 0xFF
 #define CHAR_TRAINER 0xFE
-#define CHAR_PK_NUM  0x7B
-#define CHAR_MN_NUM  0x7D
-#define CHAR_MAL_NUM 0x7E
-#define CHAR_FEM_NUM 0x60
+#define CHAR_PK_NUM  0xFD
+#define CHAR_MN_NUM  0xFC
+#define CHAR_MAL_NUM 0xFB
+#define CHAR_FEM_NUM 0xFA
+#define CHAR_E_ACCENT 0xF9
+#define CHAR_AP_D 0xF8
+#define CHAR_AP_L 0xF7
+#define CHAR_AP_S 0xF6
+#define CHAR_AP_T 0xF5
+#define CHAR_AP_V 0xF4
+#define CHAR_AP_R 0xF3
+#define CHAR_AP_M 0xF2
+#define CHAR_ARR_WHI 0xF1
+#define CHAR_ARR_BLA 0xF0
+#define CHAR_ARR_DOW 0xEF
 
 namespace PokemonGen1
 {
+	const std::map<char, const char *> _dispSpecialChars{
+		{ CHAR_E_ACCENT, "é" },
+		{ CHAR_AP_D, "'d" },
+		{ CHAR_AP_L, "'l" },
+		{ CHAR_AP_S, "'s" },
+		{ CHAR_AP_T, "'t" },
+		{ CHAR_AP_V, "'v" },
+		{ CHAR_AP_R, "'r" },
+		{ CHAR_AP_M, "'m" },
+		{ CHAR_ARR_WHI, "→" },
+		{ CHAR_ARR_BLA, "►" },
+		{ CHAR_ARR_DOW, "▼" },
+		{ CHAR_TRAINER, "<TRAINER>"},
+		{ CHAR_PK_NUM, "pₖ" },
+		{ CHAR_MN_NUM, "mₙ" },
+		{ CHAR_MAL_NUM, "♂" },
+		{ CHAR_FEM_NUM, "♀" }
+	};
+
 	enum Gen1ConnectionStage
 	{
 		PKMN_CENTER,
@@ -60,6 +91,7 @@ namespace PokemonGen1
 		unsigned		opponentPokemonOnField;
 		std::vector<Pokemon>	team;
 		std::vector<Pokemon>	opponentTeam;
+		BattleAction		lastAction;
 		BattleAction		nextAction;
 		BattleAction		nextOpponentAction;
 	};
