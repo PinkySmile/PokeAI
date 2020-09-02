@@ -33,6 +33,8 @@ add_executable(
 	src/commandLine.hpp
 	src/gui/gui.cpp
 	src/gui/gui.hpp
+	src/gui/Utils.cpp
+	src/gui/Utils.hpp
 	src/gui/battle.cpp
 	src/GameEngine/StatsChange.cpp)
 

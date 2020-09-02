@@ -5,8 +5,10 @@
 #include <TGUI/TGUI.hpp>
 #include <SFML/Audio.hpp>
 #include <algorithm>
+#include <fstream>
 #include "gui.hpp"
 #include "../Networking/BgbHandler.hpp"
+#include "Utils.hpp"
 
 std::string lastIp;
 std::string lastPort;
@@ -311,17 +313,23 @@ void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 	typeFilter->addItem("???", "???");
 	typeFilter->setSelectedItemByIndex(0);
 
-	auto refresh = [displayedPanels, panels, filter, sorting, typeFilter]{
-		for (auto &panel : *panels)
+	auto refresh = [](
+		std::weak_ptr<std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>>> displayedPanels,
+		std::weak_ptr<std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>>> panels,
+		std::weak_ptr<tgui::EditBox> filter,
+		std::weak_ptr<tgui::ComboBox> sorting,
+		std::weak_ptr<tgui::ComboBox> typeFilter
+	){
+		for (auto &panel : *panels.lock())
 			panel.second->setPosition(-200, -200);
-		*displayedPanels = *panels;
-		applyPkmnsFilters(sorting->getSelectedItemIndex(), filter->getText(), typeFilter->getSelectedItemId(), *displayedPanels);
-		movePkmnsPanels(*displayedPanels);
+		*displayedPanels.lock() = *panels.lock();
+		applyPkmnsFilters(sorting.lock()->getSelectedItemIndex(), filter.lock()->getText(), typeFilter.lock()->getSelectedItemId(), *displayedPanels.lock());
+		movePkmnsPanels(*displayedPanels.lock());
 	};
 
-	filter->onTextChange.connect(refresh);
-	sorting->onItemSelect.connect(refresh);
-	typeFilter->onItemSelect.connect(refresh);
+	filter->connect("TextChanged", refresh, std::weak_ptr(displayedPanels), std::weak_ptr(panels), std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
+	sorting->connect("ItemSelected", refresh, std::weak_ptr(displayedPanels), std::weak_ptr(panels), std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
+	typeFilter->connect("ItemSelected", refresh, std::weak_ptr(displayedPanels), std::weak_ptr(panels), std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
 
 	filter->setPosition(10, 10);
 	sorting->setPosition("&.w * 70 / 100", 10);
@@ -334,8 +342,8 @@ void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 
 	basePanel->loadWidgetsFromFile("assets/pkmnPreview.gui");
 
-	for (unsigned i = 0; i < panels->size(); i++) {
-		auto &pan = (panels->operator[](i) = {i, tgui::ScrollablePanel::copy(basePanel)}).second;
+	for (unsigned i = 0; i < PokemonGen1::pokemonList.size(); i++) {
+		auto pan = (panels->operator[](i) = {i, tgui::ScrollablePanel::copy(basePanel)}).second;
 		auto &base = PokemonGen1::pokemonList[i];
 		auto type1 = tgui::Picture::create(resources.types[typeToString(base.typeA)]);
 		auto type2 = tgui::Picture::create(resources.types[typeToString(base.typeB)]);
@@ -356,11 +364,11 @@ void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 		spe->setText(std::to_string(stats.SPE));
 		sprite->setImage(resources.pokemonsFront[i]);
 
-		sprite->onClick.connect([&window, pkmnPan, &resources, bigPan, &gui, index, &pkmn, &game, &base]{
+		sprite->connect("clicked", [&window, &resources, &gui, index, &pkmn, &game, &base](std::weak_ptr<tgui::Panel> pkmnPan, std::weak_ptr<tgui::Panel> bigPan){
 			game.changePokemon(index, pkmn.getNickname(), pkmn.getLevel(), base, pkmn.getMoveSet());
-			gui.remove(bigPan);
-			populatePokemonPanel(window, gui, game, resources, index, pkmnPan, game.getPokemon(index));
-		});
+			gui.remove(bigPan.lock());
+			populatePokemonPanel(window, gui, game, resources, index, pkmnPan.lock(), game.getPokemon(index));
+		}, std::weak_ptr(pkmnPan), std::weak_ptr(bigPan));
 
 		type1->setPosition(115, 152);
 		type2->setPosition(170, 152);
@@ -442,9 +450,9 @@ void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1:
 		game.deletePokemon(index);
 		makeMainMenuGUI(window, gui, game, resources);
 	});
-	sprite->onClick.connect([&gui, &game, &resources, index, &pkmn, &window, panel]{
+	sprite->connect("clicked", [&gui, &game, &resources, index, &pkmn, &window](tgui::Panel::Ptr panel){
 		openChangePkmnBox(gui, game, resources, index, pkmn, window, panel);
-	});
+	}, panel);
 
 	type1->setPosition(5, 100);
 	type1->setSize(44, 16);
@@ -466,6 +474,8 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::Game
 	auto team = gui.get<tgui::Panel>("Team");
 	auto ready = gui.get<tgui::Button>("Ready");
 	auto name = gui.get<tgui::EditBox>("Name");
+	auto load = gui.get<tgui::Button>("Load");
+	auto save = gui.get<tgui::Button>("Save");
 	auto teamPanel = gui.get<tgui::Panel>("Team");
 	std::vector<tgui::Panel::Ptr> panels{
 		teamPanel->get<tgui::Panel>("Pkmn1"),
@@ -476,6 +486,50 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::Game
 		teamPanel->get<tgui::Panel>("Pkmn6"),
 	};
 
+	save->onClick.connect([&game]{
+		std::string path = Utils::saveFileDialog("Save team", ".", {{".+[.]pkmns", "Pokemon team file"}});
+
+		if (path.empty())
+			return;
+
+		std::ofstream stream{path, std::ofstream::binary};
+
+		if (stream.fail()) {
+			Utils::dispMsg("Error", "Cannot open file " + path + "\n" + strerror(errno), MB_ICONERROR);
+			return;
+		}
+
+		auto data = game.save();
+
+		stream.write(reinterpret_cast<const char *>(data.data()), data.size());
+	});
+	load->onClick.connect([&window, &resources, &gui, &game]{
+		std::string path = Utils::openFileDialog("Open team file", ".", {{".+[.]pkmns", "Pokemon team file"}});
+
+		if (path.empty())
+			return;
+
+		std::ifstream stream{path, std::ifstream::binary};
+
+		if (stream.fail()) {
+			Utils::dispMsg("Error", "Cannot open file " + path + "\n" + strerror(errno), MB_ICONERROR);
+			return;
+		}
+		stream.seekg(0, std::ifstream::end);
+
+		auto length = stream.tellg();
+		auto *buffer = new char[length];
+
+		stream.seekg(0, std::ifstream::beg);
+		stream.read(buffer, length);
+		try {
+			game.load({buffer, buffer + length});
+			makeMainMenuGUI(window, gui, game, resources);
+		} catch (std::exception &e) {
+			Utils::dispMsg(Utils::getLastExceptionName(), "Cannot load save file \"" + path + "\"\n" + e.what(), MB_ICONERROR);
+		}
+		delete[] buffer;
+	});
 	ip->setText(lastIp);
 	ip->onTextChange.connect([ip]{
 		lastIp = ip->getText();
