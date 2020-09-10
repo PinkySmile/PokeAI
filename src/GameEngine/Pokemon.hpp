@@ -180,7 +180,6 @@ namespace PokemonGen1
 		bool hasStatus(StatusChange status) const;
 		void takeDamage(int damage);
 		void attack(unsigned char moveSlot, Pokemon &target);
-		bool canGetHit();
 		DamageResult calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, bool critical) const;
 		void endTurn();
 		void switched();
@@ -198,6 +197,7 @@ namespace PokemonGen1
 		void setMove(unsigned char index, const Move &move);
 
 		PokemonRandomGenerator &getRandomGenerator();
+		bool canGetHit() const;
 		unsigned char getID() const;
 		unsigned getDamagesStored() const;
 		unsigned getSpeed() const;

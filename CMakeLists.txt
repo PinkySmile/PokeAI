@@ -36,7 +36,11 @@ add_executable(
 	src/gui/Utils.cpp
 	src/gui/Utils.hpp
 	src/gui/battle.cpp
-	src/GameEngine/StatsChange.cpp)
+	src/GameEngine/StatsChange.cpp
+	src/AIs/AIHeuristic.cpp
+	src/AIs/AIHeuristic.hpp
+	src/AIs/AI.hpp
+)
 
 if (WIN32)
 	target_link_libraries(

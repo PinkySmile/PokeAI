@@ -813,7 +813,7 @@ namespace PokemonGen1
 		this->_pkmns.clear();
 		this->_pkmns.reserve(nbPkmns);
 		for (int i = 0; i < nbPkmns; i++) {
-			this->_pkmns.emplace_back(this->_randomGenerator, *this, this->convertString(data), pkmnData, true);
+			this->_pkmns.emplace_back(this->_randomGenerator, *this, this->convertString(data), pkmnData, false);
 			data.erase(data.begin(), data.begin() + 11);
 			pkmnData.erase(pkmnData.begin(), pkmnData.begin() + 44);
 		}

@@ -2,6 +2,7 @@
 // Created by andgel on 23/08/2020
 //
 
+#include "Pokemon.hpp"
 #include "StatsChange.hpp"
 
 namespace PokemonGen1
@@ -23,6 +24,26 @@ namespace PokemonGen1
 			return "ACCURACY";
 		default:
 			return "???";
+		}
+	}
+
+	unsigned char getStat(const UpgradableStats &stats, StatsChange stat)
+	{
+		switch (stat) {
+		case STATS_ATK:
+			return stats.ATK;
+		case STATS_DEF:
+			return stats.DEF;
+		case STATS_SPD:
+			return stats.SPD;
+		case STATS_SPE:
+			return stats.SPE;
+		case STATS_ESQ:
+			return stats.ESQ;
+		case STATS_ACC:
+			return stats.PRE;
+		default:
+			return 0;
 		}
 	}
 }

@@ -5,6 +5,8 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 #include "gui.hpp"
+#include "../AIs/AI.hpp"
+#include "../AIs/AIHeuristic.hpp"
 
 void drawSprite(sf::RenderWindow &window, sf::Sprite &sprite, sf::Texture &texture, int x, int y, int width = 0, int height = 0)
 {
@@ -230,8 +232,11 @@ void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHand
 }
 
 //TODO: Rewrite all of this mess
-void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResources &resources, std::vector<std::string> &log, PokemonGen1::BattleAction &nextAction)
+void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResources &resources, std::vector<std::string> &log, PokemonGen1::BattleAction &nextAction, unsigned char aiNb)
 {
+	std::unique_ptr<PokemonGen1::AI> ai{
+		aiNb == 1 ? new PokemonGen1::AIHeuristic(game) : nullptr
+	};
 	int		menu = 0;
 	sf::RectangleShape rect;
 	sf::Sprite	sprite;
@@ -260,12 +265,12 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 		else if (game.getBattleState().nextAction)
 			menu = 3;
 		else if (menu == 3)
-			menu = 1;
+			menu = 0;
 
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed)
 				window.close();
-			else if (event.type == sf::Event::KeyPressed) {
+			else if (event.type == sf::Event::KeyPressed && !ai) {
 				if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Down) {
 					if (menu == 0) {
 						selectedMenu = (selectedMenu + 2) % 4;
@@ -331,6 +336,8 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 		if (menu == 0) {
 			drawSprite(window, sprite, resources.choicesHUD, 256, 384);
 			drawSprite(window, sprite, resources.arrows[1], 288 + 192 * (selectedMenu % 2), 448 + 64 * (selectedMenu / 2));
+			if (ai)
+				nextAction = ai->getNextMove();
 		} else if (menu == 1) {
 			auto move = state.team[state.pokemonOnField].getMoveSet()[selectedMenu];
 

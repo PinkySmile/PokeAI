@@ -242,3 +242,36 @@ Button.Save {
     TextSize = 13;
     renderer = &1;
 }
+
+Button.AI0 {
+    Position = (10, 440);
+    Size = (150, 22);
+    Text = "No AI";
+    TextSize = 13;
+    renderer = &1;
+}
+
+Button.AI1 {
+    Position = (10, 410);
+    Size = (150, 22);
+    Text = "Heuristic AI";
+    TextSize = 13;
+    renderer = &1;
+}
+
+Label.SelectedAI {
+    AutoSize = true;
+    Position = (10, 385);
+    ScrollbarPolicy = Never;
+    Size = (116.2, 18);
+    Text = "Selected AI: No AI";
+    TextSize = 13;
+
+    Renderer {
+        backgroundcolor = transparent;
+        bordercolor = #3C3C3C;
+        borders = (0, 0, 0, 0);
+        textcolor = white;
+        texturebackground = None;
+    }
+}

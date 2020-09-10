@@ -13,7 +13,7 @@
 #include "StatsChange.hpp"
 
 
-#define DEFAULT_MOVE(id) Move{id, "Move "#id, TYPE_INVALID, STATUS, 0, 0, 0, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, nullptr, "This move is invalid and will cause desync when used"}
+#define DEFAULT_MOVE(id) Move{id, "Move "#id, TYPE_INVALID, STATUS, 0, 0, 5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, nullptr, "This move is invalid and will cause desync when used"}
 #define NO_STATS_CHANGE {}, {}
 #define DEFAULT_HITS {1, 1}
 #define ONE_RUN DEFAULT_HITS, ""
@@ -45,6 +45,7 @@
 
 
 //Hit callbacks
+#define OHKO_DESC "Kills in one hit if the user's speed is higher than the foe's"
 #define ONE_HIT_KO_HANDLE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
 	if (owner.getSpeed() >= target.getSpeed()) {\
                 target.takeDamage(target.getHealth());\
@@ -52,13 +53,14 @@
                 return true;\
         }\
         return false;\
-}, "Kills in one hit if the user's speed is higher than the foe's"
+}, OHKO_DESC
 
+#define QU_RECOIL_DESC "Take a quarter of the damage dealt as recoil"
 #define TAKE_QUARTER_MOVE_DAMAGE [](Pokemon &owner, Pokemon &, unsigned damages, bool, const std::function<void(const std::string &msg)> &logger){\
 	owner.takeDamage(damages / 4);\
 	logger(owner.getName() + "'s hits with recoil!");\
 	return true;\
-}, "Take a quarter of the damage dealt as recoil"
+}, QU_RECOIL_DESC
 
 #define TRANSFORM [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
 	owner.transform(target);\
@@ -259,6 +261,17 @@ namespace PokemonGen1
 
 		Move &operator=(const Move &);
 
+		const std::pair<unsigned int, unsigned int> &getNbRuns() const;
+		const std::pair<unsigned int, unsigned int> &getNbHits() const;
+		const StatusChangeProb &getStatusChange() const;
+		const std::vector<StatsChangeProb> &getOwnerChange() const;
+		const std::vector<StatsChangeProb> &getFoeChange() const;
+		bool needsLoading() const;
+		bool isInvulnerableDuringLoading() const;
+		bool needsRecharge() const;
+		const std::string &getHitCallBackDescription() const;
+		const std::string &getMissCallBackDescription() const;
+		double getCritChance() const;
 		unsigned char getAccuracy() const;
 		MoveCategory getCategory() const;
 		bool makesInvulnerable() const;

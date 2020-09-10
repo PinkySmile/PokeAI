@@ -415,6 +415,61 @@ namespace PokemonGen1
 		return this->_fullDescription;
 	}
 
+	double Move::getCritChance() const
+	{
+		return this->_critChance;
+	}
+
+	const std::pair<unsigned int, unsigned int> &Move::getNbRuns() const
+	{
+		return this->_nbRuns;
+	}
+
+	const std::pair<unsigned int, unsigned int> &Move::getNbHits() const
+	{
+		return this->_nbHits;
+	}
+
+	const Move::StatusChangeProb &Move::getStatusChange() const
+	{
+		return this->_statusChange;
+	}
+
+	const std::vector<Move::StatsChangeProb> &Move::getOwnerChange() const
+	{
+		return this->_ownerChange;
+	}
+
+	const std::vector<Move::StatsChangeProb> &Move::getFoeChange() const
+	{
+		return this->_foeChange;
+	}
+
+	bool Move::needsLoading() const
+	{
+		return this->_needLoading;
+	}
+
+	bool Move::isInvulnerableDuringLoading() const
+	{
+		return this->_invulnerableDuringLoading;
+	}
+
+	bool Move::needsRecharge() const
+	{
+		return this->_needRecharge;
+	}
+
+	const std::string &Move::getHitCallBackDescription() const
+	{
+		return this->_hitCallBackDescription;
+	}
+
+	const std::string &Move::getMissCallBackDescription() const
+	{
+		return this->_missCallBackDescription;
+	}
+
 	/*
 	** From pokemondb, bulbapedia and Rhydon
 	** https://pokemondb.net/move/generation/1

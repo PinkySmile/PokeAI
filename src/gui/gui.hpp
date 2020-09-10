@@ -34,6 +34,6 @@ struct BattleResources {
 
 std::string strToUpper(std::string str);
 void gui(const std::string &trainerName, bool ai = false);
-void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResources &resources, std::vector<std::string> &log, PokemonGen1::BattleAction &nextAction);
+void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResources &resources, std::vector<std::string> &log, PokemonGen1::BattleAction &nextAction, unsigned char ai);
 
 #endif //POKEAI_GUI_HPP

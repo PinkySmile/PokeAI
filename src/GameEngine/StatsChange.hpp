@@ -10,6 +10,8 @@
 
 namespace PokemonGen1
 {
+	class UpgradableStats;
+
 	enum StatsChange {
 		STATS_ATK,
 		STATS_DEF,
@@ -20,6 +22,7 @@ namespace PokemonGen1
 	};
 
 	std::string statToString(StatsChange stat);
+	unsigned char getStat(const class UpgradableStats &stats, StatsChange stat);
 }
 
 

@@ -479,7 +479,7 @@ namespace PokemonGen1
 			this->_log(" fainted");
 	}
 
-	bool Pokemon::canGetHit()
+	bool Pokemon::canGetHit() const
 	{
 		return !this->_invincible;
 	}
