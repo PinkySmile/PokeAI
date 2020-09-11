@@ -329,7 +329,13 @@ namespace PokemonGen1
 			auto withoutCrit = this->_getDamageRange(pkmn, opponent, move, false);
 			auto dmgWithCrit = withCrit.first + withCrit.second;
 			auto dmgWithoutCrit = withoutCrit.first + withoutCrit.second;
-			double hitAccuracy = accuracy > 100 ? 1. : std::max(255., accuracy * 2.55 * pkmn.getAccuracy() * opponent.getEvasion()) / 256;
+			double hitAccuracy = accuracy > 100 ? 1. : (
+				std::max(255., accuracy * 2.55 * pkmn.getAccuracy() * opponent.getEvasion()) *
+				(
+					(opponent.canGetHit() && opponent.getSpeed() >= pkmn.getSpeed()) /
+					(1 + (opponent.getSpeed() == pkmn.getSpeed()))
+				) / 256
+			);
 
 			score += this->_getBuffsValue(opponent, pkmn, move) * BUFFS_SCORE;
 			score += this->_getDebuffsValue(opponent, pkmn, move) * DEBUFFS_SCORE;
