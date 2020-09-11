@@ -55,6 +55,8 @@ void displayOpponentStats(sf::RenderWindow &window, sf::Text &text, sf::Rectangl
 		drawText(window, text, "FRZ", 124, 32);
 	} else if (pkmn.hasStatus(PokemonGen1::STATUS_ASLEEP)) {
 		drawText(window, text, "SLP", 124, 32);
+	} else if (pkmn.hasStatus(PokemonGen1::STATUS_PARALYZED)) {
+		drawText(window, text, "PAR", 124, 32);
 	} else {
 		drawSprite(window, sprite, resources.levelSprite, 124, 32);
 		drawText(window, text, std::to_string(pkmn.getLevel()), 156, 30);
@@ -375,6 +377,8 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 					drawText(window, text, "FRZ", 416, i * 64);
 				} else if (pkmn.hasStatus(PokemonGen1::STATUS_ASLEEP)) {
 					drawText(window, text, "SLP", 416, i * 64);
+				} else if (pkmn.hasStatus(PokemonGen1::STATUS_PARALYZED)) {
+					drawText(window, text, "PAR", 416, i * 64);
 				} else {
 					drawSprite(window, sprite, resources.levelSprite, 416, i * 64);
 					drawText(window, text, std::to_string(pkmn.getLevel()), 448, i * 64);

@@ -501,6 +501,7 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::Game
 		teamPanel->get<tgui::Panel>("Pkmn6"),
 	};
 
+	aiLabel->setText("Selected AI: " + gui.get<tgui::Button>("AI" + std::to_string(ai))->getText());
 	noAi->connect("Clicked", fct, std::weak_ptr(noAi), 0);
 	Ai1->connect("Clicked", fct, std::weak_ptr(Ai1), 1);
 	save->onClick.connect([&game]{
