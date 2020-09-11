@@ -27,6 +27,39 @@
 
 namespace PokemonGen1
 {
+	static std::string BattleActionToString(BattleAction action)
+	{
+		switch (action) {
+		case Attack1:
+			return "Attack1";
+		case Attack2:
+			return "Attack2";
+		case Attack3:
+			return "Attack3";
+		case Attack4:
+			return "Attack4";
+		case Switch1:
+			return "Switch1";
+		case Switch2:
+			return "Switch2";
+		case Switch3:
+			return "Switch3";
+		case Switch4:
+			return "Switch4";
+		case Switch5:
+			return "Switch5";
+		case Switch6:
+			return "Switch6";
+		case StruggleMove:
+			return "StruggleMove";
+		case Run:
+			return "Run";
+		case NoAction:
+			break;
+		}
+		return "Unknown";
+	}
+
 	AIHeuristic::AIHeuristic(const PokemonGen1::GameHandle &gameHandle) :
 		_gameHandle(gameHandle)
 	{
@@ -80,9 +113,12 @@ namespace PokemonGen1
 
 		std::pair<BattleAction, int> bestScore = *scores.begin();
 
-		for (auto &score : scores)
+		for (auto &score : scores) {
+			std::cout << "[HAI]: Action " << BattleActionToString(score.first) << " has " << score.second << " points" << std::endl;
 			if (score.second > bestScore.second)
 				bestScore = score;
+		}
+		std::cout << "[HAI]: Best action is " << BattleActionToString(bestScore.first) << " with " << bestScore.second << " points" << std::endl;
 		return bestScore.first;
 	}
 
@@ -332,8 +368,8 @@ namespace PokemonGen1
 			double hitAccuracy = accuracy > 100 ? 1. : (
 				std::max(255., accuracy * 2.55 * pkmn.getAccuracy() * opponent.getEvasion()) *
 				(
-					(opponent.canGetHit() && opponent.getSpeed() >= pkmn.getSpeed()) /
-					(1 + (opponent.getSpeed() == pkmn.getSpeed()))
+					(opponent.canGetHit() || opponent.getSpeed() < pkmn.getSpeed()) /
+					(1. + (opponent.getSpeed() == pkmn.getSpeed() && !opponent.canGetHit()))
 				) / 256
 			);
 
