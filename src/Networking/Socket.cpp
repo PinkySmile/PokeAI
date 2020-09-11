@@ -207,7 +207,7 @@ void Socket::send(const std::string &msg)
 	unsigned	pos = 0;
 
 	while (pos < msg.length()) {
-		int bytes = ::send(this->_sockfd, &msg.c_str()[pos], msg.length() - pos, 0);
+		int bytes = ::send(this->_sockfd, &msg.c_str()[pos], msg.length() - pos, MSG_NOSIGNAL);
 
 		if (bytes <= 0)
 			throw EOFException(getLastSocketError());

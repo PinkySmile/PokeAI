@@ -126,6 +126,8 @@
 
 #define HEAL_HALF_HEALTH_DESC "Heal half max HP"
 #define HEAL_HALF_HEALTH [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+	if (owner.getHealth() == owner.getMaxHealth())\
+		return logger("But it failed"), true;\
 	owner.takeDamage(-(owner.getMaxHealth() / 2));\
 	logger(owner.getName() + " regained health");\
 	return true;\

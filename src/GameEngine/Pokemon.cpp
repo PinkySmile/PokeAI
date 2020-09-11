@@ -150,12 +150,15 @@ namespace PokemonGen1
 
 	bool Pokemon::addStatus(StatusChange status)
 	{
+		unsigned char randomVal = 0;
 		//TODO: Add the Sleep + Hyper beam glitch
 		if (status == STATUS_NONE)
 			return true;
 		switch (status) {
 		case STATUS_ASLEEP:
-			return this->addStatus(STATUS_ASLEEP_FOR_1_TURN, this->_random() / 37 + 1);
+			while (!randomVal)
+				randomVal = this->_random() & 7;
+			return this->addStatus(STATUS_ASLEEP_FOR_1_TURN, randomVal);
 		case STATUS_CONFUSED:
 			return this->addStatus(STATUS_CONFUSED_FOR_1_TURN, (this->_random() & 3) + 2);
 		default:
@@ -440,7 +443,7 @@ namespace PokemonGen1
 		statName = statToLittleString(stat);
 
 		if ((stats[stat] >= 6 && nb > 0) || (stats[stat] <= -6 && nb < 0)) {
-			this->_game.logBattle("Nothing happened.");
+			this->_game.logBattle("Nothing happened");
 			return;
 		}
 
