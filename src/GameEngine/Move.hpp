@@ -39,7 +39,7 @@
 
 #define TAKE_1DAMAGE [](Pokemon &owner, Pokemon &, const std::function<void(const std::string &msg)> &logger){\
 	owner.takeDamage(1);\
-	logger(owner.getName() + " crashes!");\
+	logger(owner.getName() + " crashes");\
 	return true;\
 }, "Take 1 damage"
 
@@ -49,7 +49,7 @@
 #define ONE_HIT_KO_HANDLE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
 	if (owner.getSpeed() >= target.getSpeed()) {\
                 target.takeDamage(target.getHealth());\
-                logger("One-hit KO!");\
+                logger("One-hit KO");\
                 return true;\
         }\
         return false;\
@@ -58,7 +58,7 @@
 #define QU_RECOIL_DESC "Take a quarter of the damage dealt as recoil"
 #define TAKE_QUARTER_MOVE_DAMAGE [](Pokemon &owner, Pokemon &, unsigned damages, bool, const std::function<void(const std::string &msg)> &logger){\
 	owner.takeDamage(damages / 4);\
-	logger(owner.getName() + "'s hits with recoil!");\
+	logger(owner.getName() + "'s hits with recoil");\
 	return true;\
 }, QU_RECOIL_DESC
 
@@ -72,7 +72,7 @@
 #define TAKE_HALF_MOVE_DAMAGE_DESC "Take half dealt damage as recoil"
 #define TAKE_HALF_MOVE_DAMAGE [](Pokemon &owner, Pokemon &, unsigned damages, bool, const std::function<void(const std::string &msg)> &logger){\
 	owner.takeDamage(damages / 2);\
-	logger(owner.getName() + "'s hits with recoil!");\
+	logger(owner.getName() + "'s hits with recoil");\
 	return true;\
 }, TAKE_HALF_MOVE_DAMAGE_DESC
 
@@ -118,32 +118,37 @@
 }, DEAL_0_5_TO_1_5_LEVEL_DAMAGE_DESC
 
 #define ABSORB_HALF_DAMAGE_DESC "Absorb half dealt damages"
-#define ABSORB_HALF_DAMAGE [](Pokemon &owner, Pokemon &, unsigned damages, bool, const std::function<void(const std::string &msg)> &){\
+#define ABSORB_HALF_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned damages, bool, const std::function<void(const std::string &msg)> &logger){\
 	owner.takeDamage(-(damages / 2));\
+	logger("Sucked health from " + target.getName() + "!mab");\
 	return true;\
 }, ABSORB_HALF_DAMAGE_DESC
 
 #define HEAL_HALF_HEALTH_DESC "Heal half max HP"
-#define HEAL_HALF_HEALTH [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define HEAL_HALF_HEALTH [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
 	owner.takeDamage(-(owner.getMaxHealth() / 2));\
+	logger(owner.getName() + " regained health");\
 	return true;\
 }, HEAL_HALF_HEALTH_DESC
 
 #define HEAL_ALL_HEALTH_AND_SLEEP_DESC "Heal all lost HP and sleep for 2 turns"
-#define HEAL_ALL_HEALTH_AND_SLEEP [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define HEAL_ALL_HEALTH_AND_SLEEP [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
 	owner.takeDamage(-owner.getMaxHealth());\
 	owner.setStatus(STATUS_ASLEEP, 2);\
+	logger(owner.getName() + " started sleeping");\
+	logger(owner.getName() + " regained health");\
 	return true;\
 }, HEAL_ALL_HEALTH_AND_SLEEP_DESC
 
 #define CANCEL_STATS_CHANGE_DESC "Resets all stats, status and crit chance multiplier changes"
-#define CANCEL_STATS_CHANGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define CANCEL_STATS_CHANGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
 	owner.resetStatsChanges();\
 	owner.setStatus(STATUS_NONE);\
 	owner.setGlobalCritRatio(1);\
 	target.resetStatsChanges();\
 	target.setStatus(STATUS_NONE);\
 	target.setGlobalCritRatio(1);\
+	logger("All status changes are eliminated");\
 	return true;\
 }, CANCEL_STATS_CHANGE_DESC
 

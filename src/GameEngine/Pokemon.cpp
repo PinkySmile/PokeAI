@@ -270,7 +270,7 @@ namespace PokemonGen1
 		if (this->_lastUsedMove.isFinished())
 			this->_lastUsedMove = move;
 		if (!this->_lastUsedMove.attack(*this, target, [this](const std::string &msg) { this->_game.logBattle(msg); })) {
-			this->_log("'s attack missed!");
+			this->_log("'s attack missed");
 			//this->_lastUsedMove.missed();
 		}
 	}
@@ -337,10 +337,10 @@ namespace PokemonGen1
 	{
 		this->_flinched = false;
 		if (this->_currentStatus & STATUS_BURNED) {
-			this->_log(" is hurt by the burn!");
+			this->_log("'s hurt by the burn");
 			this->takeDamage(this->getHealth() / 16);
 		} else if ((this->_currentStatus & STATUS_POISONED) || (this->_currentStatus & STATUS_BADLY_POISONED)) {
-			this->_log(" is hurt by the poison!");
+			this->_log("'s hurt by the poison");
 			if (this->_currentStatus & STATUS_BADLY_POISONED)
 				this->takeDamage(this->getHealth() * this->_badPoisonStage++ / 16);
 			else
@@ -356,47 +356,47 @@ namespace PokemonGen1
 	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
 	{
 		if (this->_needsRecharge) {
-			this->_game.logBattle(this->getName() + " must recharge!");
+			this->_game.logBattle(this->getName() + " must recharge");
 			return;
 		}
 
 		if (this->_wrapped) {
-			this->_log(" can't move!");
+			this->_log(" can't move");
 			return;
 		}
 
 		if (this->_flinched) {
-			this->_log(" flinched!");
+			this->_log(" flinched");
 			return;
 		}
 
 		if (this->_currentStatus & STATUS_ASLEEP) {
 			this->_currentStatus--;
 			if (this->_currentStatus)
-				this->_log(" is fast asleep!");
+				this->_log(" is fast asleep");
 			else {
-				this->_log(" woke up!");
+				this->_log(" woke up");
 				this->_currentStatus &= 0xFF00U;
 			}
 			return;
 		}
 		if (this->_currentStatus & STATUS_FROZEN) {
-			this->_log(" is frozen solid!");
+			this->_log(" is frozen solid");
 			return;
 		}
 		if ((this->_currentStatus & STATUS_CONFUSED)) {
-			this->_log(" is confused!");
+			this->_log(" is confused");
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if (this->_random() >= 0x80) {
 				this->setInvincible(false);
-				this->_log(" hurts itself in it's confusion!");
+				this->_log(" hurts itself in it's confusion");
 				this->takeDamage(this->calcDamage(*this, 40, TYPE_0x0A, PHYSICAL, false).damages);
 				this->_lastUsedMove = DEFAULT_MOVE(0x00);
 				return;
 			}
 		}
 		if ((this->_currentStatus & STATUS_PARALYZED) && this->_random() < 0x3F) {
-			this->_log(" is fully paralyzed!");
+			this->_log("'s fully paralyzed");
 			this->_lastUsedMove = DEFAULT_MOVE(0x00);
 			return;
 		}
@@ -445,13 +445,13 @@ namespace PokemonGen1
 		}
 
 		if (nb < -1)
-			this->_log("'s " + statName + " greatly fell!");
+			this->_log("'s " + statName + " greatly fell");
 		else if (nb == -1)
-			this->_log("'s " + statName + " fell!");
+			this->_log("'s " + statName + " fell");
 		else if (nb == 1)
-			this->_log("'s " + statName + " rose!");
+			this->_log("'s " + statName + " rose");
 		else if (nb > 1)
-			this->_log("'s " + statName + " greatly rose!");
+			this->_log("'s " + statName + " greatly rose");
 
 		stats[stat] += nb;
 		if (stats[stat] > 6)

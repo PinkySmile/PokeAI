@@ -90,9 +90,9 @@ void displayMyStats(sf::RenderWindow &window, sf::Text &text, sf::RectangleShape
 	}
 	drawText(window, text, pkmn.getName(), 320, 222);
 
-	drawText(window, text, std::to_string(pkmn.getHealth()), 578 - std::to_string(pkmn.getHealth()).size() * 32, 318);
+	drawText(window, text, std::to_string(pkmn.getHealth()), 450 - std::to_string(pkmn.getHealth()).size() * 32, 318);
 	drawText(window, text, "/", 450, 318);
-	drawText(window, text, std::to_string(pkmn.getMaxHealth()), 450 - std::to_string(pkmn.getMaxHealth()).size() * 32, 318);
+	drawText(window, text, std::to_string(pkmn.getMaxHealth()), 578 - std::to_string(pkmn.getMaxHealth()).size() * 32, 318);
 }
 
 void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName, BattleResources &resources, std::vector<std::string> &log, const PokemonGen1::BattleState &state)
@@ -219,7 +219,6 @@ void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHand
 			drawText(window, text, log[0], 32, 440);
 			displayOpponentStats(window, text, rect, sprite, resources, state.opponentTeam[state.opponentPokemonOnField]);
 			displayMyStats(window, text, rect, sprite, resources, state.team[state.pokemonOnField]);
-
 		}
 
 		last = seconds;
@@ -260,9 +259,11 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 	while (window.isOpen() && game.getStage() == PokemonGen1::BATTLE) {
 		sf::Event event;
 
-		if (!log.empty())
+		if (!log.empty()) {
+			if (menu != 4)
+				clock.restart();
 			menu = 4;
-		else if (game.getBattleState().nextAction)
+		} else if (game.getBattleState().nextAction)
 			menu = 3;
 		else if (menu == 3)
 			menu = 0;
@@ -312,7 +313,7 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 							nextAction = static_cast<PokemonGen1::BattleAction>(PokemonGen1::Attack1 + selectedMenu);
 						} else {
 							menu = 5;
-							log.emplace_back("No PP left !");
+							log.emplace_back("No PP left!");
 						}
 					} else if (menu == 2) {
 						menu = 3;
@@ -387,17 +388,20 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 			drawSprite(window, sprite, resources.arrows[1], 0, 64 * selectedMenu + 32);
 		} else if (menu == 3) {
 			if (log.empty()) {
-				drawSprite(window, sprite, resources.waitingHUD, 192, 320);
-				drawText(window, text, "Waiting", 224, 352);
-			} else
+				drawSprite(window, sprite, resources.waitingHUD, 96, 320);
+				drawText(window, text, "Waiting...", 128, 352);
+			} else {
+				clock.restart();
 				menu = 4 + (state.team[state.pokemonOnField].getHealth() == 0) * 2;
+			}
 		} else if (menu >= 4) {
 			drawText(window, text, log[0].substr(0, clock.getElapsedTime().asSeconds() * 15), 32, 440);
 			if (clock.getElapsedTime().asSeconds() > 4) {
 				log.erase(log.begin());
 				if (log.empty())
 					menu -= 4;
-				clock.restart();
+				else
+					clock.restart();
 			}
 		}
 		window.display();

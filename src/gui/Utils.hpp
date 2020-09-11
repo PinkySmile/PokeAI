@@ -20,6 +20,8 @@
 
 namespace Utils
 {
+	std::string toUpper(std::string str);
+	std::string toLower(std::string str);
 
 	//! @brief Display a Windows dialog box.
 	//! @details This functions opens a Windows dialog box and return the button clicked by the user.

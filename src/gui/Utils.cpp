@@ -287,6 +287,18 @@ namespace Utils
 		);
 	}
 
+	std::string toUpper(std::string str)
+	{
+		std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){ return std::toupper(c); });
+		return str;
+	}
+
+	std::string toLower(std::string str)
+	{
+		std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){ return std::tolower(c); });
+		return str;
+	}
+
 	std::string openFileDialog(const std::string &title, const std::string &basePath, const std::vector<std::pair<std::string, std::string>> &patterns, bool overWriteWarning, bool mustExist)
 	{
 		sf::RenderWindow window{{500, 300}, title, sf::Style::Titlebar};

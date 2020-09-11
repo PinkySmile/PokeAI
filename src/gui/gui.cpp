@@ -29,12 +29,6 @@ std::string intToHex(unsigned char i)
 	return stream.str();
 }
 
-std::string toLower(std::string str)
-{
-	std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c){ return std::tolower(c); });
-	return str;
-}
-
 void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleResources &resources, unsigned char &ai);
 void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleResources &resources, unsigned index, tgui::Panel::Ptr panel, PokemonGen1::Pokemon &pkmn, unsigned char &ai);
 
@@ -89,13 +83,13 @@ void applyMoveFilters(unsigned sorting, std::string query, const std::string &ty
 	};
 
 	if (!query.empty()) {
-		query = toLower(query);
+		query = Utils::toLower(query);
 
 		panels.erase(std::remove_if(
 			panels.begin(),
 			panels.end(),
 			[&query](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1) {
-				return toLower(PokemonGen1::availableMoves[p1.first].getName()).find(query) == std::string::npos;
+				return Utils::toLower(PokemonGen1::availableMoves[p1.first].getName()).find(query) == std::string::npos;
 			}
 		), panels.end());
 	}
@@ -256,13 +250,13 @@ void applyPkmnsFilters(unsigned sorting, std::string query, const std::string &t
 	};
 
 	if (!query.empty()) {
-		query = toLower(query);
+		query = Utils::toLower(query);
 
 		panels.erase(std::remove_if(
 			panels.begin(),
 			panels.end(),
 			[&query](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1) {
-				return toLower(PokemonGen1::pokemonList[p1.first].name).find(query) == std::string::npos;
+				return Utils::toLower(PokemonGen1::pokemonList[p1.first].name).find(query) == std::string::npos;
 			}
 		), panels.end());
 	}
@@ -718,7 +712,7 @@ void loadResources(BattleResources &resources)
 		try {
 			resources.types.at(typeToString(static_cast<PokemonTypes>(i)));
 		} catch (std::out_of_range &) {
-			resources.types[typeToString(static_cast<PokemonTypes>(i))].loadFromFile("assets/types/type_" + toLower(typeToString(static_cast<PokemonTypes>(i))) + ".png");
+			resources.types[typeToString(static_cast<PokemonTypes>(i))].loadFromFile("assets/types/type_" + Utils::toLower(typeToString(static_cast<PokemonTypes>(i))) + ".png");
 		}
 
 	resources.trainer[0][0].loadFromFile("assets/back_sprites/trainer_shadow_back.png");
@@ -744,6 +738,36 @@ void loadResources(BattleResources &resources)
 		resources.battleCries[i].loadFromFile("assets/cries/" + std::to_string(i) + "_cry.wav");
 }
 
+static std::string splitText(std::string str)
+{
+	size_t lineSize = 0;
+	std::string result;
+	std::string token;
+
+	result.reserve(str.size());
+	for (size_t pos = str.find(' '); !str.empty(); pos = str.find(' ')) {
+		token = str.substr(0, pos);
+
+		if (!result.empty()) {
+			if (lineSize + token.size() + 1 > 18) {
+				result += "\n";
+				lineSize = 0;
+			} else {
+				result += " ";
+				lineSize++;
+			}
+		}
+		result += token;
+		lineSize += token.size();
+		if (pos == std::string::npos)
+			break;
+		str.erase(0, pos + 1);
+	}
+
+	return result;
+}
+
+
 void gui(const std::string &trainerName, bool hasAi)
 {
 	unsigned char ai = hasAi;
@@ -766,7 +790,7 @@ void gui(const std::string &trainerName, bool hasAi)
 			return action;
 		},
 		trainerName,
-		[&battleLog](const std::string &msg){ battleLog.push_back(msg); },
+		[&battleLog](const std::string &msg){ battleLog.push_back(splitText(msg)); },
 		false,
 		getenv("MIN_DEBUG")
 	);

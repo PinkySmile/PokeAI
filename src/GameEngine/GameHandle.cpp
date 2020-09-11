@@ -64,9 +64,9 @@ namespace PokemonGen1
 
 	void GameHandle::logBattle(const std::string &message)
 	{
-		std::cout << "[BATTLE]: " << message << std::endl;
+		std::cout << "[BATTLE]: " << message << "!" << std::endl;
 		if (this->_battleLogger)
-			this->_battleLogger(message);
+			this->_battleLogger(message + "!");
 	}
 
 	void GameHandle::setTeamSize(unsigned size)
@@ -238,9 +238,9 @@ namespace PokemonGen1
 				this->_state.lastAction = NoAction;
 				this->_state.nextAction = NoAction;
 				this->_state.nextOpponentAction = NoAction;
-				this->logBattle(this->_state.opponentName + " wants to fight!");
-				this->logBattle(this->_state.opponentName + " sent out " + this->_state.opponentTeam[0].getNickname() + "!");
-				this->logBattle(this->_state.team[0].getName() + " go!");
+				this->logBattle(this->_state.opponentName + " wants to fight");
+				this->logBattle(this->_state.opponentName + " sent out " + this->_state.opponentTeam[0].getNickname());
+				this->logBattle(this->_state.team[0].getName() + " go");
 				this->_log("Done: going to battle");
 			}
 			if (byte == SYNC_BYTE)
@@ -333,7 +333,7 @@ namespace PokemonGen1
 
 		if (!allyTeamOK){
 			this->logBattle(this->_trainerName + " is out of usable pokemon");
-			this->logBattle(this->_trainerName + " blacked out!");
+			this->logBattle(this->_trainerName + " blacked out");
 			this->_stage = PING_POKEMON_EXCHANGE;
 			return;
 		}
@@ -356,7 +356,7 @@ namespace PokemonGen1
 		if (AIFainted || !opponentFainted)
 			switch (this->_state.nextAction) {
 			case Run:
-				this->logBattle("Got away safely!");
+				this->logBattle("Got away safely");
 				this->_stage = PING_POKEMON_EXCHANGE;
 				return;
 			case Switch1:
@@ -367,10 +367,10 @@ namespace PokemonGen1
 			case Switch6:
 				if (!AIFainted) {
 					this->_state.team[this->_state.pokemonOnField].switched();
-					this->logBattle(this->_state.team[this->_state.pokemonOnField].getName() + " come back!");
+					this->logBattle(this->_state.team[this->_state.pokemonOnField].getName() + " come back");
 				}
 				this->_state.pokemonOnField = this->_state.nextAction - Switch1;
-				this->logBattle(this->_state.team[this->_state.pokemonOnField].getName() + " go!");
+				this->logBattle(this->_state.team[this->_state.pokemonOnField].getName() + " go");
 				break;
 			case Attack1:
 			case Attack2:
@@ -440,7 +440,7 @@ namespace PokemonGen1
 
 		if (!allyTeamOK){
 			this->logBattle(this->_trainerName + " is out of usable pokemon");
-			this->logBattle(this->_trainerName + " blacked out!");
+			this->logBattle(this->_trainerName + " blacked out");
 			this->_stage = PING_POKEMON_EXCHANGE;
 			return;
 		}
