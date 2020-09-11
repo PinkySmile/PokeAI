@@ -22,6 +22,7 @@ namespace PokemonGen1
 	};
 
 	std::string statToString(StatsChange stat);
+	std::string statToLittleString(StatsChange stat);
 	unsigned char getStat(const class UpgradableStats &stats, StatsChange stat);
 }
 

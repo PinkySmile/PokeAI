@@ -27,6 +27,26 @@ namespace PokemonGen1
 		}
 	}
 
+	std::string statToLittleString(StatsChange stat)
+	{
+		switch (stat) {
+		case STATS_ATK:
+			return "ATK";
+		case STATS_DEF:
+			return "DEF";
+		case STATS_SPD:
+			return "SPD";
+		case STATS_SPE:
+			return "SPE";
+		case STATS_ESQ:
+			return "EVD";
+		case STATS_ACC:
+			return "ACC";
+		default:
+			return "???";
+		}
+	}
+
 	unsigned char getStat(const UpgradableStats &stats, StatsChange stat)
 	{
 		switch (stat) {

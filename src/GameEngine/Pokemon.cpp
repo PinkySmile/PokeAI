@@ -437,7 +437,7 @@ namespace PokemonGen1
 		if (!nb)
 			return;
 
-		statName = statToString(stat);
+		statName = statToLittleString(stat);
 
 		if ((stats[stat] >= 6 && nb > 0) || (stats[stat] <= -6 && nb < 0)) {
 			this->_game.logBattle("Nothing happened.");
