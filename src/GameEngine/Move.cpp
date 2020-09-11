@@ -368,18 +368,18 @@ namespace PokemonGen1
 			return true;
 		}
 
-		if (this->_statusChange.prob && owner.getRandomGenerator()() < this->_statusChange.prob * 256)
+		if (this->_statusChange.prob >= 1 || (this->_statusChange.prob != 0 && owner.getRandomGenerator()() < this->_statusChange.prob * 256))
 			target.addStatus(this->_statusChange.status);
 
 		if (this->_hitCallback)
 			return this->_hitCallback(owner, target, damages.damages, this->isFinished(), logger);
 
 		for (const auto &val : this->_foeChange)
-			if (owner.getRandomGenerator()() < val.prob * 256)
+			if (val.prob >= 1 || owner.getRandomGenerator()() < val.prob * 256)
 				target.changeStat(val.stat, val.nb);
 
 		for (const auto &val : this->_ownerChange)
-			if (owner.getRandomGenerator()() < val.prob * 256)
+			if (val.prob >= 1 || owner.getRandomGenerator()() < val.prob * 256)
 				owner.changeStat(val.stat, val.nb);
 
 		return true;
