@@ -323,11 +323,13 @@ namespace PokemonGen1
 
 			//TODO: Handle when target is invicible
 
+			auto accuracy = move.getAccuracy();
 			double critChance = pokemonList[pkmn.getID()].SPD / 2 * move.getCritChance() / 255.;
 			auto withCrit = this->_getDamageRange(pkmn, opponent, move, true);
 			auto withoutCrit = this->_getDamageRange(pkmn, opponent, move, false);
 			auto dmgWithCrit = withCrit.first + withCrit.second;
 			auto dmgWithoutCrit = withoutCrit.first + withoutCrit.second;
+			double hitAccuracy = accuracy > 100 ? 1. : std::max(255., accuracy * 2.55 * pkmn.getAccuracy() * opponent.getEvasion()) / 256;
 
 			score += this->_getBuffsValue(opponent, pkmn, move) * BUFFS_SCORE;
 			score += this->_getDebuffsValue(opponent, pkmn, move) * DEBUFFS_SCORE;
@@ -337,6 +339,7 @@ namespace PokemonGen1
 				score /= move.makesInvulnerable() ? 1.25 : 2;
 			if (move.getPriority() > 0)
 				score *= 1.5 * move.getPriority();
+			score *= hitAccuracy;
 			if (best.second < score)
 				best = {i, score};
 		}
