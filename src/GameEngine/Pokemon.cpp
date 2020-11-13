@@ -348,7 +348,7 @@ namespace PokemonGen1
 				this->_log(" is fast asleep");
 			else {
 				this->_log(" woke up");
-				this->_currentStatus &= 0xFF00U;
+				this->_currentStatus &= ~STATUS_ANY_NON_VOLATILE_STATUS;
 			}
 			return;
 		}
@@ -358,16 +358,19 @@ namespace PokemonGen1
 			return;
 		}
 
-		if ((this->_currentStatus & STATUS_CONFUSED)) {
-			this->_log(" is confused");
+		if (this->_currentStatus & STATUS_CONFUSED) {
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
-			if (this->_random() >= 0x80) {
-				this->setRecharging(false);
-				this->_log(" hurts itself in it's confusion");
-				this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false).damages);
-				this->_lastUsedMove = DEFAULT_MOVE(0x00);
-				return;
-			}
+			if ((this->_currentStatus & STATUS_CONFUSED)) {
+				this->_log(" is confused");
+				if (this->_random() >= 0x80) {
+					this->setRecharging(false);
+					this->_log(" hurts itself in it's confusion");
+					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false).damages);
+					this->_lastUsedMove = DEFAULT_MOVE(0x00);
+					return;
+				}
+			} else if (!(this->_currentStatus & STATUS_CONFUSED))
+				this->_log(" is confused no more");
 		}
 
 		if ((this->_currentStatus & STATUS_PARALYZED) && this->_random() < 0x3F) {
