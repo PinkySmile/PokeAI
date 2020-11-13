@@ -4,7 +4,7 @@
 
 #include "AIHeuristic.hpp"
 
-#define PROBABILITY_SCORE 1000000
+#define KILL_PROBABILITY_SCORE 1000000
 #define DAMAGE_SCORE 1
 #define BUFFS_SCORE 1
 #define DEBUFFS_SCORE 1
@@ -245,9 +245,9 @@ namespace PokemonGen1
 		for (auto &change : o)
 			score += this->_getStatValue(change.stat, target, owner) *
 				-change.nb *
-				change.cmpVal / 256. *
+				(change.cmpVal ?: 256) / 256. *
 				(std::abs(getStat(stats, change.stat) + change.nb) <= 6) * 0.75;
-		score += this->_getStatusChangeValue(target, status.status) * status.cmpVal / 256.;
+		score += this->_getStatusChangeValue(target, status.status) * (status.cmpVal ?: 256) / 256.;
 		return score;
 	}
 
@@ -296,17 +296,7 @@ namespace PokemonGen1
 		case STATUS_BADLY_POISONED:
 		case STATUS_BURNED:
 		case STATUS_POISONED:
-			if (owner.hasStatus(STATUS_FROZEN))
-				return 0;
-			if (owner.hasStatus(STATUS_ASLEEP))
-				return 0;
-			if (owner.hasStatus(STATUS_PARALYZED))
-				return 0;
-			if (owner.hasStatus(STATUS_BADLY_POISONED))
-				return 0;
-			if (owner.hasStatus(STATUS_BURNED))
-				return 0;
-			if (owner.hasStatus(STATUS_POISONED))
+			if (owner.hasStatus(STATUS_ANY_NON_VOLATILE_STATUS))
 				return 0;
 			break;
 		case STATUS_CONFUSED:
@@ -376,7 +366,7 @@ namespace PokemonGen1
 			score += this->_getBuffsValue(opponent, pkmn, move) * BUFFS_SCORE;
 			score += this->_getDebuffsValue(opponent, pkmn, move) * DEBUFFS_SCORE;
 			score += (dmgWithCrit * critChance + dmgWithoutCrit * (1 - critChance)) * DAMAGE_SCORE;
-			score += this->_getProbabilityToKill(pkmn, opponent, move) * PROBABILITY_SCORE;
+			score += this->_getProbabilityToKill(pkmn, opponent, move) * KILL_PROBABILITY_SCORE;
 			if (move.needsLoading())
 				score /= move.makesInvulnerable() ? 1.25 : 2;
 			if (move.getPriority() > 0)
