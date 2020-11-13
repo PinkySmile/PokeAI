@@ -230,7 +230,7 @@ namespace PokemonGen1
 		for (auto &change : o)
 			score += this->_getStatValue(change.stat, owner, target) *
 				change.nb *
-				change.prob *
+				change.cmpVal / 256. *
 				(std::abs(getStat(stats, change.stat) + change.nb) <= 6);
 		return score;
 	}
@@ -245,9 +245,9 @@ namespace PokemonGen1
 		for (auto &change : o)
 			score += this->_getStatValue(change.stat, target, owner) *
 				-change.nb *
-				change.prob *
+				change.cmpVal / 256. *
 				(std::abs(getStat(stats, change.stat) + change.nb) <= 6) * 0.75;
-		score += this->_getStatusChangeValue(target, status.status) * status.prob;
+		score += this->_getStatusChangeValue(target, status.status) * status.cmpVal / 256.;
 		return score;
 	}
 

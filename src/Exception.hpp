@@ -83,5 +83,15 @@ public:
 	explicit InvalidSaveFileException(const std::string &msg) : BaseException(msg) {};
 };
 
+class DesyncException : public BaseException {
+public:
+	explicit DesyncException(const std::string &msg) : BaseException(msg) {};
+};
+
+class OpponentCrashedException : public BaseException {
+public:
+	explicit OpponentCrashedException(const std::string &msg) : BaseException(msg) {};
+};
+
 
 #endif //POKE_AI_EXCEPTION_HPP

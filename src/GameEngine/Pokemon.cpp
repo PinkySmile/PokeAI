@@ -151,9 +151,14 @@ namespace PokemonGen1
 	bool Pokemon::addStatus(StatusChange status)
 	{
 		unsigned char randomVal = 0;
+
 		//TODO: Add the Sleep + Hyper beam glitch
 		if (status == STATUS_NONE)
 			return true;
+
+		if (!this->canHaveStatus(status))
+			return false;
+
 		switch (status) {
 		case STATUS_ASLEEP:
 			while (!randomVal)
@@ -168,38 +173,7 @@ namespace PokemonGen1
 
 	bool Pokemon::addStatus(StatusChange status, unsigned duration)
 	{
-		if (status == STATUS_NONE)
-			return false;
-
-		if (status == STATUS_BURNED && (this->_types.first == TYPE_FIRE || this->_types.second == TYPE_FIRE))
-			return false;
-
-		if (
-			(status == STATUS_POISONED || status == STATUS_BADLY_POISONED) &&
-			(this->_types.first == TYPE_POISON || this->_types.second == TYPE_POISON)
-		)
-			return false;
-
-		if (this->hasStatus(status))
-			return false;
-
-		if (
-			(
-				(status & STATUS_ASLEEP) ||
-				status == STATUS_BURNED ||
-				status == STATUS_POISONED ||
-				status == STATUS_BADLY_POISONED ||
-				status == STATUS_FROZEN ||
-				status == STATUS_PARALYZED
-			) && (
-				this->hasStatus(STATUS_ASLEEP) ||
-				this->hasStatus(STATUS_BURNED) ||
-				this->hasStatus(STATUS_POISONED) ||
-				this->hasStatus(STATUS_BADLY_POISONED) ||
-				this->hasStatus(STATUS_FROZEN) ||
-				this->hasStatus(STATUS_PARALYZED)
-			)
-		)
+		if (!this->canHaveStatus(status))
 			return false;
 
 		this->_log(" is now " + statusToString(status));
@@ -358,11 +332,6 @@ namespace PokemonGen1
 
 	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
 	{
-		if (this->_needsRecharge) {
-			this->_game.logBattle(this->getName() + " must recharge");
-			return;
-		}
-
 		if (this->_wrapped) {
 			this->_log(" can't move");
 			return;
@@ -375,7 +344,7 @@ namespace PokemonGen1
 
 		if (this->_currentStatus & STATUS_ASLEEP) {
 			this->_currentStatus--;
-			if (this->_currentStatus)
+			if (this->_currentStatus & STATUS_ASLEEP)
 				this->_log(" is fast asleep");
 			else {
 				this->_log(" woke up");
@@ -383,26 +352,35 @@ namespace PokemonGen1
 			}
 			return;
 		}
+
 		if (this->_currentStatus & STATUS_FROZEN) {
 			this->_log(" is frozen solid");
 			return;
 		}
+
 		if ((this->_currentStatus & STATUS_CONFUSED)) {
 			this->_log(" is confused");
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if (this->_random() >= 0x80) {
-				this->setInvincible(false);
+				this->setRecharging(false);
 				this->_log(" hurts itself in it's confusion");
-				this->takeDamage(this->calcDamage(*this, 40, TYPE_0x0A, PHYSICAL, false).damages);
+				this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false).damages);
 				this->_lastUsedMove = DEFAULT_MOVE(0x00);
 				return;
 			}
 		}
+
 		if ((this->_currentStatus & STATUS_PARALYZED) && this->_random() < 0x3F) {
 			this->_log("'s fully paralyzed");
 			this->_lastUsedMove = DEFAULT_MOVE(0x00);
 			return;
 		}
+
+		if (this->_needsRecharge) {
+			this->_game.logBattle(this->getName() + " must recharge");
+			return;
+		}
+
 		if (moveSlot >= 4)
 			this->useMove(availableMoves[Struggle], target);
 		else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
@@ -512,7 +490,7 @@ namespace PokemonGen1
 		return this->_baseStats.DEF;
 	}
 
-	Pokemon::DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, bool critical) const
+	Pokemon::DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, bool critical, bool randomized) const
 	{
 		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
 
@@ -553,12 +531,13 @@ namespace PokemonGen1
 			defense = defense / 4 % 256;
 		}
 
-		unsigned char r;
+		unsigned char r = 255;
 
-		do {
-			r = this->_random();
-			r = (r >> 1U) | ((r & 0x01U) << 7U);
-		} while (r < 217);
+		if (randomized)
+			do {
+				r = this->_random();
+				r = (r >> 1U) | ((r & 0x01U) << 7U);
+			} while (r < 217);
 
 		//From Zarel/honko-damagecalc ->
 		//https://github.com/Zarel/honko-damagecalc/blob/dfff275e362ede0857b7564b3e5e2e6fc0e6782d/calc/src/mechanics/gen1.ts#L95
@@ -815,6 +794,31 @@ namespace PokemonGen1
 	void Pokemon::setInvincible(bool invincible)
 	{
 		this->_invincible = invincible;
+	}
+
+	bool Pokemon::canHaveStatus(StatusChange status) const
+	{
+		if (status == STATUS_NONE)
+			return false;
+
+		if (status == STATUS_BURNED && (this->_types.first == TYPE_FIRE || this->_types.second == TYPE_FIRE))
+			return false;
+
+		if (
+			(status == STATUS_POISONED || status == STATUS_BADLY_POISONED) &&
+			(this->_types.first == TYPE_POISON || this->_types.second == TYPE_POISON)
+		)
+			return false;
+
+		if ((status & STATUS_ANY_NON_VOLATILE_STATUS) && (this->_currentStatus & STATUS_ANY_NON_VOLATILE_STATUS))
+			return false;
+
+		return !this->hasStatus(status);
+	}
+
+	bool Pokemon::isEnemy() const
+	{
+		return this->_enemy;
 	}
 
 	PokemonBase::PokemonBase(

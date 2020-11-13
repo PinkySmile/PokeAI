@@ -35,7 +35,7 @@ const std::map<PokemonTypes, std::map<PokemonTypes, double>> typeTable{
 		{TYPE_GROUND,   1.0},
 		{TYPE_ROCK,     0.5},
 		{TYPE_BUG,      1.0},
-		{TYPE_GHOST,    1.0},
+		{TYPE_GHOST,    0.0},
 		{TYPE_FIRE,     1.0},
 		{TYPE_WATER,    1.0},
 		{TYPE_GRASS,    1.0},

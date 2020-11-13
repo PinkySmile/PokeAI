@@ -103,19 +103,30 @@
 
 #define DEAL_LVL_AS_DAMAGE_DESC "Deal the user's level as raw damages"
 #define DEAL_LVL_AS_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
-	if (!owner.getLevel())\
-		return true;\
 	target.takeDamage(owner.getLevel());\
 	return true;\
 }, DEAL_LVL_AS_DAMAGE_DESC
 
-#define DEAL_0_5_TO_1_5_LEVEL_DAMAGE_DESC "Deal between 0.5 and 1.5 of the user's level as damage"
-#define DEAL_0_5_TO_1_5_LEVEL_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
-	if (!owner.getLevel())\
-		return true;\
-	target.takeDamage(owner.getLevel() * (100 * owner.getRandomGenerator()() / 255. + 50));\
+#define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_DESC "Deal between 1 damage and 1.5 times the user's level as damage"
+#define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+	unsigned char multipliedLevel = owner.getLevel() * 1.5;\
+\
+	if (!multipliedLevel)\
+		throw OpponentCrashedException(owner.getName() + " used PSY_WAVE, but (level * 1.5 % 256) is 0 causing both games to go in an infinite loop.");\
+	if (multipliedLevel == 1 && owner.isEnemy())\
+		throw OpponentCrashedException(owner.getName() + " used PSY_WAVE, but (level * 1.5 % 256) is 1 causing opponent games to go in an infinite loop.");\
+\
+	unsigned char r = owner.getRandomGenerator()();\
+\
+	/* Check on which side we are to account for bug causing desyncs. */\
+	/* The move can deal 0 damages if we are not on the user side,    */\
+	/* so we reverse it to stay synced with the other game            */\
+	while ((owner.isEnemy() && !r) || r >= multipliedLevel)\
+		r = owner.getRandomGenerator()();\
+	\
+	target.takeDamage(r);\
 	return true;\
-}, DEAL_0_5_TO_1_5_LEVEL_DAMAGE_DESC
+}, DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_DESC
 
 #define ABSORB_HALF_DAMAGE_DESC "Absorb half dealt damages"
 #define ABSORB_HALF_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned damages, bool, const std::function<void(const std::string &msg)> &logger){\
@@ -222,13 +233,13 @@ namespace PokemonGen1
 	class Move {
 	public:
 		struct StatusChangeProb {
-			StatusChange	status;
-			double		prob;
+			StatusChange status;
+			unsigned char cmpVal;
 		};
 		struct StatsChangeProb {
-			StatsChange	stat;
-			char		nb;
-			double		prob;
+			StatsChange   stat;
+			char          nb;
+			unsigned char cmpVal;
 		};
 
 	private:

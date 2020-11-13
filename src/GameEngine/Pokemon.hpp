@@ -180,7 +180,7 @@ namespace PokemonGen1
 		bool hasStatus(StatusChange status) const;
 		void takeDamage(int damage);
 		void attack(unsigned char moveSlot, Pokemon &target);
-		DamageResult calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, bool critical) const;
+		DamageResult calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, bool critical, bool randomized = true) const;
 		void endTurn();
 		void switched();
 		int getPriorityFactor(unsigned char moveSlot);
@@ -197,6 +197,7 @@ namespace PokemonGen1
 		void setMove(unsigned char index, const Move &move);
 
 		PokemonRandomGenerator &getRandomGenerator();
+		bool canHaveStatus(StatusChange status) const;
 		bool canGetHit() const;
 		unsigned char getID() const;
 		unsigned getDamagesStored() const;
@@ -223,6 +224,7 @@ namespace PokemonGen1
 		const BaseStats &getDvs() const;
 		const BaseStats &getStatExps() const;
 		void setStatExps(const BaseStats &statExps);
+		bool isEnemy() const;
 
 		void setTypes(std::pair<PokemonTypes, PokemonTypes> types);
 
