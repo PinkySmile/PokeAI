@@ -176,6 +176,10 @@ namespace PokemonGen1
 		if (!this->canHaveStatus(status))
 			return false;
 
+		if (status == STATUS_FLINCHED) {
+			this->_flinched = true;
+			return true;
+		}
 		this->_log(" is now " + statusToString(status));
 		if (status == STATUS_BADLY_POISONED)
 			this->_badPoisonStage = 1;

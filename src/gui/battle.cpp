@@ -86,6 +86,8 @@ void displayMyStats(sf::RenderWindow &window, sf::Text &text, sf::RectangleShape
 		drawText(window, text, "FRZ", 412, 256);
 	} else if (pkmn.hasStatus(PokemonGen1::STATUS_ASLEEP)) {
 		drawText(window, text, "SLP", 412, 256);
+	} else if (pkmn.hasStatus(PokemonGen1::STATUS_PARALYZED)) {
+		drawText(window, text, "PAR", 412, 256);
 	} else {
 		drawSprite(window, sprite, resources.levelSprite, 412, 256);
 		drawText(window, text, std::to_string(pkmn.getLevel()), 444, 254);

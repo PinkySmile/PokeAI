@@ -27,21 +27,28 @@
 #define NOT_IMPLEMENTED nullptr, "Not implemented"
 
 //Miss callbacks
-#define GLITCH_HYPER_BEAM [](Pokemon &, Pokemon &target, const std::function<void(const std::string &msg)> &){\
+#define GLITCH_HYPER_BEAM [](Pokemon &, Pokemon &target, bool, const std::function<void(const std::string &msg)> &){\
 	target.setRecharging(false);\
 	return true;\
 }, "Removes the opponent recharge state and will make the target use it's move once more"
 
-#define SUICIDE_MISS [](Pokemon &owner, Pokemon &, const std::function<void(const std::string &msg)> &){\
+#define SUICIDE_MISS [](Pokemon &owner, Pokemon &, bool, const std::function<void(const std::string &msg)> &){\
 	owner.takeDamage(owner.getHealth());\
 	return true;\
 }, "Kills user"
 
-#define TAKE_1DAMAGE [](Pokemon &owner, Pokemon &, const std::function<void(const std::string &msg)> &logger){\
+#define TAKE_1DAMAGE [](Pokemon &owner, Pokemon &, bool, const std::function<void(const std::string &msg)> &logger){\
 	owner.takeDamage(1);\
 	logger(owner.getName() + " crashes");\
 	return true;\
 }, "Take 1 damage"
+
+#define CONFUSE_ON_LAST_DESC "Confuse the user on last run"
+#define CONFUSE_ON_LAST_MISS [](Pokemon &owner, Pokemon &, bool last, const std::function<void(const std::string &msg)> &){\
+	if (last)\
+		owner.addStatus(STATUS_CONFUSED);\
+	return true;\
+}, CONFUSE_ON_LAST_DESC
 
 
 //Hit callbacks
@@ -82,7 +89,6 @@
 	return true;\
 }, WRAP_TARGET_DESC
 
-#define CONFUSE_ON_LAST_DESC "Confuse the user on last run"
 #define CONFUSE_ON_LAST [](Pokemon &owner, Pokemon &, unsigned, bool last, const std::function<void(const std::string &msg)> &){\
 	if (last)\
 		owner.addStatus(STATUS_CONFUSED);\
@@ -244,7 +250,7 @@ namespace PokemonGen1
 
 	private:
 		std::function<bool (Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun, const std::function<void(const std::string &msg)> &)> _hitCallback;
-		std::function<bool (Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)> _missCallback;
+		std::function<bool (Pokemon &owner, Pokemon &target, bool last, const std::function<void(const std::string &msg)> &logger)> _missCallback;
 		double _critChance;
 		std::string _loadingMsg;
 		std::string _keepGoingMsg;
@@ -294,7 +300,7 @@ namespace PokemonGen1
 			bool needRecharge = false,
 			const std::function<bool(Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun, const std::function<void(const std::string &msg)> &logger)> &&hitCallback = nullptr,
 			const std::string &hitCallBackDescription = "",
-			const std::function<bool(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)> &&missCallback = nullptr,
+			const std::function<bool(Pokemon &owner, Pokemon &target, bool last, const std::function<void(const std::string &msg)> &logger)> &&missCallback = nullptr,
 			const std::string &missCallBackDescription = ""
 		);
 		Move(const Move &);

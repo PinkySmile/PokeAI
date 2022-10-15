@@ -39,6 +39,8 @@ namespace PokemonGen1
 			return "leeched by seeds";
 		case STATUS_KO:
 			return "KO";
+		case STATUS_FLINCHED:
+			return "flinched";
 		default:
 			return "???";
 		}

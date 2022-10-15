@@ -642,11 +642,15 @@ namespace PokemonGen1
 	{
 		std::vector<std::vector<unsigned char>> packet;
 		std::vector<unsigned char> buffer;
+		std::string str;
 
 		this->_randomGenerator.makeRandomList(9);
 		/*this->_randomGenerator.setList({
-			0xC0, 0xED, 0x9E, 0x1D, 0x26, 0x56, 0x8F, 0xA7, 0x4A
+			0xBC, 0x84, 0xA0, 0x39, 0x61, 0x4C, 0xD3, 0x68, 0xBB
 		});*/
+		for (auto elem : this->_randomGenerator.getList())
+			str += " " + charToHex(elem);
+		this->_log("Generated random list is" + str);
 		packet.emplace_back();
 		packet.push_back(this->_randomGenerator.getList());
 

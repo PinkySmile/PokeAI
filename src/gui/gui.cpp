@@ -246,6 +246,66 @@ void applyPkmnsFilters(unsigned sorting, std::string query, const std::string &t
 		},
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
 			return p1.first > p2.first;
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = PokemonGen1::pokemonList[p1.first];
+			auto &base2 = PokemonGen1::pokemonList[p2.first];
+
+			return base1.HP < base2.HP;
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = PokemonGen1::pokemonList[p1.first];
+			auto &base2 = PokemonGen1::pokemonList[p2.first];
+
+			return base1.HP > base2.HP;
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = PokemonGen1::pokemonList[p1.first];
+			auto &base2 = PokemonGen1::pokemonList[p2.first];
+
+			return base1.ATK < base2.ATK;
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = PokemonGen1::pokemonList[p1.first];
+			auto &base2 = PokemonGen1::pokemonList[p2.first];
+
+			return base1.ATK > base2.ATK;
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = PokemonGen1::pokemonList[p1.first];
+			auto &base2 = PokemonGen1::pokemonList[p2.first];
+
+			return base1.DEF < base2.DEF;
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = PokemonGen1::pokemonList[p1.first];
+			auto &base2 = PokemonGen1::pokemonList[p2.first];
+
+			return base1.DEF > base2.DEF;
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = PokemonGen1::pokemonList[p1.first];
+			auto &base2 = PokemonGen1::pokemonList[p2.first];
+
+			return base1.SPD < base2.SPD;
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = PokemonGen1::pokemonList[p1.first];
+			auto &base2 = PokemonGen1::pokemonList[p2.first];
+
+			return base1.SPD > base2.SPD;
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = PokemonGen1::pokemonList[p1.first];
+			auto &base2 = PokemonGen1::pokemonList[p2.first];
+
+			return base1.SPE < base2.SPE;
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = PokemonGen1::pokemonList[p1.first];
+			auto &base2 = PokemonGen1::pokemonList[p2.first];
+
+			return base1.SPE > base2.SPE;
 		}
 	};
 
@@ -293,6 +353,16 @@ void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 	sorting->addItem("Sort Z -> A");
 	sorting->addItem("Sort by ascending ID");
 	sorting->addItem("Sort by descending ID");
+	sorting->addItem("Sort by ascending max HP");
+	sorting->addItem("Sort by descending max HP");
+	sorting->addItem("Sort by ascending ATK");
+	sorting->addItem("Sort by descending ATK");
+	sorting->addItem("Sort by ascending DEF");
+	sorting->addItem("Sort by descending DEF");
+	sorting->addItem("Sort by ascending SPD");
+	sorting->addItem("Sort by descending SPD");
+	sorting->addItem("Sort by ascending SPE");
+	sorting->addItem("Sort by descending SPE");
 	sorting->setSelectedItemByIndex(0);
 
 	typeFilter->addItem("--Filter by type--", "");
