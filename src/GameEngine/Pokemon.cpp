@@ -317,6 +317,7 @@ namespace PokemonGen1
 	void Pokemon::endTurn()
 	{
 		this->_flinched = false;
+		this->_wrapped = false;
 		if (this->_currentStatus & STATUS_BURNED) {
 			this->_log("'s hurt by the burn");
 			this->takeDamage(this->getHealth() / 16);
@@ -369,7 +370,7 @@ namespace PokemonGen1
 				if (this->_random() >= 0x80) {
 					this->setRecharging(false);
 					this->_log(" hurts itself in it's confusion");
-					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false).damages);
+					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false).damage);
 					this->_lastUsedMove = DEFAULT_MOVE(0x00);
 					return;
 				}
@@ -384,7 +385,7 @@ namespace PokemonGen1
 		}
 
 		if (this->_needsRecharge) {
-			this->_game.logBattle(this->getName() + " must recharge");
+			this->_log("must recharge");
 			return;
 		}
 
@@ -501,10 +502,11 @@ namespace PokemonGen1
 	{
 		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
 
+		std::cout << this->getName() << " calc damage for " << power << " " << damageType << " " << category << " " << critical << " " << randomized << std::endl;
 		if (effectiveness == 0)
 			return {
 				.critical = false,
-				.damages = 0,
+				.damage = 0,
 				.affect = false,
 				.isVeryEffective = false,
 				.isNotVeryEffective = false,
@@ -526,17 +528,19 @@ namespace PokemonGen1
 		default:
 			return {
 				.critical = false,
-				.damages = 0,
+				.damage = 0,
 				.affect = true,
 				.isVeryEffective = false,
 				.isNotVeryEffective = false,
 			};
 		}
 
+		std::cout << "def " << defense << ", atk " << attack << std::endl;
 		if (attack > 255 || defense > 255) {
 			attack = attack / 4 % 256;
 			defense = defense / 4 % 256;
 		}
+		std::cout << "def " << defense << ", atk " << attack << std::endl;
 
 		unsigned char r = 255;
 
@@ -546,29 +550,26 @@ namespace PokemonGen1
 				r = (r >> 1U) | ((r & 0x01U) << 7U);
 			} while (r < 217);
 
+		std::cout << "Roll " << (int)r << std::endl;
 		//From Zarel/honko-damagecalc ->
 		//https://github.com/Zarel/honko-damagecalc/blob/dfff275e362ede0857b7564b3e5e2e6fc0e6782d/calc/src/mechanics/gen1.ts#L95
-		double damages = fmax(
-			(
-				fmin(
-					997,
-					floor(
-						floor(
-							floor(
-								2. * level / 5 + 2
-							) * attack * power / defense
-						) / 50
-					)
-				) + 2
-			),
-			1
-		);
+		double damage = floor(floor(floor(2. * level / 5 + 2) * attack * power / defense) / 50);
 
-		damages *= effectiveness * r * (1 + (this->_types.first == damageType || this->_types.second == damageType) / 2.) / 255;
+		if (damage > 997)
+			damage = 997;
+		damage += 2;
+		if (damage < 1)
+			damage = 1;
+		std::cout << "Base damage " << damage << std::endl;
+		damage *= effectiveness;
+		damage *= r / 255.;
+		if (this->_types.first == damageType || this->_types.second == damageType)
+			damage *= 1.5;
+		std::cout << "Resulting " << damage << std::endl;
 
 		return {
 			.critical = critical,
-			.damages = static_cast<unsigned int>(floor(damages)),
+			.damage = static_cast<unsigned int>(floor(damage)),
 			.affect = true,
 			.isVeryEffective = effectiveness > 1,
 			.isNotVeryEffective = effectiveness < 1,

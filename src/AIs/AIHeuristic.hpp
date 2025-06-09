@@ -19,7 +19,7 @@ namespace PokemonGen1
 		double _getProbabilityToKill(const Pokemon &owner, const Pokemon &target, const Move &move, bool calcOp = true);
 		double _getBuffsValue(const Pokemon &target, const Pokemon &owner, const Move &move);
 		double _getDebuffsValue(const Pokemon &target, const Pokemon &owner, const Move &move);
-		std::pair<unsigned char, double> _getBestMoveScore(const Pokemon &pkmn, const Pokemon &opponent);
+		double _getMoveScore(const Pokemon &pkmn, const Pokemon &opponent, const Move &move);
 		double _getStatValue(StatsChange stat, const Pokemon &owner, const Pokemon &target);
 		double _getStatusChangeValue(const Pokemon &owner, StatusChange status);
 

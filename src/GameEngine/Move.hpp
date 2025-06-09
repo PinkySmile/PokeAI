@@ -84,8 +84,8 @@
 }, TAKE_HALF_MOVE_DAMAGE_DESC
 
 #define WRAP_TARGET_DESC "Set the foe in the wrapped state for all the move duration"
-#define WRAP_TARGET [](Pokemon &, Pokemon &target, unsigned, bool last, const std::function<void(const std::string &msg)> &){\
-	target.setWrapped(!last);\
+#define WRAP_TARGET [](Pokemon &, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+	target.setWrapped(true);\
 	return true;\
 }, WRAP_TARGET_DESC
 
@@ -322,7 +322,7 @@ namespace PokemonGen1
 		MoveCategory getCategory() const;
 		bool makesInvulnerable() const;
 		unsigned char getMaxPP() const;
-		unsigned char getPower() const;
+		unsigned int getPower() const;
 		unsigned char getPPUp() const;
 		PokemonTypes getType() const;
 		unsigned char getPP() const;

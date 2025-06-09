@@ -159,7 +159,7 @@ namespace PokemonGen1
 	public:
 		struct DamageResult {
 			bool critical;
-			unsigned damages;
+			unsigned damage;
 			bool affect;
 			bool isVeryEffective;
 			bool isNotVeryEffective;

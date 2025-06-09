@@ -94,10 +94,8 @@ namespace PokemonGen1
 		for (const auto & move : moves)
 			unusableMoves += !move.getPP();
 
-		auto bestMove = this->_getBestMoveScore(me, opponent);
-
-		scores[static_cast<BattleAction>(Attack1 + bestMove.first)] = bestMove.second;
-
+		for (size_t i = 0; i < moves.size(); i++)
+			scores[static_cast<BattleAction>(Attack1 + i)] = this->_getMoveScore(me, opponent, moves[i]);
 		if (unusableMoves == 4 && getAttackDamageMultiplier(TYPE_NORMAL, opponent.getTypes()) != 0)
 			scores[StruggleMove] = 2;
 
@@ -330,51 +328,43 @@ namespace PokemonGen1
 		}
 	}
 
-	std::pair<unsigned char, double> AIHeuristic::_getBestMoveScore(const Pokemon &pkmn, const Pokemon &opponent)
+	double AIHeuristic::_getMoveScore(const Pokemon &pkmn, const Pokemon &opponent, const Move &move)
 	{
-		std::pair<unsigned char, double> best{0, -std::numeric_limits<double>::infinity()};
-		const auto &moves = pkmn.getMoveSet();
+		double score = 0;
 
-		for (unsigned i = 0; i < moves.size(); i++) {
-			const auto &move = moves[i];
-			double score = 0;
+		if (
+			!pkmn.getHealth() ||
+			!move.getID() ||
+			!move.getPP() ||
+			(move.getPower() && getAttackDamageMultiplier(move.getType(), opponent.getTypes()) == 0)
+		)
+			return -std::numeric_limits<double>::infinity();
 
-			if (
-				!pkmn.getHealth() ||
-				!move.getID() ||
-				!move.getPP() ||
-				(move.getPower() && getAttackDamageMultiplier(move.getType(), opponent.getTypes()) == 0)
-			)
-				continue;
+		//TODO: Handle when target is invicible
 
-			//TODO: Handle when target is invicible
+		auto accuracy = move.getAccuracy();
+		double critChance = pokemonList[pkmn.getID()].SPD / 2 * move.getCritChance() / 255.;
+		auto withCrit = this->_getDamageRange(pkmn, opponent, move, true);
+		auto withoutCrit = this->_getDamageRange(pkmn, opponent, move, false);
+		auto dmgWithCrit = withCrit.first + withCrit.second;
+		auto dmgWithoutCrit = withoutCrit.first + withoutCrit.second;
+		double hitAccuracy = accuracy > 100 ? 1. : (
+			std::max(255., accuracy * 2.55 * pkmn.getAccuracy() * opponent.getEvasion()) *
+			(
+				(opponent.canGetHit() || opponent.getSpeed() < pkmn.getSpeed()) /
+				(1. + (opponent.getSpeed() == pkmn.getSpeed() && !opponent.canGetHit()))
+			) / 256
+		);
 
-			auto accuracy = move.getAccuracy();
-			double critChance = pokemonList[pkmn.getID()].SPD / 2 * move.getCritChance() / 255.;
-			auto withCrit = this->_getDamageRange(pkmn, opponent, move, true);
-			auto withoutCrit = this->_getDamageRange(pkmn, opponent, move, false);
-			auto dmgWithCrit = withCrit.first + withCrit.second;
-			auto dmgWithoutCrit = withoutCrit.first + withoutCrit.second;
-			double hitAccuracy = accuracy > 100 ? 1. : (
-				std::max(255., accuracy * 2.55 * pkmn.getAccuracy() * opponent.getEvasion()) *
-				(
-					(opponent.canGetHit() || opponent.getSpeed() < pkmn.getSpeed()) /
-					(1. + (opponent.getSpeed() == pkmn.getSpeed() && !opponent.canGetHit()))
-				) / 256
-			);
-
-			score += this->_getBuffsValue(opponent, pkmn, move) * BUFFS_SCORE;
-			score += this->_getDebuffsValue(opponent, pkmn, move) * DEBUFFS_SCORE;
-			score += (dmgWithCrit * critChance + dmgWithoutCrit * (1 - critChance)) * DAMAGE_SCORE;
-			score += this->_getProbabilityToKill(pkmn, opponent, move) * KILL_PROBABILITY_SCORE;
-			if (move.needsLoading())
-				score /= move.makesInvulnerable() ? 1.25 : 2;
-			if (move.getPriority() > 0)
-				score *= 1.5 * move.getPriority();
-			score *= hitAccuracy;
-			if (best.second < score)
-				best = {i, score};
-		}
-		return best;
+		score += this->_getBuffsValue(opponent, pkmn, move) * BUFFS_SCORE;
+		score += this->_getDebuffsValue(opponent, pkmn, move) * DEBUFFS_SCORE;
+		score += (dmgWithCrit * critChance + dmgWithoutCrit * (1 - critChance)) * DAMAGE_SCORE;
+		score += this->_getProbabilityToKill(pkmn, opponent, move) * KILL_PROBABILITY_SCORE;
+		if (move.needsLoading())
+			score /= move.makesInvulnerable() ? 1.25 : 2;
+		if (move.getPriority() > 0)
+			score *= 1.5 * move.getPriority();
+		score *= hitAccuracy;
+		return score;
 	}
 }
