@@ -316,7 +316,7 @@ namespace PokemonGen1
 
 		if (this->_power) {
 			unsigned char r = target.getRandomGenerator()();
-			unsigned char spd = std::min<unsigned int>(pokemonList[owner.getID()].SPD / 2 * this->_critChance, 255);
+			unsigned char spd = std::min<unsigned int>(pokemonList.at(owner.getID()).SPD / 2 * this->_critChance, 255);
 
 			r = (r << 3U) | ((r & 0b11100000U) >> 5U);
 			damages = owner.calcDamage(target, this->_power, this->_type, this->_category, (r < spd));

@@ -123,7 +123,7 @@ namespace PokemonGen1
 	double AIHeuristic::_getProbabilityToKill(const Pokemon &owner, const Pokemon &target, const Move &move, bool calcOp)
 	{
 		double hitFirstProb = ((owner.getSpeed() >= target.getSpeed()) + (owner.getSpeed() > target.getSpeed())) / 2.;
-		double critChance = pokemonList[owner.getID()].SPD / 2 * move.getCritChance() / 255.;
+		double critChance = pokemonList.at(owner.getID()).SPD / 2 * move.getCritChance() / 255.;
 		auto withCrit = this->_getDamageRange(owner, target, move, true);
 		auto withoutCrit = this->_getDamageRange(owner, target, move, false);
 		auto probWithCrit = withCrit.first != withCrit.second ?
@@ -343,7 +343,7 @@ namespace PokemonGen1
 		//TODO: Handle when target is invicible
 
 		auto accuracy = move.getAccuracy();
-		double critChance = pokemonList[pkmn.getID()].SPD / 2 * move.getCritChance() / 255.;
+		double critChance = pokemonList.at(pkmn.getID()).SPD / 2 * move.getCritChance() / 255.;
 		auto withCrit = this->_getDamageRange(pkmn, opponent, move, true);
 		auto withoutCrit = this->_getDamageRange(pkmn, opponent, move, false);
 		auto dmgWithCrit = withCrit.first + withCrit.second;

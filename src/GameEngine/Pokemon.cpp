@@ -48,7 +48,7 @@ namespace PokemonGen1
 		_lastUsedMove(DEFAULT_MOVE(0x00)),
 		_random{random},
 		_nickname{nickname},
-		_name{pokemonList[data[0]].name},
+		_name{pokemonList.at(data[0]).name},
 		_dvs{
 			0,
 			0,
@@ -767,7 +767,7 @@ namespace PokemonGen1
 
 	void Pokemon::setId(unsigned char id, bool recomputeStats)
 	{
-		auto &base = pokemonList[id];
+		auto &base = pokemonList.at(id);
 
 		this->_id = base.id;
 		this->_name = base.name;
@@ -789,7 +789,7 @@ namespace PokemonGen1
 	void Pokemon::setLevel(unsigned char level)
 	{
 		this->_level = level;
-		this->_baseStats = makeStats(level, pokemonList[this->getID()], this->_dvs, this->_statExps);
+		this->_baseStats = makeStats(level, pokemonList.at(this->getID()), this->_dvs, this->_statExps);
 	}
 
 	void Pokemon::setMove(unsigned char index, const Move &move)
@@ -860,373 +860,266 @@ namespace PokemonGen1
 
 	/*
 	** From Rhydon
-	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/Tables.cs#L425
-	*/
-	const std::vector<std::vector<unsigned>> expTable{
-		{0, 0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0, 0},
-		{8, 15, 4, 9, 6, 10},
-		{27, 52, 13, 57, 21, 33},
-		{64, 122, 32, 96, 51, 80},
-		{125, 237, 65, 135, 100, 156},
-		{216, 406, 112, 179, 172, 270},
-		{343, 637, 178, 236, 274, 428},
-		{512, 942, 276, 314, 409, 640},
-		{729, 1326, 393, 419, 583, 911},
-		{1000, 1800, 540, 560, 800, 1250},
-		{1331, 2369, 745, 742, 1064, 1663},
-		{1728, 3041, 967, 973, 1382, 2160},
-		{2197, 3822, 1230, 1261, 1757, 2746},
-		{2744, 4719, 1591, 1612, 2195, 3430},
-		{3375, 5737, 1957, 2035, 2700, 4218},
-		{4096, 6881, 2457, 2535, 3276, 5120},
-		{4913, 8155, 3046, 3120, 3930, 6141},
-		{5832, 9564, 3732, 3798, 4665, 7290},
-		{6859, 11111, 4526, 4575, 5487, 8573},
-		{8000, 12800, 5440, 5460, 6400, 10000},
-		{9261, 14632, 6482, 6458, 7408, 11576},
-		{10648, 16610, 7666, 7577, 8518, 13310},
-		{12167, 18737, 9003, 8825, 9733, 15208},
-		{13824, 21012, 10506, 10208, 11059, 17280},
-		{15625, 23437, 12187, 11735, 12500, 19531},
-		{17576, 26012, 14060, 13411, 14060, 21970},
-		{19683, 28737, 16140, 15244, 15746, 24603},
-		{21952, 31610, 18439, 17242, 17561, 27440},
-		{24389, 34632, 20974, 19411, 19511, 30486},
-		{27000, 37800, 23760, 21760, 21600, 33750},
-		{29791, 41111, 26811, 24294, 23832, 37238},
-		{32768, 44564, 30146, 27021, 26214, 40960},
-		{35937, 48155, 33780, 29949, 28749, 44921},
-		{39304, 51881, 37731, 33084, 31443, 49130},
-		{42875, 55737, 42017, 36435, 34300, 53593},
-		{46656, 59719, 46656, 40007, 37324, 58320},
-		{50653, 63822, 50653, 43808, 40522, 63316},
-		{54872, 68041, 55969, 47846, 43897, 68590},
-		{59319, 72369, 60505, 52127, 47455, 74148},
-		{64000, 76800, 66560, 56660, 51200, 80000},
-		{68921, 81326, 71677, 61450, 55136, 86151},
-		{74088, 85942, 78533, 66505, 59270, 92610},
-		{79507, 90637, 84277, 71833, 63605, 99383},
-		{85184, 95406, 91998, 77440, 68147, 106480},
-		{91125, 100237, 98415, 83335, 72900, 113906},
-		{97336, 105122, 107069, 89523, 77868, 121670},
-		{103823, 110052, 114205, 96012, 83058, 129778},
-		{110592, 115015, 123863, 102810, 88473, 138240},
-		{117649, 120001, 131766, 109923, 94119, 147061},
-		{125000, 125000, 142500, 117360, 100000, 156250},
-		{132651, 131324, 151222, 125126, 106120, 165813},
-		{140608, 137795, 163105, 133229, 112486, 175760},
-		{148877, 144410, 172697, 141677, 119101, 186096},
-		{157464, 151165, 185807, 150476, 125971, 196830},
-		{166375, 158056, 196322, 159635, 133100, 207968},
-		{175616, 165079, 210739, 169159, 140492, 219520},
-		{185193, 172229, 222231, 179056, 148154, 231491},
-		{195112, 179503, 238036, 189334, 156089, 243890},
-		{205379, 186894, 250562, 199999, 164303, 256723},
-		{216000, 194400, 267840, 211060, 172800, 270000},
-		{226981, 202013, 281456, 222522, 181584, 283726},
-		{238328, 209728, 300293, 234393, 190662, 297910},
-		{250047, 217540, 315059, 246681, 200037, 312558},
-		{262144, 225443, 335544, 259392, 209715, 327680},
-		{274625, 233431, 351520, 272535, 219700, 343281},
-		{287496, 241496, 373744, 286115, 229996, 359370},
-		{300763, 249633, 390991, 300140, 240610, 375953},
-		{314432, 257834, 415050, 314618, 251545, 393040},
-		{328509, 267406, 433631, 329555, 262807, 410636},
-		{343000, 276458, 459620, 344960, 274400, 428750},
-		{357911, 286328, 479600, 360838, 286328, 447388},
-		{373248, 296358, 507617, 377197, 298598, 466560},
-		{389017, 305767, 529063, 394045, 311213, 486271},
-		{405224, 316074, 559209, 411388, 324179, 506530},
-		{421875, 326531, 582187, 429235, 337500, 527343},
-		{438976, 336255, 614566, 447591, 351180, 548720},
-		{456533, 346965, 639146, 466464, 365226, 570666},
-		{474552, 357812, 673863, 485862, 379641, 593190},
-		{493039, 367807, 700115, 505791, 394431, 616298},
-		{512000, 378880, 737280, 526260, 409600, 640000},
-		{531441, 390077, 765275, 547274, 425152, 664301},
-		{551368, 400293, 804997, 568841, 441094, 689210},
-		{571787, 411686, 834809, 590969, 457429, 714733},
-		{592704, 423190, 877201, 613664, 474163, 740880},
-		{614125, 433572, 908905, 636935, 491300, 767656},
-		{636056, 445239, 954084, 660787, 508844, 795070},
-		{658503, 457001, 987754, 685228, 526802, 823128},
-		{681472, 467489, 1035837, 710266, 545177, 851840},
-		{704969, 479378, 1071552, 735907, 563975, 881211},
-		{729000, 491346, 1122660, 762160, 583200, 911250},
-		{753571, 501878, 1160499, 789030, 602856, 941963},
-		{778688, 513934, 1214753, 816525, 622950, 973360},
-		{804357, 526049, 1254796, 844653, 643485, 1005446},
-		{830584, 536557, 1312322, 873420, 664467, 1038230},
-		{857375, 548720, 1354652, 902835, 685900, 1071718},
-		{884736, 560922, 1415577, 932903, 707788, 1105920},
-		{912673, 571333, 1460276, 963632, 730138, 1140841},
-		{941192, 583539, 1524731, 995030, 752953, 1176490},
-		{970299, 591882, 1571884, 1027103, 776239, 1212873},
-		{1000000, 600000, 1640000, 1059860, 800000, 1250000},
-	};
-
-	/*
-	** From Rhydon
 	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/Tables.cs#L82
 	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/Tables.cs#L202
 	*/
-	const std::vector<PokemonBase> pokemonList{
-		{ 0X00,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,  0,   0 }, /* MISSINGNO.   (0X00) */
-		{ 0X01,      "RHYDON", 105, 130, 120,  40,  45,   TYPE_GROUND,     TYPE_ROCK,  60, 204 }, /* RHYDON       (0X01) */
-		{ 0X02,  "KANGASKHAN", 105,  95,  80,  90,  40,   TYPE_NORMAL,   TYPE_NORMAL,  45, 175 }, /* KANGASKHAN   (0X02) */
-		{ 0X03,    "NIDORAN~",  46,  57,  40,  50,  40,   TYPE_POISON,   TYPE_POISON, 235,  60 }, /* NIDORAN_M    (0X03) */
-		{ 0X04,    "CLEFAIRY",  70,  45,  48,  35,  60,   TYPE_NORMAL,   TYPE_NORMAL, 150,  68 }, /* CLEFAIRY     (0X04) */
-		{ 0X05,     "SPEAROW",  40,  60,  30,  70,  31,   TYPE_NORMAL,   TYPE_FLYING, 255,  58 }, /* SPEAROW      (0X05) */
-		{ 0X06,     "VOLTORB",  40,  30,  50, 100,  55, TYPE_ELECTRIC, TYPE_ELECTRIC, 190, 103 }, /* VOLTORB      (0X06) */
-		{ 0X07,    "NIDOKING",  81,  92,  77,  85,  75,   TYPE_POISON,   TYPE_GROUND,  45, 195 }, /* NIDOKING     (0X07) */
-		{ 0X08,     "SLOWBRO",  95,  75, 110,  30,  80,    TYPE_WATER,  TYPE_PSYCHIC,  75, 164 }, /* SLOWBRO      (0X08) */
-		{ 0X09,     "IVYSAUR",  60,  62,  63,  60,  80,    TYPE_GRASS,   TYPE_POISON,  45, 141 }, /* IVYSAUR      (0X09) */
-		{ 0X0A,   "EXEGGUTOR",  95,  95,  85,  55, 125,    TYPE_GRASS,  TYPE_PSYCHIC,  45, 212 }, /* EXEGGUTOR    (0X0A) */
-		{ 0X0B,   "LICKITUNG",  90,  55,  75,  30,  60,   TYPE_NORMAL,   TYPE_NORMAL,  45, 127 }, /* LICKITUNG    (0X0B) */
-		{ 0X0C,   "EXEGGCUTE",  60,  40,  80,  40,  60,    TYPE_GRASS,  TYPE_PSYCHIC,  90,  98 }, /* EXEGGCUTE    (0X0C) */
-		{ 0X0D,      "GRIMER",  80,  80,  50,  25,  40,   TYPE_POISON,   TYPE_POISON, 190,  90 }, /* GRIMER       (0X0D) */
-		{ 0X0E,      "GENGAR",  60,  65,  60, 110, 130,    TYPE_GHOST,   TYPE_POISON,  45, 190 }, /* GENGAR       (0X0E) */
-		{ 0X0F,    "NIDORAN`",  55,  47,  52,  41,  40,   TYPE_POISON,   TYPE_POISON, 235,  59 }, /* NIDORAN_F    (0X0F) */
-		{ 0X10,   "NIDOQUEEN",  90,  82,  87,  76,  75,   TYPE_POISON,   TYPE_GROUND,  45, 194 }, /* NIDOQUEEN    (0X10) */
-		{ 0X11,      "CUBONE",  50,  50,  95,  35,  40,   TYPE_GROUND,   TYPE_GROUND, 190,  87 }, /* CUBONE       (0X11) */
-		{ 0X12,     "RHYHORN",  80,  85,  95,  25,  30,   TYPE_GROUND,     TYPE_ROCK, 120, 135 }, /* RHYHORN      (0X12) */
-		{ 0X13,      "LAPRAS", 130,  85,  80,  60,  95,    TYPE_WATER,      TYPE_ICE,  45, 219 }, /* LAPRAS       (0X13) */
-		{ 0X14,    "ARCANINE",  90, 110,  80,  95,  80,     TYPE_FIRE,     TYPE_FIRE,  75, 213 }, /* ARCANINE     (0X14) */
-		{ 0X15,         "MEW", 100, 100, 100, 100, 100,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  45,  64 }, /* MEW          (0X15) */
-		{ 0X16,    "GYARADOS",  95, 125,  79,  81, 100,    TYPE_WATER,   TYPE_FLYING,  45, 214 }, /* GYARADOS     (0X16) */
-		{ 0X17,    "SHELLDER",  30,  65, 100,  40,  45,    TYPE_WATER,    TYPE_WATER, 190,  97 }, /* SHELLDER     (0X17) */
-		{ 0X18,   "TENTACOOL",  40,  40,  35,  70, 100,    TYPE_WATER,   TYPE_POISON, 190, 105 }, /* TENTACOOL    (0X18) */
-		{ 0X19,      "GASTLY",  30,  35,  30,  80, 100,    TYPE_GHOST,   TYPE_POISON, 190,  95 }, /* GASTLY       (0X19) */
-		{ 0X1A,     "SCYTHER",  70, 110,  80, 105,  55,      TYPE_BUG,   TYPE_FLYING,  45, 187 }, /* SCYTHER      (0X1A) */
-		{ 0X1B,      "STARYU",  30,  45,  55,  85,  70,    TYPE_WATER,    TYPE_WATER, 225, 106 }, /* STARYU       (0X1B) */
-		{ 0X1C,   "BLASTOISE",  79,  83, 100,  78,  85,    TYPE_WATER,    TYPE_WATER,  45, 210 }, /* BLASTOISE    (0X1C) */
-		{ 0X1D,      "PINSIR",  65, 125, 100,  85,  55,      TYPE_BUG,      TYPE_BUG,  45, 200 }, /* PINSIR       (0X1D) */
-		{ 0X1E,     "TANGELA",  65,  55, 115,  60, 100,    TYPE_GRASS,    TYPE_GRASS,  45, 166 }, /* TANGELA      (0X1E) */
-		{ 0X1F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X1F) */
-		{ 0X20,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X20) */
-		{ 0X21,   "GROWLITHE",  55,  70,  45,  60,  50,     TYPE_FIRE,     TYPE_FIRE, 190,  91 }, /* GROWLITHE    (0X21) */
-		{ 0X22,        "ONIX",  35,  45, 160,  70,  30,     TYPE_ROCK,   TYPE_GROUND,  45, 108 }, /* ONIX         (0X22) */
-		{ 0X23,      "FEAROW",  65,  90,  65, 100,  61,   TYPE_NORMAL,   TYPE_FLYING,  90, 162 }, /* FEAROW       (0X23) */
-		{ 0X24,      "PIDGEY",  40,  45,  40,  56,  35,   TYPE_NORMAL,   TYPE_FLYING, 255,  55 }, /* PIDGEY       (0X24) */
-		{ 0X25,    "SLOWPOKE",  90,  65,  65,  15,  40,    TYPE_WATER,  TYPE_PSYCHIC, 190,  99 }, /* SLOWPOKE     (0X25) */
-		{ 0X26,     "KADABRA",  40,  35,  30, 105, 120,  TYPE_PSYCHIC,  TYPE_PSYCHIC, 100, 145 }, /* KADABRA      (0X26) */
-		{ 0X27,    "GRAVELER",  55,  95, 115,  35,  45,     TYPE_ROCK,   TYPE_GROUND, 120, 134 }, /* GRAVELER     (0X27) */
-		{ 0X28,     "CHANSEY", 250,   5,   5,  50, 105,   TYPE_NORMAL,   TYPE_NORMAL,  30, 255 }, /* CHANSEY      (0X28) */
-		{ 0X29,     "MACHOKE",  80, 100,  70,  45,  50, TYPE_FIGHTING, TYPE_FIGHTING,  90, 146 }, /* MACHOKE      (0X29) */
-		{ 0X2A,    "MR. MIME",  40,  45,  65,  90, 100,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  45, 136 }, /* MR_MIME      (0X2A) */
-		{ 0X2B,   "HITMONLEE",  50, 120,  53,  87,  35, TYPE_FIGHTING, TYPE_FIGHTING,  45, 139 }, /* HITMONLEE    (0X2B) */
-		{ 0X2C,  "HITMONCHAN",  50, 105,  79,  76,  35, TYPE_FIGHTING, TYPE_FIGHTING,  45, 140 }, /* HITMONCHAN   (0X2C) */
-		{ 0X2D,       "ARBOK",  60,  85,  69,  80,  65,   TYPE_POISON,   TYPE_POISON,  90, 147 }, /* ARBOK        (0X2D) */
-		{ 0X2E,    "PARASECT",  60,  95,  80,  30,  80,      TYPE_BUG,    TYPE_GRASS,  75, 128 }, /* PARASECT     (0X2E) */
-		{ 0X2F,     "PSYDUCK",  50,  52,  48,  55,  50,    TYPE_WATER,    TYPE_WATER, 190,  80 }, /* PSYDUCK      (0X2F) */
-		{ 0X30,     "DROWZEE",  60,  48,  45,  42,  90,  TYPE_PSYCHIC,  TYPE_PSYCHIC, 190, 102 }, /* DROWZEE      (0X30) */
-		{ 0X31,       "GOLEM",  80, 110, 130,  45,  55,     TYPE_ROCK,   TYPE_GROUND,  45, 177 }, /* GOLEM        (0X31) */
-		{ 0X32,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X32) */
-		{ 0X33,      "MAGMAR",  65,  95,  57,  93,  85,     TYPE_FIRE,     TYPE_FIRE,  45, 167 }, /* MAGMAR       (0X33) */
-		{ 0X34,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X34) */
-		{ 0X35,  "ELECTABUZZ",  65,  83,  57, 105,  85, TYPE_ELECTRIC, TYPE_ELECTRIC,  45, 156 }, /* ELECTABUZZ   (0X35) */
-		{ 0X36,    "MAGNETON",  50,  60,  95,  70, 120, TYPE_ELECTRIC, TYPE_ELECTRIC,  60, 161 }, /* MAGNETON     (0X36) */
-		{ 0X37,     "KOFFING",  40,  65,  95,  35,  60,   TYPE_POISON,   TYPE_POISON, 190, 114 }, /* KOFFING      (0X37) */
-		{ 0X38,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X38) */
-		{ 0X39,      "MANKEY",  40,  80,  35,  70,  35, TYPE_FIGHTING, TYPE_FIGHTING, 190,  74 }, /* MANKEY       (0X39) */
-		{ 0X3A,        "SEEL",  65,  45,  55,  45,  70,    TYPE_WATER,    TYPE_WATER, 190, 100 }, /* SEEL         (0X3A) */
-		{ 0X3B,     "DIGLETT",  10,  55,  25,  95,  45,   TYPE_GROUND,   TYPE_GROUND, 255,  81 }, /* DIGLETT      (0X3B) */
-		{ 0X3C,      "TAUROS",  75, 100,  95, 110,  70,   TYPE_NORMAL,   TYPE_NORMAL,  45, 211 }, /* TAUROS       (0X3C) */
-		{ 0X3D,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X3D) */
-		{ 0X3E,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X3E) */
-		{ 0X3F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X3F) */
-		{ 0X40,   "FARFETCHD",  52,  65,  55,  60,  58,   TYPE_NORMAL,   TYPE_FLYING,  45,  94 }, /* FARFETCH_D   (0X40) */
-		{ 0X41,     "VENONAT",  60,  55,  50,  45,  40,      TYPE_BUG,   TYPE_POISON, 190,  75 }, /* VENONAT      (0X41) */
-		{ 0X42,   "DRAGONITE",  91, 134,  95,  80, 100,   TYPE_DRAGON,   TYPE_FLYING,  45, 218 }, /* DRAGONITE    (0X42) */
-		{ 0X43,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X43) */
-		{ 0X44,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X44) */
-		{ 0X45,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X45) */
-		{ 0X46,       "DODUO",  35,  85,  45,  75,  35,   TYPE_NORMAL,   TYPE_FLYING, 190,  96 }, /* DODUO        (0X46) */
-		{ 0X47,     "POLIWAG",  40,  50,  40,  90,  40,    TYPE_WATER,    TYPE_WATER, 255,  77 }, /* POLIWAG      (0X47) */
-		{ 0X48,        "JYNX",  65,  50,  35,  95,  95,      TYPE_ICE,  TYPE_PSYCHIC,  45, 137 }, /* JYNX         (0X48) */
-		{ 0X49,     "MOLTRES",  90, 100,  90,  90, 125,     TYPE_FIRE,   TYPE_FLYING,   3, 217 }, /* MOLTRES      (0X49) */
-		{ 0X4A,    "ARTICUNO",  90,  85, 100,  85, 125,      TYPE_ICE,   TYPE_FLYING,   3, 215 }, /* ARTICUNO     (0X4A) */
-		{ 0X4B,      "ZAPDOS",  90,  90,  85, 100, 125, TYPE_ELECTRIC,   TYPE_FLYING,   3, 216 }, /* ZAPDOS       (0X4B) */
-		{ 0X4C,       "DITTO",  48,  48,  48,  48,  48,   TYPE_NORMAL,   TYPE_NORMAL,  35,  61 }, /* DITTO        (0X4C) */
-		{ 0X4D,      "MEOWTH",  40,  45,  35,  90,  40,   TYPE_NORMAL,   TYPE_NORMAL, 255,  69 }, /* MEOWTH       (0X4D) */
-		{ 0X4E,      "KRABBY",  30, 105,  90,  50,  25,    TYPE_WATER,    TYPE_WATER, 225, 115 }, /* KRABBY       (0X4E) */
-		{ 0X4F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X4F) */
-		{ 0X50,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X50) */
-		{ 0X51,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X51) */
-		{ 0X52,      "VULPIX",  38,  41,  40,  65,  65,     TYPE_FIRE,     TYPE_FIRE, 190,  63 }, /* VULPIX       (0X52) */
-		{ 0X53,   "NINETALES",  73,  76,  75, 100, 100,     TYPE_FIRE,     TYPE_FIRE,  75, 178 }, /* NINETALES    (0X53) */
-		{ 0X54,     "PIKACHU",  35,  55,  30,  90,  50, TYPE_ELECTRIC, TYPE_ELECTRIC, 190,  82 }, /* PIKACHU      (0X54) */
-		{ 0X55,      "RAICHU",  60,  90,  55, 100,  90, TYPE_ELECTRIC, TYPE_ELECTRIC,  75, 122 }, /* RAICHU       (0X55) */
-		{ 0X56,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X56) */
-		{ 0X57,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X57) */
-		{ 0X58,     "DRATINI",  41,  64,  45,  50,  50,   TYPE_DRAGON,   TYPE_DRAGON,  45,  67 }, /* DRATINI      (0X58) */
-		{ 0X59,   "DRAGONAIR",  61,  84,  65,  70,  70,   TYPE_DRAGON,   TYPE_DRAGON,  45, 144 }, /* DRAGONAIR    (0X59) */
-		{ 0X5A,      "KABUTO",  30,  80,  90,  55,  45,     TYPE_ROCK,    TYPE_WATER,  45, 119 }, /* KABUTO       (0X5A) */
-		{ 0X5B,    "KABUTOPS",  60, 115, 105,  80,  70,     TYPE_ROCK,    TYPE_WATER,  45, 201 }, /* KABUTOPS     (0X5B) */
-		{ 0X5C,      "HORSEA",  30,  40,  70,  60,  70,    TYPE_WATER,    TYPE_WATER, 225,  83 }, /* HORSEA       (0X5C) */
-		{ 0X5D,      "SEADRA",  55,  65,  95,  85,  95,    TYPE_WATER,    TYPE_WATER,  75, 155 }, /* SEADRA       (0X5D) */
-		{ 0X5E,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X5E) */
-		{ 0X5F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X5F) */
-		{ 0X60,   "SANDSHREW",  50,  75,  85,  40,  30,   TYPE_GROUND,   TYPE_GROUND, 255,  93 }, /* SANDSHREW    (0X60) */
-		{ 0X61,   "SANDSLASH",  75, 100, 110,  65,  55,   TYPE_GROUND,   TYPE_GROUND,  90, 163 }, /* SANDSLASH    (0X61) */
-		{ 0X62,     "OMANYTE",  35,  40, 100,  35,  90,     TYPE_ROCK,    TYPE_WATER,  45, 120 }, /* OMANYTE      (0X62) */
-		{ 0X63,     "OMASTAR",  70,  60, 125,  55, 115,     TYPE_ROCK,    TYPE_WATER,  45, 199 }, /* OMASTAR      (0X63) */
-		{ 0X64,  "JIGGLYPUFF", 115,  45,  20,  20,  25,   TYPE_NORMAL,   TYPE_NORMAL, 170,  76 }, /* JIGGLYPUFF   (0X64) */
-		{ 0X65,  "WIGGLYTUFF", 140,  70,  45,  45,  50,   TYPE_NORMAL,   TYPE_NORMAL,  50, 109 }, /* WIGGLYTUFF   (0X65) */
-		{ 0X66,       "EEVEE",  55,  55,  50,  55,  65,   TYPE_NORMAL,   TYPE_NORMAL,  45,  92 }, /* EEVEE        (0X66) */
-		{ 0X67,     "FLAREON",  65, 130,  60,  65, 110,     TYPE_FIRE,     TYPE_FIRE,  45, 198 }, /* FLAREON      (0X67) */
-		{ 0X68,     "JOLTEON",  65,  65,  60, 130, 110, TYPE_ELECTRIC, TYPE_ELECTRIC,  45, 197 }, /* JOLTEON      (0X68) */
-		{ 0X69,    "VAPOREON", 130,  65,  60,  65, 110,    TYPE_WATER,    TYPE_WATER,  45, 196 }, /* VAPOREON     (0X69) */
-		{ 0X6A,      "MACHOP",  70,  80,  50,  35,  35, TYPE_FIGHTING, TYPE_FIGHTING, 180,  88 }, /* MACHOP       (0X6A) */
-		{ 0X6B,       "ZUBAT",  40,  45,  35,  55,  40,   TYPE_POISON,   TYPE_FLYING, 255,  54 }, /* ZUBAT        (0X6B) */
-		{ 0X6C,       "EKANS",  35,  60,  44,  55,  40,   TYPE_POISON,   TYPE_POISON, 255,  62 }, /* EKANS        (0X6C) */
-		{ 0X6D,       "PARAS",  35,  70,  55,  25,  55,      TYPE_BUG,    TYPE_GRASS, 190,  70 }, /* PARAS        (0X6D) */
-		{ 0X6E,   "POLIWHIRL",  65,  65,  65,  90,  50,    TYPE_WATER,    TYPE_WATER, 120, 131 }, /* POLIWHIRL    (0X6E) */
-		{ 0X6F,   "POLIWRATH",  90,  85,  95,  70,  70,    TYPE_WATER, TYPE_FIGHTING,  45, 185 }, /* POLIWRATH    (0X6F) */
-		{ 0X70,      "WEEDLE",  40,  35,  30,  50,  20,      TYPE_BUG,   TYPE_POISON, 255,  52 }, /* WEEDLE       (0X70) */
-		{ 0X71,      "KAKUNA",  45,  25,  50,  35,  25,      TYPE_BUG,   TYPE_POISON, 120,  71 }, /* KAKUNA       (0X71) */
-		{ 0X72,    "BEEDRILL",  65,  80,  40,  75,  45,      TYPE_BUG,   TYPE_POISON,  45, 159 }, /* BEEDRILL     (0X72) */
-		{ 0X73,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X73) */
-		{ 0X74,      "DODRIO",  60, 110,  70, 100,  60,   TYPE_NORMAL,   TYPE_FLYING,  45, 158 }, /* DODRIO       (0X74) */
-		{ 0X75,    "PRIMEAPE",  65, 105,  60,  95,  60, TYPE_FIGHTING, TYPE_FIGHTING,  75, 149 }, /* PRIMEAPE     (0X75) */
-		{ 0X76,     "DUGTRIO",  35,  80,  50, 120,  70,   TYPE_GROUND,   TYPE_GROUND,  50, 153 }, /* DUGTRIO      (0X76) */
-		{ 0X77,    "VENOMOTH",  70,  65,  60,  90,  90,      TYPE_BUG,   TYPE_POISON,  75, 138 }, /* VENOMOTH     (0X77) */
-		{ 0X78,     "DEWGONG",  90,  70,  80,  70,  95,    TYPE_WATER,      TYPE_ICE,  75, 176 }, /* DEWGONG      (0X78) */
-		{ 0X79,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X79) */
-		{ 0X7A,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X7A) */
-		{ 0X7B,    "CATERPIE",  45,  30,  35,  45,  20,      TYPE_BUG,      TYPE_BUG, 255,  53 }, /* CATERPIE     (0X7B) */
-		{ 0X7C,     "METAPOD",  50,  20,  55,  30,  25,      TYPE_BUG,      TYPE_BUG, 120,  72 }, /* METAPOD      (0X7C) */
-		{ 0X7D,  "BUTTERFREE",  60,  45,  50,  70,  80,      TYPE_BUG,   TYPE_FLYING,  45, 160 }, /* BUTTERFREE   (0X7D) */
-		{ 0X7E,     "MACHAMP",  90, 130,  80,  55,  65, TYPE_FIGHTING, TYPE_FIGHTING,  45, 193 }, /* MACHAMP      (0X7E) */
-		{ 0X7F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X7F) */
-		{ 0X80,     "GOLDUCK",  80,  82,  78,  85,  80,    TYPE_WATER,    TYPE_WATER,  75, 174 }, /* GOLDUCK      (0X80) */
-		{ 0X81,       "HYPNO",  85,  73,  70,  67, 115,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  75, 165 }, /* HYPNO        (0X81) */
-		{ 0X82,      "GOLBAT",  75,  80,  70,  90,  75,   TYPE_POISON,   TYPE_FLYING,  90, 171 }, /* GOLBAT       (0X82) */
-		{ 0X83,      "MEWTWO", 106, 110,  90, 130, 154,  TYPE_PSYCHIC,  TYPE_PSYCHIC,   3, 220 }, /* MEWTWO       (0X83) */
-		{ 0X84,     "SNORLAX", 160, 110,  65,  30,  65,   TYPE_NORMAL,   TYPE_NORMAL,  25, 154 }, /* SNORLAX      (0X84) */
-		{ 0X85,    "MAGIKARP",  20,  10,  55,  80,  20,    TYPE_WATER,    TYPE_WATER, 255,  20 }, /* MAGIKARP     (0X85) */
-		{ 0X86,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X86) */
-		{ 0X87,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X87) */
-		{ 0X88,         "MUK", 105, 105,  75,  50,  65,   TYPE_POISON,   TYPE_POISON,  75, 157 }, /* MUK          (0X88) */
-		{ 0X89,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X89) */
-		{ 0X8A,     "KINGLER",  55, 130, 115,  75,  50,    TYPE_WATER,    TYPE_WATER,  60, 206 }, /* KINGLER      (0X8A) */
-		{ 0X8B,    "CLOYSTER",  50,  95, 180,  70,  85,    TYPE_WATER,      TYPE_ICE,  60, 203 }, /* CLOYSTER     (0X8B) */
-		{ 0X8C,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X8C) */
-		{ 0X8D,   "ELECTRODE",  60,  50,  70, 140,  80, TYPE_ELECTRIC, TYPE_ELECTRIC,  60, 150 }, /* ELECTRODE    (0X8D) */
-		{ 0X8E,    "CLEFABLE",  95,  70,  73,  60,  85,   TYPE_NORMAL,   TYPE_NORMAL,  25, 129 }, /* CLEFABLE     (0X8E) */
-		{ 0X8F,     "WEEZING",  65,  90, 120,  60,  85,   TYPE_POISON,   TYPE_POISON,  60, 173 }, /* WEEZING      (0X8F) */
-		{ 0X90,     "PERSIAN",  65,  70,  60, 115,  65,   TYPE_NORMAL,   TYPE_NORMAL,  90, 148 }, /* PERSIAN      (0X90) */
-		{ 0X91,     "MAROWAK",  60,  80, 110,  45,  50,   TYPE_GROUND,   TYPE_GROUND,  75, 124 }, /* MAROWAK      (0X91) */
-		{ 0X92,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X92) */
-		{ 0X93,     "HAUNTER",  45,  50,  45,  95, 115,    TYPE_GHOST,   TYPE_POISON,  90, 126 }, /* HAUNTER      (0X93) */
-		{ 0X94,        "ABRA",  25,  20,  15,  90, 105,  TYPE_PSYCHIC,  TYPE_PSYCHIC, 200,  73 }, /* ABRA         (0X94) */
-		{ 0X95,    "ALAKAZAM",  55,  50,  45, 120, 135,  TYPE_PSYCHIC,  TYPE_PSYCHIC,  50, 186 }, /* ALAKAZAM     (0X95) */
-		{ 0X96,   "PIDGEOTTO",  63,  60,  55,  71,  50,   TYPE_NORMAL,   TYPE_FLYING, 120, 113 }, /* PIDGEOTTO    (0X96) */
-		{ 0X97,     "PIDGEOT",  83,  80,  75,  91,  70,   TYPE_NORMAL,   TYPE_FLYING,  45, 172 }, /* PIDGEOT      (0X97) */
-		{ 0X98,     "STARMIE",  60,  75,  85, 115, 100,    TYPE_WATER,  TYPE_PSYCHIC,  60, 207 }, /* STARMIE      (0X98) */
-		{ 0X99,   "BULBASAUR",  45,  49,  49,  45,  65,    TYPE_GRASS,   TYPE_POISON,  45,  64 }, /* BULBASAUR    (0X99) */
-		{ 0X9A,    "VENUSAUR",  80,  82,  83,  80, 100,    TYPE_GRASS,   TYPE_POISON,  45, 208 }, /* VENUSAUR     (0X9A) */
-		{ 0X9B,  "TENTACRUEL",  80,  70,  65, 100, 120,    TYPE_WATER,   TYPE_POISON,  60, 205 }, /* TENTACRUEL   (0X9B) */
-		{ 0X9C,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X9C) */
-		{ 0X9D,     "GOLDEEN",  45,  67,  60,  63,  50,    TYPE_WATER,    TYPE_WATER, 225, 111 }, /* GOLDEEN      (0X9D) */
-		{ 0X9E,     "SEAKING",  80,  92,  65,  68,  80,    TYPE_WATER,    TYPE_WATER,  60, 170 }, /* SEAKING      (0X9E) */
-		{ 0X9F,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0X9F) */
-		{ 0XA0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XA0) */
-		{ 0XA1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XA1) */
-		{ 0XA2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XA2) */
-		{ 0XA3,      "PONYTA",  50,  85,  55,  90,  65,     TYPE_FIRE,     TYPE_FIRE, 190, 152 }, /* PONYTA       (0XA3) */
-		{ 0XA4,    "RAPIDASH",  65, 100,  70, 105,  80,     TYPE_FIRE,     TYPE_FIRE,  60, 192 }, /* RAPIDASH     (0XA4) */
-		{ 0XA5,     "RATTATA",  30,  56,  35,  72,  25,   TYPE_NORMAL,   TYPE_NORMAL, 255,  57 }, /* RATTATA      (0XA5) */
-		{ 0XA6,    "RATICATE",  55,  81,  60,  97,  50,   TYPE_NORMAL,   TYPE_NORMAL,  90, 116 }, /* RATICATE     (0XA6) */
-		{ 0XA7,    "NIDORINO",  61,  72,  57,  65,  55,   TYPE_POISON,   TYPE_POISON, 120, 118 }, /* NIDORINO     (0XA7) */
-		{ 0XA8,    "NIDORINA",  70,  62,  67,  56,  55,   TYPE_POISON,   TYPE_POISON, 120, 117 }, /* NIDORINA     (0XA8) */
-		{ 0XA9,     "GEODUDE",  40,  80, 100,  20,  30,     TYPE_ROCK,   TYPE_GROUND, 255,  86 }, /* GEODUDE      (0XA9) */
-		{ 0XAA,     "PORYGON",  65,  60,  70,  40,  75,   TYPE_NORMAL,   TYPE_NORMAL,  45, 130 }, /* PORYGON      (0XAA) */
-		{ 0XAB,  "AERODACTYL",  80, 105,  65, 130,  60,     TYPE_ROCK,   TYPE_FLYING,  45, 202 }, /* AERODACTYL   (0XAB) */
-		{ 0XAC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XAC) */
-		{ 0XAD,   "MAGNEMITE",  25,  35,  70,  45,  95, TYPE_ELECTRIC, TYPE_ELECTRIC, 190,  89 }, /* MAGNEMITE    (0XAD) */
-		{ 0XAE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XAE) */
-		{ 0XAF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XAF) */
-		{ 0XB0,  "CHARMANDER",  39,  52,  43,  65,  50,     TYPE_FIRE,     TYPE_FIRE,  45,  65 }, /* CHARMANDER   (0XB0) */
-		{ 0XB1,    "SQUIRTLE",  44,  48,  65,  43,  50,    TYPE_WATER,    TYPE_WATER,  45,  66 }, /* SQUIRTLE     (0XB1) */
-		{ 0XB2,  "CHARMELEON",  58,  64,  58,  80,  65,     TYPE_FIRE,     TYPE_FIRE,  45, 142 }, /* CHARMELEON   (0XB2) */
-		{ 0XB3,   "WARTORTLE",  59,  63,  80,  58,  65,    TYPE_WATER,    TYPE_WATER,  45, 143 }, /* WARTORTLE    (0XB3) */
-		{ 0XB4,   "CHARIZARD",  78,  84,  78, 100,  85,     TYPE_FIRE,   TYPE_FLYING,  45, 209 }, /* CHARIZARD    (0XB4) */
-		{ 0XB5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XB5) */
-		{ 0XB6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XB6) */
-		{ 0XB7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XB7) */
-		{ 0XB8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XB8) */
-		{ 0XB9,      "ODDISH",  45,  50,  55,  30,  75,    TYPE_GRASS,   TYPE_POISON, 255,  78 }, /* ODDISH       (0XB9) */
-		{ 0XBA,       "GLOOM",  60,  65,  70,  40,  85,    TYPE_GRASS,   TYPE_POISON, 120, 132 }, /* GLOOM        (0XBA) */
-		{ 0XBB,   "VILEPLUME",  75,  80,  85,  50, 100,    TYPE_GRASS,   TYPE_POISON,  45, 184 }, /* VILEPLUME    (0XBB) */
-		{ 0XBC,  "BELLSPROUT",  50,  75,  35,  40,  70,    TYPE_GRASS,   TYPE_POISON, 255,  84 }, /* BELLSPROUT   (0XBC) */
-		{ 0XBD,  "WEEPINBELL",  65,  90,  50,  55,  85,    TYPE_GRASS,   TYPE_POISON, 120, 151 }, /* WEEPINBELL   (0XBD) */
-		{ 0XBE,  "VICTREEBEL",  80, 105,  65,  70, 100,    TYPE_GRASS,   TYPE_POISON,  45, 191 }, /* VICTREEBEL   (0XBE) */
-		{ 0XBF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XBF) */
-		{ 0XC0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC0) */
-		{ 0XC1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC1) */
-		{ 0XC2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC2) */
-		{ 0XC3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC3) */
-		{ 0XC4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC4) */
-		{ 0XC5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC5) */
-		{ 0XC6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC6) */
-		{ 0XC7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC7) */
-		{ 0XC8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC8) */
-		{ 0XC9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XC9) */
-		{ 0XCA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XCA) */
-		{ 0XCB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XCB) */
-		{ 0XCC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XCC) */
-		{ 0XCD,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XCD) */
-		{ 0XCE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XCE) */
-		{ 0XCF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XCF) */
-		{ 0XD0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD0) */
-		{ 0XD1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD1) */
-		{ 0XD2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD2) */
-		{ 0XD3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD3) */
-		{ 0XD4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD4) */
-		{ 0XD5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD5) */
-		{ 0XD6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD6) */
-		{ 0XD7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD7) */
-		{ 0XD8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD8) */
-		{ 0XD9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XD9) */
-		{ 0XDA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XDA) */
-		{ 0XDB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XDB) */
-		{ 0XDC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XDC) */
-		{ 0XDD,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XDD) */
-		{ 0XDE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XDE) */
-		{ 0XDF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XDF) */
-		{ 0XE0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE0) */
-		{ 0XE1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE1) */
-		{ 0XE2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE2) */
-		{ 0XE3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE3) */
-		{ 0XE4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE4) */
-		{ 0XE5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE5) */
-		{ 0XE6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE6) */
-		{ 0XE7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE7) */
-		{ 0XE8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE8) */
-		{ 0XE9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XE9) */
-		{ 0XEA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XEA) */
-		{ 0XEB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XEB) */
-		{ 0XEC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XEC) */
-		{ 0XED,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XED) */
-		{ 0XEE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XEE) */
-		{ 0XEF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XEF) */
-		{ 0XF0,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF0) */
-		{ 0XF1,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF1) */
-		{ 0XF2,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF2) */
-		{ 0XF3,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF3) */
-		{ 0XF4,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF4) */
-		{ 0XF5,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF5) */
-		{ 0XF6,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF6) */
-		{ 0XF7,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF7) */
-		{ 0XF8,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF8) */
-		{ 0XF9,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XF9) */
-		{ 0XFA,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XFA) */
-		{ 0XFB,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XFB) */
-		{ 0XFC,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XFC) */
-		{ 0XFD,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XFD) */
-		{ 0XFE,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XFE) */
-		{ 0XFF,  "MISSINGNO.",   0,   0,   0,   0,   0,   TYPE_INVALID,  TYPE_INVALID,   0,   0 }, /* MISSINGNO.   (0XFF) */
+	const std::map<unsigned char, PokemonBase> pokemonList{
+		{ 0x01, { 0x01,      "RHYDON", 105, 130, 120,  40,  45, TYPE_GROUND,   TYPE_ROCK,     60,  204 } },
+		{ 0x02, { 0x02,  "KANGASKHAN", 105,  95,  80,  90,  40, TYPE_NORMAL,   TYPE_NORMAL,   45,  175 } },
+		{ 0x03, { 0x03,    "NIDORAN~",  46,  57,  40,  50,  40, TYPE_POISON,   TYPE_POISON,   235, 60  } }, // Nidoran♂
+		{ 0x04, { 0x04,    "CLEFAIRY",  70,  45,  48,  35,  60, TYPE_NORMAL,   TYPE_NORMAL,   150, 68  } },
+		{ 0x05, { 0x05,     "SPEAROW",  40,  60,  30,  70,  31, TYPE_NORMAL,   TYPE_FLYING,   255, 58  } },
+		{ 0x06, { 0x06,     "VOLTORB",  40,  30,  50, 100,  55, TYPE_ELECTRIC, TYPE_ELECTRIC, 190, 103 } },
+		{ 0x07, { 0x07,    "NIDOKING",  81,  92,  77,  85,  75, TYPE_POISON,   TYPE_GROUND,   45,  195 } },
+		{ 0x08, { 0x08,     "SLOWBRO",  95,  75, 110,  30,  80, TYPE_WATER,    TYPE_PSYCHIC,  75,  164 } },
+		{ 0x09, { 0x09,     "IVYSAUR",  60,  62,  63,  60,  80, TYPE_GRASS,    TYPE_POISON,   45,  141 } },
+		{ 0x0A, { 0x0A,   "EXEGGUTOR",  95,  95,  85,  55, 125, TYPE_GRASS,    TYPE_PSYCHIC,  45,  212 } },
+		{ 0x0B, { 0x0B,   "LICKITUNG",  90,  55,  75,  30,  60, TYPE_NORMAL,   TYPE_NORMAL,   45,  127 } },
+		{ 0x0C, { 0x0C,   "EXEGGCUTE",  60,  40,  80,  40,  60, TYPE_GRASS,    TYPE_PSYCHIC,  90,  98  } },
+		{ 0x0D, { 0x0D,      "GRIMER",  80,  80,  50,  25,  40, TYPE_POISON,   TYPE_POISON,   190, 90  } },
+		{ 0x0E, { 0x0E,      "GENGAR",  60,  65,  60, 110, 130, TYPE_GHOST,    TYPE_POISON,   45,  190 } },
+		{ 0x0F, { 0x0F,    "NIDORAN`",  55,  47,  52,  41,  40, TYPE_POISON,   TYPE_POISON,   235, 59  } }, // Nidoran♀
+		{ 0x10, { 0x10,   "NIDOQUEEN",  90,  82,  87,  76,  75, TYPE_POISON,   TYPE_GROUND,   45,  194 } },
+		{ 0x11, { 0x11,      "CUBONE",  50,  50,  95,  35,  40, TYPE_GROUND,   TYPE_GROUND,   190, 87  } },
+		{ 0x12, { 0x12,     "RHYHORN",  80,  85,  95,  25,  30, TYPE_GROUND,   TYPE_ROCK,     120, 135 } },
+		{ 0x13, { 0x13,      "LAPRAS", 130,  85,  80,  60,  95, TYPE_WATER,    TYPE_ICE,      45,  219 } },
+		{ 0x14, { 0x14,    "ARCANINE",  90, 110,  80,  95,  80, TYPE_FIRE,     TYPE_FIRE,     75,  213 } },
+		{ 0x15, { 0x15,         "MEW", 100, 100, 100, 100, 100, TYPE_PSYCHIC,  TYPE_PSYCHIC,  45,  64  } },
+		{ 0x16, { 0x16,    "GYARADOS",  95, 125,  79,  81, 100, TYPE_WATER,    TYPE_FLYING,   45,  214 } },
+		{ 0x17, { 0x17,    "SHELLDER",  30,  65, 100,  40,  45, TYPE_WATER,    TYPE_WATER,    190, 97  } },
+		{ 0x18, { 0x18,   "TENTACOOL",  40,  40,  35,  70, 100, TYPE_WATER,    TYPE_POISON,   190, 105 } },
+		{ 0x19, { 0x19,      "GASTLY",  30,  35,  30,  80, 100, TYPE_GHOST,    TYPE_POISON,   190, 95  } },
+		{ 0x1A, { 0x1A,     "SCYTHER",  70, 110,  80, 105,  55, TYPE_BUG,      TYPE_FLYING,   45,  187 } },
+		{ 0x1B, { 0x1B,      "STARYU",  30,  45,  55,  85,  70, TYPE_WATER,    TYPE_WATER,    225, 106 } },
+		{ 0x1C, { 0x1C,   "BLASTOISE",  79,  83, 100,  78,  85, TYPE_WATER,    TYPE_WATER,    45,  210 } },
+		{ 0x1D, { 0x1D,      "PINSIR",  65, 125, 100,  85,  55, TYPE_BUG,      TYPE_BUG,      45,  200 } },
+		{ 0x1E, { 0x1E,     "TANGELA",  65,  55, 115,  60, 100, TYPE_GRASS,    TYPE_GRASS,    45,  166 } },
+		{ 0x21, { 0x21,   "GROWLITHE",  55,  70,  45,  60,  50, TYPE_FIRE,     TYPE_FIRE,     190, 91  } },
+		{ 0x22, { 0x22,        "ONIX",  35,  45, 160,  70,  30, TYPE_ROCK,     TYPE_GROUND,   45,  108 } },
+		{ 0x23, { 0x23,      "FEAROW",  65,  90,  65, 100,  61, TYPE_NORMAL,   TYPE_FLYING,   90,  162 } },
+		{ 0x24, { 0x24,      "PIDGEY",  40,  45,  40,  56,  35, TYPE_NORMAL,   TYPE_FLYING,   255, 55  } },
+		{ 0x25, { 0x25,    "SLOWPOKE",  90,  65,  65,  15,  40, TYPE_WATER,    TYPE_PSYCHIC,  190, 99  } },
+		{ 0x26, { 0x26,     "KADABRA",  40,  35,  30, 105, 120, TYPE_PSYCHIC,  TYPE_PSYCHIC,  100, 145 } },
+		{ 0x27, { 0x27,    "GRAVELER",  55,  95, 115,  35,  45, TYPE_ROCK,     TYPE_GROUND,   120, 134 } },
+		{ 0x28, { 0x28,     "CHANSEY", 250,   5,   5,  50, 105, TYPE_NORMAL,   TYPE_NORMAL,   30,  255 } },
+		{ 0x29, { 0x29,     "MACHOKE",  80, 100,  70,  45,  50, TYPE_FIGHTING, TYPE_FIGHTING, 90,  146 } },
+		{ 0x2A, { 0x2A,    "MR. MIME",  40,  45,  65,  90, 100, TYPE_PSYCHIC,  TYPE_PSYCHIC,  45,  136 } },
+		{ 0x2B, { 0x2B,   "HITMONLEE",  50, 120,  53,  87,  35, TYPE_FIGHTING, TYPE_FIGHTING, 45,  139 } },
+		{ 0x2C, { 0x2C,  "HITMONCHAN",  50, 105,  79,  76,  35, TYPE_FIGHTING, TYPE_FIGHTING, 45,  140 } },
+		{ 0x2D, { 0x2D,       "ARBOK",  60,  85,  69,  80,  65, TYPE_POISON,   TYPE_POISON,   90,  147 } },
+		{ 0x2E, { 0x2E,    "PARASECT",  60,  95,  80,  30,  80, TYPE_BUG,      TYPE_GRASS,    75,  128 } },
+		{ 0x2F, { 0x2F,     "PSYDUCK",  50,  52,  48,  55,  50, TYPE_WATER,    TYPE_WATER,    190, 80  } },
+		{ 0x30, { 0x30,     "DROWZEE",  60,  48,  45,  42,  90, TYPE_PSYCHIC,  TYPE_PSYCHIC,  190, 102 } },
+		{ 0x31, { 0x31,       "GOLEM",  80, 110, 130,  45,  55, TYPE_ROCK,     TYPE_GROUND,   45,  177 } },
+		{ 0x33, { 0x33,      "MAGMAR",  65,  95,  57,  93,  85, TYPE_FIRE,     TYPE_FIRE,     45,  167 } },
+		{ 0x35, { 0x35,  "ELECTABUZZ",  65,  83,  57, 105,  85, TYPE_ELECTRIC, TYPE_ELECTRIC, 45,  156 } },
+		{ 0x36, { 0x36,    "MAGNETON",  50,  60,  95,  70, 120, TYPE_ELECTRIC, TYPE_ELECTRIC, 60,  161 } },
+		{ 0x37, { 0x37,     "KOFFING",  40,  65,  95,  35,  60, TYPE_POISON,   TYPE_POISON,   190, 114 } },
+		{ 0x39, { 0x39,      "MANKEY",  40,  80,  35,  70,  35, TYPE_FIGHTING, TYPE_FIGHTING, 190, 74  } },
+		{ 0x3A, { 0x3A,        "SEEL",  65,  45,  55,  45,  70, TYPE_WATER,    TYPE_WATER,    190, 100 } },
+		{ 0x3B, { 0x3B,     "DIGLETT",  10,  55,  25,  95,  45, TYPE_GROUND,   TYPE_GROUND,   255, 81  } },
+		{ 0x3C, { 0x3C,      "TAUROS",  75, 100,  95, 110,  70, TYPE_NORMAL,   TYPE_NORMAL,   45,  211 } },
+		{ 0x40, { 0x40,   "FARFETCHD",  52,  65,  55,  60,  58, TYPE_NORMAL,   TYPE_FLYING,   45,  94  } },
+		{ 0x41, { 0x41,     "VENONAT",  60,  55,  50,  45,  40, TYPE_BUG,      TYPE_POISON,   190, 75  } },
+		{ 0x42, { 0x42,   "DRAGONITE",  91, 134,  95,  80, 100, TYPE_DRAGON,   TYPE_FLYING,   45,  218 } },
+		{ 0x46, { 0x46,       "DODUO",  35,  85,  45,  75,  35, TYPE_NORMAL,   TYPE_FLYING,   190, 96  } },
+		{ 0x47, { 0x47,     "POLIWAG",  40,  50,  40,  90,  40, TYPE_WATER,    TYPE_WATER,    255, 77  } },
+		{ 0x48, { 0x48,        "JYNX",  65,  50,  35,  95,  95, TYPE_ICE,      TYPE_PSYCHIC,  45,  137 } },
+		{ 0x49, { 0x49,     "MOLTRES",  90, 100,  90,  90, 125, TYPE_FIRE,     TYPE_FLYING,   3,   217 } },
+		{ 0x4A, { 0x4A,    "ARTICUNO",  90,  85, 100,  85, 125, TYPE_ICE,      TYPE_FLYING,   3,   215 } },
+		{ 0x4B, { 0x4B,      "ZAPDOS",  90,  90,  85, 100, 125, TYPE_ELECTRIC, TYPE_FLYING,   3,   216 } },
+		{ 0x4C, { 0x4C,       "DITTO",  48,  48,  48,  48,  48, TYPE_NORMAL,   TYPE_NORMAL,   35,  61  } },
+		{ 0x4D, { 0x4D,      "MEOWTH",  40,  45,  35,  90,  40, TYPE_NORMAL,   TYPE_NORMAL,   255, 69  } },
+		{ 0x4E, { 0x4E,      "KRABBY",  30, 105,  90,  50,  25, TYPE_WATER,    TYPE_WATER,    225, 115 } },
+		{ 0x52, { 0x52,      "VULPIX",  38,  41,  40,  65,  65, TYPE_FIRE,     TYPE_FIRE,     190, 63  } },
+		{ 0x53, { 0x53,   "NINETALES",  73,  76,  75, 100, 100, TYPE_FIRE,     TYPE_FIRE,     75,  178 } },
+		{ 0x54, { 0x54,     "PIKACHU",  35,  55,  30,  90,  50, TYPE_ELECTRIC, TYPE_ELECTRIC, 190, 82  } },
+		{ 0x55, { 0x55,      "RAICHU",  60,  90,  55, 100,  90, TYPE_ELECTRIC, TYPE_ELECTRIC, 75,  122 } },
+		{ 0x58, { 0x58,     "DRATINI",  41,  64,  45,  50,  50, TYPE_DRAGON,   TYPE_DRAGON,   45,  67  } },
+		{ 0x59, { 0x59,   "DRAGONAIR",  61,  84,  65,  70,  70, TYPE_DRAGON,   TYPE_DRAGON,   45,  144 } },
+		{ 0x5A, { 0x5A,      "KABUTO",  30,  80,  90,  55,  45, TYPE_ROCK,     TYPE_WATER,    45,  119 } },
+		{ 0x5B, { 0x5B,    "KABUTOPS",  60, 115, 105,  80,  70, TYPE_ROCK,     TYPE_WATER,    45,  201 } },
+		{ 0x5C, { 0x5C,      "HORSEA",  30,  40,  70,  60,  70, TYPE_WATER,    TYPE_WATER,    225, 83  } },
+		{ 0x5D, { 0x5D,      "SEADRA",  55,  65,  95,  85,  95, TYPE_WATER,    TYPE_WATER,    75,  155 } },
+		{ 0x60, { 0x60,   "SANDSHREW",  50,  75,  85,  40,  30, TYPE_GROUND,   TYPE_GROUND,   255, 93  } },
+		{ 0x61, { 0x61,   "SANDSLASH",  75, 100, 110,  65,  55, TYPE_GROUND,   TYPE_GROUND,   90,  163 } },
+		{ 0x62, { 0x62,     "OMANYTE",  35,  40, 100,  35,  90, TYPE_ROCK,     TYPE_WATER,    45,  120 } },
+		{ 0x63, { 0x63,     "OMASTAR",  70,  60, 125,  55, 115, TYPE_ROCK,     TYPE_WATER,    45,  199 } },
+		{ 0x64, { 0x64,  "JIGGLYPUFF", 115,  45,  20,  20,  25, TYPE_NORMAL,   TYPE_NORMAL,   170, 76  } },
+		{ 0x65, { 0x65,  "WIGGLYTUFF", 140,  70,  45,  45,  50, TYPE_NORMAL,   TYPE_NORMAL,   50,  109 } },
+		{ 0x66, { 0x66,       "EEVEE",  55,  55,  50,  55,  65, TYPE_NORMAL,   TYPE_NORMAL,   45,  92  } },
+		{ 0x67, { 0x67,     "FLAREON",  65, 130,  60,  65, 110, TYPE_FIRE,     TYPE_FIRE,     45,  198 } },
+		{ 0x68, { 0x68,     "JOLTEON",  65,  65,  60, 130, 110, TYPE_ELECTRIC, TYPE_ELECTRIC, 45,  197 } },
+		{ 0x69, { 0x69,    "VAPOREON", 130,  65,  60,  65, 110, TYPE_WATER,    TYPE_WATER,    45,  196 } },
+		{ 0x6A, { 0x6A,      "MACHOP",  70,  80,  50,  35,  35, TYPE_FIGHTING, TYPE_FIGHTING, 180, 88  } },
+		{ 0x6B, { 0x6B,       "ZUBAT",  40,  45,  35,  55,  40, TYPE_POISON,   TYPE_FLYING,   255, 54  } },
+		{ 0x6C, { 0x6C,       "EKANS",  35,  60,  44,  55,  40, TYPE_POISON,   TYPE_POISON,   255, 62  } },
+		{ 0x6D, { 0x6D,       "PARAS",  35,  70,  55,  25,  55, TYPE_BUG,      TYPE_GRASS,    190, 70  } },
+		{ 0x6E, { 0x6E,   "POLIWHIRL",  65,  65,  65,  90,  50, TYPE_WATER,    TYPE_WATER,    120, 131 } },
+		{ 0x6F, { 0x6F,   "POLIWRATH",  90,  85,  95,  70,  70, TYPE_WATER,    TYPE_FIGHTING, 45,  185 } },
+		{ 0x70, { 0x70,      "WEEDLE",  40,  35,  30,  50,  20, TYPE_BUG,      TYPE_POISON,   255, 52  } },
+		{ 0x71, { 0x71,      "KAKUNA",  45,  25,  50,  35,  25, TYPE_BUG,      TYPE_POISON,   120, 71  } },
+		{ 0x72, { 0x72,    "BEEDRILL",  65,  80,  40,  75,  45, TYPE_BUG,      TYPE_POISON,   45,  159 } },
+		{ 0x74, { 0x74,      "DODRIO",  60, 110,  70, 100,  60, TYPE_NORMAL,   TYPE_FLYING,   45,  158 } },
+		{ 0x75, { 0x75,    "PRIMEAPE",  65, 105,  60,  95,  60, TYPE_FIGHTING, TYPE_FIGHTING, 75,  149 } },
+		{ 0x76, { 0x76,     "DUGTRIO",  35,  80,  50, 120,  70, TYPE_GROUND,   TYPE_GROUND,   50,  153 } },
+		{ 0x77, { 0x77,    "VENOMOTH",  70,  65,  60,  90,  90, TYPE_BUG,      TYPE_POISON,   75,  138 } },
+		{ 0x78, { 0x78,     "DEWGONG",  90,  70,  80,  70,  95, TYPE_WATER,    TYPE_ICE,      75,  176 } },
+		{ 0x7B, { 0x7B,    "CATERPIE",  45,  30,  35,  45,  20, TYPE_BUG,      TYPE_BUG,      255, 53  } },
+		{ 0x7C, { 0x7C,     "METAPOD",  50,  20,  55,  30,  25, TYPE_BUG,      TYPE_BUG,      120, 72  } },
+		{ 0x7D, { 0x7D,  "BUTTERFREE",  60,  45,  50,  70,  80, TYPE_BUG,      TYPE_FLYING,   45,  160 } },
+		{ 0x7E, { 0x7E,     "MACHAMP",  90, 130,  80,  55,  65, TYPE_FIGHTING, TYPE_FIGHTING, 45,  193 } },
+		{ 0x80, { 0x80,     "GOLDUCK",  80,  82,  78,  85,  80, TYPE_WATER,    TYPE_WATER,    75,  174 } },
+		{ 0x81, { 0x81,       "HYPNO",  85,  73,  70,  67, 115, TYPE_PSYCHIC,  TYPE_PSYCHIC,  75,  165 } },
+		{ 0x82, { 0x82,      "GOLBAT",  75,  80,  70,  90,  75, TYPE_POISON,   TYPE_FLYING,   90,  171 } },
+		{ 0x83, { 0x83,      "MEWTWO", 106, 110,  90, 130, 154, TYPE_PSYCHIC,  TYPE_PSYCHIC,  3,   220 } },
+		{ 0x84, { 0x84,     "SNORLAX", 160, 110,  65,  30,  65, TYPE_NORMAL,   TYPE_NORMAL,   25,  154 } },
+		{ 0x85, { 0x85,    "MAGIKARP",  20,  10,  55,  80,  20, TYPE_WATER,    TYPE_WATER,    255, 20  } },
+		{ 0x88, { 0x88,         "MUK", 105, 105,  75,  50,  65, TYPE_POISON,   TYPE_POISON,   75,  157 } },
+		{ 0x8A, { 0x8A,     "KINGLER",  55, 130, 115,  75,  50, TYPE_WATER,    TYPE_WATER,    60,  206 } },
+		{ 0x8B, { 0x8B,    "CLOYSTER",  50,  95, 180,  70,  85, TYPE_WATER,    TYPE_ICE,      60,  203 } },
+		{ 0x8D, { 0x8D,   "ELECTRODE",  60,  50,  70, 140,  80, TYPE_ELECTRIC, TYPE_ELECTRIC, 60,  150 } },
+		{ 0x8E, { 0x8E,    "CLEFABLE",  95,  70,  73,  60,  85, TYPE_NORMAL,   TYPE_NORMAL,   25,  129 } },
+		{ 0x8F, { 0x8F,     "WEEZING",  65,  90, 120,  60,  85, TYPE_POISON,   TYPE_POISON,   60,  173 } },
+		{ 0x90, { 0x90,     "PERSIAN",  65,  70,  60, 115,  65, TYPE_NORMAL,   TYPE_NORMAL,   90,  148 } },
+		{ 0x91, { 0x91,     "MAROWAK",  60,  80, 110,  45,  50, TYPE_GROUND,   TYPE_GROUND,   75,  124 } },
+		{ 0x93, { 0x93,     "HAUNTER",  45,  50,  45,  95, 115, TYPE_GHOST,    TYPE_POISON,   90,  126 } },
+		{ 0x94, { 0x94,        "ABRA",  25,  20,  15,  90, 105, TYPE_PSYCHIC,  TYPE_PSYCHIC,  200, 73  } },
+		{ 0x95, { 0x95,    "ALAKAZAM",  55,  50,  45, 120, 135, TYPE_PSYCHIC,  TYPE_PSYCHIC,  50,  186 } },
+		{ 0x96, { 0x96,   "PIDGEOTTO",  63,  60,  55,  71,  50, TYPE_NORMAL,   TYPE_FLYING,   120, 113 } },
+		{ 0x97, { 0x97,     "PIDGEOT",  83,  80,  75,  91,  70, TYPE_NORMAL,   TYPE_FLYING,   45,  172 } },
+		{ 0x98, { 0x98,     "STARMIE",  60,  75,  85, 115, 100, TYPE_WATER,    TYPE_PSYCHIC,  60,  207 } },
+		{ 0x99, { 0x99,   "BULBASAUR",  45,  49,  49,  45,  65, TYPE_GRASS,    TYPE_POISON,   45,  64  } },
+		{ 0x9A, { 0x9A,    "VENUSAUR",  80,  82,  83,  80, 100, TYPE_GRASS,    TYPE_POISON,   45,  208 } },
+		{ 0x9B, { 0x9B,  "TENTACRUEL",  80,  70,  65, 100, 120, TYPE_WATER,    TYPE_POISON,   60,  205 } },
+		{ 0x9D, { 0x9D,     "GOLDEEN",  45,  67,  60,  63,  50, TYPE_WATER,    TYPE_WATER,    225, 111 } },
+		{ 0x9E, { 0x9E,     "SEAKING",  80,  92,  65,  68,  80, TYPE_WATER,    TYPE_WATER,    60,  170 } },
+		{ 0xA3, { 0xA3,      "PONYTA",  50,  85,  55,  90,  65, TYPE_FIRE,     TYPE_FIRE,     190, 152 } },
+		{ 0xA4, { 0xA4,    "RAPIDASH",  65, 100,  70, 105,  80, TYPE_FIRE,     TYPE_FIRE,     60,  192 } },
+		{ 0xA5, { 0xA5,     "RATTATA",  30,  56,  35,  72,  25, TYPE_NORMAL,   TYPE_NORMAL,   255, 57  } },
+		{ 0xA6, { 0xA6,    "RATICATE",  55,  81,  60,  97,  50, TYPE_NORMAL,   TYPE_NORMAL,   90,  116 } },
+		{ 0xA7, { 0xA7,    "NIDORINO",  61,  72,  57,  65,  55, TYPE_POISON,   TYPE_POISON,   120, 118 } },
+		{ 0xA8, { 0xA8,    "NIDORINA",  70,  62,  67,  56,  55, TYPE_POISON,   TYPE_POISON,   120, 117 } },
+		{ 0xA9, { 0xA9,     "GEODUDE",  40,  80, 100,  20,  30, TYPE_ROCK,     TYPE_GROUND,   255, 86  } },
+		{ 0xAA, { 0xAA,     "PORYGON",  65,  60,  70,  40,  75, TYPE_NORMAL,   TYPE_NORMAL,   45,  130 } },
+		{ 0xAB, { 0xAB,  "AERODACTYL",  80, 105,  65, 130,  60, TYPE_ROCK,     TYPE_FLYING,   45,  202 } },
+		{ 0xAD, { 0xAD,   "MAGNEMITE",  25,  35,  70,  45,  95, TYPE_ELECTRIC, TYPE_ELECTRIC, 190, 89  } },
+		{ 0xB0, { 0xB0,  "CHARMANDER",  39,  52,  43,  65,  50, TYPE_FIRE,     TYPE_FIRE,     45,  65  } },
+		{ 0xB1, { 0xB1,    "SQUIRTLE",  44,  48,  65,  43,  50, TYPE_WATER,    TYPE_WATER,    45,  66  } },
+		{ 0xB2, { 0xB2,  "CHARMELEON",  58,  64,  58,  80,  65, TYPE_FIRE,     TYPE_FIRE,     45,  142 } },
+		{ 0xB3, { 0xB3,   "WARTORTLE",  59,  63,  80,  58,  65, TYPE_WATER,    TYPE_WATER,    45,  143 } },
+		{ 0xB4, { 0xB4,   "CHARIZARD",  78,  84,  78, 100,  85, TYPE_FIRE,     TYPE_FLYING,   45,  209 } },
+		{ 0xB9, { 0xB9,      "ODDISH",  45,  50,  55,  30,  75, TYPE_GRASS,    TYPE_POISON,   255, 78  } },
+		{ 0xBA, { 0xBA,       "GLOOM",  60,  65,  70,  40,  85, TYPE_GRASS,    TYPE_POISON,   120, 132 } },
+		{ 0xBB, { 0xBB,   "VILEPLUME",  75,  80,  85,  50, 100, TYPE_GRASS,    TYPE_POISON,   45,  184 } },
+		{ 0xBC, { 0xBC,  "BELLSPROUT",  50,  75,  35,  40,  70, TYPE_GRASS,    TYPE_POISON,   255, 84  } },
+		{ 0xBD, { 0xBD,  "WEEPINBELL",  65,  90,  50,  55,  85, TYPE_GRASS,    TYPE_POISON,   120, 151 } },
+		{ 0xBE, { 0xBE,  "VICTREEBEL",  80, 105,  65,  70, 100, TYPE_GRASS,    TYPE_POISON,   45,  191 } },
+
+		{ 0x00, { 0x00,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x1F, { 0x1F,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x20, { 0x20,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x32, { 0x32,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x34, { 0x34,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x38, { 0x38,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x3D, { 0x3D,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x3E, { 0x3E,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x3F, { 0x3F,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x43, { 0x43,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x44, { 0x44,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x45, { 0x45,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x4F, { 0x4F,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x50, { 0x50,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x51, { 0x51,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x5E, { 0x5E,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x5F, { 0x5F,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x56, { 0x56,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x57, { 0x57,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x73, { 0x73,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x79, { 0x79,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x7A, { 0x7A,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x7F, { 0x7F,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x86, { 0x86,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x87, { 0x87,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x89, { 0x89,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x8C, { 0x8C,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x92, { 0x92,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x9C, { 0x9C,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0x9F, { 0x9F,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xA0, { 0xA0,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xA1, { 0xA1,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xA2, { 0xA2,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xAC, { 0xAC,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xAE, { 0xAE,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xAF, { 0xAF,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xB5, { 0xB5,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xB6, { 0xB6,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xB7, { 0xB7,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xB8, { 0xB8,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xBF, { 0xBF,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xC0, { 0xC0,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xC1, { 0xC1,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xC2, { 0xC2,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xC3, { 0xC3,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xC4, { 0xC4,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xC5, { 0xC5,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xC6, { 0xC6,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xC7, { 0xC7,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xC8, { 0xC8,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xC9, { 0xC9,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xCA, { 0xCA,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xCB, { 0xCB,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xCC, { 0xCC,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xCD, { 0xCD,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xCE, { 0xCE,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xCF, { 0xCF,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xD0, { 0xD0,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xD1, { 0xD1,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xD2, { 0xD2,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xD3, { 0xD3,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xD4, { 0xD4,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xD5, { 0xD5,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xD6, { 0xD6,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xD7, { 0xD7,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xD8, { 0xD8,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xD9, { 0xD9,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xDA, { 0xDA,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xDB, { 0xDB,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xDC, { 0xDC,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xDD, { 0xDD,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xDE, { 0xDE,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xDF, { 0xDF,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xE0, { 0xE0,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xE1, { 0xE1,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xE2, { 0xE2,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xE3, { 0xE3,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xE4, { 0xE4,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xE5, { 0xE5,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xE6, { 0xE6,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xE7, { 0xE7,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xE8, { 0xE8,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xE9, { 0xE9,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xEA, { 0xEA,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xEB, { 0xEB,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xEC, { 0xEC,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xED, { 0xED,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xEE, { 0xEE,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xEF, { 0xEF,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xF0, { 0xF0,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xF1, { 0xF1,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xF2, { 0xF2,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xF3, { 0xF3,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xF4, { 0xF4,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xF5, { 0xF5,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xF6, { 0xF6,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xF7, { 0xF7,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xF8, { 0xF8,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xF9, { 0xF9,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xFA, { 0xFA,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xFB, { 0xFB,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xFC, { 0xFC,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xFD, { 0xFD,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xFE, { 0xFE,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
+		{ 0xFF, { 0xFF,  "MISSINGNO.",   0,   0,   0,   0,   0, TYPE_INVALID,  TYPE_INVALID,  0,   0   } },
 	};
 }

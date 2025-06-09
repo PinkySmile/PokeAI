@@ -87,6 +87,7 @@ namespace PokemonGen1
 	};
 
 	struct BattleState {
+		std::string		name;
 		std::string		opponentName;
 		unsigned		pokemonOnField;
 		unsigned		opponentPokemonOnField;
@@ -132,6 +133,7 @@ namespace PokemonGen1
 		std::vector<std::vector<unsigned char>>	_sendBuffer;
 		Logger					_battleLogger;
 		std::function<BattleAction(GameHandle &)> _battleHandler;
+		std::function<std::pair<BattleAction,BattleAction>(GameHandle &)> _battleHandler2;
 
 		std::vector<std::vector<unsigned char>> _craftPacket();
 		void _interpretPacket();
@@ -156,6 +158,12 @@ namespace PokemonGen1
 			const std::string &trainerName = "PokeAI",
 			const Logger &battleLogger = {},
 			bool player2 = false,
+			bool log = false
+		);
+		explicit GameHandle(
+			const std::function<std::pair<BattleAction, BattleAction>(GameHandle &)> &battleHandler,
+			const std::pair<std::string, std::string> &trainerNames = { "PokeAI", "PokeAI" },
+			const Logger &battleLogger = {},
 			bool log = false
 		);
 

@@ -62,6 +62,23 @@ namespace PokemonGen1
 		};
 	}
 
+	GameHandle::GameHandle(
+		const std::function<std::pair<BattleAction, BattleAction>(GameHandle &)> &battleHandler,
+		const std::pair<std::string, std::string> &trainerNames,
+		const Logger &battleLogger,
+		bool log
+	) :
+		_emulatorMaker(nullptr),
+		_logMsg(log),
+		_emulator{nullptr},
+		_trainerName(trainerNames.first),
+		_isPlayer2(false),
+		_randomGenerator(),
+		_battleLogger(battleLogger),
+		_battleHandler2(battleHandler)
+	{
+	}
+
 	void GameHandle::logBattle(const std::string &message)
 	{
 		std::cout << "[BATTLE]: " << message << "!" << std::endl;
@@ -86,7 +103,7 @@ namespace PokemonGen1
 					*this,
 					"",
 					1,
-					PokemonGen1::pokemonList[PokemonGen1::Rhydon],
+					PokemonGen1::pokemonList.at(PokemonGen1::Rhydon),
 					std::vector<PokemonGen1::Move>{
 						PokemonGen1::availableMoves[PokemonGen1::Tackle],
 						PokemonGen1::availableMoves[PokemonGen1::Tail_Whip]
@@ -615,7 +632,7 @@ namespace PokemonGen1
 		this->_log("They have " + std::to_string(nbPkmns) + " pokémon(s)");
 		this->_receiveBuffer.erase(this->_receiveBuffer.begin());
 		for (int i = 0; i < nbPkmns; i++)
-			this->_log("Pokémon " + std::to_string(i) + ": " + pokemonList[this->_receiveBuffer[i]].name);
+			this->_log("Pokémon " + std::to_string(i) + ": " + pokemonList.at(this->_receiveBuffer[i]).name);
 		this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 7);
 
 		std::vector<unsigned char> pkmnData{this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 44 * 6};
@@ -666,7 +683,7 @@ namespace PokemonGen1
 			this->addPokemonToTeam(
 				"",
 				1,
-				PokemonGen1::pokemonList[PokemonGen1::Rhydon],
+				PokemonGen1::pokemonList.at(PokemonGen1::Rhydon),
 				std::vector<PokemonGen1::Move>{
 					PokemonGen1::availableMoves[PokemonGen1::Tackle],
 					PokemonGen1::availableMoves[PokemonGen1::Tail_Whip]

@@ -154,13 +154,13 @@ void openChangeMoveBox(tgui::Gui &gui, BattleResources &resources, PokemonGen1::
 		for (auto &panel : *panels)
 			panel.second->setPosition(-200, -200);
 		*displayedPanels = *panels;
-		applyMoveFilters(sorting.lock()->getSelectedItemIndex(), filter.lock()->getText(), typeFilter.lock()->getSelectedItemId(), *displayedPanels);
+		applyMoveFilters(sorting.lock()->getSelectedItemIndex(), filter.lock()->getText().toStdString(), typeFilter.lock()->getSelectedItemId().toStdString(), *displayedPanels);
 		moveMovePanels(*displayedPanels);
 	};
 
-	filter->connect("TextChanged", refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
-	sorting->connect("ItemSelected", refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
-	typeFilter->connect("ItemSelected", refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
+	filter->onTextChange.connect(refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
+	sorting->onItemSelect.connect(refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
+	typeFilter->onItemSelect.connect(refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
 
 	filter->setPosition(10, 10);
 	sorting->setPosition("&.w * 70 / 100", 10);
@@ -182,10 +182,10 @@ void openChangeMoveBox(tgui::Gui &gui, BattleResources &resources, PokemonGen1::
 		auto pow = pan->get<tgui::EditBox>("Power");
 		auto acc = pan->get<tgui::EditBox>("Accuracy");
 		auto name = pan->get<tgui::Button>("Name");
-		auto effects = pan->get<tgui::TextBox>("AdditionalEffects");
+		auto effects = pan->get<tgui::TextArea>("AdditionalEffects");
 
 		name->setText(strToUpper(move.getName()));
-		name->connect("Clicked", [&move, &gui, moveIndex, &pkmn](std::weak_ptr<tgui::Button> moveButton, std::weak_ptr<tgui::Panel> bigPan){
+		name->onClick.connect([&move, &gui, moveIndex, &pkmn](std::weak_ptr<tgui::Button> moveButton, std::weak_ptr<tgui::Panel> bigPan){
 			pkmn.setMove(moveIndex, move);
 			gui.remove(bigPan.lock());
 			moveButton.lock()->setText(move.getName());
@@ -220,8 +220,8 @@ void applyPkmnsFilters(unsigned sorting, std::string query, const std::string &t
 {
 	std::vector<std::function<bool(const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2)>> sortingAlgos = {
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
-			auto &base1 = PokemonGen1::pokemonList[p1.first];
-			auto &base2 = PokemonGen1::pokemonList[p2.first];
+			auto &base1 = PokemonGen1::pokemonList.at(p1.first);
+			auto &base2 = PokemonGen1::pokemonList.at(p2.first);
 
 			if (base1.name == base2.name)
 				return p1.first < p2.first;
@@ -231,8 +231,8 @@ void applyPkmnsFilters(unsigned sorting, std::string query, const std::string &t
 			);
 		},
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
-			auto &base1 = PokemonGen1::pokemonList[p1.first];
-			auto &base2 = PokemonGen1::pokemonList[p2.first];
+			auto &base1 = PokemonGen1::pokemonList.at(p1.first);
+			auto &base2 = PokemonGen1::pokemonList.at(p2.first);
 
 			if (base1.name == base2.name)
 				return p1.first < p2.first;
@@ -248,62 +248,62 @@ void applyPkmnsFilters(unsigned sorting, std::string query, const std::string &t
 			return p1.first > p2.first;
 		},
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
-			auto &base1 = PokemonGen1::pokemonList[p1.first];
-			auto &base2 = PokemonGen1::pokemonList[p2.first];
+			auto &base1 = PokemonGen1::pokemonList.at(p1.first);
+			auto &base2 = PokemonGen1::pokemonList.at(p2.first);
 
 			return base1.HP < base2.HP;
 		},
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
-			auto &base1 = PokemonGen1::pokemonList[p1.first];
-			auto &base2 = PokemonGen1::pokemonList[p2.first];
+			auto &base1 = PokemonGen1::pokemonList.at(p1.first);
+			auto &base2 = PokemonGen1::pokemonList.at(p2.first);
 
 			return base1.HP > base2.HP;
 		},
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
-			auto &base1 = PokemonGen1::pokemonList[p1.first];
-			auto &base2 = PokemonGen1::pokemonList[p2.first];
+			auto &base1 = PokemonGen1::pokemonList.at(p1.first);
+			auto &base2 = PokemonGen1::pokemonList.at(p2.first);
 
 			return base1.ATK < base2.ATK;
 		},
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
-			auto &base1 = PokemonGen1::pokemonList[p1.first];
-			auto &base2 = PokemonGen1::pokemonList[p2.first];
+			auto &base1 = PokemonGen1::pokemonList.at(p1.first);
+			auto &base2 = PokemonGen1::pokemonList.at(p2.first);
 
 			return base1.ATK > base2.ATK;
 		},
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
-			auto &base1 = PokemonGen1::pokemonList[p1.first];
-			auto &base2 = PokemonGen1::pokemonList[p2.first];
+			auto &base1 = PokemonGen1::pokemonList.at(p1.first);
+			auto &base2 = PokemonGen1::pokemonList.at(p2.first);
 
 			return base1.DEF < base2.DEF;
 		},
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
-			auto &base1 = PokemonGen1::pokemonList[p1.first];
-			auto &base2 = PokemonGen1::pokemonList[p2.first];
+			auto &base1 = PokemonGen1::pokemonList.at(p1.first);
+			auto &base2 = PokemonGen1::pokemonList.at(p2.first);
 
 			return base1.DEF > base2.DEF;
 		},
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
-			auto &base1 = PokemonGen1::pokemonList[p1.first];
-			auto &base2 = PokemonGen1::pokemonList[p2.first];
+			auto &base1 = PokemonGen1::pokemonList.at(p1.first);
+			auto &base2 = PokemonGen1::pokemonList.at(p2.first);
 
 			return base1.SPD < base2.SPD;
 		},
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
-			auto &base1 = PokemonGen1::pokemonList[p1.first];
-			auto &base2 = PokemonGen1::pokemonList[p2.first];
+			auto &base1 = PokemonGen1::pokemonList.at(p1.first);
+			auto &base2 = PokemonGen1::pokemonList.at(p2.first);
 
 			return base1.SPD > base2.SPD;
 		},
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
-			auto &base1 = PokemonGen1::pokemonList[p1.first];
-			auto &base2 = PokemonGen1::pokemonList[p2.first];
+			auto &base1 = PokemonGen1::pokemonList.at(p1.first);
+			auto &base2 = PokemonGen1::pokemonList.at(p2.first);
 
 			return base1.SPE < base2.SPE;
 		},
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
-			auto &base1 = PokemonGen1::pokemonList[p1.first];
-			auto &base2 = PokemonGen1::pokemonList[p2.first];
+			auto &base1 = PokemonGen1::pokemonList.at(p1.first);
+			auto &base2 = PokemonGen1::pokemonList.at(p2.first);
 
 			return base1.SPE > base2.SPE;
 		}
@@ -316,7 +316,7 @@ void applyPkmnsFilters(unsigned sorting, std::string query, const std::string &t
 			panels.begin(),
 			panels.end(),
 			[&query](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1) {
-				return Utils::toLower(PokemonGen1::pokemonList[p1.first].name).find(query) == std::string::npos;
+				return Utils::toLower(PokemonGen1::pokemonList.at(p1.first).name).find(query) == std::string::npos;
 			}
 		), panels.end());
 	}
@@ -325,7 +325,7 @@ void applyPkmnsFilters(unsigned sorting, std::string query, const std::string &t
 			panels.begin(),
 			panels.end(),
 			[&type](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1) {
-				auto &base = PokemonGen1::pokemonList[p1.first];
+				auto &base = PokemonGen1::pokemonList.at(p1.first);
 
 				return typeToString(base.typeA) != type && typeToString(base.typeB) != type;
 			}
@@ -392,13 +392,13 @@ void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 		for (auto &panel : *panels)
 			panel.second->setPosition(-200, -200);
 		*displayedPanels = *panels;
-		applyPkmnsFilters(sorting.lock()->getSelectedItemIndex(), filter.lock()->getText(), typeFilter.lock()->getSelectedItemId(), *displayedPanels);
+		applyPkmnsFilters(sorting.lock()->getSelectedItemIndex(), filter.lock()->getText().toStdString(), typeFilter.lock()->getSelectedItemId().toStdString(), *displayedPanels);
 		movePkmnsPanels(*displayedPanels);
 	};
 
-	filter->connect("TextChanged", refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
-	sorting->connect("ItemSelected", refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
-	typeFilter->connect("ItemSelected", refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
+	filter->onTextChange.connect(refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
+	sorting->onItemSelect.connect(refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
+	typeFilter->onItemSelect.connect(refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
 
 	filter->setPosition(10, 10);
 	sorting->setPosition("&.w * 70 / 100", 10);
@@ -411,18 +411,17 @@ void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 
 	basePanel->loadWidgetsFromFile("assets/pkmnPreview.gui");
 
-	for (unsigned i = 0; i < PokemonGen1::pokemonList.size(); i++) {
+	for (const auto &[i, base] : PokemonGen1::pokemonList) {
 		auto pan = (panels->operator[](i) = {i, tgui::ScrollablePanel::copy(basePanel)}).second;
-		auto &base = PokemonGen1::pokemonList[i];
 		auto type1 = tgui::Picture::create(resources.types[typeToString(base.typeA)]);
 		auto type2 = tgui::Picture::create(resources.types[typeToString(base.typeB)]);
 		auto sprite = pan->get<tgui::BitmapButton>("Species");
-		auto hp = pan->get<tgui::TextBox>("HP");
-		auto atk = pan->get<tgui::TextBox>("ATK");
-		auto def = pan->get<tgui::TextBox>("DEF");
-		auto spd = pan->get<tgui::TextBox>("SPD");
-		auto spe = pan->get<tgui::TextBox>("SPE");
-		auto name = pan->get<tgui::TextBox>("SpeciesName");
+		auto hp = pan->get<tgui::TextArea>("HP");
+		auto atk = pan->get<tgui::TextArea>("ATK");
+		auto def = pan->get<tgui::TextArea>("DEF");
+		auto spd = pan->get<tgui::TextArea>("SPD");
+		auto spe = pan->get<tgui::TextArea>("SPE");
+		auto name = pan->get<tgui::TextArea>("SpeciesName");
 		auto &stats = base.statsAtLevel[pkmn.getLevel()];
 
 		name->setText(strToUpper(base.name));
@@ -431,9 +430,9 @@ void openChangePkmnBox(tgui::Gui &gui, PokemonGen1::GameHandle &game, BattleReso
 		def->setText(std::to_string(stats.DEF));
 		spd->setText(std::to_string(stats.SPD));
 		spe->setText(std::to_string(stats.SPE));
-		sprite->setImage(resources.pokemonsFront[i]);
+		sprite->setImage(resources.pokemonsFront[base.id]);
 
-		sprite->connect("clicked", [&ai, &window, &resources, &gui, index, &pkmn, &game, &base](std::weak_ptr<tgui::Panel> pkmnPan, std::weak_ptr<tgui::Panel> bigPan){
+		sprite->onClick.connect([&ai, &window, &resources, &gui, index, &pkmn, &game, &base](std::weak_ptr<tgui::Panel> pkmnPan, std::weak_ptr<tgui::Panel> bigPan){
 			game.changePokemon(index, pkmn.getNickname(), pkmn.getLevel(), base, pkmn.getMoveSet());
 			gui.remove(bigPan.lock());
 			populatePokemonPanel(window, gui, game, resources, index, pkmnPan.lock(), game.getPokemon(index), ai);
@@ -461,18 +460,18 @@ void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1:
 	auto type1 = tgui::Picture::create(resources.types[typeToString(pkmn.getTypes().first)]);
 	auto type2 = tgui::Picture::create(resources.types[typeToString(pkmn.getTypes().second)]);
 	auto sprite = panel->get<tgui::BitmapButton>("Species");
-	auto hp = panel->get<tgui::TextBox>("HP");
-	auto atk = panel->get<tgui::TextBox>("ATK");
-	auto def = panel->get<tgui::TextBox>("DEF");
-	auto spd = panel->get<tgui::TextBox>("SPD");
-	auto spe = panel->get<tgui::TextBox>("SPE");
+	auto hp = panel->get<tgui::TextArea>("HP");
+	auto atk = panel->get<tgui::TextArea>("ATK");
+	auto def = panel->get<tgui::TextArea>("DEF");
+	auto spd = panel->get<tgui::TextArea>("SPD");
+	auto spe = panel->get<tgui::TextArea>("SPE");
 	std::vector<tgui::Button::Ptr> moves = {
 		panel->get<tgui::Button>("Move1"),
 		panel->get<tgui::Button>("Move2"),
 		panel->get<tgui::Button>("Move3"),
 		panel->get<tgui::Button>("Move4")
 	};
-	auto name = panel->get<tgui::TextBox>("SpeciesName");
+	auto name = panel->get<tgui::TextArea>("SpeciesName");
 	auto nick = panel->get<tgui::EditBox>("Nickname");
 	auto level = panel->get<tgui::EditBox>("Level");
 	auto remove = panel->get<tgui::Button>("Remove");
@@ -482,12 +481,12 @@ void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1:
 		auto &move = moves[i];
 
 		move->setText(moveSet[i].getName());
-		move->connect("clicked", [i, &gui, &pkmn, &resources](std::weak_ptr<tgui::Button> move){
+		move->onClick.connect([i, &gui, &pkmn, &resources](std::weak_ptr<tgui::Button> move){
 			openChangeMoveBox(gui,  resources, pkmn, i, move.lock());
 		}, std::weak_ptr(move));
 	}
 	level->setText(std::to_string(pkmn.getLevel()));
-	name->setText(strToUpper(PokemonGen1::pokemonList[pkmn.getID()].name));
+	name->setText(strToUpper(PokemonGen1::pokemonList.at(pkmn.getID()).name));
 	nick->setText(pkmn.getNickname());
 	hp->setText(std::to_string(pkmn.getBaseStats().HP));
 	atk->setText(std::to_string(pkmn.getBaseStats().ATK));
@@ -496,21 +495,21 @@ void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1:
 	spe->setText(std::to_string(pkmn.getBaseStats().SPE));
 	sprite->setImage(resources.pokemonsFront[pkmn.getID()]);
 
-	nick->onTextChange.connect([&pkmn](std::string str){
-		pkmn.setNickname(str);
+	nick->onTextChange.connect([&pkmn](tgui::String str){
+		pkmn.setNickname(str.toStdString());
 	});
-	level->connect("TextChanged", [&pkmn](
+	level->onTextChange.connect([&pkmn](
 		std::weak_ptr<tgui::EditBox> level,
-		std::weak_ptr<tgui::TextBox> hp,
-		std::weak_ptr<tgui::TextBox> atk,
-		std::weak_ptr<tgui::TextBox> def,
-		std::weak_ptr<tgui::TextBox> spd,
-		std::weak_ptr<tgui::TextBox> spe
+		std::weak_ptr<tgui::TextArea> hp,
+		std::weak_ptr<tgui::TextArea> atk,
+		std::weak_ptr<tgui::TextArea> def,
+		std::weak_ptr<tgui::TextArea> spd,
+		std::weak_ptr<tgui::TextArea> spe
 	){
-		if (level.lock()->getText().isEmpty())
+		if (level.lock()->getText().empty())
 			return;
 
-		auto newLevel = std::stoul(level.lock()->getText().toAnsiString());
+		auto newLevel = std::stoul(level.lock()->getText().toStdString());
 
 		if (newLevel > 255) {
 			newLevel = 255;
@@ -528,7 +527,7 @@ void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1:
 		game.deletePokemon(index);
 		makeMainMenuGUI(window, gui, game, resources, ai);
 	});
-	sprite->connect("clicked", [&ai, &gui, &game, &resources, index, &pkmn, &window](std::weak_ptr<tgui::Panel> panel){
+	sprite->onClick.connect([&ai, &gui, &game, &resources, index, &pkmn, &window](std::weak_ptr<tgui::Panel> panel){
 		openChangePkmnBox(gui, game, resources, index, pkmn, window, panel.lock(), ai);
 	}, std::weak_ptr(panel));
 
@@ -555,7 +554,7 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::Game
 	auto connect = gui.get<tgui::Button>("Connect");
 	auto ip = gui.get<tgui::EditBox>("IP");
 	auto port = gui.get<tgui::EditBox>("Port");
-	auto error = gui.get<tgui::TextBox>("Error");
+	auto error = gui.get<tgui::TextArea>("Error");
 	auto team = gui.get<tgui::Panel>("Team");
 	auto ready = gui.get<tgui::Button>("Ready");
 	auto name = gui.get<tgui::EditBox>("Name");
@@ -572,8 +571,8 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::Game
 	};
 
 	aiLabel->setText("Selected AI: " + gui.get<tgui::Button>("AI" + std::to_string(ai))->getText());
-	noAi->connect("Clicked", fct, std::weak_ptr(noAi), 0);
-	Ai1->connect("Clicked", fct, std::weak_ptr(Ai1), 1);
+	noAi->onClick.connect(fct, std::weak_ptr(noAi), 0);
+	Ai1->onClick.connect(fct, std::weak_ptr(Ai1), 1);
 	save->onClick.connect([&game]{
 		std::string path = Utils::saveFileDialog("Save team", ".", {{".+[.]pkmns", "Pokemon team file"}});
 
@@ -619,15 +618,15 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::Game
 		delete[] buffer;
 	});
 	ip->setText(lastIp);
-	ip->onTextChange.connect([](std::string str){
-		lastIp = str;
+	ip->onTextChange.connect([](tgui::String str){
+		lastIp = str.toStdString();
 	});
 	port->setText(lastPort);
-	port->onTextChange.connect([](std::string str){
-		lastPort = str;
+	port->onTextChange.connect([](tgui::String str){
+		lastPort = str.toStdString();
 	});
 	ready->setText(game.isReady() ? "You are ready" : "You are not ready");
-	ready->connect("Clicked", [&game, panels, name](std::weak_ptr<tgui::Button> ready){
+	ready->onClick.connect([&game, panels, name](std::weak_ptr<tgui::Button> ready){
 		if (game.getStage() >= PokemonGen1::EXCHANGE_POKEMONS)
 			return;
 
@@ -640,7 +639,7 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::Game
 	}, ready);
 	name->setText(game.getTrainerName());
 	connect->setText(!game.isConnected() ? "Connect" : "Disconnect");
-	connect->connect("Clicked", [&game, error, port, ip](std::weak_ptr<tgui::Button> connect){
+	connect->onClick.connect([&game, error, port, ip](std::weak_ptr<tgui::Button> connect){
 		error->setText("");
 		if (game.isConnected()) {
 			game.disconnect();
@@ -649,11 +648,11 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::Game
 			ip->setEnabled(true);
 		} else {
 			try {
-				auto p = std::stoul(port->getText().toAnsiString());
+				auto p = std::stoul(port->getText().toStdString());
 
 				if (p > 65535)
 					throw std::out_of_range("");
-				game.connect(ip->getText(), p);
+				game.connect(ip->getText().toStdString(), p);
 				port->setEnabled(false);
 				ip->setEnabled(false);
 			} catch (std::invalid_argument &) {
@@ -669,8 +668,8 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, PokemonGen1::Game
 			connect.lock()->setText("Disconnect");
 		}
 	}, std::weak_ptr(connect));
-	name->onTextChange.connect([&window, &game](std::string str){
-		game.setTrainerName(str);
+	name->onTextChange.connect([&window, &game](tgui::String str){
+		game.setTrainerName(str.toStdString());
 		window.setTitle(game.getTrainerName() + " - Preparing battle");
 	});
 
@@ -705,19 +704,17 @@ void mainMenu(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleRes
 
 	window.setTitle(game.getTrainerName() + " - Preparing battle");
 	while (window.isOpen() && game.getStage() != PokemonGen1::BATTLE) {
-		sf::Event event;
-
-		while (window.pollEvent(event)) {
-			if (event.type == sf::Event::Closed)
+		while (auto event = window.pollEvent()) {
+			if (event->is<sf::Event::Closed>())
 				window.close();
-			gui.handleEvent(event);
+			gui.handleEvent(*event);
 		}
 
 		window.clear();
 		gui.draw();
 		window.display();
 
-		auto status = gui.get<tgui::TextBox>("Status");
+		auto status = gui.get<tgui::TextArea>("Status");
 		auto progress = gui.get<tgui::ProgressBar>("Progress");
 
 		if (!status || !progress)
@@ -774,7 +771,7 @@ void loadResources(BattleResources &resources)
 	resources.balls[2].loadFromFile("assets/pokeballs/pkmnFNT.png");
 	resources.balls[3].loadFromFile("assets/pokeballs/pkmnSTATUS.png");
 
-	resources.font.loadFromFile("assets/font.ttf");
+	resources.font.openFromFile("assets/font.ttf");
 	resources.hitSounds[0].loadFromFile("assets/sounds/not_effective_hit_sound.wav");
 	resources.hitSounds[1].loadFromFile("assets/sounds/hit_sound.wav");
 	resources.hitSounds[2].loadFromFile("assets/sounds/very_effective_hit_sound.wav");
@@ -865,7 +862,7 @@ void gui(const std::string &trainerName, bool hasAi)
 		false,
 		getenv("MIN_DEBUG")
 	);
-	sf::RenderWindow window{{800, 640}, trainerName};
+	sf::RenderWindow window{sf::VideoMode{{800, 640}}, trainerName};
 	BattleResources resources;
 
 	loadResources(resources);

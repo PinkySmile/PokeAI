@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 3.14)
 project(PokeAI)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_BUILD_TYPE MATCHES Debug)
 	add_compile_options(-W -Wall -Wextra)
 endif (CMAKE_COMPILER_IS_GNUCC AND CMAKE_BUILD_TYPE MATCHES Debug)
+
+find_package(SFML 3 REQUIRED COMPONENTS Graphics Audio Network)
+find_package(TGUI 1 REQUIRED)
 
 add_executable(
 	PokeAI
@@ -46,20 +49,16 @@ if (WIN32)
 	target_link_libraries(
 		PokeAI
 		ws2_32
-		tgui
-		sfml-graphics
-		sfml-system
-		sfml-window
-		sfml-audio
+		TGUI::TGUI
+		SFML::Graphics
+		SFML::Audio
 	)
 else (WIN32)
 	target_link_libraries(
 		PokeAI
 		pthread
-		tgui
-		sfml-graphics
-		sfml-system
-		sfml-window
-		sfml-audio
+		TGUI::TGUI
+		SFML::Graphics
+		SFML::Audio
 	)
 endif (WIN32)

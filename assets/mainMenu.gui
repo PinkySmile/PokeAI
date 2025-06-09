@@ -1,168 +1,201 @@
 Renderer.1 {
-    backgroundcolor = #F5F5F5;
-    backgroundcolordisabled = #E6E6E6;
-    backgroundcolordown = #EBEBEB;
-    backgroundcolorhover = white;
-    bordercolor = #3C3C3C;
-    bordercolordisabled = #7D7D7D;
-    bordercolordown = black;
-    bordercolorfocused = #1E1EB4;
-    bordercolorhover = black;
-    borders = (1, 1, 1, 1);
-    textcolor = #3C3C3C;
-    textcolordisabled = #7D7D7D;
-    textcolordown = black;
-    textcolorhover = black;
-    texture = None;
-    texturedisabled = None;
-    texturedown = None;
-    texturefocused = None;
-    texturehover = None;
+    BackgroundColor = #F5F5F5;
+    BackgroundColorDisabled = #E6E6E6;
+    BackgroundColorDown = #EBEBEB;
+    BackgroundColorHover = white;
+    BorderColor = #3C3C3C;
+    BorderColorDisabled = #7D7D7D;
+    BorderColorDown = black;
+    BorderColorFocused = #1E1EB4;
+    BorderColorHover = black;
+    Borders = (1, 1, 1, 1);
+    TextColor = #3C3C3C;
+    TextColorDisabled = #7D7D7D;
+    TextColorDown = black;
+    TextColorHover = black;
+    Texture = None;
+    TextureDisabled = None;
+    TextureDown = None;
+    TextureDownFocused = None;
+    TextureDownHover = None;
+    TextureFocused = None;
+    TextureHover = None;
 }
 
 Renderer.2 {
-    backgroundcolor = #F5F5F5;
-    backgroundcolordisabled = #E6E6E6;
-    backgroundcolorhover = white;
-    bordercolor = #3C3C3C;
-    bordercolordisabled = #7D7D7D;
-    bordercolorhover = black;
-    borders = (1, 1, 1, 1);
-    caretcolor = black;
-    caretwidth = 1;
-    defaulttextcolor = #A0A0A0;
-    padding = (0, 0, 0, 0);
-    selectedtextbackgroundcolor = #006EFF;
-    selectedtextcolor = white;
-    textcolor = #3C3C3C;
-    textcolordisabled = #7D7D7D;
-    texture = None;
-    texturedisabled = None;
-    texturefocused = None;
-    texturehover = None;
+    BackgroundColor = #F5F5F5;
+    BackgroundColorDisabled = #E6E6E6;
+    BackgroundColorHover = white;
+    BorderColor = #3C3C3C;
+    BorderColorDisabled = #7D7D7D;
+    BorderColorHover = black;
+    Borders = (1, 1, 1, 1);
+    CaretColor = black;
+    CaretWidth = 1;
+    DefaultTextColor = #A0A0A0;
+    Padding = (0, 0, 0, 0);
+    SelectedTextBackgroundColor = #006EFF;
+    SelectedTextColor = white;
+    TextColor = #3C3C3C;
+    TextColorDisabled = #7D7D7D;
+    Texture = None;
+    TextureDisabled = None;
+    TextureFocused = None;
+    TextureHover = None;
 }
 
 Renderer.3 {
-    backgroundcolor = #DDDDDD;
-    bordercolor = black;
-    texturebackground = None;
+    BackgroundColor = white;
+    BorderColor = black;
+    TextureBackground = None;
 }
 
 Button.Connect {
     Position = (70, 40);
+    Renderer = &1;
     Size = (90, 22);
     Text = Connect;
     TextSize = 13;
-    renderer = &1;
 }
 
 EditBox.IP {
     DefaultText = IP;
     Position = (10, 10);
+    Renderer = &2;
     Size = (150, 22);
     TextSize = 13;
-    renderer = &2;
 }
 
 EditBox.Port {
     DefaultText = Port;
     Position = (10, 40);
+    Renderer = &2;
     Size = (50, 22);
     TextSize = 13;
-    renderer = &2;
 }
 
 Panel.Team {
     Position = (170, 10);
+    Renderer = &3;
     Size = (620, 620);
-
-    Renderer {
-        backgroundcolor = white;
-        bordercolor = black;
-        texturebackground = None;
-    }
 
     Label.Label1 {
         AutoSize = true;
         Position = (10, 10);
-        ScrollbarPolicy = Never;
-        Size = (39.2, 18);
+        Size = (40, 17);
         Text = Team;
         TextSize = 13;
 
         Renderer {
-            backgroundcolor = transparent;
-            bordercolor = #3C3C3C;
-            borders = (0, 0, 0, 0);
-            textcolor = #3C3C3C;
-            texturebackground = None;
+            BackgroundColor = transparent;
+            BorderColor = #3C3C3C;
+            Borders = (0, 0, 0, 0);
+            TextColor = #3C3C3C;
+            TextureBackground = None;
+
+            Scrollbar {
+                ArrowBackgroundColor = #F5F5F5;
+                ArrowBackgroundColorHover = white;
+                ArrowColor = #3C3C3C;
+                ArrowColorHover = black;
+                TextureArrowDown = None;
+                TextureArrowDownHover = None;
+                TextureArrowUp = None;
+                TextureArrowUpHover = None;
+                TextureThumb = None;
+                TextureThumbHover = None;
+                TextureTrack = None;
+                TextureTrackHover = None;
+                ThumbColor = #DCDCDC;
+                ThumbColorHover = #E6E6E6;
+                TrackColor = #F5F5F5;
+            }
         }
     }
 
     Panel.Pkmn1 {
         Position = (10, 30);
+        Renderer = &3;
         Size = ((&.w - 40) / 3, (&.h - 50) / 2);
-        renderer = &3;
     }
 
     Panel.Pkmn2 {
         Position = ((pkmn1.x + pkmn1.w) + 10, 30);
+        Renderer = &3;
         Size = ((&.w - 40) / 3, (&.h - 50) / 2);
-        renderer = &3;
     }
 
     Panel.Pkmn3 {
         Position = ((pkmn2.x + pkmn2.w) + 10, 30);
+        Renderer = &3;
         Size = ((&.w - 40) / 3, (&.h - 50) / 2);
-        renderer = &3;
     }
 
     Panel.Pkmn4 {
         Position = (10, (pkmn1.y + pkmn1.h) + 10);
+        Renderer = &3;
         Size = ((&.w - 40) / 3, (&.h - 50) / 2);
-        renderer = &3;
     }
 
     Panel.Pkmn5 {
         Position = ((pkmn4.x + pkmn4.w) + 10, (pkmn2.y + pkmn2.h) + 10);
+        Renderer = &3;
         Size = ((&.w - 40) / 3, (&.h - 50) / 2);
-        renderer = &3;
     }
 
     Panel.Pkmn6 {
         Position = ((pkmn5.x + pkmn5.w) + 10, (pkmn3.y + pkmn3.h) + 10);
+        Renderer = &3;
         Size = ((&.w - 40) / 3, (&.h - 50) / 2);
-        renderer = &3;
     }
 }
 
 Button.Ready {
     Position = (10, 530);
+    Renderer = &1;
     Size = (150, 22);
     Text = "You are not ready";
     TextSize = 13;
-    renderer = &1;
 }
 
-TextBox.Status {
+TextArea.Status {
     HorizontalScrollbarPolicy = Never;
     MaximumCharacters = 0;
     Position = (10, 560);
     Size = (150, 40);
     Text = "";
     TextSize = 13;
+    VerticalScrollbarPolicy = Automatic;
 
     Renderer {
-        backgroundcolor = white;
-        bordercolor = black;
-        borders = (1, 1, 1, 1);
-        caretcolor = black;
-        caretwidth = 1;
-        padding = (0, 0, 0, 0);
-        selectedtextbackgroundcolor = #006EFF;
-        selectedtextcolor = white;
-        textcolor = #3C3C3C;
-        texturebackground = None;
+        BackgroundColor = white;
+        BorderColor = black;
+        Borders = (1, 1, 1, 1);
+        CaretColor = black;
+        CaretWidth = 1;
+        Padding = (0, 0, 0, 0);
+        SelectedTextBackgroundColor = #006EFF;
+        SelectedTextColor = white;
+        TextColor = #3C3C3C;
+        TextureBackground = None;
+
+        Scrollbar {
+            ArrowBackgroundColor = #F5F5F5;
+            ArrowBackgroundColorHover = white;
+            ArrowColor = #3C3C3C;
+            ArrowColorHover = black;
+            TextureArrowDown = None;
+            TextureArrowDownHover = None;
+            TextureArrowUp = None;
+            TextureArrowUpHover = None;
+            TextureThumb = None;
+            TextureThumbHover = None;
+            TextureTrack = None;
+            TextureTrackHover = None;
+            ThumbColor = #DCDCDC;
+            ThumbColorHover = #E6E6E6;
+            TrackColor = #F5F5F5;
+        }
     }
 }
 
@@ -170,12 +203,12 @@ EditBox.Name {
     DefaultText = "Trainer name";
     MaximumCharacters = 10;
     Position = (10, 500);
+    Renderer = &2;
     Size = (150, 22);
     TextSize = 13;
-    renderer = &2;
 }
 
-TextBox.Error {
+TextArea.Error {
     Enabled = false;
     HorizontalScrollbarPolicy = Never;
     MaximumCharacters = 0;
@@ -183,26 +216,27 @@ TextBox.Error {
     Size = (150, 115);
     Text = "";
     TextSize = 13;
+    VerticalScrollbarPolicy = Automatic;
 
     Renderer {
-        backgroundcolor = transparent;
-        bordercolor = transparent;
-        borders = (0, 0, 0, 0);
-        caretcolor = rgba(255, 255, 255, 215);
-        selectedtextbackgroundcolor = rgba(0, 110, 200, 130);
-        selectedtextcolor = rgba(255, 255, 255, 245);
-        textcolor = red;
-        texturebackground = None;
+        BackgroundColor = transparent;
+        BorderColor = transparent;
+        Borders = (0, 0, 0, 0);
+        CaretColor = rgba(255, 255, 255, 215);
+        SelectedTextBackgroundColor = rgba(0, 110, 200, 130);
+        SelectedTextColor = rgba(255, 255, 255, 245);
+        TextColor = red;
+        TextureBackground = None;
 
-        scrollbar {
-            arrowbackgroundcolor = rgba(160, 160, 160, 215);
-            arrowbackgroundcolorhover = rgba(170, 170, 170, 215);
-            arrowcolor = rgba(200, 200, 200, 215);
-            arrowcolorhover = rgba(225, 225, 225, 215);
-            thumbcolor = rgba(185, 185, 185, 215);
-            thumbcolorhover = rgba(195, 195, 195, 215);
-            trackcolor = rgba(160, 160, 160, 215);
-            trackcolorhover = rgba(170, 170, 170, 215);
+        Scrollbar {
+            ArrowBackgroundColor = rgba(160, 160, 160, 215);
+            ArrowBackgroundColorHover = rgba(170, 170, 170, 215);
+            ArrowColor = rgba(200, 200, 200, 215);
+            ArrowColorHover = rgba(225, 225, 225, 215);
+            ThumbColor = rgba(185, 185, 185, 215);
+            ThumbColorHover = rgba(195, 195, 195, 215);
+            TrackColor = rgba(160, 160, 160, 215);
+            TrackColorHover = rgba(170, 170, 170, 215);
         }
     }
 }
@@ -216,62 +250,79 @@ ProgressBar.Progress {
     Value = 0;
 
     Renderer {
-        backgroundcolor = #F5F5F5;
-        bordercolor = black;
-        borders = (1, 1, 1, 1);
-        fillcolor = #006EFF;
-        textcolor = #3C3C3C;
-        textcolorfilled = white;
-        texturebackground = None;
-        texturefill = None;
+        BackgroundColor = #F5F5F5;
+        BorderColor = black;
+        Borders = (1, 1, 1, 1);
+        FillColor = #006EFF;
+        TextColor = #3C3C3C;
+        TextColorFilled = white;
+        TextureBackground = None;
+        TextureFill = None;
     }
 }
 
 Button.Load {
     Position = (10, 470);
+    Renderer = &1;
     Size = (70, 22);
     Text = Load;
     TextSize = 13;
-    renderer = &1;
 }
 
 Button.Save {
     Position = (90, 470);
+    Renderer = &1;
     Size = (70, 22);
     Text = Save;
     TextSize = 13;
-    renderer = &1;
 }
 
 Button.AI0 {
     Position = (10, 440);
+    Renderer = &1;
     Size = (150, 22);
     Text = "No AI";
     TextSize = 13;
-    renderer = &1;
 }
 
 Button.AI1 {
     Position = (10, 410);
+    Renderer = &1;
     Size = (150, 22);
     Text = "Heuristic AI";
     TextSize = 13;
-    renderer = &1;
 }
 
 Label.SelectedAI {
     AutoSize = true;
     Position = (10, 385);
-    ScrollbarPolicy = Never;
-    Size = (116.2, 18);
+    Size = (118, 17);
     Text = "Selected AI: No AI";
     TextSize = 13;
 
     Renderer {
-        backgroundcolor = transparent;
-        bordercolor = #3C3C3C;
-        borders = (0, 0, 0, 0);
-        textcolor = white;
-        texturebackground = None;
+        BackgroundColor = transparent;
+        BorderColor = #3C3C3C;
+        Borders = (0, 0, 0, 0);
+        TextColor = white;
+        TextureBackground = None;
+
+        Scrollbar {
+            ArrowBackgroundColor = #F5F5F5;
+            ArrowBackgroundColorHover = white;
+            ArrowColor = #3C3C3C;
+            ArrowColorHover = black;
+            TextureArrowDown = None;
+            TextureArrowDownHover = None;
+            TextureArrowUp = None;
+            TextureArrowUpHover = None;
+            TextureThumb = None;
+            TextureThumbHover = None;
+            TextureTrack = None;
+            TextureTrackHover = None;
+            ThumbColor = #DCDCDC;
+            ThumbColorHover = #E6E6E6;
+            TrackColor = #F5F5F5;
+        }
     }
 }

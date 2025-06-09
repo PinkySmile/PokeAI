@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <map>
 #include "Move.hpp"
 #include "PokemonTypes.hpp"
 #include "StatusChange.hpp"
@@ -59,16 +60,15 @@ namespace PokemonGen1
 	};
 
 	struct UpgradableStats {
-		char	ATK;
-		char	DEF;
-		char	SPD;
-		char	SPE;
-		char	ESQ;
-		char	PRE;
+		char ATK;
+		char DEF;
+		char SPD;
+		char SPE;
+		char ESQ;
+		char PRE;
 	};
 
-	extern const std::vector<PokemonBase> pokemonList;
-	extern const std::vector<std::vector<unsigned>> expTable;
+	extern const std::map<unsigned char, PokemonBase> pokemonList;
 
 	class Pokemon {
 	private:

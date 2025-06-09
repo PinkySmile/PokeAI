@@ -125,9 +125,9 @@ namespace Utils
 	int	dispMsg(const std::string &title, const std::string &content, int variate)
 	{
 		auto button = tgui::Button::create("OK");
-		auto text = tgui::TextBox::create();
+		auto text = tgui::TextArea::create();
 		tgui::Gui gui;
-		auto font = tgui::getGlobalFont();
+		auto font = tgui::Font::getGlobalFont();
 		const auto startWidth = button->getSize().x + 102;
 		unsigned width = startWidth;
 		unsigned height = button->getSize().y + 60;
@@ -148,16 +148,18 @@ namespace Utils
 			}
 		}
 
-		sf::RenderWindow win{{std::min(700U, width), std::min(220U, height)}, title, sf::Style::Titlebar | sf::Style::Close};
+		sf::RenderWindow win{
+			sf::VideoMode{{std::min(700U, width), std::min(220U, height)}},
+			title, sf::Style::Titlebar | sf::Style::Close
+		};
 		auto pic = tgui::Picture::create("assets/icons/error.png");
-		sf::Event event;
 
 		gui.setTarget(win);
 		gui.add(button, "ok");
 		gui.add(text);
 
 		button->setPosition("&.w - w - 10", "&.h - h - 10");
-		button->connect("Pressed", [&win]{
+		button->onPress.connect([&win]{
 			win.close();
 		});
 
@@ -175,10 +177,10 @@ namespace Utils
 			gui.add(pic);
 
 		while (win.isOpen()) {
-			while (win.pollEvent(event)) {
-				if (event.type == sf::Event::Closed)
+			while (auto event = win.pollEvent()) {
+				if (event->is<sf::Event::Closed>())
 					win.close();
-				gui.handleEvent(event);
+				gui.handleEvent(*event);
 			}
 
 			win.clear({230, 230, 230, 255});
@@ -223,13 +225,13 @@ namespace Utils
 				}
 
 			auto button = tgui::Button::create("");
-			auto picture = tgui::Picture::create(pic);
+			auto picture = tgui::Picture::create(tgui::Texture{pic});
 			auto label = tgui::Label::create(fileStr);
 			auto renderer = button->getRenderer();
 
 			button->setPosition(10, pos);
 			button->setSize({"&.w - 40", 20});
-			button->connect("Clicked", [button, file, fileStr, &open]{
+			button->onClick.connect([button, file, fileStr, &open]{
 				if (file->getText() == fileStr)
 					open();
 				else
@@ -301,12 +303,11 @@ namespace Utils
 
 	std::string openFileDialog(const std::string &title, const std::string &basePath, const std::vector<std::pair<std::string, std::string>> &patterns, bool overWriteWarning, bool mustExist)
 	{
-		sf::RenderWindow window{{500, 300}, title, sf::Style::Titlebar};
+		sf::RenderWindow window{sf::VideoMode{{500, 300}}, title, sf::Style::Titlebar};
 		tgui::Gui gui{window};
 		std::string result;
 		std::string startText;
 		std::filesystem::path currentPath = basePath;
-		sf::Event event;
 
 		currentPath = std::filesystem::absolute(currentPath);
 		while (!std::filesystem::is_directory(currentPath)) {
@@ -318,27 +319,27 @@ namespace Utils
 
 		gui.loadWidgetsFromFile("assets/open_file_dialog.gui");
 
-		auto path = gui.get<tgui::TextBox>("Path");
+		auto path = gui.get<tgui::TextArea>("Path");
 		auto file = gui.get<tgui::EditBox>("file");
 		auto box = gui.get<tgui::ComboBox>("Patterns");
 		auto panel = gui.get<tgui::ScrollablePanel>("Folders");
 		std::function<void()> open = [&gui, &result, &window, path, box, file, &currentPath, panel, &open, mustExist, overWriteWarning]{
-			if (file->getText().isEmpty())
+			if (file->getText().empty())
 				return;
 
-			std::string ext = box->getSelectedItemId();
+			std::string ext = box->getSelectedItemId().toStdString();
 
-			if (std::filesystem::path(file->getText()).is_relative())
-				result = path->getText() + std::filesystem::path::preferred_separator + file->getText();
+			if (std::filesystem::path(file->getText().toStdString()).is_relative())
+				result = path->getText().toStdString() + std::filesystem::path::preferred_separator + file->getText().toStdString();
 			else
-				result = file->getText();
+				result = file->getText().toStdString();
 
 			if (std::filesystem::is_directory(result)) {
 				result = cleanPath(result);
 				currentPath = result + static_cast<char>(std::filesystem::path::preferred_separator);
 				path->setText(pathToString(currentPath));
 				file->setText("");
-				_makeFolders(currentPath, panel, file, open, std::regex(box->getSelectedItemId().toAnsiString(), std::regex_constants::icase));
+				_makeFolders(currentPath, panel, file, open, std::regex(box->getSelectedItemId().toStdString(), std::regex_constants::icase));
 				return;
 			}
 
@@ -363,18 +364,19 @@ namespace Utils
 					gui.setTabKeyUsageEnabled(tabUsageEnabled);
 				};
 
-				pan->connect("Clicked", closeWindow);
-				win->connect({"Closed", "EscapeKeyPressed"}, closeWindow);
+				pan->onClick.connect(closeWindow);
+				win->onClose.connect(closeWindow);
+				win->onEscapeKeyPress.connect(closeWindow);
 				win->loadWidgetsFromFile("assets/overwrite_warning.gui");
 
 				auto label = win->get<tgui::Label>("Label");
 
 				label->setText(result + label->getText());
 				win->setSize(label->getSize().x + 20, 100);
-				win->get<tgui::Button>("Yes")->connect("Clicked", [&window]{
+				win->get<tgui::Button>("Yes")->onClick.connect([&window]{
 					window.close();
 				});
-				win->get<tgui::Button>("No")->connect("Clicked", [win]{
+				win->get<tgui::Button>("No")->onClick.connect([win]{
 					win->close();
 				});
 				return;
@@ -383,11 +385,11 @@ namespace Utils
 			window.close();
 		};
 
-		gui.get<tgui::Button>("Cancel")->connect("Clicked", [&result, &window]{
+		gui.get<tgui::Button>("Cancel")->onClick.connect([&result, &window]{
 			result = "";
 			window.close();
 		});
-		gui.get<tgui::Button>("Open")->connect("Clicked", open);
+		gui.get<tgui::Button>("Open")->onClick.connect(open);
 
 		if (overWriteWarning)
 			gui.get<tgui::Button>("Open")->setText("Save");
@@ -396,24 +398,24 @@ namespace Utils
 			box->addItem(pair.second, pair.first);
 		box->addItem("All files", ".*");
 		box->setSelectedItemByIndex(0);
-		box->connect("ItemSelected", [&currentPath, &panel, &file, &box, &open]{
-			_makeFolders(currentPath, panel, file, open, std::regex(box->getSelectedItemId().toAnsiString(), std::regex_constants::icase));
+		box->onItemSelect.connect([&currentPath, &panel, &file, &box, &open]{
+			_makeFolders(currentPath, panel, file, open, std::regex(box->getSelectedItemId().toStdString(), std::regex_constants::icase));
 		});
 
 		path->setText(pathToString(currentPath));
 		file->setText(startText);
-		_makeFolders(currentPath, panel, file, open, std::regex(box->getSelectedItemId().toAnsiString(), std::regex_constants::icase));
+		_makeFolders(currentPath, panel, file, open, std::regex(box->getSelectedItemId().toStdString(), std::regex_constants::icase));
 
 		while (window.isOpen()) {
-			while (window.pollEvent(event)) {
-				if (event.type == sf::Event::Closed) {
+			while (auto event = window.pollEvent()) {
+				if (event->is<sf::Event::Closed>()) {
 					result = "";
 					window.close();
-				} else if (event.type == sf::Event::Resized) {
-					window.setView(sf::View{sf::FloatRect(0, 0, event.size.width, event.size.height)});
-					gui.setView(sf::View{sf::FloatRect(0, 0, event.size.width, event.size.height)});
+				} else if (auto resizeEvent = event->getIf<sf::Event::Resized>()) {
+					window.setView(sf::View{sf::FloatRect({0, 0}, static_cast<sf::Vector2f>(resizeEvent->size))});
+					gui.setAbsoluteView({{0, 0}, static_cast<sf::Vector2f>(resizeEvent->size)});
 				}
-				gui.handleEvent(event);
+				gui.handleEvent(*event);
 			}
 			window.clear({200, 200, 200});
 			gui.draw();
@@ -448,8 +450,9 @@ namespace Utils
 			gui.setTabKeyUsageEnabled(tabUsageEnabled);
 		};
 
-		panel->connect("Clicked", closeWindow);
-		window->connect({"Closed", "EscapeKeyPressed"}, closeWindow);
+		panel->onClick.connect(closeWindow);
+		window->onClose.connect(closeWindow);
+		window->onEscapeKeyPress.connect(closeWindow);
 		return window;
 	}
 }

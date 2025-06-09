@@ -144,7 +144,7 @@ bool handleCommand(const std::string &command, PokemonGen1::GameHandle &game, Po
 		for (auto &move : PokemonGen1::availableMoves)
 			std::cout << static_cast<int>(move.getID()) << ": " << move.getName() << std::endl;
 	} else if (command == "pokemons") {
-		for (auto &pkmn : PokemonGen1::pokemonList)
+		for (auto &[id, pkmn] : PokemonGen1::pokemonList)
 			std::cout << static_cast<int>(pkmn.id) << ": " << pkmn.name << std::endl;
 	} else if (command == "move") {
 		std::string name;
@@ -167,7 +167,7 @@ bool handleCommand(const std::string &command, PokemonGen1::GameHandle &game, Po
 		while (!name.empty() && std::isspace(*name.end()))
 			name.pop_back();
 		std::cout << "Searching pokemon '" << name << "'" << std::endl;
-		for (auto &pkmn : PokemonGen1::pokemonList)
+		for (auto &[id, pkmn] : PokemonGen1::pokemonList)
 			if (pkmn.name.find(name) != std::string::npos)
 				std::cout << static_cast<int>(pkmn.id) << ": " << pkmn.name << std::endl;
 	} else if (command == "state") {
@@ -245,7 +245,7 @@ void commandLine(const std::string &trainerName)
 	handler.addPokemonToTeam(
 		"",
 		100,
-		PokemonGen1::pokemonList[PokemonGen1::Rhydon],
+		PokemonGen1::pokemonList.at(PokemonGen1::Rhydon),
 		std::vector<PokemonGen1::Move>{
 			PokemonGen1::availableMoves[PokemonGen1::Tackle],
 			PokemonGen1::availableMoves[PokemonGen1::Tail_Whip]

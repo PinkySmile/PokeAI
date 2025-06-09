@@ -10,6 +10,7 @@
 #include <vector>
 #include <filesystem>
 #include <TGUI/TGUI.hpp>
+#include <TGUI/Backend/SFML-Graphics.hpp>
 
 #ifndef _WIN32
 #define MB_ICONERROR 1

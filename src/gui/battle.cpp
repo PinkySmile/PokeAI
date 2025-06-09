@@ -11,25 +11,19 @@
 void drawSprite(sf::RenderWindow &window, sf::Sprite &sprite, sf::Texture &texture, int x, int y, int width = 0, int height = 0)
 {
 	sprite.setTexture(texture, true);
-	sprite.setPosition(x, y);
+	sprite.setPosition(sf::Vector2f(x, y));
 
-	sprite.setScale(
+	sprite.setScale(sf::Vector2f{
 		!width ?  1 : static_cast<float>(width) /  texture.getSize().x,
 		!height ? 1 : static_cast<float>(height) / texture.getSize().y
-	);
+	});
 	window.draw(sprite);
-}
-
-void playSound(sf::Sound &sound, sf::SoundBuffer &buffer)
-{
-	sound.setBuffer(buffer);
-	sound.play();
 }
 
 void drawText(sf::RenderWindow &window, sf::Text &text, const std::string &str, int x, int y)
 {
 	text.setString(str);
-	text.setPosition(x, y);
+	text.setPosition(sf::Vector2f(x, y));
 	window.draw(text);
 }
 
@@ -44,7 +38,7 @@ void displayOpponentStats(sf::RenderWindow &window, sf::Text &text, sf::Rectangl
 			percent >= 0.1 ? sf::Color{255, 255, 0, 255} : sf::Color{255, 0, 0, 255})
 	);
 	rect.setSize({192 * percent, 16});
-	rect.setPosition(124, 68);
+	rect.setPosition({124, 68});
 	window.draw(rect);
 	drawSprite(window, sprite, resources.hpOverlay, 64, 64);
 	if (pkmn.hasStatus(PokemonGen1::STATUS_BURNED)) {
@@ -75,7 +69,7 @@ void displayMyStats(sf::RenderWindow &window, sf::Text &text, sf::RectangleShape
 			percent >= 0.1 ? sf::Color{255, 255, 0, 255} : sf::Color{255, 0, 0, 255})
 	);
 	rect.setSize({192 * percent, 16});
-	rect.setPosition(380, 292);
+	rect.setPosition({380, 292});
 	window.draw(rect);
 	drawSprite(window, sprite, resources.hpOverlay, 320, 288);
 	if (pkmn.hasStatus(PokemonGen1::STATUS_BURNED)) {
@@ -102,26 +96,24 @@ void displayMyStats(sf::RenderWindow &window, sf::Text &text, sf::RectangleShape
 void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName, BattleResources &resources, std::vector<std::string> &log, const PokemonGen1::BattleState &state)
 {
 	sf::RectangleShape rect;
-	float		last = 0;
-	float		seconds;
-	sf::View	view{{320, 288}, {640, 576}};
-	sf::Clock	clock;
-	sf::Text	text;
-	sf::Sprite	sprite;
-	sf::Sound	sound;
-	sf::Event	event;
+	float last = 0;
+	float seconds;
+	sf::View view{{320, 288}, {640, 576}};
+	sf::Clock clock;
+	sf::Text text{resources.font};
+	sf::Sprite sprite{resources.boxes[0]};
+	sf::Sound soundLand{resources.trainerLand};
 
 	window.setView(view);
-	text.setFont(resources.font);
 	text.setCharacterSize(32);
 	text.setFillColor({39, 39, 39, 255});
 	text.setLineSpacing(2);
 	window.setTitle(trainerName + " - Challenging " + game.getBattleState().opponentName);
 	resources.start.play();
-	resources.loop.setLoop(true);
+	resources.loop.setLooping(true);
 	while (window.isOpen() && clock.getElapsedTime().asSeconds() < 20) {
-		while (window.pollEvent(event)) {
-			if (event.type == sf::Event::Closed)
+		while (auto event = window.pollEvent()) {
+			if (event->is<sf::Event::Closed>())
 				window.close();
 		}
 
@@ -151,7 +143,7 @@ void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHand
 
 		} else if (seconds < 7) {
 			if (last <= 6)
-				playSound(sound, resources.trainerLand);
+				soundLand.play();
 			drawSprite(window, sprite, resources.trainer[1][1], 408, 0);
 			drawSprite(window, sprite, resources.trainer[1][0], 8, 160);
 
@@ -226,7 +218,7 @@ void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHand
 		}
 
 		last = seconds;
-		if (seconds + 1. / 60 >= resources.start.getDuration().asSeconds() && resources.loop.getStatus() != sf::Music::Playing)
+		if (seconds + 1. / 60 >= resources.start.getDuration().asSeconds() && resources.loop.getStatus() != sf::Music::Status::Playing)
 			resources.loop.play();
 
 		window.display();
@@ -240,20 +232,18 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 	std::unique_ptr<PokemonGen1::AI> ai{
 		aiNb == 1 ? new PokemonGen1::AIHeuristic(game) : nullptr
 	};
-	int		menu = 0;
+	int menu = 0;
 	sf::RectangleShape rect;
-	sf::Sprite	sprite;
-	sf::Sound	sound;
-	sf::Text	text;
-	sf::Clock	clock;
-	unsigned char	selectedMenu = 0;
-	sf::View	view{{320, 288}, {640, 576}};
+	sf::Sprite sprite{resources.boxes[0]};
+	sf::Text text{resources.font};
+	sf::Clock clock;
+	unsigned char selectedMenu = 0;
+	sf::View view{{320, 288}, {640, 576}};
 	const auto &state = game.getBattleState();
 	std::string trainerName = game.getTrainerName();
 
 	window.setSize({640, 576});
 	window.setView(view);
-	text.setFont(resources.font);
 	text.setCharacterSize(32);
 	text.setFillColor({39, 39, 39, 255});
 	text.setLineSpacing(2);
@@ -261,8 +251,6 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 	executeBattleStartAnimation(window, game, trainerName, resources, log, state);
 	clock.restart();
 	while (window.isOpen() && game.getStage() == PokemonGen1::BATTLE) {
-		sf::Event event;
-
 		if (!log.empty()) {
 			if (menu != 4)
 				clock.restart();
@@ -272,27 +260,29 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 		else if (menu == 3)
 			menu = 0;
 
-		while (window.pollEvent(event)) {
-			if (event.type == sf::Event::Closed)
+		while (auto event = window.pollEvent()) {
+			if (event->is<sf::Event::Closed>())
 				window.close();
-			else if (event.type == sf::Event::KeyPressed && !ai) {
-				if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::Down) {
+			else if (auto keyEvent = event->getIf<sf::Event::KeyPressed>()) {
+				if (ai)
+					continue;
+				if (keyEvent->code == sf::Keyboard::Key::Up || keyEvent->code == sf::Keyboard::Key::Down) {
 					if (menu == 0) {
 						selectedMenu = (selectedMenu + 2) % 4;
 					} else if (menu == 1) {
-						selectedMenu += (event.key.code == sf::Keyboard::Down) * 2 - 1;
+						selectedMenu += (keyEvent->code == sf::Keyboard::Key::Down) * 2 - 1;
 						selectedMenu %= 4;
 						if (state.team[state.pokemonOnField].getMoveSet()[selectedMenu].getID() == 0)
 							selectedMenu = 0;
 					} else if (menu == 2) {
-						selectedMenu += (event.key.code == sf::Keyboard::Down) * 2 - 1;
+						selectedMenu += (keyEvent->code == sf::Keyboard::Key::Down) * 2 - 1;
 						selectedMenu %= state.team.size();
 					}
-				} else if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::Left) {
+				} else if (keyEvent->code == sf::Keyboard::Key::Right || keyEvent->code == sf::Keyboard::Key::Left) {
 					if (menu == 0) {
 						selectedMenu = (selectedMenu + 1) % 2 + (selectedMenu / 2) * 2;
 					}
-				} else if (event.key.code == sf::Keyboard::W) {
+				} else if (keyEvent->code == sf::Keyboard::Key::W) {
 					if (menu == 0) {
 						if (selectedMenu == 0) {
 							for (int i = 0; i < 4; i++)
@@ -323,7 +313,7 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 						menu = 3;
 						nextAction = static_cast<PokemonGen1::BattleAction>(PokemonGen1::Switch1 + selectedMenu);
 					}
-				} else if (event.key.code == sf::Keyboard::X) {
+				} else if (keyEvent->code == sf::Keyboard::Key::X) {
 					if (menu == 1 || menu == 2) {
 						menu = 0;
 						selectedMenu = 0;
@@ -366,7 +356,7 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 						percent >= 0.1 ? sf::Color{255, 255, 0, 255} : sf::Color{255, 0, 0, 255})
 				);
 				rect.setSize({192 * percent, 16});
-				rect.setPosition(188, i * 64 + 36);
+				rect.setPosition({188, i * 64 + 36.f});
 				window.draw(rect);
 				drawSprite(window, sprite, resources.hpOverlay, 128, 32 + i * 64);
 				if (pkmn.getHealth() == 0) {
@@ -415,8 +405,8 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 	resources.start.stop();
 	resources.loop.stop();
 
-	view.setSize(window.getSize().x, window.getSize().y);
-	view.setCenter(window.getSize().x / 2., window.getSize().y / 2.);
+	view.setSize(static_cast<sf::Vector2<float>>(window.getSize()));
+	view.setCenter({window.getSize().x / 2.f, window.getSize().y / 2.f});
 	window.setSize({800, 640});
 	window.setView(view);
 	log.clear();
