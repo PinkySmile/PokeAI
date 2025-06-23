@@ -8,7 +8,7 @@
 #include <string>
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
-#include "../GameEngine/GameHandle.hpp"
+#include "../GameEngine/BattleHandler.hpp"
 
 struct BattleResources {
 	sf::Music				loop;
@@ -33,7 +33,7 @@ struct BattleResources {
 };
 
 std::string strToUpper(std::string str);
-void gui(const std::string &trainerName, bool ai = false);
-void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResources &resources, std::vector<std::string> &log, PokemonGen1::BattleAction &nextAction, unsigned char ai);
+void gui(const std::string &trainerName, unsigned char aiIndex = 0);
+void battle(sf::RenderWindow &window, PokemonGen1::BattleHandler &game, BattleResources &resources, std::vector<std::string> &log, unsigned char ai);
 
 #endif //POKEAI_GUI_HPP

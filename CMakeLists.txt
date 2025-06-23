@@ -10,6 +10,8 @@ endif (CMAKE_COMPILER_IS_GNUCC AND CMAKE_BUILD_TYPE MATCHES Debug)
 find_package(SFML 3 REQUIRED COMPONENTS Graphics Audio Network)
 find_package(TGUI 1 REQUIRED)
 
+include_directories(include)
+
 add_executable(
 	PokeAI
 	src/main.cpp
@@ -17,8 +19,8 @@ add_executable(
 	src/Networking/Socket.hpp
 	src/Networking/BgbHandler.cpp
 	src/Networking/BgbHandler.hpp
-	src/GameEngine/GameHandle.cpp
-	src/GameEngine/GameHandle.hpp
+	src/GameEngine/BattleHandler.cpp
+	src/GameEngine/BattleHandler.hpp
 	src/Networking/EmulatorHandle.hpp
 	src/GameEngine/Pokemon.cpp
 	src/GameEngine/Pokemon.hpp
@@ -43,6 +45,14 @@ add_executable(
 	src/AIs/AIHeuristic.cpp
 	src/AIs/AIHeuristic.hpp
 	src/AIs/AI.hpp
+	src/GameEngine/EmulatorGameHandle.cpp
+	src/GameEngine/EmulatorGameHandle.hpp
+	src/GameEngine/State.hpp
+	src/GameEngine/State.cpp
+	src/GameEngine/Team.cpp
+	src/GameEngine/Team.hpp
+	src/AIs/AIFactory.hpp
+	src/AIs/AIFactory.cpp
 )
 
 if (WIN32)

@@ -5,13 +5,14 @@
 #ifndef POKEAI_AI_HPP
 #define POKEAI_AI_HPP
 
-#include "../GameEngine/GameHandle.hpp"
+#include "../GameEngine/BattleHandler.hpp"
 
 namespace PokemonGen1
 {
 	class AI {
 	public:
-		virtual BattleAction getNextMove() = 0;
+		virtual ~AI() = default;
+		virtual BattleAction getNextMove(const BattleState &) = 0;
 	};
 }
 

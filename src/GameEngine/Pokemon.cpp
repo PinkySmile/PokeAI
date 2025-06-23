@@ -4,20 +4,21 @@
 
 #include <iostream>
 #include <sstream>
+#include <nlohmann/json.hpp>
 #include "Pokemon.hpp"
 #include "PokemonTypes.hpp"
 #include "Move.hpp"
-#include "GameHandle.hpp"
+#include "BattleHandler.hpp"
 
 #define NBR_2B(byte1, byte2) static_cast<unsigned short>((byte1 << 8U) + byte2)
 
 namespace PokemonGen1
 {
-	Pokemon::Pokemon(PokemonRandomGenerator &random, GameHandle &game, const std::string &nickname, unsigned char level, const PokemonBase &base, const std::vector<Move> &moveSet, bool enemy) :
+	Pokemon::Pokemon(PokemonRandomGenerator &random, const Logger &battleLogger, const std::string &nickname, unsigned char level, const Base &base, const std::vector<Move> &moveSet, bool enemy) :
 		_id(base.id),
 		_enemy(enemy),
-		_lastUsedMove(DEFAULT_MOVE(0x00)),
-		_random{random},
+		_lastUsedMove(availableMoves[0x00]),
+		_random{&random},
 		_nickname{nickname},
 		_name{base.name},
 		_dvs{0xF, 0xF, 0xF, 0xF, 0xF, 0xF},
@@ -32,21 +33,22 @@ namespace PokemonGen1
 		_damagesStored(0),
 		_currentStatus(STATUS_NONE),
 		_globalCritRatio(-1),
-		_game(game)
+		_battleLogger(&battleLogger)
 	{
 		if (this->_nickname.size() > 10) {
-			this->_log(" Warning : nickname is too big");
-			this->_nickname = this->_nickname.substr(0, 10);
+			this->_log("Warning : nickname is too big");
+			this->_nickname = this->_nickname.substr(0, NICK_SIZE);
 		}
 		for (int i = moveSet.size(); i < 4; i++)
 			this->_moveSet.push_back(availableMoves[0]);
+		this->_computedStats = this->_baseStats;
 	}
 
-	Pokemon::Pokemon(PokemonRandomGenerator &random, GameHandle &game, const std::string &nickname, const std::vector<byte> &data, bool enemy) :
+	Pokemon::Pokemon(PokemonRandomGenerator &random, const Logger &battleLogger, const std::string &nickname, const std::array<byte, ENCODED_SIZE> &data, bool enemy) :
 		_id(data[PACK_SPECIES]),
 		_enemy(enemy),
-		_lastUsedMove(DEFAULT_MOVE(0x00)),
-		_random{random},
+		_lastUsedMove(availableMoves[0x00]),
+		_random{&random},
 		_nickname{nickname},
 		_name{pokemonList.at(data[0]).name},
 		_dvs{
@@ -84,7 +86,7 @@ namespace PokemonGen1
 		_damagesStored(0),
 		_currentStatus{data[PACK_STATUS]},
 		_globalCritRatio(-1),
-		_game(game)
+		_battleLogger(&battleLogger)
 	{
 		this->_dvs.maxHP = this->_dvs.HP =
 			((this->_dvs.ATK & 0x1U) << 3U) |
@@ -98,12 +100,89 @@ namespace PokemonGen1
 			this->_moveSet[i].setPPUp(data[PACK_PPS_MOVE1 + i] >> 6U);
 			this->_moveSet[i].setPP(data[PACK_PPS_MOVE1 + i] & 0b111111U);
 		}
+		this->_computedStats = this->_baseStats;
 	}
 
-	BaseStats Pokemon::makeStats(unsigned char level, const PokemonBase &base, const BaseStats &dvs, const BaseStats &evs)
+	Pokemon::Pokemon(PokemonRandomGenerator &random, const Pokemon::Logger &battleLogger, const nlohmann::json &json) :
+		_oldState{
+			.stats = {
+				.HP   = json["oldState"]["stats"]["HP"],
+				.maxHP= json["oldState"]["stats"]["maxHP"],
+				.ATK  = json["oldState"]["stats"]["ATK"],
+				.DEF  = json["oldState"]["stats"]["DEF"],
+				.SPD  = json["oldState"]["stats"]["SPD"],
+				.SPE  = json["oldState"]["stats"]["SPE"],
+			},
+			.id    = json["oldState"]["id"],
+			.moves = {},
+			.types = { json["types"]["oldState"][0], json["types"]["oldState"][1] },
+		},
+		_id(json["id"]),
+		_enemy(json["enemy"]),
+		_lastUsedMove(availableMoves[json["lastUsedMove"]["id"]]),
+		_random{&random},
+		_nickname{json["nickname"]},
+		_name{json["name"]},
+		_dvs{
+			.HP   = json["dvs"]["HP"],
+			.maxHP= json["dvs"]["maxHP"],
+			.ATK  = json["dvs"]["ATK"],
+			.DEF  = json["dvs"]["DEF"],
+			.SPD  = json["dvs"]["SPD"],
+			.SPE  = json["dvs"]["SPE"],
+		},
+		_statExps{
+			.HP   = json["statExps"]["HP"],
+			.maxHP= json["statExps"]["maxHP"],
+			.ATK  = json["statExps"]["ATK"],
+			.DEF  = json["statExps"]["DEF"],
+			.SPD  = json["statExps"]["SPD"],
+			.SPE  = json["statExps"]["SPE"],
+		},
+		_baseStats{
+			.HP   = json["baseStats"]["HP"],
+			.maxHP= json["baseStats"]["maxHP"],
+			.ATK  = json["baseStats"]["ATK"],
+			.DEF  = json["baseStats"]["DEF"],
+			.SPD  = json["baseStats"]["SPD"],
+			.SPE  = json["baseStats"]["SPE"],
+		},
+		_upgradedStats{
+			.ATK = json["upgradedStats"]["ATK"].get<char>(),
+			.DEF = json["upgradedStats"]["DEF"].get<char>(),
+			.SPD = json["upgradedStats"]["SPD"].get<char>(),
+			.SPE = json["upgradedStats"]["SPE"].get<char>(),
+			.EVD = json["upgradedStats"]["EVA"].get<char>(),
+			.ACC = json["upgradedStats"]["ACC"].get<char>(),
+		},
+		_types{ json["types"][0], json["types"][1] },
+		_level{json["level"]},
+		_catchRate{json["catchRate"]},
+		_storingDamages(json["storingDamages"]),
+		_damagesStored(json["damagesStored"]),
+		_currentStatus{json["currentStatus"]},
+		_globalCritRatio(json["globalCritRatio"]),
+		_battleLogger(&battleLogger)
 	{
-		std::function<unsigned short(unsigned short, unsigned short, unsigned short)> fct =
-		[level](unsigned short baseStat, unsigned short IV, unsigned short EV){
+		this->_moveSet.reserve(4);
+		for (auto &move : json["moveSet"]) {
+			this->_moveSet.push_back(availableMoves[move["id"]]);
+			this->_moveSet.back().setPP(move["pp"]);
+			this->_moveSet.back().setPPUp(move["ppup"]);
+		}
+		this->_oldState.moves.reserve(4);
+		for (auto &move : json["moveSet"]) {
+			this->_oldState.moves.push_back(availableMoves[move["id"]]);
+			this->_oldState.moves.back().setPP(move["pp"]);
+			this->_oldState.moves.back().setPPUp(move["ppup"]);
+		}
+		this->_lastUsedMove.setHitsLeft(json["lastUsedMove"]["hitsLeft"]);
+		this->_computedStats = this->_baseStats;
+	}
+
+	Pokemon::BaseStats Pokemon::makeStats(unsigned char level, const Base &base, const BaseStats &dvs, const BaseStats &evs)
+	{
+		auto formula = [level](unsigned short baseStat, unsigned short IV, unsigned short EV){
 			unsigned short E = // Fixed formula via http://www.smogon.com/ingame/guides/rby_gsc_stats
 				std::floor(
 					std::min<unsigned>(
@@ -119,15 +198,15 @@ namespace PokemonGen1
 			return std::floor<unsigned short>((2 * (baseStat + IV) + E) * level / 100.0 + 5);
 		};
 
-		auto hp = fmin(999, fmax(1, fct(base.HP, dvs.HP, evs.HP) + 5 + level));
+		auto hp = fmin(999, fmax(1, formula(base.HP, dvs.HP, evs.HP) + 5 + level));
 
 		return {
 			static_cast<unsigned>(hp),
 			static_cast<unsigned>(hp),
-			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.ATK, dvs.ATK, evs.ATK)))),
-			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.DEF, dvs.DEF, evs.DEF)))),
-			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.SPD, dvs.SPD, evs.SPD)))),
-			static_cast<unsigned short>(fmin(999, fmax(1, fct(base.SPE, dvs.SPE, evs.SPE))))
+			static_cast<unsigned short>(fmin(999, fmax(1, formula(base.ATK, dvs.ATK, evs.ATK)))),
+			static_cast<unsigned short>(fmin(999, fmax(1, formula(base.DEF, dvs.DEF, evs.DEF)))),
+			static_cast<unsigned short>(fmin(999, fmax(1, formula(base.SPD, dvs.SPD, evs.SPD)))),
+			static_cast<unsigned short>(fmin(999, fmax(1, formula(base.SPE, dvs.SPE, evs.SPE))))
 		};
 	}
 
@@ -162,10 +241,10 @@ namespace PokemonGen1
 		switch (status) {
 		case STATUS_ASLEEP:
 			while (!randomVal)
-				randomVal = this->_random() & 7;
+				randomVal = (*this->_random)() & 7;
 			return this->addStatus(STATUS_ASLEEP_FOR_1_TURN, randomVal);
 		case STATUS_CONFUSED:
-			return this->addStatus(STATUS_CONFUSED_FOR_1_TURN, (this->_random() & 3) + 2);
+			return this->addStatus(STATUS_CONFUSED_FOR_1_TURN, ((*this->_random)() & 3) + 2);
 		default:
 			return this->addStatus(status, 1);
 		}
@@ -184,6 +263,8 @@ namespace PokemonGen1
 		if (status == STATUS_BADLY_POISONED)
 			this->_badPoisonStage = 1;
 		this->_currentStatus |= (status * duration);
+		if (status == STATUS_PARALYZED || status == STATUS_BURNED)
+			this->applyStatusDebuff();
 		return true;
 	}
 
@@ -196,10 +277,10 @@ namespace PokemonGen1
 		if (this->_types.first != this->_types.second)
 			stream << "/" << typeToString(this->_types.second);
 		stream << ", " << this->getHealth()  << "/" << this->getMaxHealth() << " HP";
-		stream << ", " << this->getAttack()  << " ATK";
-		stream << ", " << this->getDefense() << " DEF";
-		stream << ", " << this->getSpeed()   << " SPD";
-		stream << ", " << this->getSpecial() << " SPE";
+		stream << ", " << this->getAttack()  << "(" << this->getRawAttack()  << ") ATK";
+		stream << ", " << this->getDefense() << "(" << this->getRawDefense() << ") DEF";
+		stream << ", " << this->getSpecial() << "(" << this->getRawSpecial() << ") SPE";
+		stream << ", " << this->getSpeed()   << "(" << this->getRawSpeed()   << ") SPD";
 		stream << ", Status: " << std::hex << static_cast<int>(this->_currentStatus) << " ";
 		if (this->_currentStatus) {
 			for (unsigned i = 0; i < sizeof(this->_currentStatus) * 8; i++)
@@ -215,14 +296,117 @@ namespace PokemonGen1
 		return stream.str().substr(0, stream.str().size() - 2);
 	}
 
+	nlohmann::json Pokemon::serialize() const
+	{
+		nlohmann::json json{
+			{ "id",              this->_id },
+			{ "flinched",        this->_flinched },
+			{ "needsRecharge",   this->_needsRecharge },
+			{ "invincible",      this->_invincible },
+			{ "enemy",           this->_enemy },
+			{ "moveSet",         nlohmann::json::array() },
+			{ "types",           { this->_types.first, this->_types.second } },
+			{ "level",           this->_level },
+			{ "catchRate",       this->_catchRate },
+			{ "transformed",     this->_transformed },
+			{ "wrapped",         this->_wrapped },
+			{ "storingDamages",  this->_storingDamages },
+			{ "damagesStored",   this->_damagesStored },
+			{ "badPoisonStage",  this->_badPoisonStage },
+			{ "currentStatus",   this->_currentStatus },
+			{ "globalCritRatio", this->_globalCritRatio },
+			{ "nickname",        this->_nickname },
+			{ "name",            this->_name },
+			{ "oldState", {
+				{ "stats", {
+					{ "HP",    this->_oldState.stats.HP },
+					{ "maxHP", this->_oldState.stats.maxHP },
+					{ "ATK",   this->_oldState.stats.ATK },
+					{ "DEF",   this->_oldState.stats.DEF },
+					{ "SPD",   this->_oldState.stats.SPD },
+					{ "SPE",   this->_oldState.stats.SPE }
+				} },
+				{ "id", this->_oldState.id },
+				{ "moves", nlohmann::json::array() }
+			} },
+			{ "lastUsedMove", {
+				{ "id",       this->_lastUsedMove.getID() },
+				{ "hitsLeft", this->_lastUsedMove.getHitsLeft() }
+			} },
+			{ "dvs", {
+				{ "HP",    this->_dvs.HP },
+				{ "maxHP", this->_dvs.maxHP },
+				{ "ATK",   this->_dvs.ATK },
+				{ "DEF",   this->_dvs.DEF },
+				{ "SPD",   this->_dvs.SPD },
+				{ "SPE",   this->_dvs.SPE }
+			} },
+			{ "statExps", {
+				{ "HP",    this->_statExps.HP },
+				{ "maxHP", this->_statExps.maxHP },
+				{ "ATK",   this->_statExps.ATK },
+				{ "DEF",   this->_statExps.DEF },
+				{ "SPD",   this->_statExps.SPD },
+				{ "SPE",   this->_statExps.SPE }
+			} },
+			{ "baseStats", {
+				{ "HP",    this->_baseStats.HP },
+				{ "maxHP", this->_baseStats.maxHP },
+				{ "ATK",   this->_baseStats.ATK },
+				{ "DEF",   this->_baseStats.DEF },
+				{ "SPD",   this->_baseStats.SPD },
+				{ "SPE",   this->_baseStats.SPE }
+			} },
+			{ "computedStats", {
+				{ "HP",    this->_computedStats.HP },
+				{ "maxHP", this->_computedStats.maxHP },
+				{ "ATK",   this->_computedStats.ATK },
+				{ "DEF",   this->_computedStats.DEF },
+				{ "SPD",   this->_computedStats.SPD },
+				{ "SPE",   this->_computedStats.SPE }
+			} },
+			{ "upgradedStats", {
+				{ "ATK", this->_upgradedStats.ATK },
+				{ "DEF", this->_upgradedStats.DEF },
+				{ "SPD", this->_upgradedStats.SPD },
+				{ "SPE", this->_upgradedStats.SPE },
+				{ "EVA", this->_upgradedStats.EVD },
+				{ "ACC", this->_upgradedStats.ACC },
+			} }
+		};
+
+		for (auto &move : this->_oldState.moves) {
+			nlohmann::json j{
+				{ "id", move.getID() },
+				{ "pp", move.getPP() },
+				{ "ppUp", move.getPPUp() }
+			};
+
+			json["oldState"]["moves"].push_back(j);
+		}
+		for (auto &move : this->_moveSet) {
+			nlohmann::json j{
+				{ "id", move.getID() },
+				{ "pp", move.getPP() },
+				{ "ppUp", move.getPPUp() }
+			};
+
+			json["moveSet"].push_back(j);
+		}
+		return json;
+	}
+
 	void Pokemon::switched()
 	{
 		this->resetStatsChanges();
-		this->_lastUsedMove = DEFAULT_MOVE(0x00);
+		this->_lastUsedMove = availableMoves[0x00];
 		if (this->_transformed) {
 			this->_id = this->_oldState.id;
 			this->_moveSet = this->_oldState.moves;
-			this->_baseStats= this->_oldState.stats;
+			this->_baseStats.ATK = this->_oldState.stats.ATK;
+			this->_baseStats.DEF = this->_oldState.stats.DEF;
+			this->_baseStats.SPD = this->_oldState.stats.SPD;
+			this->_baseStats.SPE = this->_oldState.stats.SPE;
 			this->_types = this->_oldState.types;
 			this->_transformed = false;
 		}
@@ -243,17 +427,15 @@ namespace PokemonGen1
 			move = &availableMoves[Struggle];
 		else if (this->_lastUsedMove.isFinished())
 			move = moveSlot < this->_moveSet.size() ? &this->_moveSet[moveSlot] : nullptr;
-		return (move ? move->getPriority() : 0) * 262140 + this->getSpeed();
+		return (move ? move->getPriority() : 0) * 262140 + static_cast<int>(this->getSpeed());
 	}
 
 	void Pokemon::useMove(const Move &move, Pokemon &target)
 	{
 		if (this->_lastUsedMove.isFinished())
 			this->_lastUsedMove = move;
-		if (!this->_lastUsedMove.attack(*this, target, [this](const std::string &msg) { this->_game.logBattle(msg); })) {
+		if (!this->_lastUsedMove.attack(*this, target, *this->_battleLogger))
 			this->_log("'s attack missed");
-			//this->_lastUsedMove.missed();
-		}
 	}
 
 	void Pokemon::storeDamages(bool active)
@@ -272,7 +454,7 @@ namespace PokemonGen1
 
 	PokemonRandomGenerator &Pokemon::getRandomGenerator()
 	{
-		return this->_random;
+		return *this->_random;
 	}
 
 	unsigned Pokemon::getDamagesStored() const
@@ -292,26 +474,22 @@ namespace PokemonGen1
 
 	unsigned Pokemon::getSpeed() const
 	{
-		if (this->_currentStatus & STATUS_PARALYZED)
-			return fmin(999, fmax(1, this->_getUpgradedStat(this->_baseStats.SPD, this->_upgradedStats.SPD) / 4));
-		return fmin(999, fmax(1, this->_getUpgradedStat(this->_baseStats.SPD, this->_upgradedStats.SPD)));
+		return this->_computedStats.SPD;
 	}
 
 	unsigned Pokemon::getAttack() const
 	{
-		if (this->_currentStatus & STATUS_BURNED)
-			return fmin(999, fmax(1, this->_getUpgradedStat(this->_baseStats.ATK, this->_upgradedStats.ATK) / 2));
-		return fmin(999, fmax(1, this->_getUpgradedStat(this->_baseStats.ATK, this->_upgradedStats.ATK)));
+		return this->_computedStats.ATK;
 	}
 
 	unsigned Pokemon::getSpecial() const
 	{
-		return fmin(999, fmax(1, this->_getUpgradedStat(this->_baseStats.SPE, this->_upgradedStats.SPE)));
+		return this->_computedStats.SPE;
 	}
 
 	unsigned Pokemon::getDefense() const
 	{
-		return fmin(999, fmax(1, this->_getUpgradedStat(this->_baseStats.DEF, this->_upgradedStats.DEF)));
+		return this->_computedStats.DEF;
 	}
 
 	void Pokemon::endTurn()
@@ -332,7 +510,7 @@ namespace PokemonGen1
 
 	void Pokemon::_log(const std::string &msg) const
 	{
-		this->_game.logBattle(this->getName() + msg);
+		(*this->_battleLogger)(this->getName() + msg);
 	}
 
 	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
@@ -367,20 +545,20 @@ namespace PokemonGen1
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if ((this->_currentStatus & STATUS_CONFUSED)) {
 				this->_log(" is confused");
-				if (this->_random() >= 0x80) {
+				if ((*this->_random)() >= 0x80) {
 					this->setRecharging(false);
 					this->_log(" hurts itself in it's confusion");
 					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false).damage);
-					this->_lastUsedMove = DEFAULT_MOVE(0x00);
+					this->_lastUsedMove = availableMoves[0x00];
 					return;
 				}
 			} else if (!(this->_currentStatus & STATUS_CONFUSED))
 				this->_log(" is confused no more");
 		}
 
-		if ((this->_currentStatus & STATUS_PARALYZED) && this->_random() < 0x3F) {
+		if ((this->_currentStatus & STATUS_PARALYZED) && (*this->_random)() < 0x3F) {
 			this->_log("'s fully paralyzed");
-			this->_lastUsedMove = DEFAULT_MOVE(0x00);
+			this->_lastUsedMove = availableMoves[0x00];
 			return;
 		}
 
@@ -404,12 +582,12 @@ namespace PokemonGen1
 
 	unsigned Pokemon::getHealth() const
 	{
-		return this->_baseStats.HP;
+		return this->_computedStats.HP;
 	}
 
 	unsigned Pokemon::getMaxHealth() const
 	{
-		return this->_baseStats.maxHP;
+		return this->_computedStats.maxHP;
 	}
 
 	const Move &Pokemon::getLastUsedMove() const
@@ -417,22 +595,33 @@ namespace PokemonGen1
 		return this->_lastUsedMove;
 	}
 
-	void Pokemon::changeStat(StatsChange stat, char nb)
+	bool Pokemon::changeStat(StatsChange stat, char nb)
 	{
 		std::string statName;
-		char *stats = reinterpret_cast<char *>(&this->_upgradedStats);
+		auto stats = reinterpret_cast<char *>(&this->_upgradedStats);
+		auto bStats = reinterpret_cast<unsigned *>(&this->_baseStats);
+		auto cStats = reinterpret_cast<unsigned *>(&this->_computedStats);
 
-		//TODO: Implement the stats glitch
 		if (!nb)
-			return;
+			return false;
 
-		statName = statToLittleString(stat);
-
+		statName = statToString(stat);
 		if ((stats[stat] >= 6 && nb > 0) || (stats[stat] <= -6 && nb < 0)) {
-			this->_game.logBattle("Nothing happened");
-			return;
+			(*this->_battleLogger)("Nothing happened");
+			return false;
+		}
+		if (cStats[stat] == 999) {
+			(*this->_battleLogger)("Nothing happened");
+			return false;
 		}
 
+		stats[stat] += nb;
+		if (stats[stat] > 6)
+			stats[stat] = 6;
+		else if (stats[stat] < -6)
+			stats[stat] = -6;
+
+		cStats[stat] = fmin(999, this->_getUpgradedStat(bStats[stat], stats[stat]));
 		if (nb < -1)
 			this->_log("'s " + statName + " greatly fell");
 		else if (nb == -1)
@@ -441,30 +630,25 @@ namespace PokemonGen1
 			this->_log("'s " + statName + " rose");
 		else if (nb > 1)
 			this->_log("'s " + statName + " greatly rose");
-
-		stats[stat] += nb;
-		if (stats[stat] > 6)
-			stats[stat] = 6;
-		else if (stats[stat] < -6)
-			stats[stat] = -6;
+		return true;
 	}
 
 	void Pokemon::takeDamage(int damage)
 	{
-		if (!this->_baseStats.HP)
+		if (!this->_computedStats.HP)
 			return;
 
 		if (!damage)
 			return;
 
-		if (damage > static_cast<int>(this->_baseStats.HP))
-			this->_baseStats.HP = 0;
-		else if (damage < static_cast<int>(this->_baseStats.HP - this->_baseStats.maxHP))
-			this->_baseStats.HP = this->_baseStats.maxHP;
+		if (damage > static_cast<int>(this->_computedStats.HP))
+			this->_computedStats.HP = 0;
+		else if (damage < static_cast<int>(this->_computedStats.HP - this->_computedStats.maxHP))
+			this->_computedStats.HP = this->_computedStats.maxHP;
 		else
-			this->_baseStats.HP -= damage;
+			this->_computedStats.HP -= damage;
 
-		if (!this->_baseStats.HP)
+		if (!this->_computedStats.HP)
 			this->_log(" fainted");
 	}
 
@@ -496,6 +680,11 @@ namespace PokemonGen1
 	unsigned Pokemon::getRawDefense() const
 	{
 		return this->_baseStats.DEF;
+	}
+
+	unsigned Pokemon::getRawSpeed() const
+	{
+		return this->_baseStats.SPD;
 	}
 
 	Pokemon::DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, bool critical, bool randomized) const
@@ -546,7 +735,7 @@ namespace PokemonGen1
 
 		if (randomized)
 			do {
-				r = this->_random();
+				r = (*this->_random)();
 				r = (r >> 1U) | ((r & 0x01U) << 7U);
 			} while (r < 217);
 
@@ -589,106 +778,55 @@ namespace PokemonGen1
 
 	double Pokemon::getAccuracy() const
 	{
-		return this->_getUpgradedStat(1, this->_upgradedStats.PRE);
+		return this->_getUpgradedStat(1, this->_upgradedStats.ACC);
 	}
 
 	double Pokemon::getEvasion() const
 	{
-		return this->_getUpgradedStat(1, -this->_upgradedStats.ESQ);
+		return this->_getUpgradedStat(1, -this->_upgradedStats.EVD);
 	}
 
-	std::vector<unsigned char> Pokemon::encode() const
+	#define LOW(b) static_cast<unsigned char>(b & 0xFFU)
+	#define HIGH(b) static_cast<unsigned char>((b >> 8U) & 0xFFU)
+	#define SHORT(b) HIGH(b), LOW(b)
+	#define PAIR(b) LOW(b.first), LOW(b.second)
+	#define MOVE(b, i) (b.size() > i ? LOW(b[i].getID()) : static_cast<unsigned char>(0))
+	#define PP(b, i) (b.size() > i ? LOW(((b[i].getPPUp() & 0b11U) << 6U) | (b[i].getPP() & 0b111111U)) : static_cast<unsigned char>(0))
+
+	std::array<unsigned char, Pokemon::ENCODED_SIZE> Pokemon::encode() const
 	{
-		std::vector<unsigned char> result;
-
-		//Sprite (and battle cry) ID aka species
-		result.push_back(this->_id);
-
-		//Current HP
-		result.push_back(this->_baseStats.HP >> 8U);
-		result.push_back(this->_baseStats.HP >> 0U);
-
-		//Level
-		result.push_back(this->_level);
-
-		//Status
-		result.push_back(this->_currentStatus);
-
-		//Type
-		result.push_back(this->_types.first);
-		result.push_back(this->_types.second);
-
-		//Catch rate
-		result.push_back(this->_catchRate);
-
-		//Moves ID
-		for (const Move &move : this->_moveSet)
-			result.push_back(move.getID());
-		for (int i = this->_moveSet.size(); i < 4; i++)
-			result.push_back(0x00);
-
-		//Trainer ID
-		result.push_back(0x00);
-		result.push_back(0x00);
-
-		//EXP
-		result.push_back(0x00);
-		result.push_back(0x00);
-		result.push_back(0x00);
-
-		//StatEXP HP
-		result.push_back(this->_statExps.HP >> 8U);
-		result.push_back(this->_statExps.HP >> 0U);
-
-		//StatEXP ATK
-		result.push_back(this->_statExps.ATK >> 8U);
-		result.push_back(this->_statExps.ATK >> 0U);
-
-		//StatEXP DEF
-		result.push_back(this->_statExps.DEF >> 8U);
-		result.push_back(this->_statExps.DEF >> 0U);
-
-		//StatEXP SPD
-		result.push_back(this->_statExps.SPD >> 8U);
-		result.push_back(this->_statExps.SPD >> 0U);
-
-		//StatEXP SPE
-		result.push_back(this->_statExps.SPE >> 8U);
-		result.push_back(this->_statExps.SPE >> 0U);
-
-		//DVs
-		result.push_back(this->_dvs.SPD << 4U | this->_dvs.SPE);
-		result.push_back(this->_dvs.ATK << 4U | this->_dvs.DEF);
-
-		//PP Ups and moves PP
-		for (const Move &move : this->_moveSet)
-			result.push_back(((move.getPPUp() & 0b11U) << 6U) | (move.getPP() & 0b111111U));
-		for (int i = this->_moveSet.size(); i < 4; i++)
-			result.push_back(0x00);
-
-		//Current Level
-		result.push_back(this->_level);
-
-		//Max HP
-		result.push_back(this->_baseStats.maxHP >> 8U);
-		result.push_back(this->_baseStats.maxHP >> 0U);
-
-		//Attack
-		result.push_back(this->_baseStats.ATK >> 8U);
-		result.push_back(this->_baseStats.ATK >> 0U);
-
-		//Defense
-		result.push_back(this->_baseStats.DEF >> 8U);
-		result.push_back(this->_baseStats.DEF >> 0U);
-
-		//Speed/Agility
-		result.push_back(this->_baseStats.SPD >> 8U);
-		result.push_back(this->_baseStats.SPD >> 0U);
-
-		//Special
-		result.push_back(this->_baseStats.SPE >> 8U);
-		result.push_back(this->_baseStats.SPE >> 0U);
-		return result;
+		return {
+			/*  0 */ this->_id,
+			/*  1 */ SHORT(this->_baseStats.HP),
+			/*  3 */ this->_level,
+			/*  4 */ LOW(this->_currentStatus),
+			/*  5 */ PAIR(this->_types),
+			/*  7 */ this->_catchRate,
+			/*  8 */ MOVE(this->_moveSet, 0),
+			/*  9 */ MOVE(this->_moveSet, 1),
+			/* 10 */ MOVE(this->_moveSet, 2),
+			/* 11 */ MOVE(this->_moveSet, 3),
+			/* 12 */ SHORT(0), // Trainer ID,
+			/* 14 */ 0, 0, 0,  // EXP
+			/* 17 */ SHORT(this->_statExps.HP),
+			/* 19 */ SHORT(this->_statExps.ATK),
+			/* 21 */ SHORT(this->_statExps.DEF),
+			/* 23 */ SHORT(this->_statExps.SPD),
+			/* 25 */ SHORT(this->_statExps.SPE),
+			/* 27 */ LOW(this->_dvs.SPD << 4U | this->_dvs.SPE),
+			/* 28 */ LOW(this->_dvs.ATK << 4U | this->_dvs.DEF),
+			/* 29 */ PP(this->_moveSet, 0),
+			/* 30 */ PP(this->_moveSet, 1),
+			/* 31 */ PP(this->_moveSet, 2),
+			/* 32 */ PP(this->_moveSet, 3),
+			/* 33 */ this->_level,
+			/* 34 */ SHORT(this->_baseStats.maxHP),
+			/* 36 */ SHORT(this->_baseStats.ATK),
+			/* 38 */ SHORT(this->_baseStats.DEF),
+			/* 40 */ SHORT(this->_baseStats.SPD),
+			/* 42 */ SHORT(this->_baseStats.SPE),
+			// 44
+		};
 	}
 
 	const std::vector<Move> Pokemon::getMoveSet() const
@@ -703,7 +841,7 @@ namespace PokemonGen1
 		return (upgradeStage + 2.) * baseValue / 2;
 	}
 
-	UpgradableStats Pokemon::getStatsUpgradeStages() const
+	Pokemon::UpgradableStats Pokemon::getStatsUpgradeStages() const
 	{
 		return this->_upgradedStats;
 	}
@@ -740,7 +878,7 @@ namespace PokemonGen1
 		this->_transformed = true;
 	}
 
-	BaseStats Pokemon::getBaseStats() const
+	Pokemon::BaseStats Pokemon::getBaseStats() const
 	{
 		return this->_baseStats;
 	}
@@ -750,12 +888,12 @@ namespace PokemonGen1
 		this->_needsRecharge = recharging * 2;
 	}
 
-	const BaseStats &Pokemon::getDvs() const
+	const Pokemon::BaseStats &Pokemon::getDvs() const
 	{
 		return this->_dvs;
 	}
 
-	const BaseStats &Pokemon::getStatExps() const
+	const Pokemon::BaseStats &Pokemon::getStatExps() const
 	{
 		return this->_statExps;
 	}
@@ -773,6 +911,7 @@ namespace PokemonGen1
 		this->_name = base.name;
 		if (recomputeStats) {
 			this->_baseStats = makeStats(this->_level, base, this->_dvs, this->_statExps);
+			this->_computedStats = this->_baseStats;
 			this->_catchRate = base.catchRate;
 		}
 	}
@@ -790,6 +929,7 @@ namespace PokemonGen1
 	{
 		this->_level = level;
 		this->_baseStats = makeStats(level, pokemonList.at(this->getID()), this->_dvs, this->_statExps);
+		this->_computedStats = this->_baseStats;
 	}
 
 	void Pokemon::setMove(unsigned char index, const Move &move)
@@ -829,7 +969,42 @@ namespace PokemonGen1
 		return this->_enemy;
 	}
 
-	PokemonBase::PokemonBase(
+	void Pokemon::reset()
+	{
+		this->_lastUsedMove = availableMoves[0x00];
+		if (this->_transformed) {
+			this->_id = this->_oldState.id;
+			this->_moveSet = this->_oldState.moves;
+			this->_baseStats = this->_oldState.stats;
+			this->_types = this->_oldState.types;
+			this->_transformed = false;
+		}
+		this->_baseStats.HP = this->_baseStats.maxHP;
+		this->_computedStats = this->_baseStats;
+		this->_flinched = false;
+		this->_needsRecharge = 0;
+		this->_invincible = false;
+		this->_lastUsedMove = availableMoves.at(0);
+		this->_upgradedStats = {0, 0, 0, 0, 0, 0};
+		for (auto &move : this->_moveSet)
+			move.reset();
+		this->_wrapped = false;
+		this->_storingDamages = false;
+		this->_damagesStored = 0;
+		this->_badPoisonStage = 0;
+		this->_currentStatus = STATUS_NONE;
+		this->_globalCritRatio = -1;
+	}
+
+	void Pokemon::applyStatusDebuff()
+	{
+		if (this->_currentStatus & STATUS_BURNED)
+			this->_computedStats.ATK /= 2;
+		if (this->_currentStatus & STATUS_PARALYZED)
+			this->_computedStats.SPD /= 4;
+	}
+
+	Pokemon::Base::Base(
 		unsigned char id,
 		std::string name,
 		unsigned int HP,
@@ -843,7 +1018,7 @@ namespace PokemonGen1
 		unsigned int baseXpYield
 	) :
 		id(id),
-		name(name),
+		name(std::move(name)),
 		HP(HP),
 		ATK(ATK),
 		DEF(DEF),
@@ -858,12 +1033,32 @@ namespace PokemonGen1
 			this->statsAtLevel[i] = Pokemon::makeStats(i, *this, {0xF, 0xF, 0xF, 0xF, 0xF, 0xF}, {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF});
 	}
 
+	unsigned char Pokemon::UpgradableStats::get(StatsChange stat) const
+	{
+		switch (stat) {
+		case STATS_ATK:
+			return this->ATK;
+		case STATS_DEF:
+			return this->DEF;
+		case STATS_SPD:
+			return this->SPD;
+		case STATS_SPE:
+			return this->SPE;
+		case STATS_EVD:
+			return this->EVD;
+		case STATS_ACC:
+			return this->ACC;
+		default:
+			return 0;
+		}
+	}
+
 	/*
 	** From Rhydon
 	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/Tables.cs#L82
 	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/Tables.cs#L202
 	*/
-	const std::map<unsigned char, PokemonBase> pokemonList{
+	const std::map<unsigned char, Pokemon::Base> pokemonList{
 		{ 0x01, { 0x01,      "RHYDON", 105, 130, 120,  40,  45, TYPE_GROUND,   TYPE_ROCK,     60,  204 } },
 		{ 0x02, { 0x02,  "KANGASKHAN", 105,  95,  80,  90,  40, TYPE_NORMAL,   TYPE_NORMAL,   45,  175 } },
 		{ 0x03, { 0x03,    "NIDORAN~",  46,  57,  40,  50,  40, TYPE_POISON,   TYPE_POISON,   235, 60  } }, // Nidoran♂

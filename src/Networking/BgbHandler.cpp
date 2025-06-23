@@ -156,7 +156,7 @@ bool BGBHandler::_handleLoop()
 		this->log("Error: " + std::string(e.what()));
 		return false;
 	} catch (EOFException &e) {
-		this->log("Error: EOF found" + std::string(e.what()));
+		this->log("Error: EOF found: " + std::string(e.what()));
 		return false;
 	}
 

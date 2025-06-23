@@ -215,6 +215,16 @@ namespace PokemonGen1
 		return this->_nbHit == 0;
 	}
 
+	unsigned char Move::getHitsLeft() const
+	{
+		return this->_nbHit;
+	}
+
+	void Move::setHitsLeft(unsigned char nb)
+	{
+		this->_nbHit = nb;
+	}
+
 	unsigned char Move::getMaxPP() const
 	{
 		return this->_maxpp * (5 + this->_ppup) / 5;
@@ -380,13 +390,16 @@ namespace PokemonGen1
 		)
 			target.addStatus(this->_statusChange.status);
 
+		bool addedStatus = false;
+
 		for (const auto &val : this->_foeChange)
 			if (!val.cmpVal || owner.getRandomGenerator()() < val.cmpVal)
-				target.changeStat(val.stat, val.nb);
-
+				addedStatus |= target.changeStat(val.stat, val.nb);
 		for (const auto &val : this->_ownerChange)
 			if (!val.cmpVal || owner.getRandomGenerator()() < val.cmpVal)
-				owner.changeStat(val.stat, val.nb);
+				addedStatus |= owner.changeStat(val.stat, val.nb);
+		if (addedStatus)
+			target.applyStatusDebuff();
 
 		if (this->_hitCallback)
 			return this->_hitCallback(owner, target, damages.damage, this->isFinished(), logger);
@@ -477,6 +490,12 @@ namespace PokemonGen1
 	const std::string &Move::getMissCallBackDescription() const
 	{
 		return this->_missCallBackDescription;
+	}
+
+	void Move::reset()
+	{
+		this->setPP(this->getMaxPP());
+		this->setHitsLeft(0);
 	}
 
 	/*
@@ -592,10 +611,10 @@ namespace PokemonGen1
 		Move{0x65, "Night Shade" , TYPE_GHOST   , PHYSICAL,   0, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_LVL_AS_DAMAGE},
 		Move{0x66, "Mimic"       , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, MIMIC_MOVE},
 		Move{0x67, "Screech"     , TYPE_NORMAL  , STATUS  ,   0,  85, 40, NO_STATUS_CHANGE, {}, {{STATS_DEF, -2, 0}}},
-		Move{0x68, "Double Team" , TYPE_NORMAL  , STATUS  ,   0, 255, 15, NO_STATUS_CHANGE, {{STATS_ESQ, 1, 0}}},
+		Move{0x68, "Double Team" , TYPE_NORMAL  , STATUS  ,   0, 255, 15, NO_STATUS_CHANGE, {{STATS_EVD, 1, 0}}},
 		Move{0x69, "Recover"     , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEAL_HALF_HEALTH},
 		Move{0x6A, "Harden"      , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, {{STATS_DEF, 1, 0}}},
-		Move{0x6B, "Minimize"    , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {{STATS_ESQ, 1, 0}}},
+		Move{0x6B, "Minimize"    , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {{STATS_EVD, 1, 0}}},
 		Move{0x6C, "SmokeScreen" , TYPE_NORMAL  , STATUS  ,   0, 100, 20, NO_STATUS_CHANGE, {}, {{STATS_ACC, -1, 0}}},
 		Move{0x6D, "Confuse Ray" , TYPE_GHOST   , STATUS  ,   0, 100, 10, {STATUS_CONFUSED, 0}},
 		Move{0x6E, "Withdraw"    , TYPE_WATER   , STATUS  ,   0, 255, 40, NO_STATUS_CHANGE, {{STATS_DEF, 1, 0}}},

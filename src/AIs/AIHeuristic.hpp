@@ -6,15 +6,13 @@
 #define POKEAI_AIHEURISTIC_HPP
 
 
-#include "../GameEngine/GameHandle.hpp"
+#include "../GameEngine/BattleHandler.hpp"
 #include "AI.hpp"
 
 namespace PokemonGen1
 {
 	class AIHeuristic : public AI {
 	private:
-		const GameHandle &_gameHandle;
-
 		std::pair<unsigned, unsigned> _getDamageRange(const Pokemon &owner, const Pokemon &target, const Move &move, bool critical);
 		double _getProbabilityToKill(const Pokemon &owner, const Pokemon &target, const Move &move, bool calcOp = true);
 		double _getBuffsValue(const Pokemon &target, const Pokemon &owner, const Move &move);
@@ -24,8 +22,7 @@ namespace PokemonGen1
 		double _getStatusChangeValue(const Pokemon &owner, StatusChange status);
 
 	public:
-		AIHeuristic(const GameHandle &gameHandle);
-		BattleAction getNextMove() override;
+		BattleAction getNextMove(const BattleState &state) override;
 	};
 }
 

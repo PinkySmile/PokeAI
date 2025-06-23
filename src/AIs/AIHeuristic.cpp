@@ -60,12 +60,7 @@ namespace PokemonGen1
 		return "Unknown";
 	}
 
-	AIHeuristic::AIHeuristic(const PokemonGen1::GameHandle &gameHandle) :
-		_gameHandle(gameHandle)
-	{
-	}
-
-	BattleAction AIHeuristic::getNextMove()
+	BattleAction AIHeuristic::getNextMove(const BattleState &state)
 	{
 		std::map<BattleAction, float> scores{
 			{ Attack1, -std::numeric_limits<double>::infinity() },
@@ -81,14 +76,13 @@ namespace PokemonGen1
 			{ StruggleMove, -std::numeric_limits<double>::infinity() },
 			{ Run, 0 },
 		};
-		const auto &state = this->_gameHandle.getBattleState();
-		const auto &me = state.team[state.pokemonOnField];
-		const auto &opponent = state.opponentTeam[state.opponentPokemonOnField];
+		const auto &me = state.me.team[state.me.pokemonOnField];
+		const auto &opponent = state.op.team[state.op.pokemonOnField];
 		const auto &moves = me.getMoveSet();
 		//const auto &opponentMoves = opponent.getMoveSet();
 		unsigned char unusableMoves = 0;
 
-		for (unsigned i = state.team.size(); i < 6; i++)
+		for (unsigned i = state.me.team.size(); i < 6; i++)
 			scores[static_cast<BattleAction>(Switch1 + i)] = -std::numeric_limits<double>::infinity();
 
 		for (const auto & move : moves)
@@ -99,11 +93,11 @@ namespace PokemonGen1
 		if (unusableMoves == 4 && getAttackDamageMultiplier(TYPE_NORMAL, opponent.getTypes()) != 0)
 			scores[StruggleMove] = 2;
 
-		for (unsigned i = 0; i < state.team.size(); i++) {
-			const auto &pkmn = state.team[i];
+		for (unsigned i = 0; i < state.me.team.size(); i++) {
+			const auto &pkmn = state.me.team[i];
 			auto &score = scores[static_cast<BattleAction>(Switch1 + i)];
 
-			if (!pkmn.getHealth() || i == state.pokemonOnField) {
+			if (!pkmn.getHealth() || i == state.me.pokemonOnField) {
 				score = -std::numeric_limits<double>::infinity();
 				continue;
 			}
@@ -229,7 +223,7 @@ namespace PokemonGen1
 			score += this->_getStatValue(change.stat, owner, target) *
 				change.nb *
 				change.cmpVal / 256. *
-				(std::abs(getStat(stats, change.stat) + change.nb) <= 6);
+				(std::abs(stats.get(change.stat) + change.nb) <= 6);
 		return score;
 	}
 
@@ -244,7 +238,7 @@ namespace PokemonGen1
 			score += this->_getStatValue(change.stat, target, owner) *
 				-change.nb *
 				(change.cmpVal ?: 256) / 256. *
-				(std::abs(getStat(stats, change.stat) + change.nb) <= 6) * 0.75;
+				(std::abs(stats.get(change.stat) + change.nb) <= 6) * 0.75;
 		score += this->_getStatusChangeValue(target, status.status) * (status.cmpVal ?: 256) / 256.;
 		return score;
 	}
@@ -276,7 +270,7 @@ namespace PokemonGen1
 			return spd * SPEED_SCORE;
 		case STATS_SPE:
 			return spe * SPECIAL_SCORE;
-		case STATS_ESQ:
+		case STATS_EVD:
 			return eva * EVADE_SCORE;
 		case STATS_ACC:
 			return acc * ACCURACY_SCORE;

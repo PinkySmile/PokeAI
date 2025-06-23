@@ -6,7 +6,9 @@
 #include <SFML/Graphics.hpp>
 #include "gui.hpp"
 #include "../AIs/AI.hpp"
-#include "../AIs/AIHeuristic.hpp"
+#include "../AIs/AIFactory.hpp"
+
+using namespace PokemonGen1;
 
 void drawSprite(sf::RenderWindow &window, sf::Sprite &sprite, sf::Texture &texture, int x, int y, int width = 0, int height = 0)
 {
@@ -27,7 +29,7 @@ void drawText(sf::RenderWindow &window, sf::Text &text, const std::string &str, 
 	window.draw(text);
 }
 
-void displayOpponentStats(sf::RenderWindow &window, sf::Text &text, sf::RectangleShape rect, sf::Sprite &sprite, BattleResources &resources, const PokemonGen1::Pokemon &pkmn)
+void displayOpponentStats(sf::RenderWindow &window, sf::Text &text, sf::RectangleShape rect, sf::Sprite &sprite, BattleResources &resources, const Pokemon &pkmn)
 {
 	float percent = static_cast<float>(pkmn.getHealth()) / pkmn.getMaxHealth();
 
@@ -41,15 +43,15 @@ void displayOpponentStats(sf::RenderWindow &window, sf::Text &text, sf::Rectangl
 	rect.setPosition({124, 68});
 	window.draw(rect);
 	drawSprite(window, sprite, resources.hpOverlay, 64, 64);
-	if (pkmn.hasStatus(PokemonGen1::STATUS_BURNED)) {
+	if (pkmn.hasStatus(STATUS_BURNED)) {
 		drawText(window, text, "BRN", 124, 32);
-	} else if (pkmn.hasStatus(PokemonGen1::STATUS_POISONED) || pkmn.hasStatus(PokemonGen1::STATUS_BADLY_POISONED)) {
+	} else if (pkmn.hasStatus(STATUS_POISONED) || pkmn.hasStatus(STATUS_BADLY_POISONED)) {
 		drawText(window, text, "PSN", 124, 32);
-	} else if (pkmn.hasStatus(PokemonGen1::STATUS_FROZEN)) {
+	} else if (pkmn.hasStatus(STATUS_FROZEN)) {
 		drawText(window, text, "FRZ", 124, 32);
-	} else if (pkmn.hasStatus(PokemonGen1::STATUS_ASLEEP)) {
+	} else if (pkmn.hasStatus(STATUS_ASLEEP)) {
 		drawText(window, text, "SLP", 124, 32);
-	} else if (pkmn.hasStatus(PokemonGen1::STATUS_PARALYZED)) {
+	} else if (pkmn.hasStatus(STATUS_PARALYZED)) {
 		drawText(window, text, "PAR", 124, 32);
 	} else {
 		drawSprite(window, sprite, resources.levelSprite, 124, 32);
@@ -58,7 +60,7 @@ void displayOpponentStats(sf::RenderWindow &window, sf::Text &text, sf::Rectangl
 	drawText(window, text, pkmn.getNickname(), 32, -2);
 }
 
-void displayMyStats(sf::RenderWindow &window, sf::Text &text, sf::RectangleShape rect, sf::Sprite &sprite, BattleResources &resources, const PokemonGen1::Pokemon &pkmn)
+void displayMyStats(sf::RenderWindow &window, sf::Text &text, sf::RectangleShape rect, sf::Sprite &sprite, BattleResources &resources, const Pokemon &pkmn)
 {
 	float percent = static_cast<float>(pkmn.getHealth()) / pkmn.getMaxHealth();
 
@@ -72,15 +74,15 @@ void displayMyStats(sf::RenderWindow &window, sf::Text &text, sf::RectangleShape
 	rect.setPosition({380, 292});
 	window.draw(rect);
 	drawSprite(window, sprite, resources.hpOverlay, 320, 288);
-	if (pkmn.hasStatus(PokemonGen1::STATUS_BURNED)) {
+	if (pkmn.hasStatus(STATUS_BURNED)) {
 		drawText(window, text, "BRN", 412, 256);
-	} else if (pkmn.hasStatus(PokemonGen1::STATUS_POISONED) || pkmn.hasStatus(PokemonGen1::STATUS_BADLY_POISONED)) {
+	} else if (pkmn.hasStatus(STATUS_POISONED) || pkmn.hasStatus(STATUS_BADLY_POISONED)) {
 		drawText(window, text, "PSN", 412, 256);
-	} else if (pkmn.hasStatus(PokemonGen1::STATUS_FROZEN)) {
+	} else if (pkmn.hasStatus(STATUS_FROZEN)) {
 		drawText(window, text, "FRZ", 412, 256);
-	} else if (pkmn.hasStatus(PokemonGen1::STATUS_ASLEEP)) {
+	} else if (pkmn.hasStatus(STATUS_ASLEEP)) {
 		drawText(window, text, "SLP", 412, 256);
-	} else if (pkmn.hasStatus(PokemonGen1::STATUS_PARALYZED)) {
+	} else if (pkmn.hasStatus(STATUS_PARALYZED)) {
 		drawText(window, text, "PAR", 412, 256);
 	} else {
 		drawSprite(window, sprite, resources.levelSprite, 412, 256);
@@ -93,7 +95,7 @@ void displayMyStats(sf::RenderWindow &window, sf::Text &text, sf::RectangleShape
 	drawText(window, text, std::to_string(pkmn.getMaxHealth()), 578 - std::to_string(pkmn.getMaxHealth()).size() * 32, 318);
 }
 
-void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHandle &game, const std::string &trainerName, BattleResources &resources, std::vector<std::string> &log, const PokemonGen1::BattleState &state)
+void executeBattleStartAnimation(sf::RenderWindow &window, const std::string &trainerName, BattleResources &resources, std::vector<std::string> &log, const BattleState &state)
 {
 	sf::RectangleShape rect;
 	float last = 0;
@@ -108,7 +110,7 @@ void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHand
 	text.setCharacterSize(32);
 	text.setFillColor({39, 39, 39, 255});
 	text.setLineSpacing(2);
-	window.setTitle(trainerName + " - Challenging " + game.getBattleState().opponentName);
+	window.setTitle(trainerName + " - Challenging " + state.op.name);
 	resources.start.play();
 	resources.loop.setLooping(true);
 	while (window.isOpen() && clock.getElapsedTime().asSeconds() < 20) {
@@ -126,15 +128,15 @@ void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHand
 			window.clear({255, 255, 255, 255});
 			drawSprite(window, sprite, resources.boxes[1], 96, 144);
 			drawText(window, text, trainerName, 144, 190);
-			for (unsigned i = 0; i < state.team.size(); i++)
+			for (unsigned i = 0; i < state.me.team.size(); i++)
 				drawSprite(window, sprite, resources.balls[
-					state.team[i].hasStatus(static_cast<PokemonGen1::StatusChange>(0xFF)) ? 3 : (state.team[i].getHealth() ? 0 : 2)
+					state.me.team[i].hasStatus(static_cast<StatusChange>(0xFF)) ? 3 : (state.me.team[i].getHealth() ? 0 : 2)
 				], 288 + 32 * i, 232);
 
-			drawText(window, text, state.opponentName, 144, 318);
-			for (unsigned i = 0; i < state.opponentTeam.size(); i++)
+			drawText(window, text, state.op.name, 144, 318);
+			for (unsigned i = 0; i < state.op.team.size(); i++)
 				drawSprite(window, sprite, resources.balls[
-					state.opponentTeam[i].hasStatus(static_cast<PokemonGen1::StatusChange>(0xFF)) ? 3 : (state.opponentTeam[i].getHealth() ? 0 : 2)
+					state.op.team[i].hasStatus(static_cast<StatusChange>(0xFF)) ? 3 : (state.op.team[i].getHealth() ? 0 : 2)
 				], 288 + 32 * i, 352);
 
 		} else if (seconds < 6) {
@@ -154,13 +156,13 @@ void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHand
 			drawSprite(window, sprite, resources.boxes[2], 32, 64);
 			for (int i = 6; i-- > 0; )
 				drawSprite(window, sprite, resources.balls[
-					static_cast<unsigned>(i) >= state.opponentTeam.size() ? 1 : (state.opponentTeam[i].hasStatus(static_cast<PokemonGen1::StatusChange>(0xFF)) ? 3 : (state.opponentTeam[i].getHealth() ? 0 : 2))
+					static_cast<unsigned>(i) >= state.op.team.size() ? 1 : (state.op.team[i].hasStatus(static_cast<StatusChange>(0xFF)) ? 3 : (state.op.team[i].getHealth() ? 0 : 2))
 				], 64 + 32 * (6 - i), 64);
 
 			drawSprite(window, sprite, resources.boxes[2], 608, 320, -resources.boxes[2].getSize().x);
 			for (unsigned i = 0; i < 6; i++)
 				drawSprite(window, sprite, resources.balls[
-					i >= state.team.size() ? 1 : (state.team[i].hasStatus(static_cast<PokemonGen1::StatusChange>(0xFF)) ? 3 : (state.team[i].getHealth() ? 0 : 2))
+					i >= state.me.team.size() ? 1 : (state.me.team[i].hasStatus(static_cast<StatusChange>(0xFF)) ? 3 : (state.me.team[i].getHealth() ? 0 : 2))
 				], 352 + 32 * i, 318);
 
 			drawText(window, text, log[0].substr(0, (seconds - 7) * 15), 32, 440);
@@ -180,7 +182,7 @@ void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHand
 			drawText(window, text, log[0].substr(0, (seconds - 10.5) * 15), 32, 440);
 
 		} else if (seconds < 13.2) {
-			auto &texture = resources.pokemonsFront[state.opponentTeam[state.opponentPokemonOnField].getID()];
+			auto &texture = resources.pokemonsFront[state.op.team[state.op.pokemonOnField].getID()];
 
 			drawSprite(window, sprite, texture,
 				   408 + (texture.getSize().x - texture.getSize().x * 5 * (seconds - 13)) / 2,
@@ -192,29 +194,29 @@ void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHand
 			drawText(window, text, log[0], 32, 440);
 
 		} else if (seconds < 14) {
-			drawSprite(window, sprite, resources.pokemonsFront[state.opponentTeam[state.opponentPokemonOnField].getID()], 408, 0);
+			drawSprite(window, sprite, resources.pokemonsFront[state.op.team[state.op.pokemonOnField].getID()], 408, 0);
 			drawSprite(window, sprite, resources.trainer[1][0], 8, 160);
 			drawText(window, text, log[0], 32, 440);
 
 		} else if (seconds < 14.2) {
 			drawSprite(window, sprite, resources.trainer[1][0], 8 - 256 * (seconds - 14) * 5, 160);
 			drawText(window, text, log[0], 32, 440);
-			displayOpponentStats(window, text, rect, sprite, resources, state.opponentTeam[state.opponentPokemonOnField]);
+			displayOpponentStats(window, text, rect, sprite, resources, state.op.team[state.op.pokemonOnField]);
 
 		} else if (seconds < 14.5) {
 			if (last <= 14.2)
 				log.erase(log.begin());
 			drawText(window, text, log[0].substr(0, (seconds - 14.2) * 15), 32, 440);
-			displayOpponentStats(window, text, rect, sprite, resources, state.opponentTeam[state.opponentPokemonOnField]);
+			displayOpponentStats(window, text, rect, sprite, resources, state.op.team[state.op.pokemonOnField]);
 
 		} else if (seconds < 15.5) {
 			drawText(window, text, log[0].substr(0, (seconds - 14.2) * 15), 32, 440);
-			displayOpponentStats(window, text, rect, sprite, resources, state.opponentTeam[state.opponentPokemonOnField]);
+			displayOpponentStats(window, text, rect, sprite, resources, state.op.team[state.op.pokemonOnField]);
 
 		} else {
 			drawText(window, text, log[0], 32, 440);
-			displayOpponentStats(window, text, rect, sprite, resources, state.opponentTeam[state.opponentPokemonOnField]);
-			displayMyStats(window, text, rect, sprite, resources, state.team[state.pokemonOnField]);
+			displayOpponentStats(window, text, rect, sprite, resources, state.op.team[state.op.pokemonOnField]);
+			displayMyStats(window, text, rect, sprite, resources, state.me.team[state.me.pokemonOnField]);
 		}
 
 		last = seconds;
@@ -227,11 +229,9 @@ void executeBattleStartAnimation(sf::RenderWindow &window, PokemonGen1::GameHand
 }
 
 //TODO: Rewrite all of this mess
-void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResources &resources, std::vector<std::string> &log, PokemonGen1::BattleAction &nextAction, unsigned char aiNb)
+void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &resources, std::vector<std::string> &log, unsigned char aiNb)
 {
-	std::unique_ptr<PokemonGen1::AI> ai{
-		aiNb == 1 ? new PokemonGen1::AIHeuristic(game) : nullptr
-	};
+	auto ai = std::unique_ptr<AI>(AIFactory::create(aiNb));
 	int menu = 0;
 	sf::RectangleShape rect;
 	sf::Sprite sprite{resources.boxes[0]};
@@ -239,23 +239,23 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 	sf::Clock clock;
 	unsigned char selectedMenu = 0;
 	sf::View view{{320, 288}, {640, 576}};
-	const auto &state = game.getBattleState();
-	std::string trainerName = game.getTrainerName();
+	auto &state = game.getBattleState();
+	std::string trainerName = state.me.name;
 
 	window.setSize({640, 576});
 	window.setView(view);
 	text.setCharacterSize(32);
 	text.setFillColor({39, 39, 39, 255});
 	text.setLineSpacing(2);
-	window.setTitle(trainerName + " - Challenging " + state.opponentName);
-	executeBattleStartAnimation(window, game, trainerName, resources, log, state);
+	window.setTitle(trainerName + " - Challenging " + state.op.name);
+	executeBattleStartAnimation(window, trainerName, resources, log, state);
 	clock.restart();
-	while (window.isOpen() && game.getStage() == PokemonGen1::BATTLE) {
+	while (window.isOpen() && !game.isFinished()) {
 		if (!log.empty()) {
 			if (menu != 4)
 				clock.restart();
 			menu = 4;
-		} else if (game.getBattleState().nextAction)
+		} else if (state.me.nextAction)
 			menu = 3;
 		else if (menu == 3)
 			menu = 0;
@@ -272,11 +272,11 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 					} else if (menu == 1) {
 						selectedMenu += (keyEvent->code == sf::Keyboard::Key::Down) * 2 - 1;
 						selectedMenu %= 4;
-						if (state.team[state.pokemonOnField].getMoveSet()[selectedMenu].getID() == 0)
+						if (state.me.team[state.me.pokemonOnField].getMoveSet()[selectedMenu].getID() == 0)
 							selectedMenu = 0;
 					} else if (menu == 2) {
 						selectedMenu += (keyEvent->code == sf::Keyboard::Key::Down) * 2 - 1;
-						selectedMenu %= state.team.size();
+						selectedMenu %= state.me.team.size();
 					}
 				} else if (keyEvent->code == sf::Keyboard::Key::Right || keyEvent->code == sf::Keyboard::Key::Left) {
 					if (menu == 0) {
@@ -286,10 +286,10 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 					if (menu == 0) {
 						if (selectedMenu == 0) {
 							for (int i = 0; i < 4; i++)
-								if (state.team[state.pokemonOnField].getMoveSet()[i].getPP() != 0)
+								if (state.me.team[state.me.pokemonOnField].getMoveSet()[i].getPP() != 0)
 									menu = 1;
 							if (menu == 0)
-								nextAction = PokemonGen1::StruggleMove;
+								state.me.nextAction = StruggleMove;
 						} else if (selectedMenu == 1) {
 							menu = 2;
 							selectedMenu = 0;
@@ -299,19 +299,19 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 							log.emplace_back("Cannot use items\nin trainer battles");
 						} else {
 							menu = 3;
-							nextAction = PokemonGen1::Run;
+							state.me.nextAction = Run;
 						}
 					} else if (menu == 1) {
-						if (state.team[state.pokemonOnField].getMoveSet()[selectedMenu].getPP() != 0) {
+						if (state.me.team[state.me.pokemonOnField].getMoveSet()[selectedMenu].getPP() != 0) {
 							menu = 3;
-							nextAction = static_cast<PokemonGen1::BattleAction>(PokemonGen1::Attack1 + selectedMenu);
+							state.me.nextAction = static_cast<BattleAction>(Attack1 + selectedMenu);
 						} else {
 							menu = 5;
 							log.emplace_back("No PP left!");
 						}
 					} else if (menu == 2) {
 						menu = 3;
-						nextAction = static_cast<PokemonGen1::BattleAction>(PokemonGen1::Switch1 + selectedMenu);
+						state.me.nextAction = static_cast<BattleAction>(Switch1 + selectedMenu);
 					}
 				} else if (keyEvent->code == sf::Keyboard::Key::X) {
 					if (menu == 1 || menu == 2) {
@@ -325,20 +325,20 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 		window.clear({255, 255, 255, 255});
 
 		drawSprite(window, sprite, resources.boxes[0], 0, 384);
-		displayOpponentStats(window, text, rect, sprite, resources, state.opponentTeam[state.opponentPokemonOnField]);
-		displayMyStats(window, text, rect, sprite, resources, state.team[state.pokemonOnField]);
+		displayOpponentStats(window, text, rect, sprite, resources, state.op.team[state.op.pokemonOnField]);
+		displayMyStats(window, text, rect, sprite, resources, state.me.team[state.me.pokemonOnField]);
 
 		if (menu == 0) {
 			drawSprite(window, sprite, resources.choicesHUD, 256, 384);
 			drawSprite(window, sprite, resources.arrows[1], 288 + 192 * (selectedMenu % 2), 448 + 64 * (selectedMenu / 2));
 			if (ai)
-				nextAction = ai->getNextMove();
+				state.me.nextAction = ai->getNextMove(state);
 		} else if (menu == 1) {
-			auto move = state.team[state.pokemonOnField].getMoveSet()[selectedMenu];
+			auto move = state.me.team[state.me.pokemonOnField].getMoveSet()[selectedMenu];
 
 			drawSprite(window, sprite, resources.attackHUD, 0, 256);
 			for (int i = 0; i < 4; i++)
-				drawText(window, text, strToUpper(state.team[state.pokemonOnField].getMoveSet()[i].getName()), 192, 416 + 32 * i);
+				drawText(window, text, strToUpper(state.me.team[state.me.pokemonOnField].getMoveSet()[i].getName()), 192, 416 + 32 * i);
 			drawText(window, text, strToUpper(typeToString(move.getType())), 64, 320);
 			drawText(window, text, std::to_string(move.getPP()), 160 + (move.getPP() < 10) * 32, 352);
 			drawText(window, text, "/" + std::to_string(move.getMaxPP()), 224, 352);
@@ -347,8 +347,8 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 		} else if (menu == 2) {
 			window.clear({255, 255, 255, 255});
 			drawSprite(window, sprite, resources.boxes[0], 0, 384);
-			for (size_t i = 0; i < state.team.size(); i++) {
-				auto &pkmn = state.team[i];
+			for (size_t i = 0; i < state.me.team.size(); i++) {
+				auto &pkmn = state.me.team[i];
 				float percent = static_cast<float>(pkmn.getHealth()) / pkmn.getMaxHealth();
 
 				rect.setFillColor(
@@ -361,15 +361,15 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 				drawSprite(window, sprite, resources.hpOverlay, 128, 32 + i * 64);
 				if (pkmn.getHealth() == 0) {
 					drawText(window, text, "FNT", 416, i * 64);
-				} else if (pkmn.hasStatus(PokemonGen1::STATUS_BURNED)) {
+				} else if (pkmn.hasStatus(STATUS_BURNED)) {
 					drawText(window, text, "BRN", 416, i * 64);
-				} else if (pkmn.hasStatus(PokemonGen1::STATUS_POISONED) || pkmn.hasStatus(PokemonGen1::STATUS_BADLY_POISONED)) {
+				} else if (pkmn.hasStatus(STATUS_POISONED) || pkmn.hasStatus(STATUS_BADLY_POISONED)) {
 					drawText(window, text, "PSN", 416, i * 64);
-				} else if (pkmn.hasStatus(PokemonGen1::STATUS_FROZEN)) {
+				} else if (pkmn.hasStatus(STATUS_FROZEN)) {
 					drawText(window, text, "FRZ", 416, i * 64);
-				} else if (pkmn.hasStatus(PokemonGen1::STATUS_ASLEEP)) {
+				} else if (pkmn.hasStatus(STATUS_ASLEEP)) {
 					drawText(window, text, "SLP", 416, i * 64);
-				} else if (pkmn.hasStatus(PokemonGen1::STATUS_PARALYZED)) {
+				} else if (pkmn.hasStatus(STATUS_PARALYZED)) {
 					drawText(window, text, "PAR", 416, i * 64);
 				} else {
 					drawSprite(window, sprite, resources.levelSprite, 416, i * 64);
@@ -388,7 +388,7 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 				drawText(window, text, "Waiting...", 128, 352);
 			} else {
 				clock.restart();
-				menu = 4 + (state.team[state.pokemonOnField].getHealth() == 0) * 2;
+				menu = 4 + (state.me.team[state.me.pokemonOnField].getHealth() == 0) * 2;
 			}
 		} else if (menu >= 4) {
 			drawText(window, text, log[0].substr(0, clock.getElapsedTime().asSeconds() * 15), 32, 440);
@@ -410,5 +410,6 @@ void battle(sf::RenderWindow &window, PokemonGen1::GameHandle &game, BattleResou
 	window.setSize({800, 640});
 	window.setView(view);
 	log.clear();
+	game.reset();
 }
 

@@ -3,7 +3,7 @@
 //
 
 #include "PokemonRandomGenerator.hpp"
-#include "GameHandle.hpp"
+#include "BattleHandler.hpp"
 
 namespace PokemonGen1
 {
@@ -20,11 +20,12 @@ namespace PokemonGen1
 		this->_numbers.clear();
 		while (size--)
 			this->_numbers.push_back(distribution(this->_random));
-		if (!this->_numbers.empty() && !this->_numbers[0])
+		if (!this->_numbers.empty() && this->_numbers[0] == 0)
 			this->_numbers[0] = 1;
+		this->_numbersBase = this->_numbers;
 	}
 
-	const std::vector<unsigned char>& PokemonRandomGenerator::getList()
+	const std::vector<unsigned char> &PokemonRandomGenerator::getList() const
 	{
 		return this->_numbers;
 	}
@@ -33,8 +34,9 @@ namespace PokemonGen1
 	{
 		this->_numbers = list;
 		this->_currentIndex = 0;
-		if (!this->_numbers.empty() && !this->_numbers[0])
+		if (!this->_numbers.empty() && this->_numbers[0] == 0)
 			this->_numbers[0] = 1;
+		this->_numbersBase = this->_numbers;
 	}
 
 	unsigned char PokemonRandomGenerator::operator()()
@@ -48,5 +50,21 @@ namespace PokemonGen1
 				elem = elem * 5 + 1;
 		}
 		return value;
+	}
+
+	unsigned PokemonRandomGenerator::getIndex() const
+	{
+		return this->_currentIndex;
+	}
+
+	void PokemonRandomGenerator::setIndex(unsigned int index)
+	{
+		this->_currentIndex = index;
+	}
+
+	void PokemonRandomGenerator::reset()
+	{
+		this->_numbers = this->_numbersBase;
+		this->_currentIndex = 0;
 	}
 }

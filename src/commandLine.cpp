@@ -7,123 +7,164 @@
 #include "commandLine.hpp"
 #include "GameEngine/Pokemon.hpp"
 #include "Networking/BgbHandler.hpp"
-#include "GameEngine/GameHandle.hpp"
+#include "GameEngine/BattleHandler.hpp"
+#include "GameEngine/EmulatorGameHandle.hpp"
 
 #ifndef _WIN32
 #include <sys/select.h>
+#include <algorithm>
+
 typedef fd_set FD_SET;
 #endif
 
-PokemonGen1::BattleAction getAction(const std::string &val)
+using namespace PokemonGen1;
+
+BattleAction getAction(const std::string &val)
 {
-	if (val == "Attack1")
-		return PokemonGen1::Attack1;
-	if (val == "Attack2")
-		return PokemonGen1::Attack2;
-	if (val == "Attack3")
-		return PokemonGen1::Attack3;
-	if (val == "Attack4")
-		return PokemonGen1::Attack4;
-	if (val == "Switch1")
-		return PokemonGen1::Switch1;
-	if (val == "Switch2")
-		return PokemonGen1::Switch2;
-	if (val == "Switch3")
-		return PokemonGen1::Switch3;
-	if (val == "Switch4")
-		return PokemonGen1::Switch4;
-	if (val == "Switch5")
-		return PokemonGen1::Switch5;
-	if (val == "Switch6")
-		return PokemonGen1::Switch6;
-	if (val == "Struggle")
-		return PokemonGen1::StruggleMove;
-	if (val == "Run")
-		return PokemonGen1::Run;
+	const static std::unordered_map<std::string, BattleAction> actions{
+		{ "Attack1", Attack1 },
+		{ "Attack2", Attack2 },
+		{ "Attack3", Attack3 },
+		{ "Attack4", Attack4 },
+		{ "Switch1", Switch1 },
+		{ "Switch2", Switch2 },
+		{ "Switch3", Switch3 },
+		{ "Switch4", Switch4 },
+		{ "Switch5", Switch5 },
+		{ "Switch6", Switch6 },
+		{ "Struggle",StruggleMove },
+		{ "Run",     Run }
+	};
+	auto it = actions.find(val);
+
+	if (it != actions.end())
+		return it->second;
 	std::cout << "Invalid action " << val << std::endl;
-	return PokemonGen1::NoAction;
+	return NoAction;
 }
 
-bool handleCommand(const std::string &command, PokemonGen1::GameHandle &game, PokemonGen1::BattleAction &action)
+Pokemon getPkmnFromCin(PokemonRandomGenerator &rng, const BattleLogger &logger, bool enemy)
+{
+	std::string arg;
+	unsigned id = 256;
+
+	std::cin >> arg;
+	try {
+		id = std::stoul(arg);
+	} catch (...) {
+		std::transform(arg.begin(), arg.end(), arg.begin(), [](char c) -> char { return std::toupper(c); });
+		arg.erase(std::remove_if(arg.begin(), arg.end(), [](char c){ return !std::isalnum(c); }), arg.end());
+		for (auto &[_, pkmn] : pokemonList) {
+			std::string name = pkmn.name;
+
+			arg.erase(std::remove_if(name.begin(), name.end(), [](char c){ return !std::isalnum(c); }), name.end());
+			if (name == arg) {
+				id = _;
+				break;
+			}
+		}
+	}
+	if (id > 255)
+		throw std::out_of_range("Invalid pokemon specie. Type `pokemons` for a list of available species.");
+
+	std::cin >> arg;
+	unsigned char level = std::stoul(arg);
+
+	std::cin >> arg;
+	unsigned nb = std::stoul(arg);
+	std::vector<Move> moves;
+	for (unsigned i = 0; i < nb; i++) {
+		unsigned n;
+
+		std::cin >> arg;
+		try {
+			n = std::stoul(arg);
+		} catch (...) {
+			std::transform(arg.begin(), arg.end(), arg.begin(), [](char c) -> char { return std::toupper(c); });
+			arg.erase(std::remove_if(arg.begin(), arg.end(), [](char c){ return !std::isalnum(c); }), arg.end());
+			for (auto &move : availableMoves) {
+				std::string name = move.getName();
+
+				arg.erase(std::remove_if(name.begin(), name.end(), [](char c){ return !std::isalnum(c); }), name.end());
+				if (name == arg) {
+					id = move.getID();
+					break;
+				}
+			}
+		}
+		if (id > 256)
+			throw std::out_of_range("Invalid move. Type `moves` for a list of available moves.");
+		moves.push_back(availableMoves.at(n));
+	}
+
+	std::getline(std::cin, arg);
+	while (!arg.empty() && arg[0] == ' ')
+		arg = arg.substr(1);
+	return { rng, logger, arg, level, pokemonList.at(id), moves, enemy };
+}
+
+bool handleCommand(const std::string &command, std::unique_ptr<EmulatorGameHandle> &emulator, BattleHandler &game, BattleState &state)
 {
 	std::string arg;
 
 	if (command == "action") {
 		std::cin >> arg;
-		action = getAction(arg);
-		if (action)
+		state.me.nextAction = getAction(arg);
+		if (state.me.nextAction)
 			std::cout << "Your next battle action will be " << arg << std::endl;
-	} else if (command == "teamSize") {
+	} else if (command == "addPkmn") {
+		if (state.me.team.size() >= 6) {
+			std::cout << "Your team is already full" << std::endl;
+			return true;
+		}
 		std::cin >> arg;
 		try {
-			game.setTeamSize(std::stoul(arg));
-			std::cout << "Changed team size to " << arg << " pokemon(s)"<< std::endl;
+			state.me.team.push_back(getPkmnFromCin(state.rng, state.battleLogger, false));
+			std::cout << "Added " << state.me.team.back().dump() << " to the team."<< std::endl;
 		} catch (std::exception &e) {
 			std::cout << e.what() << std::endl;
 		}
 	} else if (command == "setPkmn") {
-		std::cin >> arg;
 		try {
+			std::cin >> arg;
 			unsigned index = std::stoul(arg);
 
-			std::cin >> arg;
-			unsigned id = std::stoul(arg);
-
-			std::cin >> arg;
-			unsigned level = std::stoul(arg);
-
-			std::cin >> arg;
-			unsigned nb = std::stoul(arg);
-			std::vector<PokemonGen1::Move> moves;
-			for (unsigned i = 0; i < nb; i++) {
-				std::cin >> arg;
-				unsigned n = std::stoul(arg);
-				moves.push_back(PokemonGen1::availableMoves.at(n));
-			}
-
-			std::string name;
-			std::getline(std::cin, name);
-
-			while (!name.empty() && name[0] == ' ')
-				name = name.substr(1);
-
-			game.changePokemon(
-				index,
-				name,
-				level,
-				PokemonGen1::pokemonList.at(id),
-				moves
-			);
-			std::cout << "Changed pokemon " << index << " to " << game.getPokemonTeam()[index].dump() << std::endl;
+			state.me.team.at(index) = getPkmnFromCin(state.rng, state.battleLogger, false);
+			std::cout << "Changed pokemon " << index << " to " << state.me.team.at(index).dump() << std::endl;
 		} catch (std::exception &e) {
 			std::cout << e.what() << std::endl;
 		}
 	} else if (command == "ready") {
-		game.setReady(true);
+		if (emulator)
+			emulator->setReady(true);
 		std::cout << "You are now ready" << std::endl;
 	} else if (command == "connect") {
 		unsigned short port;
 
-		std::cout << "Ip: ";
 		std::cin >> arg;
-		std::cout << "Port: ";
 		std::cin >> port;
 		std::cout << "Connecting to " << arg << ":" << port << std::endl;
 		try {
-			game.connect(arg, port);
+			emulator = std::make_unique<EmulatorGameHandle>(
+				[arg, port](const ByteHandle &byteHandle, const LoopHandle &loopHandler) {
+					return new BGBHandler(byteHandle, byteHandle, loopHandler, arg, port, getenv("MAX_DEBUG"));
+				},
+				state,
+				false,
+				getenv("MIN_DEBUG") != nullptr
+			);
 		} catch (std::exception &e) {
 			std::cout << "Error connecting to " << arg << ":" << port << ": " << e.what() << std::endl;
 		}
 	} else if (command == "disconnect") {
 		std::cout << "Disconnecting..." << std::endl;
-		game.disconnect();
+		emulator.reset();
 	} else if (command == "team") {
-		std::cout << "You have " << game.getPokemonTeam().size() << " pokemon(s) in your team" << std::endl;
-		for (const auto &pkmn : game.getPokemonTeam())
+		std::cout << "You have " << state.me.team.size() << " pokemon(s) in your team" << std::endl;
+		for (const auto &pkmn : state.me.team)
 			std::cout << pkmn.dump() << std::endl;
 	} else if (command == "quit") {
 		std::cout << "Quitting..." << std::endl;
-		game.disconnect();
 		return false;
 	} else if (command == "help") {
 		std::cout << "Here is a list of commands:" << std::endl;
@@ -132,8 +173,8 @@ bool handleCommand(const std::string &command, PokemonGen1::GameHandle &game, Po
 		std::cout << "disconnect" << std::endl;
 		std::cout << "connect <ip> <port>" << std::endl;
 		std::cout << "teamSize <newSize>" << std::endl;
+		std::cout << "addPkmn <id> <level> <nbrOfMove> [<move1> <move2> ...] <nickname>" << std::endl;
 		std::cout << "setPkmn <index> <id> <level> <nbrOfMove> [<move1> <move2> ...] <nickname>" << std::endl;
-		std::cout << "teamSize <newSize>" << std::endl;
 		std::cout << "action Attack1|Attack2|Attack3|Attack4|Switch1|Switch2|Switch3|Switch4|Switch5|Switch6|Run|Struggle" << std::endl;
 		std::cout << "moves" << std::endl;
 		std::cout << "pokemons" << std::endl;
@@ -141,10 +182,10 @@ bool handleCommand(const std::string &command, PokemonGen1::GameHandle &game, Po
 		std::cout << "pokemon <pokemon_name>" << std::endl;
 		std::cout << "state" << std::endl;
 	} else if (command == "moves") {
-		for (auto &move : PokemonGen1::availableMoves)
+		for (auto &move : availableMoves)
 			std::cout << static_cast<int>(move.getID()) << ": " << move.getName() << std::endl;
 	} else if (command == "pokemons") {
-		for (auto &[id, pkmn] : PokemonGen1::pokemonList)
+		for (auto &[id, pkmn] : pokemonList)
 			std::cout << static_cast<int>(pkmn.id) << ": " << pkmn.name << std::endl;
 	} else if (command == "move") {
 		std::string name;
@@ -155,7 +196,7 @@ bool handleCommand(const std::string &command, PokemonGen1::GameHandle &game, Po
 		while (!name.empty() && std::isspace(*name.end()))
 			name.pop_back();
 		std::cout << "Searching move '" << name << "'" << std::endl;
-		for (auto &move : PokemonGen1::availableMoves)
+		for (auto &move : availableMoves)
 			if (move.getName().find(name) != std::string::npos)
 				std::cout << static_cast<int>(move.getID()) << ": " << move.getName() << std::endl;
 	} else if (command == "pokemon") {
@@ -167,29 +208,30 @@ bool handleCommand(const std::string &command, PokemonGen1::GameHandle &game, Po
 		while (!name.empty() && std::isspace(*name.end()))
 			name.pop_back();
 		std::cout << "Searching pokemon '" << name << "'" << std::endl;
-		for (auto &[id, pkmn] : PokemonGen1::pokemonList)
+		for (auto &[id, pkmn] : pokemonList)
 			if (pkmn.name.find(name) != std::string::npos)
 				std::cout << static_cast<int>(pkmn.id) << ": " << pkmn.name << std::endl;
 	} else if (command == "state") {
 		auto &state = game.getBattleState();
 
-		std::cout << "Me" << std::endl;
+		std::cout << "P1 (" << state.me.name << ")" << std::endl;
 		for (unsigned i = 0; i < 6; i++) {
-			if (i < state.team.size())
-				std::cout << state.team[i].dump();
+			if (i < state.me.team.size())
+				std::cout << state.me.team[i].dump();
 			else
 				std::cout << "--";
-			if (state.pokemonOnField == i)
+			if (state.me.pokemonOnField == i)
 				std::cout << " (Active)";
 			std::cout << std::endl;
 		}
-		std::cout << "Opponent (" << state.opponentName << ")" << std::endl;
+
+		std::cout << "P2 (" << state.op.name << ")" << std::endl;
 		for (unsigned i = 0; i < 6; i++) {
-			if (i < state.opponentTeam.size())
-				std::cout << state.opponentTeam[i].dump();
+			if (i < state.op.team.size())
+				std::cout << state.op.team[i].dump();
 			else
 				std::cout << "--";
-			if (state.opponentPokemonOnField == i)
+			if (state.op.pokemonOnField == i)
 				std::cout << " (Active)";
 			std::cout << std::endl;
 		}
@@ -219,47 +261,27 @@ void commandLine(const std::string &trainerName)
 {
 	bool loop = true;
 	std::future<std::string> future;
-	PokemonGen1::BattleAction nextAction = PokemonGen1::NoAction;
-	PokemonGen1::GameHandle handler(
-		[](const ByteHandle &byteHandle, const LoopHandle &loopHandler, const std::string &ip, unsigned short port)
-		{
-			return new BGBHandler(byteHandle, byteHandle, loopHandler, ip, port, getenv("MAX_DEBUG"));
-		},
-		[&nextAction](PokemonGen1::GameHandle &handle) {
-			PokemonGen1::BattleAction action = nextAction;
-			const PokemonGen1::BattleState &state = handle.getBattleState();
+	std::unique_ptr<EmulatorGameHandle> emulator;
+	BattleHandler battle{false, getenv("MIN_DEBUG") != nullptr};
+	auto &state = battle.getBattleState();
 
-			if (!state.opponentTeam[state.opponentPokemonOnField].getHealth())
-				return static_cast<PokemonGen1::BattleAction>(PokemonGen1::Switch1 + state.pokemonOnField);
-
-			if (action)
-				nextAction = PokemonGen1::NoAction;
-			return action;
-		},
-		trainerName,
-		nullptr,
-		false,
-		getenv("MIN_DEBUG")
-	);
-
-	handler.addPokemonToTeam(
-		"",
-		100,
-		PokemonGen1::pokemonList.at(PokemonGen1::Rhydon),
-		std::vector<PokemonGen1::Move>{
-			PokemonGen1::availableMoves[PokemonGen1::Tackle],
-			PokemonGen1::availableMoves[PokemonGen1::Tail_Whip]
+	state.rng.makeRandomList(9);
+	state.battleLogger = [](const std::string &){};
+	state.me.team.emplace_back(
+		state.rng, state.battleLogger, "", 100,
+		pokemonList.at(Rhydon),
+		std::vector<Move>{
+			availableMoves[Tackle],
+			availableMoves[Tail_Whip]
 		}
 	);
 	std::cout << "Type help for help" << std::endl;
-	handler.setReady(false);
 	while (loop) {
 		future = std::async(getAnswer);
 		do {
-			if (handler.getStage() == PokemonGen1::BATTLE)
-				handler.setReady(false);
+			if (emulator && emulator->getStage() == EmulatorGameHandle::BATTLE)
+				emulator->setReady(false);
 		} while (future.wait_for(std::chrono::seconds(1)) != std::future_status::ready);
-
-		loop = handleCommand(future.get(), handler, nextAction);
+		loop = handleCommand(future.get(), emulator, battle, state);
 	}
 }

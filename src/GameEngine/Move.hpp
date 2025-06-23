@@ -143,7 +143,9 @@
 
 #define HEAL_HALF_HEALTH_DESC "Heal half max HP"
 #define HEAL_HALF_HEALTH [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
-	if (owner.getHealth() == owner.getMaxHealth())\
+        unsigned h = owner.getHealth();\
+        unsigned m = owner.getMaxHealth();\
+        if ((h & 0xFF) - (m & 0xFF) - ((h >> 8) < (m >> 8)) == 0)\
 		return logger("But it failed"), true;\
 	owner.takeDamage(-(owner.getMaxHealth() / 2));\
 	logger(owner.getName() + " regained health");\
@@ -152,6 +154,10 @@
 
 #define HEAL_ALL_HEALTH_AND_SLEEP_DESC "Heal all lost HP and sleep for 2 turns"
 #define HEAL_ALL_HEALTH_AND_SLEEP [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+        unsigned h = owner.getHealth();\
+        unsigned m = owner.getMaxHealth();\
+        if ((h & 0xFF) - (m & 0xFF) - ((h >> 8) < (m >> 8)) == 0)\
+		return logger("But it failed"), true;\
 	owner.takeDamage(-owner.getMaxHealth());\
 	owner.setStatus(STATUS_ASLEEP, 2);\
 	logger(owner.getName() + " started sleeping");\
@@ -197,8 +203,12 @@
 }, USE_RANDOM_MOVE_DESC
 
 #define USE_LAST_FOE_MOVE_DESC "Use last foe's used move"
-#define USE_LAST_FOE_MOVE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
-	owner.useMove(target.getLastUsedMove(), target);\
+#define USE_LAST_FOE_MOVE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+	auto &move = target.getLastUsedMove();\
+	if (move.getID() == 0)\
+		logger("But it failed");\
+	else\
+		owner.useMove(availableMoves[move.getID()], target);\
 	return true;\
 }, USE_LAST_FOE_MOVE_DESC
 
@@ -331,10 +341,13 @@ namespace PokemonGen1
 		const std::string &getDescription() const;
 		char getPriority() const;
 		bool isFinished() const;
+		unsigned char getHitsLeft() const;
 
 		void glitch();
 		void setPP(unsigned char pp);
 		void setPPUp(unsigned char nb);
+		void setHitsLeft(unsigned char nb);
+		void reset();
 
 		bool attack(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger);
 	};

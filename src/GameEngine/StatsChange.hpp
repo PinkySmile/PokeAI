@@ -10,20 +10,17 @@
 
 namespace PokemonGen1
 {
-	class UpgradableStats;
-
 	enum StatsChange {
 		STATS_ATK,
 		STATS_DEF,
 		STATS_SPD,
 		STATS_SPE,
-		STATS_ESQ,
+		STATS_EVD,
 		STATS_ACC,
 	};
 
 	std::string statToString(StatsChange stat);
 	std::string statToLittleString(StatsChange stat);
-	unsigned char getStat(const class UpgradableStats &stats, StatsChange stat);
 }
 
 

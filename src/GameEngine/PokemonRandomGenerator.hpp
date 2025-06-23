@@ -12,16 +12,20 @@ namespace PokemonGen1
 {
 	class PokemonRandomGenerator {
 	private:
-		std::mt19937			_random;
-		unsigned			_currentIndex = 0;
-		std::vector<unsigned char>	_numbers;
+		std::mt19937 _random;
+		unsigned _currentIndex = 0;
+		std::vector<unsigned char> _numbersBase;
+		std::vector<unsigned char> _numbers;
 
 	public:
 		PokemonRandomGenerator();
 
 		void makeRandomList(unsigned int size);
 		void setList(const std::vector<unsigned char> &list);
-		const std::vector<unsigned char> &getList();
+		const std::vector<unsigned char> &getList() const;
+		unsigned getIndex() const;
+		void setIndex(unsigned index);
+		void reset();
 		unsigned char operator()();
 	};
 }
