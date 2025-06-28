@@ -14,6 +14,7 @@
 #include "../AIs/AIHeuristic.hpp"
 #include "../GameEngine/EmulatorGameHandle.hpp"
 #include "../GameEngine/Team.hpp"
+#include "../AIs/AIFactory.hpp"
 
 using namespace PokemonGen1;
 
@@ -33,8 +34,29 @@ std::string intToHex(unsigned char i)
 	return stream.str();
 }
 
-void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, std::unique_ptr<EmulatorGameHandle> &emulator, BattleHandler &game, BattleResources &resources, unsigned char &ai);
-void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, std::unique_ptr<EmulatorGameHandle> &emulator, BattleHandler &game, BattleResources &resources, unsigned index, tgui::Panel::Ptr panel, Pokemon &pkmn, unsigned char &ai);
+void makeMainMenuGUI(
+	sf::RenderWindow &window,
+	tgui::Gui &gui,
+	std::unique_ptr<EmulatorGameHandle> &emulator,
+	BattleHandler &game,
+	BattleResources &resources,
+	std::pair<unsigned char, unsigned char> &aisSelected,
+	bool &side,
+	bool &ready
+);
+void populatePokemonPanel(
+	sf::RenderWindow &window,
+	tgui::Gui &gui,
+	std::unique_ptr<EmulatorGameHandle> &emulator,
+	BattleHandler &game,
+	BattleResources &resources,
+	tgui::Panel::Ptr panel,
+	unsigned index,
+	std::vector<Pokemon> &team,
+	std::pair<unsigned char, unsigned char> &aisSelected,
+	bool &side,
+	bool &ready
+);
 
 void moveMovePanels(const std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>> &panels)
 {
@@ -337,7 +359,19 @@ void applyPkmnsFilters(unsigned sorting, std::string query, const std::string &t
 	std::sort(panels.begin(), panels.end(), sortingAlgos[sorting]);
 }
 
-void openChangePkmnBox(tgui::Gui &gui, BattleHandler &game, std::unique_ptr<EmulatorGameHandle> &emulator, BattleResources &resources, unsigned index, Pokemon &pkmn, sf::RenderWindow &window, tgui::Panel::Ptr pkmnPan, unsigned char &ai)
+void openChangePkmnBox(
+	tgui::Gui &gui,
+	BattleHandler &game,
+	std::unique_ptr<EmulatorGameHandle> &emulator,
+	BattleResources &resources,
+	unsigned index,
+	Pokemon &pkmn,
+	sf::RenderWindow &window,
+	tgui::Panel::Ptr pkmnPan,
+	std::pair<unsigned char, unsigned char> &aisSelected,
+	bool &side,
+	bool &ready
+)
 {
 	auto &state = game.getBattleState();
 	auto bigPan = tgui::Panel::create({"100%", "100%"});
@@ -437,10 +471,10 @@ void openChangePkmnBox(tgui::Gui &gui, BattleHandler &game, std::unique_ptr<Emul
 		spe->setText(std::to_string(stats.SPE));
 		sprite->setImage(resources.pokemonsFront[base.id]);
 
-		sprite->onClick.connect([&emulator, &state, &ai, &window, &resources, &gui, index, &pkmn, &game, &base](std::weak_ptr<tgui::Panel> pkmnPan, std::weak_ptr<tgui::Panel> bigPan){
+		sprite->onClick.connect([&emulator, &state, &aisSelected, &side, &window, &resources, &gui, index, &pkmn, &game, &base, &ready](std::weak_ptr<tgui::Panel> pkmnPan, std::weak_ptr<tgui::Panel> bigPan){
 			state.me.team.at(index) = Pokemon(state.rng, state.battleLogger, pkmn.getNickname(), pkmn.getLevel(), base, pkmn.getMoveSet());
 			gui.remove(bigPan.lock());
-			populatePokemonPanel(window, gui, emulator, game, resources, index, pkmnPan.lock(), state.me.team.at(index), ai);
+			populatePokemonPanel(window, gui, emulator, game, resources, pkmnPan.lock(), index, state.me.team, aisSelected, side, ready);
 		}, std::weak_ptr(pkmnPan), std::weak_ptr(bigPan));
 
 		type1->setPosition(115, 152);
@@ -458,11 +492,23 @@ void openChangePkmnBox(tgui::Gui &gui, BattleHandler &game, std::unique_ptr<Emul
 	gui.add(bigPan);
 }
 
-void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, std::unique_ptr<EmulatorGameHandle> &emulator, BattleHandler &game, BattleResources &resources, unsigned index, tgui::Panel::Ptr panel, Pokemon &pkmn, unsigned char &ai)
+void populatePokemonPanel(
+	sf::RenderWindow &window,
+	tgui::Gui &gui,
+	std::unique_ptr<EmulatorGameHandle> &emulator,
+	BattleHandler &game,
+	BattleResources &resources,
+	tgui::Panel::Ptr panel,
+	unsigned index,
+	std::vector<Pokemon> &team,
+	std::pair<unsigned char, unsigned char> &aisSelected,
+	bool &side,
+	bool &ready
+)
 {
 	panel->loadWidgetsFromFile("assets/pkmnPanel.gui");
 
-	auto &state = game.getBattleState();
+	auto &pkmn = team[index];
 	auto type1 = tgui::Picture::create(resources.types[typeToString(pkmn.getTypes().first)]);
 	auto type2 = tgui::Picture::create(resources.types[typeToString(pkmn.getTypes().second)]);
 	auto sprite = panel->get<tgui::BitmapButton>("Species");
@@ -529,12 +575,12 @@ void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, std::unique_
 		spd.lock()->setText(std::to_string(pkmn.getBaseStats().SPD));
 		spe.lock()->setText(std::to_string(pkmn.getBaseStats().SPE));
 	}, std::weak_ptr(level), std::weak_ptr(hp), std::weak_ptr(atk), std::weak_ptr(def), std::weak_ptr(spd), std::weak_ptr(spe));
-	remove->onClick.connect([&emulator, &state, &ai, index, &window, &gui, &game, &resources]{
-		state.me.team.erase(state.me.team.begin() + index);
-		makeMainMenuGUI(window, gui, emulator, game, resources, ai);
+	remove->onClick.connect([&emulator, &team, &aisSelected, &side, index, &window, &gui, &game, &resources, &ready]{
+		team.erase(team.begin() + index);
+		makeMainMenuGUI(window, gui, emulator, game, resources, aisSelected, side, ready);
 	});
-	sprite->onClick.connect([&emulator, &ai, &gui, &game, &resources, index, &pkmn, &window](std::weak_ptr<tgui::Panel> panel){
-		openChangePkmnBox(gui, game, emulator, resources, index, pkmn, window, panel.lock(), ai);
+	sprite->onClick.connect([&emulator, &aisSelected, &side, &gui, &game, &resources, index, &pkmn, &window, &ready](std::weak_ptr<tgui::Panel> panel){
+		openChangePkmnBox(gui, game, emulator, resources, index, pkmn, window, panel.lock(), aisSelected, side, ready);
 	}, std::weak_ptr(panel));
 
 	type1->setPosition(5, 100);
@@ -546,43 +592,63 @@ void populatePokemonPanel(sf::RenderWindow &window, tgui::Gui &gui, std::unique_
 	panel->add(type2);
 }
 
-void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, std::unique_ptr<EmulatorGameHandle> &emulator, BattleHandler &game, BattleResources &resources, unsigned char &ai)
+void makeMainMenuGUI(
+	sf::RenderWindow &window,
+	tgui::Gui &gui,
+	std::unique_ptr<EmulatorGameHandle> &emulator,
+	BattleHandler &game,
+	BattleResources &resources,
+	std::pair<unsigned char, unsigned char> &aisSelected,
+	bool &side,
+	bool &ready
+)
 {
 	gui.loadWidgetsFromFile("assets/mainMenu.gui");
 
 	auto &state = game.getBattleState();
-	auto aiLabel = gui.get<tgui::Label>("SelectedAI");
-	auto fct = [aiLabel, &ai](std::weak_ptr<tgui::Button> but, unsigned char nb) {
-		ai = nb;
-		aiLabel->setText("Selected AI: " + but.lock()->getText());
-	};
-	auto noAi = gui.get<tgui::Button>("AI0");
-	auto Ai1 = gui.get<tgui::Button>("AI1");
+	PlayerState &player = side ? state.op : state.me;
+	unsigned char &aiSelected = side ? aisSelected.second : aisSelected.first;
+	auto ai = gui.get<tgui::ComboBox>("AI");
+	auto switchSide = gui.get<tgui::Button>("SwitchSide");
 	auto connect = gui.get<tgui::Button>("Connect");
 	auto ip = gui.get<tgui::EditBox>("IP");
 	auto port = gui.get<tgui::EditBox>("Port");
 	auto error = gui.get<tgui::TextArea>("Error");
 	auto team = gui.get<tgui::Panel>("Team");
-	auto ready = gui.get<tgui::Button>("Ready");
-	auto name = gui.get<tgui::EditBox>("Name");
+	auto readyButton = gui.get<tgui::Button>("Ready");
 	auto load = gui.get<tgui::Button>("Load");
 	auto save = gui.get<tgui::Button>("Save");
 	auto teamPanel = gui.get<tgui::Panel>("Team");
-	std::vector<tgui::Panel::Ptr> panels{
+	std::array<tgui::Panel::Ptr, 6> panels{
 		teamPanel->get<tgui::Panel>("Pkmn1"),
 		teamPanel->get<tgui::Panel>("Pkmn2"),
 		teamPanel->get<tgui::Panel>("Pkmn3"),
 		teamPanel->get<tgui::Panel>("Pkmn4"),
 		teamPanel->get<tgui::Panel>("Pkmn5"),
-		teamPanel->get<tgui::Panel>("Pkmn6"),
+		teamPanel->get<tgui::Panel>("Pkmn6")
 	};
+	auto name = teamPanel->get<tgui::EditBox>("Name");
 
-	for (auto &pkmn : state.me.team)
+	switchSide->setText(side ? "Opponent side" : "Player side");
+	if (emulator) {
+		switchSide->setEnabled(false);
+		port->setEnabled(false);
+		ip->setEnabled(false);
+	}
+	ai->removeAllItems();
+	for (auto &s : AIFactory::getList())
+		ai->addItem(s);
+	ai->setSelectedItemByIndex(aiSelected);
+	for (auto &pkmn : player.team)
 		pkmn.reset();
-	aiLabel->setText("Selected AI: " + gui.get<tgui::Button>("AI" + std::to_string(ai))->getText());
-	noAi->onClick.connect(fct, std::weak_ptr(noAi), 0);
-	Ai1->onClick.connect(fct, std::weak_ptr(Ai1), 1);
-	save->onClick.connect([&state]{
+	ai->onItemSelect.connect([&aiSelected](unsigned char nb) {
+		aiSelected = nb;
+	});
+	switchSide->onClick.connect([&window, &gui, &emulator, &game, &resources, &aisSelected, &side, &ready]{
+		side = !side;
+		makeMainMenuGUI(window, gui, emulator, game, resources, aisSelected, side, ready);
+	});
+	save->onClick.connect([&player]{
 		std::string path = Utils::saveFileDialog("Save team", ".", {{".+[.]pkmns", "Pokemon team file"}});
 
 		if (path.empty())
@@ -595,11 +661,11 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, std::unique_ptr<E
 			return;
 		}
 
-		auto data = saveTrainer({state.me.name, state.me.team});
+		auto data = saveTrainer({player.name, player.team});
 
 		stream.write(reinterpret_cast<const char *>(data.data()), data.size());
 	});
-	load->onClick.connect([&ai, &window, &resources, &gui, &game, &state, &emulator]{
+	load->onClick.connect([&aisSelected, &side, &window, &resources, &gui, &game, &state, &player, &emulator, &ready]{
 		std::string path = Utils::openFileDialog("Open team file", ".", {{".+[.]pkmns", "Pokemon team file"}});
 
 		if (path.empty())
@@ -622,9 +688,9 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, std::unique_ptr<E
 		try {
 			auto t = loadTrainer(buffer, state.rng, state.battleLogger);
 
-			state.me.name = t.first;
-			state.me.team = t.second;
-			makeMainMenuGUI(window, gui, emulator, game, resources, ai);
+			player.name = t.first;
+			player.team = t.second;
+			makeMainMenuGUI(window, gui, emulator, game, resources, aisSelected, side, ready);
 		} catch (std::exception &e) {
 			Utils::dispMsg(Utils::getLastExceptionName(), "Cannot load save file \"" + path + "\"\n" + e.what(), MB_ICONERROR);
 		}
@@ -637,27 +703,32 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, std::unique_ptr<E
 	port->onTextChange.connect([](tgui::String str){
 		lastPort = str.toStdString();
 	});
-	ready->setText(emulator && emulator->isReady() ? "You are ready" : "You are not ready");
-	ready->onClick.connect([&emulator, panels, name](std::weak_ptr<tgui::Button> ready){
-		if (!emulator || emulator->getStage() >= EmulatorGameHandle::EXCHANGE_POKEMONS)
+	readyButton->setText(emulator && emulator->isReady() ? "You are ready" : "You are not ready");
+	readyButton->onClick.connect([&emulator, panels, name, &ready](std::weak_ptr<tgui::Button> readyButton){
+		if (!emulator) {
+			ready = true;
+			return;
+		}
+		if (emulator->getStage() >= EmulatorGameHandle::EXCHANGE_POKEMONS)
 			return;
 
 		emulator->setReady(!emulator->isReady());
-		ready.lock()->setText(emulator->isReady() ? "You are ready" : "You are not ready");
+		readyButton.lock()->setText(emulator->isReady() ? "You are ready" : "You are not ready");
 		name->setEnabled(!emulator->isReady());
 		for (auto &panel : panels)
 			for (auto &widget : panel->getWidgets())
 				widget->setEnabled(!emulator->isReady());
-	}, ready);
-	name->setText(state.me.name);
+	}, readyButton);
+	name->setText(player.name);
 	connect->setText(!emulator ? "Connect" : "Disconnect");
-	connect->onClick.connect([&state, &emulator, error, port, ip](std::weak_ptr<tgui::Button> connect){
+	connect->onClick.connect([&state, &emulator, error, port, ip, switchSide, &window, &gui, &game, &resources, &aisSelected, &side, &ready](std::weak_ptr<tgui::Button> connect){
 		error->setText("");
 		if (emulator) {
 			emulator.reset();
 			connect.lock()->setText("Connect");
 			port->setEnabled(true);
 			ip->setEnabled(true);
+			switchSide->setEnabled(true);
 		} else {
 			try {
 				auto p = std::stoul(port->getText().toStdString());
@@ -673,9 +744,9 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, std::unique_ptr<E
 					false,
 					getenv("MIN_DEBUG") != nullptr
 				);
-				emulator->setStage(EmulatorGameHandle::PING_POKEMON_EXCHANGE);
-				port->setEnabled(false);
-				ip->setEnabled(false);
+				aisSelected.second = 0;
+				side = false;
+				makeMainMenuGUI(window, gui, emulator, game, resources, aisSelected, side, ready);
 			} catch (std::invalid_argument &) {
 				error->setText("The port is not a valid number");
 				return;
@@ -689,22 +760,23 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, std::unique_ptr<E
 			connect.lock()->setText("Disconnect");
 		}
 	}, std::weak_ptr(connect));
-	name->onTextChange.connect([&window, &state](tgui::String str){
-		state.me.name = str.toStdString();
-		window.setTitle(state.me.name + " - Preparing battle");
+	name->onTextChange.connect([&window, &player, &side](tgui::String str){
+		player.name = str.toStdString();
+		if (!side)
+			window.setTitle(player.name + " - Preparing battle");
 	});
 
 	for (auto &pkmnPan : panels)
 		pkmnPan->removeAllWidgets();
-	for (unsigned i = 0; i < state.me.team.size(); i++)
-		populatePokemonPanel(window, gui, emulator, game, resources, i, panels[i], state.me.team[i], ai);
-	for (unsigned i = state.me.team.size(); i < 6; i++) {
+	for (unsigned i = 0; i < player.team.size(); i++)
+		populatePokemonPanel(window, gui, emulator, game, resources, panels[i], i, player.team, aisSelected, side, ready);
+	for (unsigned i = player.team.size(); i < 6; i++) {
 		tgui::Button::Ptr but = tgui::Button::create("+");
 
 		but->setPosition(10, 10);
 		but->setSize({"&.w - 20", "&.h - 20"});
-		but->onClick.connect([&emulator, &state, &window, &gui, &game, &resources, &ai]{
-			state.me.team.emplace_back(
+		but->onClick.connect([&player, &emulator, &state, &window, &gui, &game, &resources, &aisSelected, &side, &ready]{
+			player.team.emplace_back(
 				state.rng, state.battleLogger, "", 100,
 				pokemonList.at(Rhydon),
 				std::vector<Move>{
@@ -712,25 +784,27 @@ void makeMainMenuGUI(sf::RenderWindow &window, tgui::Gui &gui, std::unique_ptr<E
 					availableMoves[Tail_Whip]
 				}
 			);
-			makeMainMenuGUI(window, gui, emulator, game, resources, ai);
+			makeMainMenuGUI(window, gui, emulator, game, resources, aisSelected, side, ready);
 		});
 		panels[i]->add(but);
 	}
 }
 
-void mainMenu(sf::RenderWindow &window, std::unique_ptr<EmulatorGameHandle> &emulator, BattleHandler &game, BattleResources &resources, unsigned char &ai)
+void mainMenu(sf::RenderWindow &window, std::unique_ptr<EmulatorGameHandle> &emulator, BattleHandler &game, BattleResources &resources, std::pair<unsigned char, unsigned char> &ai, bool &ready)
 {
+	bool side;
 	tgui::Gui gui{window};
 	auto &state = game.getBattleState();
 
 	if (emulator)
 		emulator->setReady(false);
 
+	ready = false;
 	window.setSize({800, 640});
-	makeMainMenuGUI(window, gui, emulator, game, resources, ai);
+	makeMainMenuGUI(window, gui, emulator, game, resources, ai, side, ready);
 
 	window.setTitle(state.me.name + " - Preparing battle");
-	while (window.isOpen() && (!emulator || emulator->getStage() != EmulatorGameHandle::BATTLE)) {
+	while (window.isOpen() && (!emulator || emulator->getStage() != EmulatorGameHandle::BATTLE) && (!ready || emulator)) {
 		while (auto event = window.pollEvent()) {
 			if (event->is<sf::Event::Closed>())
 				window.close();
@@ -862,15 +936,16 @@ static std::string splitText(std::string str)
 	return result;
 }
 
-
-void gui(const std::string &trainerName, unsigned char aiIndex)
+void gui(const std::string &trainerName)
 {
 	std::vector<std::string> battleLog;
 	std::unique_ptr<EmulatorGameHandle> emulator;
+	std::pair<unsigned char, unsigned char> ais = {0, 0};
 	BattleHandler battleHandler{false, getenv("MIN_DEBUG") != nullptr};
 	auto &state = battleHandler.getBattleState();
 	sf::RenderWindow window{sf::VideoMode{{800, 640}}, trainerName};
 	BattleResources resources;
+	bool ready;
 
 	state.rng.makeRandomList(9);
 	state.battleLogger = [&battleLog](const std::string &msg){
@@ -878,27 +953,35 @@ void gui(const std::string &trainerName, unsigned char aiIndex)
 		battleLog.push_back(splitText(msg));
 	};
 	loadResources(resources);
-	for (int i = 0; i < 6; i++)
-		state.me.team.emplace_back(
-			state.rng, state.battleLogger, "", 100,
-			pokemonList.at(Rhydon),
-			std::vector<Move>{
-				availableMoves[Tackle],
-				availableMoves[Tail_Whip]
-			}
-		);
+	state.me.team.resize(6, {
+		state.rng, state.battleLogger, "", 100,
+		pokemonList.at(Rhydon),
+		std::vector<Move>{
+			availableMoves[Tackle],
+			availableMoves[Tail_Whip]
+		}
+	});
+	state.op.team.resize(6, {
+		state.rng, state.battleLogger, "", 100,
+		pokemonList.at(Rhydon),
+		std::vector<Move>{
+			availableMoves[Tackle],
+			availableMoves[Tail_Whip]
+		}
+	});
 
 	window.setFramerateLimit(60);
 	while (window.isOpen()) {
-		if (!emulator || emulator->getStage() != EmulatorGameHandle::BATTLE)
-			mainMenu(window, emulator, battleHandler, resources, aiIndex);
+		if ((!emulator || emulator->getStage() != EmulatorGameHandle::BATTLE) && (!ready || emulator))
+			mainMenu(window, emulator, battleHandler, resources, ais, ready);
 		else {
 			if (emulator && emulator->getStage() != EmulatorGameHandle::BATTLE) {
 				state.me.nextAction = Run;
 				state.op.nextAction = Run;
 				battleHandler.tick();
 			}
-			battle(window, battleHandler, resources, battleLog, aiIndex);
+			battle(window, battleHandler, resources, battleLog, ais, !emulator);
+			ready = false;
 		}
 	}
 }

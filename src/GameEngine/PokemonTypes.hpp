@@ -45,6 +45,7 @@ namespace PokemonGen1
 	};
 
 	std::string typeToString(PokemonTypes);
+	std::string typeToStringShort(PokemonTypes);
 	double getAttackDamageMultiplier(PokemonTypes attackType, PokemonTypes target);
 	double getAttackDamageMultiplier(PokemonTypes attackType, std::pair<PokemonTypes, PokemonTypes> target);
 }

@@ -222,7 +222,7 @@ namespace PokemonGen1
 		[[nodiscard]] unsigned getRawDefense() const;
 		[[nodiscard]] unsigned getRawSpeed() const;
 		[[nodiscard]] unsigned getHealth() const;
-		[[nodiscard]] std::string getName() const;
+		[[nodiscard]] std::string getName(bool hasEnemy = true) const;
 		[[nodiscard]] std::string getNickname() const;
 		[[nodiscard]] unsigned getMaxHealth() const;
 		[[nodiscard]] double getAccuracy() const;

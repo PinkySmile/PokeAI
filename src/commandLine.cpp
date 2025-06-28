@@ -267,6 +267,7 @@ void commandLine(const std::string &trainerName)
 
 	state.rng.makeRandomList(9);
 	state.battleLogger = [](const std::string &){};
+	state.me.name = trainerName;
 	state.me.team.emplace_back(
 		state.rng, state.battleLogger, "", 100,
 		pokemonList.at(Rhydon),

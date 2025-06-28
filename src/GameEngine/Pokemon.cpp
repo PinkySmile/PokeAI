@@ -272,15 +272,19 @@ namespace PokemonGen1
 	{
 		std::stringstream stream;
 
-		stream << this->getName() << " (" << this->_name << ") level " << static_cast<int>(this->_level);
-		stream << ", Type " << typeToString(this->_types.first);
+		stream << std::setw(10) << this->getName(false) << " (" << std::setw(10) << this->_name << ") l" << std::setw(3) << static_cast<int>(this->_level);
+		stream << ", " << typeToStringShort(this->_types.first);
 		if (this->_types.first != this->_types.second)
-			stream << "/" << typeToString(this->_types.second);
-		stream << ", " << this->getHealth()  << "/" << this->getMaxHealth() << " HP";
-		stream << ", " << this->getAttack()  << "(" << this->getRawAttack()  << ") ATK";
-		stream << ", " << this->getDefense() << "(" << this->getRawDefense() << ") DEF";
-		stream << ", " << this->getSpecial() << "(" << this->getRawSpecial() << ") SPE";
-		stream << ", " << this->getSpeed()   << "(" << this->getRawSpeed()   << ") SPD";
+			stream << "/" << typeToStringShort(this->_types.second);
+		else
+			stream << "    ";
+		stream << ", " << std::setw(3) << this->getHealth()   << "/" << std::setw(3) << this->getMaxHealth() << "HP";
+		stream << ", " << std::setw(3) << this->getAttack()   << "ATK (" << std::setw(3) << this->getRawAttack()  << "@" << std::showpos << static_cast<int>(this->_upgradedStats.ATK) << std::noshowpos << ")";
+		stream << ", " << std::setw(3) << this->getDefense()  << "DEF (" << std::setw(3) << this->getRawDefense() << "@" << std::showpos << static_cast<int>(this->_upgradedStats.DEF) << std::noshowpos << ")";
+		stream << ", " << std::setw(3) << this->getSpecial()  << "SPE (" << std::setw(3) << this->getRawSpecial() << "@" << std::showpos << static_cast<int>(this->_upgradedStats.SPE) << std::noshowpos << ")";
+		stream << ", " << std::setw(3) << this->getSpeed()    << "SPD (" << std::setw(3) << this->getRawSpeed()   << "@" << std::showpos << static_cast<int>(this->_upgradedStats.SPD) << std::noshowpos << ")";
+		stream << ", " << std::setprecision(4) << this->getAccuracy() * 100 << "%ACC (" << std::showpos << static_cast<int>(this->_upgradedStats.ACC) << std::noshowpos << ")";
+		stream << ", " << std::setprecision(4) << this->getEvasion()  * 100 << "%EVD (" << std::showpos << static_cast<int>(this->_upgradedStats.EVD) << std::noshowpos << ")";
 		stream << ", Status: " << std::hex << static_cast<int>(this->_currentStatus) << " ";
 		if (this->_currentStatus) {
 			for (unsigned i = 0; i < sizeof(this->_currentStatus) * 8; i++)
@@ -290,10 +294,19 @@ namespace PokemonGen1
 			stream << "OK, ";
 		stream << "Moves: ";
 		if (this->_moveSet.empty())
-			stream << "No moves, ";
-		for (const Move &move : this->_moveSet)
-			stream << move.getName() << " " << std::dec << static_cast<int>(move.getPP()) << "/" << static_cast<int>(move.getMaxPP()) << "PP, ";
-		return stream.str().substr(0, stream.str().size() - 2);
+			stream << "None";
+
+		bool first = true;
+
+		for (const Move &move : this->_moveSet) {
+			if (move.getID() == 0)
+				continue;
+			if (!first)
+				stream << ", ";
+			stream << move.getName() << " " << std::dec << static_cast<int>(move.getPP()) << "/" << static_cast<int>(move.getMaxPP()) << "PP";
+			first = false;
+		}
+		return stream.str();
 	}
 
 	nlohmann::json Pokemon::serialize() const
@@ -599,8 +612,8 @@ namespace PokemonGen1
 	{
 		std::string statName;
 		auto stats = reinterpret_cast<char *>(&this->_upgradedStats);
-		auto bStats = reinterpret_cast<unsigned *>(&this->_baseStats);
-		auto cStats = reinterpret_cast<unsigned *>(&this->_computedStats);
+		auto bStats = reinterpret_cast<unsigned short *>(&this->_baseStats.ATK);
+		auto cStats = reinterpret_cast<unsigned short *>(&this->_computedStats.ATK);
 
 		if (!nb)
 			return false;
@@ -610,7 +623,7 @@ namespace PokemonGen1
 			(*this->_battleLogger)("Nothing happened");
 			return false;
 		}
-		if (cStats[stat] == 999) {
+		if ((stat == STATS_EVD || stat == STATS_ACC) && cStats[stat] == 999) {
 			(*this->_battleLogger)("Nothing happened");
 			return false;
 		}
@@ -621,7 +634,8 @@ namespace PokemonGen1
 		else if (stats[stat] < -6)
 			stats[stat] = -6;
 
-		cStats[stat] = fmin(999, this->_getUpgradedStat(bStats[stat], stats[stat]));
+		if (stat != STATS_EVD && stat != STATS_ACC)
+			cStats[stat] = fmin(999, this->_getUpgradedStat(bStats[stat], stats[stat]));
 		if (nb < -1)
 			this->_log("'s " + statName + " greatly fell");
 		else if (nb == -1)
@@ -765,13 +779,13 @@ namespace PokemonGen1
 		};
 	}
 
-	std::string Pokemon::getName() const
+	std::string Pokemon::getName(bool hasEnemy) const
 	{
 		std::string str = this->getNickname();
 
 		if (str.empty())
 			str = this->getSpeciesName();
-		if (this->_enemy)
+		if (this->_enemy && hasEnemy)
 			return "Enemy " + str;
 		return str;
 	}
@@ -786,8 +800,8 @@ namespace PokemonGen1
 		return this->_getUpgradedStat(1, -this->_upgradedStats.EVD);
 	}
 
-	#define LOW(b) static_cast<unsigned char>(b & 0xFFU)
-	#define HIGH(b) static_cast<unsigned char>((b >> 8U) & 0xFFU)
+	#define LOW(b) static_cast<unsigned char>((b) & 0xFFU)
+	#define HIGH(b) static_cast<unsigned char>(((b) >> 8U) & 0xFFU)
 	#define SHORT(b) HIGH(b), LOW(b)
 	#define PAIR(b) LOW(b.first), LOW(b.second)
 	#define MOVE(b, i) (b.size() > i ? LOW(b[i].getID()) : static_cast<unsigned char>(0))

@@ -113,6 +113,82 @@ Panel.Team {
         }
     }
 
+    EditBox.Name {
+        DefaultText = "Trainer name";
+        MaximumCharacters = 10;
+        Position = (70, 5);
+        Renderer = &2;
+        Size = (150, 22);
+        TextSize = 13;
+    }
+
+    Button.SwitchSide {
+        Position = ((&.w - w) - 5, 5);
+        Renderer = &1;
+        Text = "Player side";
+        TextSize = 13;
+    }
+
+    ComboBox.AI {
+        ChangeItemOnScroll = false;
+        ItemsToDisplay = 0;
+        MaximumItems = 0;
+        Position = (290, 5);
+        Size = (150, 21);
+        TextSize = 13;
+
+        Renderer {
+            ArrowBackgroundColor = #F5F5F5;
+            ArrowBackgroundColorHover = white;
+            ArrowColor = #3C3C3C;
+            ArrowColorHover = black;
+            BackgroundColor = #F5F5F5;
+            BackgroundColorDisabled = #E6E6E6;
+            BorderColor = black;
+            Borders = (1, 1, 1, 1);
+            Padding = (0, 0, 0, 0);
+            TextColor = #3C3C3C;
+            TextColorDisabled = #7D7D7D;
+            TextureArrow = None;
+            TextureArrowDisabled = None;
+            TextureArrowHover = None;
+            TextureBackground = None;
+            TextureBackgroundDisabled = None;
+
+            ListBox {
+                BackgroundColor = #F5F5F5;
+                BackgroundColorHover = white;
+                BorderColor = black;
+                Borders = (1, 1, 1, 1);
+                Padding = (0, 0, 0, 0);
+                SelectedBackgroundColor = #006EFF;
+                SelectedBackgroundColorHover = #1E96FF;
+                SelectedTextColor = white;
+                TextColor = #3C3C3C;
+                TextColorHover = black;
+                TextureBackground = None;
+
+                Scrollbar {
+                    ArrowBackgroundColor = #F5F5F5;
+                    ArrowBackgroundColorHover = white;
+                    ArrowColor = #3C3C3C;
+                    ArrowColorHover = black;
+                    TextureArrowDown = None;
+                    TextureArrowDownHover = None;
+                    TextureArrowUp = None;
+                    TextureArrowUpHover = None;
+                    TextureThumb = None;
+                    TextureThumbHover = None;
+                    TextureTrack = None;
+                    TextureTrackHover = None;
+                    ThumbColor = #DCDCDC;
+                    ThumbColorHover = #E6E6E6;
+                    TrackColor = #F5F5F5;
+                }
+            }
+        }
+    }
+
     Panel.Pkmn1 {
         Position = (10, 30);
         Renderer = &3;
@@ -199,15 +275,6 @@ TextArea.Status {
     }
 }
 
-EditBox.Name {
-    DefaultText = "Trainer name";
-    MaximumCharacters = 10;
-    Position = (10, 500);
-    Renderer = &2;
-    Size = (150, 22);
-    TextSize = 13;
-}
-
 TextArea.Error {
     Enabled = false;
     HorizontalScrollbarPolicy = Never;
@@ -262,7 +329,7 @@ ProgressBar.Progress {
 }
 
 Button.Load {
-    Position = (10, 470);
+    Position = (10, 500);
     Renderer = &1;
     Size = (70, 22);
     Text = Load;
@@ -270,59 +337,40 @@ Button.Load {
 }
 
 Button.Save {
-    Position = (90, 470);
+    Position = (90, 500);
     Renderer = &1;
     Size = (70, 22);
     Text = Save;
     TextSize = 13;
 }
 
-Button.AI0 {
-    Position = (10, 440);
-    Renderer = &1;
+Button.LoadState {
+    Position = (10, 470);
     Size = (150, 22);
-    Text = "No AI";
-    TextSize = 13;
-}
-
-Button.AI1 {
-    Position = (10, 410);
-    Renderer = &1;
-    Size = (150, 22);
-    Text = "Heuristic AI";
-    TextSize = 13;
-}
-
-Label.SelectedAI {
-    AutoSize = true;
-    Position = (10, 385);
-    Size = (118, 17);
-    Text = "Selected AI: No AI";
+    Text = "Load state";
     TextSize = 13;
 
     Renderer {
-        BackgroundColor = transparent;
+        BackgroundColor = #F5F5F5;
+        BackgroundColorDisabled = #E6E6E6;
+        BackgroundColorDown = #EBEBEB;
+        BackgroundColorHover = white;
         BorderColor = #3C3C3C;
-        Borders = (0, 0, 0, 0);
-        TextColor = white;
-        TextureBackground = None;
-
-        Scrollbar {
-            ArrowBackgroundColor = #F5F5F5;
-            ArrowBackgroundColorHover = white;
-            ArrowColor = #3C3C3C;
-            ArrowColorHover = black;
-            TextureArrowDown = None;
-            TextureArrowDownHover = None;
-            TextureArrowUp = None;
-            TextureArrowUpHover = None;
-            TextureThumb = None;
-            TextureThumbHover = None;
-            TextureTrack = None;
-            TextureTrackHover = None;
-            ThumbColor = #DCDCDC;
-            ThumbColorHover = #E6E6E6;
-            TrackColor = #F5F5F5;
-        }
+        BorderColorDisabled = #7D7D7D;
+        BorderColorDown = black;
+        BorderColorFocused = #1E1EB4;
+        BorderColorHover = black;
+        Borders = (1, 1, 1, 1);
+        TextColor = #3C3C3C;
+        TextColorDisabled = #7D7D7D;
+        TextColorDown = black;
+        TextColorHover = black;
+        Texture = None;
+        TextureDisabled = None;
+        TextureDown = None;
+        TextureDownFocused = None;
+        TextureDownHover = None;
+        TextureFocused = None;
+        TextureHover = None;
     }
 }

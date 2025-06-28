@@ -29,15 +29,17 @@ namespace PokemonGen1
 		Run,
 	};
 
+	std::string BattleActionToString(BattleAction action);
+
 	typedef std::array<bool, 4> MovesDiscovered;
 	typedef std::pair<bool, MovesDiscovered> PkmnDiscovered;
 	typedef std::function<void (const std::string &message)> BattleLogger;
 
 	struct PlayerState {
 		std::string name;
-		BattleAction lastAction;
-		BattleAction nextAction;
-		unsigned char pokemonOnField;
+		BattleAction lastAction = NoAction;
+		BattleAction nextAction = NoAction;
+		unsigned char pokemonOnField = 0;
 		std::vector<Pokemon> team;
 		std::array<PkmnDiscovered, 6> discovered;
 

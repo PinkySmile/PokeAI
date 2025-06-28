@@ -27,39 +27,6 @@
 
 namespace PokemonGen1
 {
-	static std::string BattleActionToString(BattleAction action)
-	{
-		switch (action) {
-		case Attack1:
-			return "Attack1";
-		case Attack2:
-			return "Attack2";
-		case Attack3:
-			return "Attack3";
-		case Attack4:
-			return "Attack4";
-		case Switch1:
-			return "Switch1";
-		case Switch2:
-			return "Switch2";
-		case Switch3:
-			return "Switch3";
-		case Switch4:
-			return "Switch4";
-		case Switch5:
-			return "Switch5";
-		case Switch6:
-			return "Switch6";
-		case StruggleMove:
-			return "StruggleMove";
-		case Run:
-			return "Run";
-		case NoAction:
-			break;
-		}
-		return "Unknown";
-	}
-
 	BattleAction AIHeuristic::getNextMove(const BattleState &state)
 	{
 		std::map<BattleAction, float> scores{

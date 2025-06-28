@@ -324,6 +324,44 @@ namespace PokemonGen1
 		}
 	}
 
+	std::string typeToStringShort(PokemonTypes type)
+	{
+		switch (type) {
+		case TYPE_NORMAL:
+			return "Nor";
+		case TYPE_FIGHTING:
+			return "Fgt";
+		case TYPE_FLYING:
+			return "Fly";
+		case TYPE_POISON:
+			return "Psn";
+		case TYPE_GROUND:
+			return "Gnd";
+		case TYPE_ROCK:
+			return "Roc";
+		case TYPE_BUG:
+			return "Bug";
+		case TYPE_GHOST:
+			return "Gst";
+		case TYPE_FIRE:
+			return "Fre";
+		case TYPE_WATER:
+			return "Wtr";
+		case TYPE_GRASS:
+			return "Grs";
+		case TYPE_ELECTRIC:
+			return "Elc";
+		case TYPE_PSYCHIC:
+			return "Psy";
+		case TYPE_ICE:
+			return "Ice";
+		case TYPE_DRAGON:
+			return "Dgn";
+		default:
+			return "???";
+		}
+	}
+
 	double getAttackDamageMultiplier(PokemonTypes attackType, PokemonTypes target)
 	{
 		try {

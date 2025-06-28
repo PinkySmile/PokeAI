@@ -367,7 +367,7 @@ namespace PokemonGen1
 	{
 		this->_log("Decrypting received packet");
 		if (this->_logMsg)
-			EmulatorGameHandle:_displayPacket(this->_receiveBuffer);
+			EmulatorGameHandle::_displayPacket(this->_receiveBuffer);
 
 		for (unsigned i = 0; i < this->_receiveBuffer.size(); i++) {
 			if (this->_receiveBuffer[i] == UNAVAILABLE_BYTE) {
@@ -478,7 +478,7 @@ namespace PokemonGen1
 		this->_log("Packet ready");
 		if (this->_logMsg)
 			for (auto &p : packet)
-				EmulatorGameHandle:_displayPacket(p);
+				EmulatorGameHandle::_displayPacket(p);
 		return packet;
 	}
 

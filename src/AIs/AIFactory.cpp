@@ -9,11 +9,18 @@ namespace PokemonGen1
 {
 	AI *AIFactory::create(unsigned id)
 	{
-		switch (id) {
-		case 1:
-			return new AIHeuristic();
-		default:
+		if (id == 0)
 			return nullptr;
-		}
+		if (id == 1)
+			return new AIHeuristic();
+		return nullptr;
+	}
+
+	std::vector<std::string> AIFactory::getList()
+	{
+		return {
+			"No AI",
+			"Heuristic AI"
+		};
 	}
 }

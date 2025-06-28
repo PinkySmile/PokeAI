@@ -18,8 +18,15 @@ namespace PokemonGen1
 		};
 		this->_state.onBattleStart = [this] {
 			this->logBattle(this->_state.op.name + " wants to fight");
-			this->logBattle(this->_state.op.name + " sent out " + this->_state.op.team[0].getNickname());
+			this->logBattle(this->_state.op.name + " sent out " + this->_state.op.team[0].getName(false));
 			this->logBattle(this->_state.me.team[0].getName() + " go");
+			this->_log("Game start!");
+			this->_log(this->_state.me.name + "'s team (P1)");
+			for (const Pokemon &pkmn : this->_state.me.team)
+				this->_log(pkmn.dump());
+			this->_log(this->_state.op.name + "'s team (P2)");
+			for (const Pokemon &pkmn : this->_state.op.team)
+				this->_log(pkmn.dump());
 		};
 		this->_state.onTurnStart = [this]{
 			return this->tick();
@@ -103,10 +110,10 @@ namespace PokemonGen1
 			case Switch6:
 				if (!p1Fainted) {
 					this->_state.me.team[this->_state.me.pokemonOnField].switched();
-					this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName() + " come back");
+					this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName(false) + " come back");
 				}
 				this->_state.me.pokemonOnField = this->_state.me.nextAction - Switch1;
-				this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName() + " go");
+				this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName(false) + " go");
 				break;
 			case Attack1:
 			case Attack2:
@@ -124,7 +131,7 @@ namespace PokemonGen1
 		if (p2Fainted || !p1Fainted)
 			switch (this->_state.op.nextAction) {
 			case Run:
-				this->logBattle(this->_state.op.team[this->_state.op.pokemonOnField].getName() + " ran");
+				this->logBattle(this->_state.op.name + " ran");
 				this->_finished = true;
 				return;
 			case Switch1:
@@ -135,10 +142,10 @@ namespace PokemonGen1
 			case Switch6:
 				if (!p2Fainted) {
 					this->_state.op.team[this->_state.op.pokemonOnField].switched();
-					this->logBattle(this->_state.op.name + " withdrew " + this->_state.op.team[this->_state.op.pokemonOnField].getNickname());
+					this->logBattle(this->_state.op.name + " withdrew " + this->_state.op.team[this->_state.op.pokemonOnField].getName(false));
 				}
 				this->_state.op.pokemonOnField = this->_state.op.nextAction - Switch1;
-				this->logBattle(this->_state.op.name + " sent out " + this->_state.op.team[this->_state.op.pokemonOnField].getNickname());
+				this->logBattle(this->_state.op.name + " sent out " + this->_state.op.team[this->_state.op.pokemonOnField].getName(false));
 				break;
 			case Attack1:
 			case Attack2:
@@ -181,14 +188,25 @@ namespace PokemonGen1
 			return false;
 		if (this->_state.me.nextAction == NoAction || this->_state.op.nextAction == NoAction)
 			throw std::runtime_error("No action selected");
+		this->_log("P1 will do " + BattleActionToString(this->_state.me.nextAction));
+		this->_log("P2 will do " + BattleActionToString(this->_state.op.nextAction));
 		this->_executeBattleActions();
+		this->_log(this->_state.me.name + "'s team (P1)");
+		for (const Pokemon &pkmn : this->_state.me.team)
+			this->_log(pkmn.dump());
+		this->_log(this->_state.op.name + "'s team (P2)");
+		for (const Pokemon &pkmn : this->_state.op.team)
+			this->_log(pkmn.dump());
+		this->_log("Game is " + std::string(this->_finished ? "" : "NOT ") + "finished");
+		this->_state.me.nextAction = NoAction;
+		this->_state.op.nextAction = NoAction;
 		return this->_finished;
 	}
 
 	void BattleHandler::_log(const std::string &msg)
 	{
 		if (this->_logMessages || msg.substr(0, 7) == "Warning")
-			(msg.substr(0, 7) == "Warning" ? std::cerr : std::cout) << "[Gen1BattleHandler]: " << msg << std::endl;
+			(msg.substr(0, 7) == "Warning" ? std::cerr : std::cout) << "[Gen1Battle]: " << msg << std::endl;
 	}
 
 	bool BattleHandler::isFinished() const

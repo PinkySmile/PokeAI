@@ -57,7 +57,7 @@ void displayOpponentStats(sf::RenderWindow &window, sf::Text &text, sf::Rectangl
 		drawSprite(window, sprite, resources.levelSprite, 124, 32);
 		drawText(window, text, std::to_string(pkmn.getLevel()), 156, 30);
 	}
-	drawText(window, text, pkmn.getNickname(), 32, -2);
+	drawText(window, text, pkmn.getName(false), 32, -2);
 }
 
 void displayMyStats(sf::RenderWindow &window, sf::Text &text, sf::RectangleShape rect, sf::Sprite &sprite, BattleResources &resources, const Pokemon &pkmn)
@@ -88,7 +88,7 @@ void displayMyStats(sf::RenderWindow &window, sf::Text &text, sf::RectangleShape
 		drawSprite(window, sprite, resources.levelSprite, 412, 256);
 		drawText(window, text, std::to_string(pkmn.getLevel()), 444, 254);
 	}
-	drawText(window, text, pkmn.getName(), 320, 222);
+	drawText(window, text, pkmn.getName(false), 320, 222);
 
 	drawText(window, text, std::to_string(pkmn.getHealth()), 450 - std::to_string(pkmn.getHealth()).size() * 32, 318);
 	drawText(window, text, "/", 450, 318);
@@ -229,9 +229,10 @@ void executeBattleStartAnimation(sf::RenderWindow &window, const std::string &tr
 }
 
 //TODO: Rewrite all of this mess
-void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &resources, std::vector<std::string> &log, unsigned char aiNb)
+void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &resources, std::vector<std::string> &log, std::pair<unsigned char, unsigned char> aiNb, bool updateManually)
 {
-	auto ai = std::unique_ptr<AI>(AIFactory::create(aiNb));
+	auto ai1 = std::unique_ptr<AI>(AIFactory::create(aiNb.first));
+	auto ai2 = std::unique_ptr<AI>(AIFactory::create(aiNb.second));
 	int menu = 0;
 	sf::RectangleShape rect;
 	sf::Sprite sprite{resources.boxes[0]};
@@ -242,6 +243,8 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 	auto &state = game.getBattleState();
 	std::string trainerName = state.me.name;
 
+	if (updateManually)
+		state.onBattleStart();
 	window.setSize({640, 576});
 	window.setView(view);
 	text.setCharacterSize(32);
@@ -250,7 +253,7 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 	window.setTitle(trainerName + " - Challenging " + state.op.name);
 	executeBattleStartAnimation(window, trainerName, resources, log, state);
 	clock.restart();
-	while (window.isOpen() && !game.isFinished()) {
+	while (window.isOpen() && (!game.isFinished() || !log.empty())) {
 		if (!log.empty()) {
 			if (menu != 4)
 				clock.restart();
@@ -264,7 +267,15 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 			if (event->is<sf::Event::Closed>())
 				window.close();
 			else if (auto keyEvent = event->getIf<sf::Event::KeyPressed>()) {
-				if (ai)
+				if (keyEvent->code == sf::Keyboard::Key::Escape) {
+					state.me.nextAction = Run;
+					state.op.nextAction = Run;
+					state.onTurnStart();
+					log.clear();
+					if (menu >= 4)
+						menu -= 4;
+				}
+				if (ai1)
 					continue;
 				if (keyEvent->code == sf::Keyboard::Key::Up || keyEvent->code == sf::Keyboard::Key::Down) {
 					if (menu == 0) {
@@ -331,8 +342,10 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 		if (menu == 0) {
 			drawSprite(window, sprite, resources.choicesHUD, 256, 384);
 			drawSprite(window, sprite, resources.arrows[1], 288 + 192 * (selectedMenu % 2), 448 + 64 * (selectedMenu / 2));
-			if (ai)
-				state.me.nextAction = ai->getNextMove(state);
+			if (ai1 && state.me.nextAction == NoAction)
+				state.me.nextAction = ai1->getNextMove(state);
+			if (ai2 && state.op.nextAction == NoAction)
+				state.op.nextAction = ai2->getNextMove(state);
 		} else if (menu == 1) {
 			auto move = state.me.team[state.me.pokemonOnField].getMoveSet()[selectedMenu];
 
@@ -386,6 +399,8 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 			if (log.empty()) {
 				drawSprite(window, sprite, resources.waitingHUD, 96, 320);
 				drawText(window, text, "Waiting...", 128, 352);
+				if (updateManually && state.op.nextAction)
+					state.onTurnStart();
 			} else {
 				clock.restart();
 				menu = 4 + (state.me.team[state.me.pokemonOnField].getHealth() == 0) * 2;
@@ -402,6 +417,7 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 		}
 		window.display();
 	}
+	state.onBattleEnd();
 	resources.start.stop();
 	resources.loop.stop();
 

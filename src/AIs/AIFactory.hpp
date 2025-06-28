@@ -13,6 +13,7 @@ namespace PokemonGen1
 	class AIFactory {
 	public:
 		static AI *create(unsigned id);
+		static std::vector<std::string> getList();
 	};
 }
 
