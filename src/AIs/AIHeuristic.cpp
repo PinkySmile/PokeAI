@@ -27,7 +27,7 @@
 
 namespace PokemonGen1
 {
-	BattleAction AIHeuristic::getNextMove(const BattleState &state)
+	BattleAction AIHeuristic::getNextMove(const BattleState &state, bool side)
 	{
 		std::map<BattleAction, float> scores{
 			{ Attack1, -std::numeric_limits<double>::infinity() },
@@ -43,13 +43,16 @@ namespace PokemonGen1
 			{ StruggleMove, -std::numeric_limits<double>::infinity() },
 			{ Run, 0 },
 		};
-		const auto &me = state.me.team[state.me.pokemonOnField];
-		const auto &opponent = state.op.team[state.op.pokemonOnField];
+		const auto &mySide = side ? state.op : state.me;
+		const auto &opSide = side ? state.me : state.op;
+
+		const auto &me = mySide.team[mySide.pokemonOnField];
+		const auto &opponent = opSide.team[opSide.pokemonOnField];
 		const auto &moves = me.getMoveSet();
 		//const auto &opponentMoves = opponent.getMoveSet();
 		unsigned char unusableMoves = 0;
 
-		for (unsigned i = state.me.team.size(); i < 6; i++)
+		for (unsigned i = mySide.team.size(); i < 6; i++)
 			scores[static_cast<BattleAction>(Switch1 + i)] = -std::numeric_limits<double>::infinity();
 
 		for (const auto & move : moves)
@@ -60,11 +63,11 @@ namespace PokemonGen1
 		if (unusableMoves == 4 && getAttackDamageMultiplier(TYPE_NORMAL, opponent.getTypes()) != 0)
 			scores[StruggleMove] = 2;
 
-		for (unsigned i = 0; i < state.me.team.size(); i++) {
-			const auto &pkmn = state.me.team[i];
+		for (unsigned i = 0; i < mySide.team.size(); i++) {
+			const auto &pkmn = mySide.team[i];
 			auto &score = scores[static_cast<BattleAction>(Switch1 + i)];
 
-			if (!pkmn.getHealth() || i == state.me.pokemonOnField) {
+			if (!pkmn.getHealth() || i == mySide.pokemonOnField) {
 				score = -std::numeric_limits<double>::infinity();
 				continue;
 			}

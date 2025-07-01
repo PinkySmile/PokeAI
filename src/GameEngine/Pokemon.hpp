@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <optional>
 #include <map>
 #include <nlohmann/json_fwd.hpp>
@@ -32,21 +33,24 @@ namespace PokemonGen1
 		};
 
 		struct Base {
-			unsigned char  id;
-			std::string    name;
-			unsigned       HP;
-			unsigned short ATK;
-			unsigned short DEF;
-			unsigned short SPD;
-			unsigned short SPE;
-			PokemonTypes   typeA;
-			PokemonTypes   typeB;
-			unsigned char  catchRate;
-			unsigned int   baseXpYield;
-			BaseStats      statsAtLevel[256];
+			unsigned char           id;
+			unsigned char           dexId;
+			std::string             name;
+			unsigned                HP;
+			unsigned short          ATK;
+			unsigned short          DEF;
+			unsigned short          SPD;
+			unsigned short          SPE;
+			PokemonTypes            typeA;
+			PokemonTypes            typeB;
+			unsigned char           catchRate;
+			unsigned int            baseXpYield;
+			std::set<AvailableMove> movePool;
+			BaseStats               statsAtLevel[256];
 
 			Base(
 				unsigned char  id,
+				unsigned char  dexId,
 				std::string    name,
 				unsigned       HP,
 				unsigned short ATK,
@@ -56,7 +60,8 @@ namespace PokemonGen1
 				PokemonTypes   typeA,
 				PokemonTypes   typeB,
 				unsigned char  catchRate,
-				unsigned int   baseXpYield
+				unsigned int   baseXpYield,
+				const std::set<AvailableMove> &movePool
 			);
 		};
 
@@ -195,6 +200,7 @@ namespace PokemonGen1
 		void setWrapped(bool isWrapped);
 		void setRecharging(bool recharging = true);
 		void transform(const Pokemon &target);
+		const std::set<AvailableMove> &getLearnableMoveSet() const;
 		[[nodiscard]] std::array<unsigned char, ENCODED_SIZE> encode() const;
 		[[nodiscard]] std::string dump() const;
 		[[nodiscard]] nlohmann::json serialize() const;

@@ -22,7 +22,7 @@ namespace PokemonGen1
 		double _getStatusChangeValue(const Pokemon &owner, StatusChange status);
 
 	public:
-		BattleAction getNextMove(const BattleState &state) override;
+		BattleAction getNextMove(const BattleState &state, bool side) override;
 	};
 }
 

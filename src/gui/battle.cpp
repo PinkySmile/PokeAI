@@ -343,9 +343,9 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 			drawSprite(window, sprite, resources.choicesHUD, 256, 384);
 			drawSprite(window, sprite, resources.arrows[1], 288 + 192 * (selectedMenu % 2), 448 + 64 * (selectedMenu / 2));
 			if (ai1 && state.me.nextAction == NoAction)
-				state.me.nextAction = ai1->getNextMove(state);
+				state.me.nextAction = ai1->getNextMove(state, false);
 			if (ai2 && state.op.nextAction == NoAction)
-				state.op.nextAction = ai2->getNextMove(state);
+				state.op.nextAction = ai2->getNextMove(state, true);
 		} else if (menu == 1) {
 			auto move = state.me.team[state.me.pokemonOnField].getMoveSet()[selectedMenu];
 
@@ -406,8 +406,8 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 				menu = 4 + (state.me.team[state.me.pokemonOnField].getHealth() == 0) * 2;
 			}
 		} else if (menu >= 4) {
-			drawText(window, text, log[0].substr(0, clock.getElapsedTime().asSeconds() * 15), 32, 440);
-			if (clock.getElapsedTime().asSeconds() > 4) {
+			drawText(window, text, log[0].substr(0, clock.getElapsedTime().asSeconds() * 50), 32, 440);
+			if (clock.getElapsedTime().asSeconds() > log[0].size() / 50.f + 1) {
 				log.erase(log.begin());
 				if (log.empty())
 					menu -= 4;

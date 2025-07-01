@@ -12,7 +12,7 @@ namespace PokemonGen1
 	class AI {
 	public:
 		virtual ~AI() = default;
-		virtual BattleAction getNextMove(const BattleState &) = 0;
+		virtual BattleAction getNextMove(const BattleState &, bool) = 0;
 	};
 }
 

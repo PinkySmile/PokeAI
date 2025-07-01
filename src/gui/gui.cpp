@@ -64,7 +64,7 @@ void moveMovePanels(const std::vector<std::pair<unsigned, tgui::ScrollablePanel:
 		panels[i].second->setPosition(i % 3 * 250, 10 + i / 3 * 160);
 }
 
-void applyMoveFilters(unsigned sorting, std::string query, const std::string &type, std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>> &panels)
+void applyMoveFilters(const std::set<AvailableMove> &set, unsigned sorting, std::string query, const std::string &type, bool onlyPkmnLearnSet, std::vector<std::pair<unsigned, tgui::ScrollablePanel::Ptr>> &panels)
 {
 	std::vector<std::function<bool(const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2)>> sortingAlgos = {
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
@@ -108,9 +108,10 @@ void applyMoveFilters(unsigned sorting, std::string query, const std::string &ty
 		}
 	};
 
+	for (auto &panel : panels)
+		panel.second->setPosition(-300, -300);
 	if (!query.empty()) {
 		query = Utils::toLower(query);
-
 		panels.erase(std::remove_if(
 			panels.begin(),
 			panels.end(),
@@ -127,6 +128,14 @@ void applyMoveFilters(unsigned sorting, std::string query, const std::string &ty
 				return typeToString(availableMoves[p1.first].getType()) != type;
 			}
 		), panels.end());
+	if (onlyPkmnLearnSet)
+		panels.erase(std::remove_if(
+			panels.begin(),
+			panels.end(),
+			[&set](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1) {
+				return p1.first != 0 && !set.contains(static_cast<AvailableMove>(p1.first));
+			}
+		), panels.end());
 	std::sort(panels.begin(), panels.end(), sortingAlgos[sorting]);
 }
 
@@ -140,10 +149,18 @@ void openChangeMoveBox(tgui::Gui &gui, BattleResources &resources, Pokemon &pkmn
 	auto filter = tgui::EditBox::create();
 	auto typeFilter = tgui::ComboBox::create();
 	auto sorting = tgui::ComboBox::create();
+	auto onlyLearnable = tgui::CheckBox::create();
+	auto close = tgui::Button::create();
 
-	filter->setSize("&.w * 50 / 100 - 30", 20);
+	filter->setSize("&.w * 40 / 100 - 60", 20);
 	typeFilter->setSize("&.w * 20 / 100 - 20", 20);
-	sorting->setSize("&.w * 30 / 100 - 10", 20);
+	sorting->setSize("&.w * 20 / 100 - 10", 20);
+	close->setSize(20, 20);
+	onlyLearnable->setSize(20, 20);
+
+	close->setText("X");
+	onlyLearnable->setText("Only learnable moves");
+	onlyLearnable->setChecked(true);
 
 	filter->setDefaultText("Search");
 	sorting->addItem("Sort A -> Z");
@@ -172,33 +189,49 @@ void openChangeMoveBox(tgui::Gui &gui, BattleResources &resources, Pokemon &pkmn
 	typeFilter->addItem("???", "Unknown");
 	typeFilter->setSelectedItemByIndex(0);
 
-	auto refresh = [displayedPanels, panels](
+	auto refresh = [displayedPanels, panels, &pkmn](
 		std::weak_ptr<tgui::EditBox> filter,
 		std::weak_ptr<tgui::ComboBox> sorting,
-		std::weak_ptr<tgui::ComboBox> typeFilter
+		std::weak_ptr<tgui::ComboBox> typeFilter,
+		std::weak_ptr<tgui::CheckBox> onlyLearnable
 	){
 		for (auto &panel : *panels)
 			panel.second->setPosition(-200, -200);
 		*displayedPanels = *panels;
-		applyMoveFilters(sorting.lock()->getSelectedItemIndex(), filter.lock()->getText().toStdString(), typeFilter.lock()->getSelectedItemId().toStdString(), *displayedPanels);
+		applyMoveFilters(
+			pkmn.getLearnableMoveSet(),
+			sorting.lock()->getSelectedItemIndex(),
+			filter.lock()->getText().toStdString(),
+			typeFilter.lock()->getSelectedItemId().toStdString(),
+			onlyLearnable.lock()->isChecked(),
+			*displayedPanels
+		);
 		moveMovePanels(*displayedPanels);
 	};
 
-	filter->onTextChange.connect(refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
-	sorting->onItemSelect.connect(refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
-	typeFilter->onItemSelect.connect(refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter));
+	filter->onTextChange.connect(refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter), std::weak_ptr(onlyLearnable));
+	sorting->onItemSelect.connect(refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter), std::weak_ptr(onlyLearnable));
+	typeFilter->onItemSelect.connect(refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter), std::weak_ptr(onlyLearnable));
+	onlyLearnable->onChange.connect(refresh, std::weak_ptr(filter), std::weak_ptr(sorting), std::weak_ptr(typeFilter), std::weak_ptr(onlyLearnable));
 
 	filter->setPosition(10, 10);
-	sorting->setPosition("&.w * 70 / 100", 10);
-	typeFilter->setPosition("&.w * 50 / 100", 10);
+	close->setPosition("&.w - 30", 10);
+	onlyLearnable->setPosition("&.w * 80 / 100 - 50", 10);
+	sorting->setPosition("&.w * 60 / 100 - 50", 10);
+	typeFilter->setPosition("&.w * 40 / 100 - 40", 10);
 	panel->setPosition(10, 40);
 
+	bigPan->add(onlyLearnable);
 	bigPan->add(typeFilter);
 	bigPan->add(sorting);
 	bigPan->add(filter);
+	bigPan->add(close);
 
 	basePanel->loadWidgetsFromFile("assets/movePanel.gui");
 
+	close->onClick.connect([&gui](std::weak_ptr<tgui::Panel> bigPan){
+		gui.remove(bigPan.lock());
+	}, std::weak_ptr(bigPan));
 	for (unsigned i = 0; i < panels->size(); i++) {
 		auto &pan = (panels->operator[](i) = {i, tgui::ScrollablePanel::copy(basePanel)}).second;
 		auto &move = availableMoves[i];
@@ -219,8 +252,10 @@ void openChangeMoveBox(tgui::Gui &gui, BattleResources &resources, Pokemon &pkmn
 		pps->setText(std::to_string(move.getMaxPP()));
 		pow->setText(move.getPower() ? std::to_string(move.getPower()) : "-");
 		acc->setText(move.getAccuracy() > 100 ? "-" : std::to_string(move.getAccuracy()));
-		effects->setVisible(!move.getDescription().empty());
-		effects->setText(move.getDescription());
+		if (move.getDescription().empty())
+			effects->setText("No additional effect");
+		else
+			effects->setText(move.getDescription());
 
 		type->setPosition(190, 2);
 		category->setPosition(206, 29);
@@ -230,7 +265,7 @@ void openChangeMoveBox(tgui::Gui &gui, BattleResources &resources, Pokemon &pkmn
 		panel->add(pan);
 	}
 	*displayedPanels = *panels;
-	applyMoveFilters(0, "", "", *displayedPanels);
+	applyMoveFilters(pkmn.getLearnableMoveSet(), 0, "", "", true, *displayedPanels);
 	moveMovePanels(*displayedPanels);
 	bigPan->add(panel);
 	gui.add(bigPan);
@@ -266,6 +301,18 @@ void applyPkmnsFilters(unsigned sorting, std::string query, const std::string &t
 				base1.name != "MISSINGNO." &&
 				base1.name > base2.name
 			);
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = pokemonList.at(p1.first);
+			auto &base2 = pokemonList.at(p2.first);
+
+			return base1.dexId < base2.dexId;
+		},
+		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
+			auto &base1 = pokemonList.at(p1.first);
+			auto &base2 = pokemonList.at(p2.first);
+
+			return base1.dexId > base2.dexId;
 		},
 		[](const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p1, const std::pair<unsigned, tgui::ScrollablePanel::Ptr> &p2){
 			return p1.first < p2.first;
@@ -390,6 +437,8 @@ void openChangePkmnBox(
 	filter->setDefaultText("Search");
 	sorting->addItem("Sort A -> Z");
 	sorting->addItem("Sort Z -> A");
+	sorting->addItem("Sort by ascending pokedex ID");
+	sorting->addItem("Sort by descending pokedex ID");
 	sorting->addItem("Sort by ascending ID");
 	sorting->addItem("Sort by descending ID");
 	sorting->addItem("Sort by ascending max HP");

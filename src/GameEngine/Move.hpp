@@ -230,12 +230,6 @@
 	return true;\
 }, DEAL_HALF_HP_DAMAGE_DESC
 
-#define MIMIC_MOVE_DESC "Use last foe's used move"
-#define MIMIC_MOVE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
-	owner.useMove(target.getLastUsedMove(), target);\
-	return true;\
-}, MIMIC_MOVE_DESC
-
 namespace PokemonGen1
 {
 	class Pokemon;
@@ -359,20 +353,20 @@ namespace PokemonGen1
 	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/PK1.cs#L532
 	*/
 
-	enum MoveType
+	enum AvailableMove
 	{
 		None = 0x00,
 		Pound = 0x01,
 		Karate_Chop = 0x02,
-		Doubleslap = 0x03,
+		Double_Slap = 0x03,
 		Comet_Punch = 0x04,
 		Mega_Punch = 0x05,
 		Pay_Day = 0x06,
 		Fire_Punch = 0x07,
 		Ice_Punch = 0x08,
-		Thunderpunch = 0x09,
+		Thunder_Punch = 0x09,
 		Scratch = 0x0a,
-		Vicegrip = 0x0b,
+		Vise_Grip = 0x0b,
 		Guillotine = 0x0c,
 		Razor_Wind = 0x0d,
 		Swords_Dance = 0x0e,
@@ -397,7 +391,7 @@ namespace PokemonGen1
 		Tackle = 0x21,
 		Body_Slam = 0x22,
 		Wrap = 0x23,
-		Take_down = 0x24,
+		Take_Down = 0x24,
 		Thrash = 0x25,
 		Double_Edge = 0x26,
 		Tail_Whip = 0x27,
@@ -410,7 +404,7 @@ namespace PokemonGen1
 		Roar = 0x2e,
 		Sing = 0x2f,
 		Supersonic = 0x30,
-		Sonicboom = 0x31,
+		Sonic_Boom = 0x31,
 		Disable = 0x32,
 		Acid = 0x33,
 		Ember = 0x34,
@@ -422,7 +416,7 @@ namespace PokemonGen1
 		Ice_Beam = 0x3a,
 		Blizzard = 0x3b,
 		Psybeam = 0x3c,
-		Bubblebeam = 0x3d,
+		Bubble_Beam = 0x3d,
 		Aurora_Beam = 0x3e,
 		Hyper_Beam = 0x3f,
 		Peck = 0x40,
@@ -437,8 +431,8 @@ namespace PokemonGen1
 		Leech_Seed = 0x49,
 		Growth = 0x4a,
 		Razor_Leaf = 0x4b,
-		Solarbeam = 0x4c,
-		Poisonpowder = 0x4d,
+		Solar_Beam = 0x4c,
+		Poison_Powder = 0x4d,
 		Stun_Spore = 0x4e,
 		Sleep_Powder = 0x4f,
 		Petal_Dance = 0x50,
@@ -481,7 +475,7 @@ namespace PokemonGen1
 		Bide = 0x75,
 		Metronome = 0x76,
 		Mirror_Move = 0x77,
-		Selfdestruct = 0x78,
+		Self_Destruct = 0x78,
 		Egg_Bomb = 0x79,
 		Lick = 0x7a,
 		Smog = 0x7b,
@@ -496,7 +490,7 @@ namespace PokemonGen1
 		Constrict = 0x84,
 		Amnesia = 0x85,
 		Kinesis = 0x86,
-		Softboiled = 0x87,
+		Soft_Boiled = 0x87,
 		Hi_Jump_Kick = 0x88,
 		Glare = 0x89,
 		Dream_Eater = 0x8a,
