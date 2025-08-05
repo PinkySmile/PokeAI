@@ -259,7 +259,7 @@ namespace PokemonGen1
 			this->_flinched = true;
 			return true;
 		}
-		this->_log(" is now " + statusToString(status));
+		this->_log(" is now " + statusToString(status) + "!");
 		if (status == STATUS_BADLY_POISONED)
 			this->_badPoisonStage = 1;
 		this->_currentStatus |= (status * duration);
@@ -448,7 +448,7 @@ namespace PokemonGen1
 		if (this->_lastUsedMove.isFinished())
 			this->_lastUsedMove = move;
 		if (!this->_lastUsedMove.attack(*this, target, *this->_battleLogger))
-			this->_log("'s attack missed");
+			this->_log("'s attack missed!");
 	}
 
 	void Pokemon::storeDamages(bool active)
@@ -456,7 +456,7 @@ namespace PokemonGen1
 		if (!active)
 			this->_damagesStored = 0;
 		else if (!this->_storingDamages)
-			this->_log(" is storing damages");
+			this->_log(" is storing damages!");
 		this->_storingDamages = active;
 	}
 
@@ -510,10 +510,10 @@ namespace PokemonGen1
 		this->_flinched = false;
 		this->_wrapped = false;
 		if (this->_currentStatus & STATUS_BURNED) {
-			this->_log("'s hurt by the burn");
+			this->_log("'s hurt by the burn!");
 			this->takeDamage(this->getHealth() / 16);
 		} else if ((this->_currentStatus & STATUS_POISONED) || (this->_currentStatus & STATUS_BADLY_POISONED)) {
-			this->_log("'s hurt by the poison");
+			this->_log("'s hurt by the poison!");
 			if (this->_currentStatus & STATUS_BADLY_POISONED)
 				this->takeDamage(this->getHealth() * this->_badPoisonStage++ / 16);
 			else
@@ -529,54 +529,56 @@ namespace PokemonGen1
 	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
 	{
 		if (this->_wrapped) {
-			this->_log(" can't move");
+			this->_log(" can't move!");
 			return;
 		}
 
 		if (this->_flinched) {
-			this->_log(" flinched");
+			this->_log(" flinched!");
 			return;
 		}
 
 		if (this->_currentStatus & STATUS_ASLEEP) {
 			this->_currentStatus--;
 			if (this->_currentStatus & STATUS_ASLEEP)
-				this->_log(" is fast asleep");
+				this->_log(" is fast asleep!");
 			else {
-				this->_log(" woke up");
+				this->_log(" woke up!");
 				this->_currentStatus &= ~STATUS_ANY_NON_VOLATILE_STATUS;
 			}
 			return;
 		}
 
 		if (this->_currentStatus & STATUS_FROZEN) {
-			this->_log(" is frozen solid");
+			this->_log(" is frozen solid!");
 			return;
 		}
 
 		if (this->_currentStatus & STATUS_CONFUSED) {
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if ((this->_currentStatus & STATUS_CONFUSED)) {
-				this->_log(" is confused");
+				this->_log(" is confused!");
 				if ((*this->_random)() >= 0x80) {
 					this->setRecharging(false);
-					this->_log(" hurts itself in it's confusion");
+					this->_log(" hurts itself in");
+					this->_log(" it's confusion!");
 					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false).damage);
 					this->_lastUsedMove = availableMoves[0x00];
 					return;
 				}
 			} else if (!(this->_currentStatus & STATUS_CONFUSED))
-				this->_log(" is confused no more");
+				this->_log(" is confused no more!");
 		}
 
 		if ((this->_currentStatus & STATUS_PARALYZED) && (*this->_random)() < 0x3F) {
-			this->_log("'s fully paralyzed");
+			this->_log("'s fully paralyzed!");
 			this->_lastUsedMove = availableMoves[0x00];
 			return;
 		}
 
 		if (this->_needsRecharge) {
-			this->_log("must recharge");
+			this->_log(" must recharge!");
+			this->_needsRecharge = false;
 			return;
 		}
 
@@ -637,13 +639,13 @@ namespace PokemonGen1
 		if (stat != STATS_EVD && stat != STATS_ACC)
 			cStats[stat] = fmin(999, this->_getUpgradedStat(bStats[stat], stats[stat]));
 		if (nb < -1)
-			this->_log("'s " + statName + " greatly fell");
+			this->_log("'s " + statName + " greatly fell!");
 		else if (nb == -1)
-			this->_log("'s " + statName + " fell");
+			this->_log("'s " + statName + " fell!");
 		else if (nb == 1)
-			this->_log("'s " + statName + " rose");
+			this->_log("'s " + statName + " rose!");
 		else if (nb > 1)
-			this->_log("'s " + statName + " greatly rose");
+			this->_log("'s " + statName + " greatly rose!");
 		return true;
 	}
 
@@ -663,7 +665,7 @@ namespace PokemonGen1
 			this->_computedStats.HP -= damage;
 
 		if (!this->_computedStats.HP)
-			this->_log(" fainted");
+			this->_log(" fainted!");
 	}
 
 	bool Pokemon::canGetHit() const

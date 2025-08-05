@@ -12,16 +12,10 @@ find_package(TGUI 1 REQUIRED)
 
 include_directories(include)
 
-add_executable(
-	PokeAI
-	src/main.cpp
-	src/Networking/Socket.cpp
-	src/Networking/Socket.hpp
-	src/Networking/BgbHandler.cpp
-	src/Networking/BgbHandler.hpp
+add_library(
+	PokemonGen1Core STATIC
 	src/GameEngine/BattleHandler.cpp
 	src/GameEngine/BattleHandler.hpp
-	src/Networking/EmulatorHandle.hpp
 	src/GameEngine/Pokemon.cpp
 	src/GameEngine/Pokemon.hpp
 	src/GameEngine/PokemonTypes.hpp
@@ -34,6 +28,22 @@ add_executable(
 	src/GameEngine/PokemonRandomGenerator.hpp
 	src/GameEngine/StatusChange.cpp
 	src/GameEngine/PokemonTypes.cpp
+	src/GameEngine/EmulatorGameHandle.cpp
+	src/GameEngine/EmulatorGameHandle.hpp
+	src/GameEngine/State.hpp
+	src/GameEngine/State.cpp
+	src/GameEngine/Team.cpp
+	src/GameEngine/Team.hpp
+)
+
+add_executable(
+	PokeAI
+	src/main.cpp
+	src/Networking/Socket.cpp
+	src/Networking/Socket.hpp
+	src/Networking/BgbHandler.cpp
+	src/Networking/BgbHandler.hpp
+	src/Networking/EmulatorHandle.hpp
 	src/commandLine.cpp
 	src/commandLine.hpp
 	src/gui/gui.cpp
@@ -45,19 +55,16 @@ add_executable(
 	src/AIs/AIHeuristic.cpp
 	src/AIs/AIHeuristic.hpp
 	src/AIs/AI.hpp
-	src/GameEngine/EmulatorGameHandle.cpp
-	src/GameEngine/EmulatorGameHandle.hpp
-	src/GameEngine/State.hpp
-	src/GameEngine/State.cpp
-	src/GameEngine/Team.cpp
-	src/GameEngine/Team.hpp
 	src/AIs/AIFactory.hpp
 	src/AIs/AIFactory.cpp
+	src/AIs/RandomAI.cpp
+	src/AIs/RandomAI.hpp
 )
 
 if (WIN32)
 	target_link_libraries(
 		PokeAI
+		PokemonGen1Core
 		ws2_32
 		TGUI::TGUI
 		SFML::Graphics
@@ -66,6 +73,7 @@ if (WIN32)
 else (WIN32)
 	target_link_libraries(
 		PokeAI
+		PokemonGen1Core
 		pthread
 		TGUI::TGUI
 		SFML::Graphics

@@ -67,10 +67,8 @@ namespace PokemonGen1
 			const auto &pkmn = mySide.team[i];
 			auto &score = scores[static_cast<BattleAction>(Switch1 + i)];
 
-			if (!pkmn.getHealth() || i == mySide.pokemonOnField) {
+			if (!pkmn.getHealth() || i == mySide.pokemonOnField)
 				score = -std::numeric_limits<double>::infinity();
-				continue;
-			}
 		}
 
 		std::pair<BattleAction, int> bestScore = *scores.begin();
@@ -208,7 +206,7 @@ namespace PokemonGen1
 			score += this->_getStatValue(change.stat, target, owner) *
 				-change.nb *
 				(change.cmpVal ?: 256) / 256. *
-				(std::abs(stats.get(change.stat) + change.nb) <= 6) * 0.75;
+				(std::abs(stats.get(change.stat) + change.nb) >= -6) * 0.75;
 		score += this->_getStatusChangeValue(target, status.status) * (status.cmpVal ?: 256) / 256.;
 		return score;
 	}

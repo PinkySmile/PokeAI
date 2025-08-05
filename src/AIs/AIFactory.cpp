@@ -4,6 +4,7 @@
 
 #include "AIFactory.hpp"
 #include "AIHeuristic.hpp"
+#include "RandomAI.hpp"
 
 namespace PokemonGen1
 {
@@ -13,6 +14,8 @@ namespace PokemonGen1
 			return nullptr;
 		if (id == 1)
 			return new AIHeuristic();
+		if (id == 2)
+			return new RandomAI();
 		return nullptr;
 	}
 
@@ -20,7 +23,8 @@ namespace PokemonGen1
 	{
 		return {
 			"No AI",
-			"Heuristic AI"
+			"Heuristic AI",
+			"Random AI"
 		};
 	}
 }
