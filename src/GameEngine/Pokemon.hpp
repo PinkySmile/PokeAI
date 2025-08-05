@@ -182,9 +182,10 @@ namespace PokemonGen1
 		Pokemon(PokemonRandomGenerator &random, const Logger &battleLogger, const nlohmann::json &json);
 
 		void setGlobalCritRatio(double ratio);
-		bool addStatus(StatusChange status);
 		void setStatus(StatusChange status);
-		void setStatus(StatusChange status, unsigned duration);
+		void setNonVolatileStatus(StatusChange status);
+		void setNonVolatileStatus(StatusChange status, unsigned duration);
+		bool addStatus(StatusChange status);
 		bool addStatus(StatusChange status, unsigned duration);
 		void resetStatsChanges();
 		bool changeStat(enum StatsChange stat, char nb);

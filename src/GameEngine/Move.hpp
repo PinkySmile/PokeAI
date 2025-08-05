@@ -159,7 +159,7 @@
         if ((h & 0xFF) - (m & 0xFF) - ((h >> 8) < (m >> 8)) == 0)\
 		return logger("But it failed!"), true;\
 	owner.takeDamage(-owner.getMaxHealth());\
-	owner.setStatus(STATUS_ASLEEP, 2);\
+	owner.setNonVolatileStatus(STATUS_ASLEEP, 2);\
 	logger(owner.getName() + " started sleeping!");\
 	logger(owner.getName() + " regained health!");\
 	return true;\

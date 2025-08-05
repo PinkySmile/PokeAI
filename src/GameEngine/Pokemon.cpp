@@ -215,16 +215,33 @@ namespace PokemonGen1
 		this->_globalCritRatio = ratio;
 	}
 
-	void Pokemon::setStatus(PokemonGen1::StatusChange status)
+	void Pokemon::setNonVolatileStatus(StatusChange status)
 	{
-		this->_currentStatus = STATUS_NONE;
-		this->addStatus(status);
+		if (status == STATUS_BADLY_POISONED)
+			this->_badPoisonStage = 1;
+		this->_currentStatus &= ~STATUS_ANY_NON_VOLATILE_STATUS;
+		this->_currentStatus |= status;
+		if (status == STATUS_PARALYZED || status == STATUS_BURNED)
+			this->applyStatusDebuff();
 	}
 
-	void Pokemon::setStatus(PokemonGen1::StatusChange status, unsigned duration)
+	void Pokemon::setNonVolatileStatus(StatusChange status, unsigned int duration)
 	{
-		this->_currentStatus = STATUS_NONE;
-		this->addStatus(status, duration);
+		if (status == STATUS_BADLY_POISONED)
+			this->_badPoisonStage = 1;
+		this->_currentStatus &= ~STATUS_ANY_NON_VOLATILE_STATUS;
+		this->_currentStatus |= status * duration;
+		if (status == STATUS_PARALYZED || status == STATUS_BURNED)
+			this->applyStatusDebuff();
+	}
+
+	void Pokemon::setStatus(PokemonGen1::StatusChange status)
+	{
+		if ((status & STATUS_BADLY_POISONED) && !(this->_currentStatus & STATUS_BADLY_POISONED))
+			this->_badPoisonStage = 1;
+		this->_currentStatus = status;
+		if ((status & STATUS_PARALYZED) || (status & STATUS_BURNED))
+			this->applyStatusDebuff();
 	}
 
 	bool Pokemon::addStatus(StatusChange status)
@@ -561,7 +578,7 @@ namespace PokemonGen1
 				if ((*this->_random)() >= 0x80) {
 					this->setRecharging(false);
 					this->_log(" hurts itself in");
-					this->_log(" it's confusion!");
+					(*this->_battleLogger)("it's confusion!");
 					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false).damage);
 					this->_lastUsedMove = availableMoves[0x00];
 					return;
