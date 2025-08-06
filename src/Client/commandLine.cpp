@@ -13,6 +13,7 @@
 #ifndef _WIN32
 #include <sys/select.h>
 #include <algorithm>
+#include <cstring>
 
 typedef fd_set FD_SET;
 #endif
@@ -285,4 +286,14 @@ void commandLine(const std::string &trainerName)
 		} while (future.wait_for(std::chrono::seconds(1)) != std::future_status::ready);
 		loop = handleCommand(future.get(), emulator, battle, state);
 	}
+}
+
+int main(int argc, char **argv)
+{
+	if (argc > 1 && strcmp(argv[1], "-h") == 0) {
+		std::cerr << "Usage: " << argv[0] << " [<trainerName>]" << std::endl;
+		return EXIT_FAILURE;
+	}
+	commandLine(argc > 1 ? argv[1] : "PokeAI");
+	return EXIT_SUCCESS;
 }

@@ -11,7 +11,7 @@
 #include <iostream>
 #include <functional>
 #include "Socket.hpp"
-#include "EmulatorHandle.hpp"
+#include "GameEngine/EmulatorHandle.hpp"
 
 class BGBHandler : public EmulatorHandle {
 private:
@@ -43,11 +43,11 @@ public:
 		unsigned short port,
 		bool log = false
 	);
-	void log(const std::string &string, std::ostream &stream = std::cerr) override;
+	~BGBHandler();
+	void log(const std::string &string, std::ostream &stream = std::cerr);
 	void disconnect() override;
 	void sendByte(unsigned char byte) override;
 	void reply(unsigned char byte) override;
-	~BGBHandler();
 
 	enum BGBCommand {
 		VERSION_CHECK	= 1,

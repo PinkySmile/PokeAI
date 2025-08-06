@@ -8,12 +8,11 @@
 #include <fstream>
 #include <memory>
 #include "gui.hpp"
-#include "../Networking/BgbHandler.hpp"
 #include "Utils.hpp"
+#include "GameEngine/EmulatorGameHandle.hpp"
+#include "GameEngine/Team.hpp"
+#include "../Networking/BgbHandler.hpp"
 #include "../AIs/AI.hpp"
-#include "../AIs/AIHeuristic.hpp"
-#include "../GameEngine/EmulatorGameHandle.hpp"
-#include "../GameEngine/Team.hpp"
 #include "../AIs/AIFactory.hpp"
 
 using namespace PokemonGen1;
@@ -1033,4 +1032,14 @@ void gui(const std::string &trainerName)
 			ready = false;
 		}
 	}
+}
+
+int main(int argc, char **argv)
+{
+	if (argc > 1 && strcmp(argv[1], "-h") == 0) {
+		std::cerr << "Usage: " << argv[0] << " [<mode>, <trainerName>]" << std::endl;
+		return EXIT_FAILURE;
+	}
+	gui(argc > 1 ? argv[1] : "PokeAI");
+	return EXIT_SUCCESS;
 }

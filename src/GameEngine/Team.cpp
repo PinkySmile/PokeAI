@@ -3,7 +3,7 @@
 //
 
 #include "Team.hpp"
-#include "../Exception.hpp"
+#include "GameEngine/Exception.hpp"
 #include "EmulatorGameHandle.hpp"
 
 namespace PokemonGen1

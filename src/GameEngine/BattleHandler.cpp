@@ -3,9 +3,10 @@
 //
 
 #include <thread>
+#include <iostream>
 #include <algorithm>
 #include "BattleHandler.hpp"
-#include "../Exception.hpp"
+#include "Exception.hpp"
 
 namespace PokemonGen1
 {

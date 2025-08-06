@@ -2,6 +2,7 @@
 // Created by andgel on 08/09/2020
 //
 
+#include <iostream>
 #include "AIHeuristic.hpp"
 
 #define KILL_PROBABILITY_SCORE 1000000

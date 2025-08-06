@@ -5,8 +5,8 @@
 #include <sstream>
 #include "Pokemon.hpp"
 #include "Move.hpp"
-#include "../Exception.hpp"
-#include "../gui/Utils.hpp"
+#include "Exception.hpp"
+#include "GameEngine/Utils.hpp"
 
 namespace PokemonGen1
 {

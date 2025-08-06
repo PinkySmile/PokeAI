@@ -10,7 +10,6 @@
 #include <map>
 #include "Pokemon.hpp"
 #include "PokemonRandomGenerator.hpp"
-#include "../Networking/EmulatorHandle.hpp"
 #include "State.hpp"
 
 #define PING_BYTE 0x60

@@ -5,7 +5,7 @@
 #ifndef POKEAI_AI_HPP
 #define POKEAI_AI_HPP
 
-#include "../GameEngine/BattleHandler.hpp"
+#include "GameEngine/BattleHandler.hpp"
 
 namespace PokemonGen1
 {

@@ -11,7 +11,7 @@ typedef fd_set FD_SET;
 typedef struct timeval TIMEVAL;
 #endif
 #include "BgbHandler.hpp"
-#include "../Exception.hpp"
+#include "GameEngine/Exception.hpp"
 
 BGBHandler::BGBHandler(
 	const std::function<unsigned char(EmulatorHandle &handler, unsigned char byte)> &masterHandler,

@@ -9,7 +9,7 @@
 #include <memory>
 #include <map>
 #include "State.hpp"
-#include "../Networking/EmulatorHandle.hpp"
+#include "EmulatorHandle.hpp"
 
 #define PING_BYTE 0x60
 #define SYNC_BYTE 0xFD
