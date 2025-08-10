@@ -1,5 +1,5 @@
 //
-// Created by Gegel85 on 14/07/2019.
+// Created by PinkySmile on 14/07/2019.
 //
 
 #ifndef POKEAI_POKEMON_HPP
@@ -13,9 +13,9 @@
 #include <map>
 #include <nlohmann/json_fwd.hpp>
 #include "Move.hpp"
-#include "PokemonTypes.hpp"
+#include "Type.hpp"
 #include "StatusChange.hpp"
-#include "PokemonRandomGenerator.hpp"
+#include "RandomGenerator.hpp"
 
 typedef unsigned char byte;
 
@@ -41,8 +41,8 @@ namespace PokemonGen1
 			unsigned short          DEF;
 			unsigned short          SPD;
 			unsigned short          SPE;
-			PokemonTypes            typeA;
-			PokemonTypes            typeB;
+			Type                    typeA;
+			Type                    typeB;
 			unsigned char           catchRate;
 			unsigned int            baseXpYield;
 			std::set<AvailableMove> movePool;
@@ -57,8 +57,8 @@ namespace PokemonGen1
 				unsigned short DEF,
 				unsigned short SPD,
 				unsigned short SPE,
-				PokemonTypes   typeA,
-				PokemonTypes   typeB,
+				Type           typeA,
+				Type           typeB,
 				unsigned char  catchRate,
 				unsigned int   baseXpYield,
 				const std::set<AvailableMove> &movePool
@@ -131,7 +131,7 @@ namespace PokemonGen1
 			BaseStats                             stats;
 			unsigned char                         id;
 			std::vector<Move>                     moves;
-			std::pair<PokemonTypes, PokemonTypes> types;
+			std::pair<Type, Type> types;
 		};
 
 		PokemonState                          _oldState{};
@@ -141,7 +141,7 @@ namespace PokemonGen1
 		bool                                  _invincible = false;
 		bool                                  _enemy;
 		Move                                  _lastUsedMove;
-		PokemonRandomGenerator	              *_random;
+		RandomGenerator	              *_random;
 		std::string                           _nickname;
 		std::string                           _name;
 		BaseStats                             _dvs;
@@ -150,7 +150,7 @@ namespace PokemonGen1
 		BaseStats                             _computedStats;
 		UpgradableStats                       _upgradedStats;
 		std::vector<Move>                     _moveSet;
-		std::pair<PokemonTypes, PokemonTypes> _types;
+		std::pair<Type, Type> _types;
 		unsigned char                         _level;
 		unsigned char                         _catchRate;
 		bool                                  _transformed = false;
@@ -177,9 +177,9 @@ namespace PokemonGen1
 		static constexpr unsigned NICK_SIZE = 10;
 		static constexpr unsigned ENCODED_SIZE = PACK_SIZE;
 
-		Pokemon(PokemonRandomGenerator &random, const Logger &battleLogger, const std::string &nickname, unsigned char level, const Base &base, const std::vector<Move> &moveSet, bool enemy = false);
-		Pokemon(PokemonRandomGenerator &random, const Logger &battleLogger, const std::string &nickname, const std::array<byte, ENCODED_SIZE> &data, bool enemy = false);
-		Pokemon(PokemonRandomGenerator &random, const Logger &battleLogger, const nlohmann::json &json);
+		Pokemon(RandomGenerator &random, const Logger &battleLogger, const std::string &nickname, unsigned char level, const Base &base, const std::vector<Move> &moveSet, bool enemy = false);
+		Pokemon(RandomGenerator &random, const Logger &battleLogger, const std::string &nickname, const std::array<byte, ENCODED_SIZE> &data, bool enemy = false);
+		Pokemon(RandomGenerator &random, const Logger &battleLogger, const nlohmann::json &json);
 
 		void setGlobalCritRatio(double ratio);
 		void setStatus(StatusChange status);
@@ -194,7 +194,7 @@ namespace PokemonGen1
 		bool hasStatus(StatusChange status) const;
 		void takeDamage(int damage);
 		void attack(unsigned char moveSlot, Pokemon &target);
-		DamageResult calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, bool critical, bool randomized = true) const;
+		DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized = true) const;
 		void endTurn();
 		void switched();
 		int getPriorityFactor(unsigned char moveSlot);
@@ -214,7 +214,7 @@ namespace PokemonGen1
 		void reset();
 		void applyStatusDebuff();
 
-		[[nodiscard]] PokemonRandomGenerator &getRandomGenerator();
+		[[nodiscard]] RandomGenerator &getRandomGenerator();
 		[[nodiscard]] bool canHaveStatus(StatusChange status) const;
 		[[nodiscard]] bool canGetHit() const;
 		[[nodiscard]] unsigned char getID() const;
@@ -235,8 +235,8 @@ namespace PokemonGen1
 		[[nodiscard]] double getAccuracy() const;
 		[[nodiscard]] double getEvasion() const;
 		[[nodiscard]] const Move &getLastUsedMove() const;
-		[[nodiscard]] std::pair<PokemonTypes, PokemonTypes> getTypes() const;
-		[[nodiscard]] const std::vector<Move> getMoveSet() const;
+		[[nodiscard]] std::pair<Type, Type> getTypes() const;
+		[[nodiscard]] const std::vector<Move> &getMoveSet() const;
 		[[nodiscard]] BaseStats getBaseStats() const;
 		[[nodiscard]] UpgradableStats getStatsUpgradeStages() const;
 		[[nodiscard]] std::string getSpeciesName() const;
@@ -245,10 +245,17 @@ namespace PokemonGen1
 		[[nodiscard]] bool isEnemy() const;
 		void setStatExps(const BaseStats &statExps);
 
-		void setTypes(std::pair<PokemonTypes, PokemonTypes> types);
+		void setTypes(std::pair<Type, Type> types);
 
 		static BaseStats makeStats(unsigned char level, const Base &base, const BaseStats &dvs, const BaseStats &evs);
 	};
+
+#ifdef __PYX_EXTERN_C
+	inline Pokemon::Logger pythonLoggerLambda(void *python_function, std::function<void (void *, const std::string &msg)> eval)
+	{
+		return [=](const std::string &x) { return eval(python_function, x); };
+	}
+#endif
 
 	/*
 	** From Rhydon
@@ -265,12 +272,12 @@ namespace PokemonGen1
 		Nidoking = 0x07,
 		Slowbro = 0x08,
 		Ivysaur = 0x09,
-		Exeggutor = 0x0a,
-		Lickitung = 0x0b,
-		Exeggcute = 0x0c,
-		Grimer = 0x0d,
-		Gengar = 0x0e,
-		Nidoran_F = 0x0f,
+		Exeggutor = 0x0A,
+		Lickitung = 0x0B,
+		Exeggcute = 0x0C,
+		Grimer = 0x0D,
+		Gengar = 0x0E,
+		Nidoran_F = 0x0F,
 		Nidoqueen = 0x10,
 		Cubone = 0x11,
 		Rhyhorn = 0x12,
@@ -281,11 +288,11 @@ namespace PokemonGen1
 		Shellder = 0x17,
 		Tentacool = 0x18,
 		Gastly = 0x19,
-		Scyther = 0x1a,
-		Staryu = 0x1b,
-		Blastoise = 0x1c,
-		Pinsir = 0x1d,
-		Tangela = 0x1e,
+		Scyther = 0x1A,
+		Staryu = 0x1B,
+		Blastoise = 0x1C,
+		Pinsir = 0x1D,
+		Tangela = 0x1E,
 		Growlithe = 0x21,
 		Onix = 0x22,
 		Fearow = 0x23,
@@ -295,12 +302,12 @@ namespace PokemonGen1
 		Graveler = 0x27,
 		Chansey = 0x28,
 		Machoke = 0x29,
-		Mr_Mime = 0x2a,
-		Hitmonlee = 0x2b,
-		Hitmonchan = 0x2c,
-		Arbok = 0x2d,
-		Parasect = 0x2e,
-		Psyduck = 0x2f,
+		Mr_Mime = 0x2A,
+		Hitmonlee = 0x2B,
+		Hitmonchan = 0x2C,
+		Arbok = 0x2D,
+		Parasect = 0x2E,
+		Psyduck = 0x2F,
 		Drowzee = 0x30,
 		Golem = 0x31,
 		Magmar = 0x33,
@@ -308,9 +315,9 @@ namespace PokemonGen1
 		Magneton = 0x36,
 		Koffing = 0x37,
 		Mankey = 0x39,
-		Seel = 0x3a,
-		Diglett = 0x3b,
-		Tauros = 0x3c,
+		Seel = 0x3A,
+		Diglett = 0x3B,
+		Tauros = 0x3C,
 		Farfetchd = 0x40,
 		Venonat = 0x41,
 		Dragonite = 0x42,
@@ -318,21 +325,21 @@ namespace PokemonGen1
 		Poliwag = 0x47,
 		Jynx = 0x48,
 		Moltres = 0x49,
-		Articuno = 0x4a,
-		Zapdos = 0x4b,
-		Ditto = 0x4c,
-		Meowth = 0x4d,
-		Krabby = 0x4e,
+		Articuno = 0x4A,
+		Zapdos = 0x4B,
+		Ditto = 0x4C,
+		Meowth = 0x4D,
+		Krabby = 0x4E,
 		Vulpix = 0x52,
 		Ninetales = 0x53,
 		Pikachu = 0x54,
 		Raichu = 0x55,
 		Dratini = 0x58,
 		Dragonair = 0x59,
-		Kabuto = 0x5a,
-		Kabutops = 0x5b,
-		Horsea = 0x5c,
-		Seadra = 0x5d,
+		Kabuto = 0x5A,
+		Kabutops = 0x5B,
+		Horsea = 0x5C,
+		Seadra = 0x5D,
 		Sandshrew = 0x60,
 		Sandslash = 0x61,
 		Omanyte = 0x62,
@@ -343,12 +350,12 @@ namespace PokemonGen1
 		Flareon = 0x67,
 		Jolteon = 0x68,
 		Vaporeon = 0x69,
-		Machop = 0x6a,
-		Zubat = 0x6b,
-		Ekans = 0x6c,
-		Paras = 0x6d,
-		Poliwhirl = 0x6e,
-		Poliwrath = 0x6f,
+		Machop = 0x6A,
+		Zubat = 0x6B,
+		Ekans = 0x6C,
+		Paras = 0x6D,
+		Poliwhirl = 0x6E,
+		Poliwrath = 0x6F,
 		Weedle = 0x70,
 		Kakuna = 0x71,
 		Beedrill = 0x72,
@@ -357,10 +364,10 @@ namespace PokemonGen1
 		Dugtrio = 0x76,
 		Venomoth = 0x77,
 		Dewgong = 0x78,
-		Caterpie = 0x7b,
-		Metapod = 0x7c,
-		Butterfree = 0x7d,
-		Machamp = 0x7e,
+		Caterpie = 0x7B,
+		Metapod = 0x7C,
+		Butterfree = 0x7D,
+		Machamp = 0x7E,
 		Golduck = 0x80,
 		Hypno = 0x81,
 		Golbat = 0x82,
@@ -368,11 +375,11 @@ namespace PokemonGen1
 		Snorlax = 0x84,
 		Magikarp = 0x85,
 		Muk = 0x88,
-		Kingler = 0x8a,
-		Cloyster = 0x8b,
-		Electrode = 0x8d,
-		Clefable = 0x8e,
-		Weezing = 0x8f,
+		Kingler = 0x8A,
+		Cloyster = 0x8B,
+		Electrode = 0x8D,
+		Clefable = 0x8E,
+		Weezing = 0x8F,
 		Persian = 0x90,
 		Marowak = 0x91,
 		Haunter = 0x93,
@@ -382,32 +389,32 @@ namespace PokemonGen1
 		Pidgeot = 0x97,
 		Starmie = 0x98,
 		Bulbasaur = 0x99,
-		Venusaur = 0x9a,
-		Tentacruel = 0x9b,
-		Goldeen = 0x9d,
-		Seaking = 0x9e,
-		Ponyta = 0xa3,
-		Rapidash = 0xa4,
-		Rattata = 0xa5,
-		Raticate = 0xa6,
-		Nidorino = 0xa7,
-		Nidorina = 0xa8,
-		Geodude = 0xa9,
-		Porygon = 0xaa,
-		Aerodactyl = 0xab,
-		Magnemite = 0xad,
-		Charmander = 0xb0,
-		Squirtle = 0xb1,
-		Charmeleon = 0xb2,
-		Wartortle = 0xb3,
-		Charizard = 0xb4,
-		Oddish = 0xb9,
-		Gloom = 0xba,
-		Vileplume = 0xbb,
-		Bellsprout = 0xbc,
-		Weepinbell = 0xbd,
-		Victreebel = 0xbe,
-		Missingno = 0xff
+		Venusaur = 0x9A,
+		Tentacruel = 0x9B,
+		Goldeen = 0x9D,
+		Seaking = 0x9E,
+		Ponyta = 0xA3,
+		Rapidash = 0xA4,
+		Rattata = 0xA5,
+		Raticate = 0xA6,
+		Nidorino = 0xA7,
+		Nidorina = 0xA8,
+		Geodude = 0xA9,
+		Porygon = 0xAA,
+		Aerodactyl = 0xAB,
+		Magnemite = 0xAD,
+		Charmander = 0xB0,
+		Squirtle = 0xB1,
+		Charmeleon = 0xB2,
+		Wartortle = 0xB3,
+		Charizard = 0xB4,
+		Oddish = 0xB9,
+		Gloom = 0xBA,
+		Vileplume = 0xBB,
+		Bellsprout = 0xBC,
+		Weepinbell = 0xBD,
+		Victreebel = 0xBE,
+		Missingno = 0xFF
 	};
 
 	extern const std::map<unsigned char, Pokemon::Base> pokemonList;

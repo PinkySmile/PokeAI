@@ -1,11 +1,11 @@
 //
-// Created by Gegel85 on 24/07/2019.
+// Created by PinkySmile on 24/07/2019.
 //
 
 #include <map>
 #include <string>
 #include <stdexcept>
-#include "PokemonTypes.hpp"
+#include "Type.hpp"
 
 /*
 ** From Pokepedia
@@ -28,7 +28,7 @@
 
 namespace PokemonGen1
 {
-	const std::map<PokemonTypes, std::map<PokemonTypes, double>> typeTable{
+	const std::map<Type, std::map<Type, double>> typeTable{
 		{TYPE_NORMAL,{
 			{TYPE_NORMAL,   1.0},
 			{TYPE_FIGHTING, 1.0},
@@ -286,7 +286,7 @@ namespace PokemonGen1
 		}},
 	};
 
-	std::string typeToString(PokemonTypes type)
+	std::string typeToString(Type type)
 	{
 		switch (type) {
 		case TYPE_NORMAL:
@@ -324,7 +324,7 @@ namespace PokemonGen1
 		}
 	}
 
-	std::string typeToStringShort(PokemonTypes type)
+	std::string typeToStringShort(Type type)
 	{
 		switch (type) {
 		case TYPE_NORMAL:
@@ -362,7 +362,7 @@ namespace PokemonGen1
 		}
 	}
 
-	double getAttackDamageMultiplier(PokemonTypes attackType, PokemonTypes target)
+	double getAttackDamageMultiplier(Type attackType, Type target)
 	{
 		try {
 			return typeTable.at(attackType).at(target);
@@ -371,7 +371,7 @@ namespace PokemonGen1
 		}
 	}
 
-	double getAttackDamageMultiplier(PokemonTypes attackType, std::pair<PokemonTypes, PokemonTypes> target)
+	double getAttackDamageMultiplier(Type attackType, std::pair<Type, Type> target)
 	{
 		if (target.first == target.second)
 			return getAttackDamageMultiplier(attackType, target.first);

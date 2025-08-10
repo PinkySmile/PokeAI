@@ -1,5 +1,5 @@
 //
-// Created by Gegel85 on 13/07/2019.
+// Created by PinkySmile on 13/07/2019.
 //
 
 #include <thread>

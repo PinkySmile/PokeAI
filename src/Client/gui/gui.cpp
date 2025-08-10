@@ -1,5 +1,5 @@
 //
-// Created by Gegel85 on 30/08/2019.
+// Created by PinkySmile on 30/08/2019.
 //
 
 #include <TGUI/TGUI.hpp>
@@ -9,9 +9,9 @@
 #include <memory>
 #include "gui.hpp"
 #include "Utils.hpp"
-#include "GameEngine/EmulatorGameHandle.hpp"
 #include "GameEngine/Team.hpp"
-#include "../Networking/BgbHandler.hpp"
+#include "Emulator/EmulatorGameHandle.hpp"
+#include "Emulator/BgbHandler.hpp"
 #include "../AIs/AI.hpp"
 #include "../AIs/AIFactory.hpp"
 
@@ -927,9 +927,9 @@ void loadResources(BattleResources &resources)
 
 	for (int i = 0; i <= TYPE_DRAGON; i++)
 		try {
-			resources.types.at(typeToString(static_cast<PokemonTypes>(i)));
+			resources.types.at(typeToString(static_cast<Type>(i)));
 		} catch (std::out_of_range &) {
-			resources.types[typeToString(static_cast<PokemonTypes>(i))].loadFromFile("assets/types/type_" + Utils::toLower(typeToString(static_cast<PokemonTypes>(i))) + ".png");
+			resources.types[typeToString(static_cast<Type>(i))].loadFromFile("assets/types/type_" + Utils::toLower(typeToString(static_cast<Type>(i))) + ".png");
 		}
 
 	resources.trainer[0][0].loadFromFile("assets/back_sprites/trainer_shadow_back.png");

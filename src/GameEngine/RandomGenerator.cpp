@@ -1,18 +1,18 @@
 //
-// Created by Gegel85 on 15/07/2019.
+// Created by PinkySmile on 15/07/2019.
 //
 
-#include "PokemonRandomGenerator.hpp"
+#include "RandomGenerator.hpp"
 #include "BattleHandler.hpp"
 
 namespace PokemonGen1
 {
-	PokemonRandomGenerator::PokemonRandomGenerator() :
+	RandomGenerator::RandomGenerator() :
 		_random(time(nullptr))
 	{
 	}
 
-	void PokemonRandomGenerator::makeRandomList(unsigned int size)
+	void RandomGenerator::makeRandomList(unsigned int size)
 	{
 		std::uniform_int_distribution distribution{0, SYNC_BYTE - 1};
 
@@ -25,12 +25,12 @@ namespace PokemonGen1
 		this->_numbersBase = this->_numbers;
 	}
 
-	const std::vector<unsigned char> &PokemonRandomGenerator::getList() const
+	const std::vector<unsigned char> &RandomGenerator::getList() const
 	{
 		return this->_numbers;
 	}
 
-	void PokemonRandomGenerator::setList(const std::vector<unsigned char> &list)
+	void RandomGenerator::setList(const std::vector<unsigned char> &list)
 	{
 		this->_numbers = list;
 		this->_currentIndex = 0;
@@ -39,7 +39,7 @@ namespace PokemonGen1
 		this->_numbersBase = this->_numbers;
 	}
 
-	unsigned char PokemonRandomGenerator::operator()()
+	unsigned char RandomGenerator::operator()()
 	{
 		unsigned char value = this->_numbers[this->_currentIndex];
 
@@ -52,17 +52,17 @@ namespace PokemonGen1
 		return value;
 	}
 
-	unsigned PokemonRandomGenerator::getIndex() const
+	unsigned RandomGenerator::getIndex() const
 	{
 		return this->_currentIndex;
 	}
 
-	void PokemonRandomGenerator::setIndex(unsigned int index)
+	void RandomGenerator::setIndex(unsigned int index)
 	{
 		this->_currentIndex = index;
 	}
 
-	void PokemonRandomGenerator::reset()
+	void RandomGenerator::reset()
 	{
 		this->_numbers = this->_numbersBase;
 		this->_currentIndex = 0;

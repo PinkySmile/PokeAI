@@ -1,5 +1,5 @@
 //
-// Created by Gegel85 on 13/07/2019.
+// Created by PinkySmile on 13/07/2019.
 //
 
 #ifndef POKEAI_BATTLEHANDLER_HPP
@@ -9,7 +9,7 @@
 #include <memory>
 #include <map>
 #include "Pokemon.hpp"
-#include "PokemonRandomGenerator.hpp"
+#include "RandomGenerator.hpp"
 #include "State.hpp"
 
 #define PING_BYTE 0x60

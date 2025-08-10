@@ -1,5 +1,5 @@
 //
-// Created by Gegel85 on 14/07/2019.
+// Created by PinkySmile on 14/07/2019.
 //
 
 #ifndef POKEAI_MOVE_HPP
@@ -8,7 +8,7 @@
 
 #include <string>
 #include <functional>
-#include "PokemonTypes.hpp"
+#include "Type.hpp"
 #include "StatusChange.hpp"
 #include "StatsChange.hpp"
 
@@ -252,14 +252,17 @@ namespace PokemonGen1
 			unsigned char cmpVal;
 		};
 
+		typedef std::function<bool (Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun, const std::function<void(const std::string &msg)> &logger)> HitCallback;
+		typedef std::function<bool (Pokemon &owner, Pokemon &target,                  bool lastRun, const std::function<void(const std::string &msg)> &logger)> MissCallback;
+
 	private:
-		std::function<bool (Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun, const std::function<void(const std::string &msg)> &)> _hitCallback;
-		std::function<bool (Pokemon &owner, Pokemon &target, bool last, const std::function<void(const std::string &msg)> &logger)> _missCallback;
+		HitCallback _hitCallback;
+		MissCallback _missCallback;
 		double _critChance;
 		std::string _loadingMsg;
 		std::string _keepGoingMsg;
 		std::string _name;
-		PokemonTypes _type;
+		Type _type;
 		MoveCategory _category;
 		unsigned int _power;
 		unsigned char _id;
@@ -285,7 +288,7 @@ namespace PokemonGen1
 		Move(
 			unsigned char id,
 			const std::string &name,
-			PokemonTypes type,
+			Type type,
 			MoveCategory category,
 			unsigned int power,
 			unsigned char accuracy,
@@ -302,9 +305,9 @@ namespace PokemonGen1
 			const std::string &loadingMsg = "",
 			bool invulnerableDuringLoading = false,
 			bool needRecharge = false,
-			const std::function<bool(Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun, const std::function<void(const std::string &msg)> &logger)> &&hitCallback = nullptr,
+			const HitCallback &&hitCallback = nullptr,
 			const std::string &hitCallBackDescription = "",
-			const std::function<bool(Pokemon &owner, Pokemon &target, bool last, const std::function<void(const std::string &msg)> &logger)> &&missCallback = nullptr,
+			const MissCallback &&missCallback = nullptr,
 			const std::string &missCallBackDescription = ""
 		);
 		Move(const Move &);
@@ -328,7 +331,7 @@ namespace PokemonGen1
 		unsigned char getMaxPP() const;
 		unsigned int getPower() const;
 		unsigned char getPPUp() const;
-		PokemonTypes getType() const;
+		Type getType() const;
 		unsigned char getPP() const;
 		unsigned char getID() const;
 		std::string getName() const;
@@ -346,7 +349,7 @@ namespace PokemonGen1
 		bool attack(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger);
 	};
 
-	extern const std::vector<Move> availableMoves;
+	extern const std::array<Move, 256> availableMoves;
 
 	/*
 	** From Rhydon
@@ -365,12 +368,12 @@ namespace PokemonGen1
 		Fire_Punch = 0x07,
 		Ice_Punch = 0x08,
 		Thunder_Punch = 0x09,
-		Scratch = 0x0a,
-		Vise_Grip = 0x0b,
-		Guillotine = 0x0c,
-		Razor_Wind = 0x0d,
-		Swords_Dance = 0x0e,
-		Cut = 0x0f,
+		Scratch = 0x0A,
+		Vise_Grip = 0x0B,
+		Guillotine = 0x0C,
+		Razor_Wind = 0x0D,
+		Swords_Dance = 0x0E,
+		Cut = 0x0F,
 		Gust = 0x10,
 		Wing_Attack = 0x11,
 		Whirlwind = 0x12,
@@ -381,12 +384,12 @@ namespace PokemonGen1
 		Stomp = 0x17,
 		Double_Kick = 0x18,
 		Mega_Kick = 0x19,
-		Jump_Kick = 0x1a,
-		Rolling_Kick = 0x1b,
-		Sand_Attack = 0x1c,
-		Headbutt = 0x1d,
-		Horn_Attack = 0x1e,
-		Fury_Attack = 0x1f,
+		Jump_Kick = 0x1A,
+		Rolling_Kick = 0x1B,
+		Sand_Attack = 0x1C,
+		Headbutt = 0x1D,
+		Horn_Attack = 0x1E,
+		Fury_Attack = 0x1F,
 		Horn_Drill = 0x20,
 		Tackle = 0x21,
 		Body_Slam = 0x22,
@@ -397,12 +400,12 @@ namespace PokemonGen1
 		Tail_Whip = 0x27,
 		Poison_Sting = 0x28,
 		Twineedle = 0x29,
-		Pin_Missile = 0x2a,
-		Leer = 0x2b,
-		Bite = 0x2c,
-		Growl = 0x2d,
-		Roar = 0x2e,
-		Sing = 0x2f,
+		Pin_Missile = 0x2A,
+		Leer = 0x2B,
+		Bite = 0x2C,
+		Growl = 0x2D,
+		Roar = 0x2E,
+		Sing = 0x2F,
 		Supersonic = 0x30,
 		Sonic_Boom = 0x31,
 		Disable = 0x32,
@@ -413,12 +416,12 @@ namespace PokemonGen1
 		Water_Gun = 0x37,
 		Hydro_Pump = 0x38,
 		Surf = 0x39,
-		Ice_Beam = 0x3a,
-		Blizzard = 0x3b,
-		Psybeam = 0x3c,
-		Bubble_Beam = 0x3d,
-		Aurora_Beam = 0x3e,
-		Hyper_Beam = 0x3f,
+		Ice_Beam = 0x3A,
+		Blizzard = 0x3B,
+		Psybeam = 0x3C,
+		Bubble_Beam = 0x3D,
+		Aurora_Beam = 0x3E,
+		Hyper_Beam = 0x3F,
 		Peck = 0x40,
 		Drill_Peck = 0x41,
 		Submission = 0x42,
@@ -429,12 +432,12 @@ namespace PokemonGen1
 		Absorb = 0x47,
 		Mega_Drain = 0x48,
 		Leech_Seed = 0x49,
-		Growth = 0x4a,
-		Razor_Leaf = 0x4b,
-		Solar_Beam = 0x4c,
-		Poison_Powder = 0x4d,
-		Stun_Spore = 0x4e,
-		Sleep_Powder = 0x4f,
+		Growth = 0x4A,
+		Razor_Leaf = 0x4B,
+		Solar_Beam = 0x4C,
+		Poison_Powder = 0x4D,
+		Stun_Spore = 0x4E,
+		Sleep_Powder = 0x4F,
 		Petal_Dance = 0x50,
 		String_Shot = 0x51,
 		Dragon_Rage = 0x52,
@@ -445,12 +448,12 @@ namespace PokemonGen1
 		Thunder = 0x57,
 		Rock_Throw = 0x58,
 		Earthquake = 0x59,
-		Fissure = 0x5a,
-		Dig = 0x5b,
-		Toxic = 0x5c,
-		Confusion = 0x5d,
-		Psychic_M = 0x5e,
-		Hypnosis = 0x5f,
+		Fissure = 0x5A,
+		Dig = 0x5B,
+		Toxic = 0x5C,
+		Confusion = 0x5D,
+		Psychic_M = 0x5E,
+		Hypnosis = 0x5F,
 		Meditate = 0x60,
 		Agility = 0x61,
 		Quick_Attack = 0x62,
@@ -461,12 +464,12 @@ namespace PokemonGen1
 		Screech = 0x67,
 		Double_Team = 0x68,
 		Recover = 0x69,
-		Harden = 0x6a,
-		Minimize = 0x6b,
-		Smokescreen = 0x6c,
-		Confuse_Ray = 0x6d,
-		Withdraw = 0x6e,
-		Defense_Curl = 0x6f,
+		Harden = 0x6A,
+		Minimize = 0x6B,
+		Smokescreen = 0x6C,
+		Confuse_Ray = 0x6D,
+		Withdraw = 0x6E,
+		Defense_Curl = 0x6F,
 		Barrier = 0x70,
 		Light_Screen = 0x71,
 		Haze = 0x72,
@@ -477,12 +480,12 @@ namespace PokemonGen1
 		Mirror_Move = 0x77,
 		Self_Destruct = 0x78,
 		Egg_Bomb = 0x79,
-		Lick = 0x7a,
-		Smog = 0x7b,
-		Sludge = 0x7c,
-		Bone_Club = 0x7d,
-		Fire_Blast = 0x7e,
-		Waterfall = 0x7f,
+		Lick = 0x7A,
+		Smog = 0x7B,
+		Sludge = 0x7C,
+		Bone_Club = 0x7D,
+		Fire_Blast = 0x7E,
+		Waterfall = 0x7F,
 		Clamp = 0x80,
 		Swift = 0x81,
 		Skull_Bash = 0x82,
@@ -493,12 +496,12 @@ namespace PokemonGen1
 		Soft_Boiled = 0x87,
 		Hi_Jump_Kick = 0x88,
 		Glare = 0x89,
-		Dream_Eater = 0x8a,
-		Poison_Gas = 0x8b,
-		Barrage = 0x8c,
-		Leech_Life = 0x8d,
-		Lovely_Kiss = 0x8e,
-		Sky_Attack = 0x8f,
+		Dream_Eater = 0x8A,
+		Poison_Gas = 0x8B,
+		Barrage = 0x8C,
+		Leech_Life = 0x8D,
+		Lovely_Kiss = 0x8E,
+		Sky_Attack = 0x8F,
 		Transform = 0x90,
 		Bubble = 0x91,
 		Dizzy_Punch = 0x92,
@@ -509,18 +512,18 @@ namespace PokemonGen1
 		Acid_Armor = 0x97,
 		Crabhammer = 0x98,
 		Explosion = 0x99,
-		Fury_Swipes = 0x9a,
-		Bonemerang = 0x9b,
-		Rest = 0x9c,
-		Rock_Slide = 0x9d,
-		Hyper_Fang = 0x9e,
-		Sharpen = 0x9f,
-		Conversion = 0xa0,
-		Tri_Attack = 0xa1,
-		Super_Fang = 0xa2,
-		Slash = 0xa3,
-		Substitute = 0xa4,
-		Struggle = 0xa5
+		Fury_Swipes = 0x9A,
+		Bonemerang = 0x9B,
+		Rest = 0x9C,
+		Rock_Slide = 0x9D,
+		Hyper_Fang = 0x9E,
+		Sharpen = 0x9F,
+		Conversion = 0xA0,
+		Tri_Attack = 0xA1,
+		Super_Fang = 0xA2,
+		Slash = 0xA3,
+		Substitute = 0xA4,
+		Struggle = 0xA5
 	};
 }
 

@@ -1,5 +1,5 @@
 //
-// Created by Gegel85 on 30/08/2019.
+// Created by PinkySmile on 30/08/2019.
 //
 
 #ifndef POKEAI_GUI_HPP

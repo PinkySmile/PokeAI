@@ -1,5 +1,5 @@
 //
-// Created by Gegel85 on 07/04/2020.
+// Created by PinkySmile on 07/04/2020.
 //
 
 #ifndef GAMEENGINE_UTILS_HPP

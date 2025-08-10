@@ -1,5 +1,5 @@
 //
-// Created by andgel on 08/09/2020
+// Created by PinkySmile on 08/09/2020
 //
 
 #ifndef POKEAI_AI_HPP

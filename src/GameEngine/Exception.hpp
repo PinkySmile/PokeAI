@@ -1,5 +1,5 @@
 //
-// Created by Gegel85 on 20/06/2019.
+// Created by PinkySmile on 20/06/2019.
 //
 
 #ifndef POKE_AI_EXCEPTION_HPP

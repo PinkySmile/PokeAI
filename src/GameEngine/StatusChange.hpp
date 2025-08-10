@@ -1,5 +1,5 @@
 //
-// Created by Gegel85 on 14/07/2019.
+// Created by PinkySmile on 14/07/2019.
 //
 
 #ifndef POKEAI_STATUSCHANGE_HPP

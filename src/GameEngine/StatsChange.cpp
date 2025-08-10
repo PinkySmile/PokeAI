@@ -1,5 +1,5 @@
 //
-// Created by andgel on 23/08/2020
+// Created by PinkySmile on 23/08/2020
 //
 
 #include "Pokemon.hpp"

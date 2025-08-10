@@ -1,5 +1,5 @@
 //
-// Created by Gegel85 on 21/07/2019.
+// Created by PinkySmile on 21/07/2019.
 //
 
 #include "StatusChange.hpp"

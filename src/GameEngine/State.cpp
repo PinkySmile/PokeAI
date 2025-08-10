@@ -4,7 +4,6 @@
 
 #include <nlohmann/json.hpp>
 #include "State.hpp"
-#include "EmulatorGameHandle.hpp"
 
 namespace PokemonGen1
 {
@@ -44,7 +43,7 @@ namespace PokemonGen1
 		return json;
 	}
 
-	void PlayerState::deserialize(const nlohmann::json &json, PokemonRandomGenerator &rng, const BattleLogger &logger)
+	void PlayerState::deserialize(const nlohmann::json &json, RandomGenerator &rng, const BattleLogger &logger)
 	{
 		this->name = json["name"];
 		this->lastAction = json["lastAction"];

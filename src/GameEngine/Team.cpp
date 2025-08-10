@@ -2,13 +2,13 @@
 // Created by PinkySmile on 21/06/25.
 //
 
+#include <cstring>
 #include "Team.hpp"
-#include "GameEngine/Exception.hpp"
-#include "EmulatorGameHandle.hpp"
+#include "Exception.hpp"
 
 namespace PokemonGen1
 {
-	Trainer loadTrainer(const std::vector<unsigned char> &data, PokemonRandomGenerator &rng, const Pokemon::Logger &logger)
+	Trainer loadTrainer(const std::vector<unsigned char> &data, RandomGenerator &rng, const Pokemon::Logger &logger)
 	{
 		Trainer result;
 		auto it = data.begin();
@@ -16,9 +16,10 @@ namespace PokemonGen1
 		if (data.size() != 11 * 7 + 44 * 6 + 1)
 			throw InvalidSaveFileException("The data size doesn't match (expected 342B but got " + std::to_string(data.size()) + "B)");
 		/* Content */
-		result.first = EmulatorGameHandle::convertString(data);
+		result.first = std::string(data.begin(), data.begin() + 11);
+		result.first.resize(strlen(result.first.c_str()));
 		if (result.first.size() > 10)
-			throw InvalidSaveFileException("The trainer name \"" + result.first + "\" is too long (Expected at most 10 characters but gt " + std::to_string(result.first.size()) + ")");
+			throw InvalidSaveFileException("Invalid trainer name.");
 		it += 11;
 
 		unsigned char nbPkmns = *(it++);
@@ -32,10 +33,12 @@ namespace PokemonGen1
 		result.second.reserve(nbPkmns);
 		for (int i = 0; i < nbPkmns; i++) {
 			std::array<unsigned char, Pokemon::ENCODED_SIZE> arr;
+			std::string tmp{names, names + 11};
 
 			std::copy(it, it + Pokemon::ENCODED_SIZE, arr.begin());
+			tmp.resize(strlen(tmp.c_str()));
 			it += Pokemon::ENCODED_SIZE;
-			result.second.emplace_back(rng, logger, EmulatorGameHandle::convertString(std::vector<unsigned char>{names, names + 11}), arr, false);
+			result.second.emplace_back(rng, logger, tmp, arr, false);
 			names += 11;
 		}
 		return result;
@@ -44,16 +47,15 @@ namespace PokemonGen1
 	std::vector<unsigned char> saveTrainer(const Trainer &trainer)
 	{
 		std::vector<unsigned char> data;
-		std::vector<unsigned char> tmp;
+		std::string tmp;
 
 		data.reserve(11 * 7 + 44 * 6 + 1);
-		tmp = EmulatorGameHandle::convertString(trainer.first);
 		for (size_t i = 0; i < Pokemon::NICK_SIZE; i++)
-			if (i < tmp.size())
-				data.push_back(tmp[i]);
+			if (i < trainer.first.size())
+				data.push_back(trainer.first[i]);
 			else
-				data.push_back(ASCIIToPkmn1CharConversionTable['\0']);
-		data.push_back(ASCIIToPkmn1CharConversionTable['\0']);
+				data.push_back('\0');
+		data.push_back('\0');
 
 		data.push_back(trainer.second.size());
 		for (const Pokemon &pkmn : trainer.second) {
@@ -65,16 +67,16 @@ namespace PokemonGen1
 			data.resize(data.size() + Pokemon::ENCODED_SIZE, 0);
 
 		for (const Pokemon &pkmn : trainer.second) {
-			tmp = EmulatorGameHandle::convertString(pkmn.getNickname());
+			tmp = pkmn.getNickname();
 			for (size_t i = 0; i < Pokemon::NICK_SIZE; i++)
 				if (i < tmp.size())
 					data.push_back(tmp[i]);
 				else
-					data.push_back(ASCIIToPkmn1CharConversionTable['\0']);
-			data.push_back(ASCIIToPkmn1CharConversionTable['\0']);
+					data.push_back('\0');
+			data.push_back('\0');
 		}
 		for (size_t i = trainer.second.size(); i < 6; i++)
-			data.resize(data.size() + Pokemon::NICK_SIZE + 1, ASCIIToPkmn1CharConversionTable['\0']);
+			data.resize(data.size() + Pokemon::NICK_SIZE + 1, '\0');
 		return data;
 	}
 }

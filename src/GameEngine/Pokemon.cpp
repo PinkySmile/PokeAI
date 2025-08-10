@@ -1,12 +1,12 @@
 //
-// Created by Gegel85 on 14/07/2019.
+// Created by PinkySmile on 14/07/2019.
 //
 
 #include <iostream>
 #include <sstream>
 #include <nlohmann/json.hpp>
 #include "Pokemon.hpp"
-#include "PokemonTypes.hpp"
+#include "Type.hpp"
 #include "Move.hpp"
 #include "BattleHandler.hpp"
 
@@ -14,7 +14,7 @@
 
 namespace PokemonGen1
 {
-	Pokemon::Pokemon(PokemonRandomGenerator &random, const Logger &battleLogger, const std::string &nickname, unsigned char level, const Base &base, const std::vector<Move> &moveSet, bool enemy) :
+	Pokemon::Pokemon(RandomGenerator &random, const Logger &battleLogger, const std::string &nickname, unsigned char level, const Base &base, const std::vector<Move> &moveSet, bool enemy) :
 		_id(base.id),
 		_enemy(enemy),
 		_lastUsedMove(availableMoves[0x00]),
@@ -44,7 +44,7 @@ namespace PokemonGen1
 		this->_computedStats = this->_baseStats;
 	}
 
-	Pokemon::Pokemon(PokemonRandomGenerator &random, const Logger &battleLogger, const std::string &nickname, const std::array<byte, ENCODED_SIZE> &data, bool enemy) :
+	Pokemon::Pokemon(RandomGenerator &random, const Logger &battleLogger, const std::string &nickname, const std::array<byte, ENCODED_SIZE> &data, bool enemy) :
 		_id(data[PACK_SPECIES]),
 		_enemy(enemy),
 		_lastUsedMove(availableMoves[0x00]),
@@ -77,8 +77,8 @@ namespace PokemonGen1
 		},
 		_upgradedStats{0, 0, 0, 0, 0, 0},
 		_types{
-			static_cast<PokemonTypes>(data[PACK_TYPEA]),
-			static_cast<PokemonTypes>(data[PACK_TYPEB])
+			static_cast<Type>(data[PACK_TYPEA]),
+			static_cast<Type>(data[PACK_TYPEB])
 		},
 		_level{data[PACK_CURR_LEVEL]},
 		_catchRate{data[PACK_CATCH_RATE]},
@@ -103,7 +103,7 @@ namespace PokemonGen1
 		this->_computedStats = this->_baseStats;
 	}
 
-	Pokemon::Pokemon(PokemonRandomGenerator &random, const Pokemon::Logger &battleLogger, const nlohmann::json &json) :
+	Pokemon::Pokemon(RandomGenerator &random, const Pokemon::Logger &battleLogger, const nlohmann::json &json) :
 		_oldState{
 			.stats = {
 				.HP   = json["oldState"]["stats"]["HP"],
@@ -482,7 +482,7 @@ namespace PokemonGen1
 		return this->_currentStatus & status;
 	}
 
-	PokemonRandomGenerator &Pokemon::getRandomGenerator()
+	RandomGenerator &Pokemon::getRandomGenerator()
 	{
 		return *this->_random;
 	}
@@ -690,12 +690,12 @@ namespace PokemonGen1
 		return !this->_invincible;
 	}
 
-	std::pair<PokemonTypes, PokemonTypes> Pokemon::getTypes() const
+	std::pair<Type, Type> Pokemon::getTypes() const
 	{
 		return this->_types;
 	}
 
-	void Pokemon::setTypes(std::pair<PokemonTypes, PokemonTypes> types)
+	void Pokemon::setTypes(std::pair<Type, Type> types)
 	{
 		this->_types = types;
 	}
@@ -720,7 +720,7 @@ namespace PokemonGen1
 		return this->_baseStats.SPD;
 	}
 
-	Pokemon::DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, PokemonTypes damageType, MoveCategory category, bool critical, bool randomized) const
+	Pokemon::DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized) const
 	{
 		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
 
@@ -856,7 +856,7 @@ namespace PokemonGen1
 		};
 	}
 
-	const std::vector<Move> Pokemon::getMoveSet() const
+	const std::vector<Move> &Pokemon::getMoveSet() const
 	{
 		return this->_moveSet;
 	}
@@ -1045,8 +1045,8 @@ namespace PokemonGen1
 		unsigned short DEF,
 		unsigned short SPD,
 		unsigned short SPE,
-		PokemonTypes typeA,
-		PokemonTypes typeB,
+		Type typeA,
+		Type typeB,
 		unsigned char catchRate,
 		unsigned int baseXpYield,
 		const std::set<AvailableMove> &movePool

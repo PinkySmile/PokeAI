@@ -1,5 +1,5 @@
 //
-// Created by Gegel85 on 17/08/2020.
+// Created by PinkySmile on 17/08/2020.
 //
 
 #include <SFML/Audio.hpp>

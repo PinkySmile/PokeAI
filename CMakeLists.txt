@@ -7,6 +7,7 @@ if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_BUILD_TYPE MATCHES Debug)
 	add_compile_options(-W -Wall -Wextra)
 endif (CMAKE_COMPILER_IS_GNUCC AND CMAKE_BUILD_TYPE MATCHES Debug)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 find_package(SFML 3 REQUIRED COMPONENTS Graphics Audio Network)
 find_package(TGUI 1 REQUIRED)
 
@@ -18,19 +19,16 @@ add_library(
 	src/GameEngine/BattleHandler.hpp
 	src/GameEngine/Pokemon.cpp
 	src/GameEngine/Pokemon.hpp
-	src/GameEngine/PokemonTypes.hpp
+	src/GameEngine/Type.hpp
 	src/GameEngine/Move.cpp
 	src/GameEngine/Move.hpp
 	src/GameEngine/StatusChange.hpp
 	src/GameEngine/StatsChange.cpp
 	src/GameEngine/StatsChange.hpp
-	src/GameEngine/PokemonRandomGenerator.cpp
-	src/GameEngine/PokemonRandomGenerator.hpp
+	src/GameEngine/RandomGenerator.cpp
+	src/GameEngine/RandomGenerator.hpp
 	src/GameEngine/StatusChange.cpp
-	src/GameEngine/PokemonTypes.cpp
-	src/GameEngine/EmulatorGameHandle.cpp
-	src/GameEngine/EmulatorGameHandle.hpp
-	src/GameEngine/EmulatorHandle.hpp
+	src/GameEngine/Type.cpp
 	src/GameEngine/State.hpp
 	src/GameEngine/State.cpp
 	src/GameEngine/Team.cpp
@@ -39,12 +37,34 @@ add_library(
 	src/GameEngine/Utils.hpp
 )
 
+
+add_library(
+	PokemonGen1Emulator STATIC
+	src/Emulator/EmulatorGameHandle.cpp
+	src/Emulator/EmulatorGameHandle.hpp
+	src/Emulator/EmulatorHandle.hpp
+	src/Emulator/Socket.cpp
+	src/Emulator/Socket.hpp
+	src/Emulator/BgbHandler.cpp
+	src/Emulator/BgbHandler.hpp
+)
+if (WIN32)
+	target_link_libraries(
+		PokemonGen1Emulator
+		PokemonGen1Core
+		ws2_32
+	)
+else (WIN32)
+	target_link_libraries(
+		PokemonGen1Emulator
+		PokemonGen1Core
+		pthread
+	)
+endif (WIN32)
+
+
 add_library(
 	PokemonGen1Client STATIC
-	src/Client/Networking/Socket.cpp
-	src/Client/Networking/Socket.hpp
-	src/Client/Networking/BgbHandler.cpp
-	src/Client/Networking/BgbHandler.hpp
 	src/Client/AIs/AIHeuristic.cpp
 	src/Client/AIs/AIHeuristic.hpp
 	src/Client/AIs/AI.hpp
@@ -53,20 +73,21 @@ add_library(
 	src/Client/AIs/RandomAI.cpp
 	src/Client/AIs/RandomAI.hpp
 )
-
 if (WIN32)
 	target_link_libraries(
-		PokPokemonGen1ClienteAI
+		PokemonGen1Client
 		PokemonGen1Core
-		ws2_32
+		PokemonGen1Emulator
 	)
 else (WIN32)
 	target_link_libraries(
 		PokemonGen1Client
 		PokemonGen1Core
-		pthread
+		PokemonGen1Emulator
 	)
 endif (WIN32)
+
+
 
 add_executable(
 	PokeAI_gui

@@ -44,13 +44,13 @@ namespace PokemonGen1
 		std::array<PkmnDiscovered, 6> discovered;
 
 		nlohmann::json serialize();
-		void deserialize(const nlohmann::json &json, PokemonRandomGenerator &rng, const BattleLogger &logger);
+		void deserialize(const nlohmann::json &json, RandomGenerator &rng, const BattleLogger &logger);
 	};
 
 	struct BattleState {
 		PlayerState me;
 		PlayerState op;
-		PokemonRandomGenerator rng;
+		RandomGenerator rng;
 		BattleLogger battleLogger;
 		std::function<bool ()> onTurnStart;
 		std::function<void ()> onBattleEnd;
@@ -59,6 +59,18 @@ namespace PokemonGen1
 		nlohmann::json serialize();
 		void deserialize(const nlohmann::json &json);
 	};
+
+#ifdef __PYX_EXTERN_C
+	inline std::function<bool ()> pythonCallbackLambda(void *python_function, std::function<bool (void *)> eval)
+	{
+		return [=]() { return eval(python_function); };
+	}
+
+	inline std::function<void ()> pythonCallbackLambdaVoid(void *python_function, std::function<void (void *)> eval)
+	{
+		return [=]() { return eval(python_function); };
+	}
+#endif
 }
 
 

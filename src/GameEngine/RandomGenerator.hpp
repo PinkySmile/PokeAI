@@ -1,16 +1,16 @@
 //
-// Created by Gegel85 on 15/07/2019.
+// Created by PinkySmile on 15/07/2019.
 //
 
-#ifndef POKEAI_POKEMONRANDOMGENERATOR_HPP
-#define POKEAI_POKEMONRANDOMGENERATOR_HPP
+#ifndef POKEAI_RANDOMGENERATOR_HPP
+#define POKEAI_RANDOMGENERATOR_HPP
 
 
 #include <random>
 
 namespace PokemonGen1
 {
-	class PokemonRandomGenerator {
+	class RandomGenerator {
 	private:
 		std::mt19937 _random;
 		unsigned _currentIndex = 0;
@@ -18,7 +18,7 @@ namespace PokemonGen1
 		std::vector<unsigned char> _numbers;
 
 	public:
-		PokemonRandomGenerator();
+		RandomGenerator();
 
 		void makeRandomList(unsigned int size);
 		void setList(const std::vector<unsigned char> &list);
@@ -31,4 +31,4 @@ namespace PokemonGen1
 }
 
 
-#endif //POKEAI_POKEMONRANDOMGENERATOR_HPP
+#endif //POKEAI_RANDOMGENERATOR_HPP

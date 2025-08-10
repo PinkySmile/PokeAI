@@ -1,19 +1,19 @@
 //
-// Created by Gegel85 on 14/07/2019.
+// Created by PinkySmile on 14/07/2019.
 //
 
 #include <sstream>
 #include "Pokemon.hpp"
 #include "Move.hpp"
 #include "Exception.hpp"
-#include "GameEngine/Utils.hpp"
+#include "Utils.hpp"
 
 namespace PokemonGen1
 {
 	Move::Move(
 		unsigned char id,
 		const std::string &name,
-		PokemonTypes type,
+		Type type,
 		MoveCategory category,
 		unsigned int power,
 		unsigned char accuracy,
@@ -417,7 +417,7 @@ namespace PokemonGen1
 		return this->_accuracy;
 	}
 
-	PokemonTypes Move::getType() const
+	Type Move::getType() const
 	{
 		return this->_type;
 	}
@@ -506,7 +506,7 @@ namespace PokemonGen1
 	*/
 
 	//This is only relevant for Gen 1 (Some moves changed)
-	const std::vector<Move> availableMoves{
+	const std::array<Move, 256> availableMoves{
 		Move{0x00, "-"           , TYPE_INVALID , STATUS,    0,    0,  0, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, nullptr, "No move. This move is invalid and will cause desync when used."},
 		Move{0x01, "Pound"       , TYPE_NORMAL  , PHYSICAL,  40, 100, 35},
 		Move{0x02, "Karate Chop" , TYPE_NORMAL  , PHYSICAL,  50, 100, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},

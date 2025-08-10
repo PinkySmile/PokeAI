@@ -1,14 +1,13 @@
 //
-// Created by Gegel85 on 21/08/2019.
+// Created by PinkySmile on 21/08/2019.
 //
 
 #include <string>
 #include <future>
-#include "commandLine.hpp"
 #include "GameEngine/Pokemon.hpp"
-#include "Networking/BgbHandler.hpp"
 #include "GameEngine/BattleHandler.hpp"
-#include "GameEngine/EmulatorGameHandle.hpp"
+#include "Emulator/BgbHandler.hpp"
+#include "Emulator/EmulatorGameHandle.hpp"
 
 #ifndef _WIN32
 #include <sys/select.h>
@@ -44,7 +43,7 @@ BattleAction getAction(const std::string &val)
 	return NoAction;
 }
 
-Pokemon getPkmnFromCin(PokemonRandomGenerator &rng, const BattleLogger &logger, bool enemy)
+Pokemon getPkmnFromCin(RandomGenerator &rng, const BattleLogger &logger, bool enemy)
 {
 	std::string arg;
 	unsigned id = 256;

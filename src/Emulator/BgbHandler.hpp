@@ -1,5 +1,5 @@
 //
-// Created by Gegel85 on 13/07/2019.
+// Created by PinkySmile on 13/07/2019.
 //
 
 #ifndef POKEAI_BGBHANDLER_HPP
@@ -11,7 +11,7 @@
 #include <iostream>
 #include <functional>
 #include "Socket.hpp"
-#include "GameEngine/EmulatorHandle.hpp"
+#include "Emulator/EmulatorHandle.hpp"
 
 class BGBHandler : public EmulatorHandle {
 private:

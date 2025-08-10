@@ -1,9 +1,9 @@
 //
-// Created by Gegel85 on 14/07/2019.
+// Created by PinkySmile on 14/07/2019.
 //
 
-#ifndef POKEAI_POKEMONTYPES_HPP
-#define POKEAI_POKEMONTYPES_HPP
+#ifndef POKEAI_TYPE_HPP
+#define POKEAI_TYPE_HPP
 
 
 namespace PokemonGen1
@@ -12,7 +12,7 @@ namespace PokemonGen1
 	** From Rhydon
 	** https://github.com/SciresM/Rhydon/blob/2056e8f044d3c5178ad2d697d0823d2b799bb099/Rhydon/Tables.cs#L7
 	*/
-	enum PokemonTypes {
+	enum Type {
 		TYPE_NORMAL,
 		TYPE_FIGHTING,
 		TYPE_FLYING,
@@ -44,10 +44,10 @@ namespace PokemonGen1
 		TYPE_NEUTRAL_SPECIAL = 0x101
 	};
 
-	std::string typeToString(PokemonTypes);
-	std::string typeToStringShort(PokemonTypes);
-	double getAttackDamageMultiplier(PokemonTypes attackType, PokemonTypes target);
-	double getAttackDamageMultiplier(PokemonTypes attackType, std::pair<PokemonTypes, PokemonTypes> target);
+	std::string typeToString(Type);
+	std::string typeToStringShort(Type);
+	double getAttackDamageMultiplier(Type attackType, Type target);
+	double getAttackDamageMultiplier(Type attackType, std::pair<Type, Type> target);
 }
 
-#endif //POKEAI_POKEMONTYPES_HPP
+#endif //POKEAI_TYPE_HPP
