@@ -5,8 +5,10 @@
 #include <thread>
 #include <iostream>
 #include <algorithm>
+#include <fstream>
 #include "BattleHandler.hpp"
 #include "Exception.hpp"
+#include "Team.hpp"
 
 namespace PokemonGen1
 {
@@ -185,10 +187,20 @@ namespace PokemonGen1
 
 	bool BattleHandler::tick()
 	{
+		if (!this->_started) {
+			this->_populateStartParams();
+			this->_started = true;
+		}
 		if (this->_finished)
 			return false;
+		if (this->_playingReplay) {
+			this->_state.me.nextAction = this->_replayInputs.front().first;
+			this->_state.op.nextAction = this->_replayInputs.front().second;
+			this->_replayInputs.pop_front();
+		}
 		if (this->_state.me.nextAction == NoAction || this->_state.op.nextAction == NoAction)
 			throw std::runtime_error("No action selected");
+		this->_replayData.input.emplace_back(this->_state.me.nextAction, this->_state.op.nextAction);
 		this->_log("P1 will do " + BattleActionToString(this->_state.me.nextAction));
 		this->_log("P2 will do " + BattleActionToString(this->_state.op.nextAction));
 		this->_executeBattleActions();
@@ -201,6 +213,8 @@ namespace PokemonGen1
 		this->_log("Game is " + std::string(this->_finished ? "" : "NOT ") + "finished");
 		this->_state.me.nextAction = NoAction;
 		this->_state.op.nextAction = NoAction;
+		if (this->_playingReplay && this->_replayInputs.empty())
+			this->_finished = true;
 		return this->_finished;
 	}
 
@@ -218,7 +232,9 @@ namespace PokemonGen1
 	void BattleHandler::reset()
 	{
 		this->_finished = false;
+		this->_started = false;
 		this->_state.rng.reset();
+		this->_replayData.input.clear();
 
 		this->_state.me.lastAction = NoAction;
 		this->_state.me.nextAction = NoAction;
@@ -233,5 +249,112 @@ namespace PokemonGen1
 		this->_state.op.discovered.fill({false, {false, false, false, false}});
 		for (auto &pkmn : this->_state.op.team)
 			pkmn.reset();
+	}
+
+	void BattleHandler::_populateStartParams()
+	{
+		this->_replayData.nameP1 = this->_state.me.name;
+		this->_replayData.nameP2 = this->_state.op.name;
+		this->_replayData.teamP1 = this->_state.me.team;
+		this->_replayData.teamP2 = this->_state.op.team;
+		this->_replayData.rngList = this->_state.rng.getList();
+	}
+
+	bool BattleHandler::saveReplay(const std::string &path)
+	{
+		std::ofstream stream{path};
+
+		if (stream.fail())
+			return false;
+
+		auto p1 = saveTrainer({this->_replayData.nameP1, this->_replayData.teamP1});
+		auto p2 = saveTrainer({this->_replayData.nameP2, this->_replayData.teamP2});
+		auto &list = this->_replayData.rngList;
+		auto &in = this->_replayData.input;
+		unsigned char size;
+
+		stream.write(reinterpret_cast<const char *>(p1.data()), p1.size());
+		stream.write(reinterpret_cast<const char *>(p2.data()), p2.size());
+
+		size = list.size();
+		stream.write(reinterpret_cast<const char *>(&size), 1);
+		stream.write(reinterpret_cast<const char *>(list.data()), list.size());
+
+		size = in.size();
+		stream.write(reinterpret_cast<const char *>(&size), 1);
+		stream.write(reinterpret_cast<const char *>(in.data()), sizeof(*in.data()) * in.size());
+		return true;
+	}
+
+	void BattleHandler::loadReplay(const std::string &path)
+	{
+		std::ifstream stream{path};
+		BattleHandler::ReplayData data;
+		std::vector<unsigned char> buffer;
+		Trainer tmp;
+		unsigned char size = 0;
+
+		if (stream.fail())
+			throw std::runtime_error(std::string("Can't open ") + path + " for reading");
+		buffer.resize(TRAINER_DATA_SIZE);
+
+		stream.read(reinterpret_cast<char *>(buffer.data()), TRAINER_DATA_SIZE);
+		if (stream.fail())
+			throw std::runtime_error("Reached EOF early");
+		tmp = loadTrainer(buffer, this->_state.rng, this->_state.battleLogger);
+		data.nameP1 = tmp.first;
+		data.teamP1 = tmp.second;
+
+		stream.read(reinterpret_cast<char *>(buffer.data()), TRAINER_DATA_SIZE);
+		if (stream.fail())
+			throw std::runtime_error("Reached EOF early");
+		tmp = loadTrainer(buffer, this->_state.rng, this->_state.battleLogger);
+		data.nameP2 = tmp.first;
+		data.teamP2 = tmp.second;
+
+		stream.read(reinterpret_cast<char *>(&size), 1);
+		data.rngList.resize(size);
+		stream.read(reinterpret_cast<char *>(data.rngList.data()), size);
+		if (stream.fail())
+			throw std::runtime_error("Reached EOF early");
+
+		stream.read(reinterpret_cast<char *>(&size), 1);
+		data.input.resize(size);
+		stream.read(reinterpret_cast<char *>(data.input.data()), size * sizeof(*data.input.data()));
+		if (stream.fail())
+			throw std::runtime_error("Reached EOF early");
+
+		this->_replayData = data;
+		this->_replayData.input.clear();
+		this->_replayInputs = { data.input.begin(), data.input.end() };
+		this->_playingReplay = true;
+		this->_finished = false;
+		this->_started = false;
+		this->_state.rng.setList(this->_replayData.rngList);
+
+		this->_state.me.name = this->_replayData.nameP1;
+		this->_state.me.team = this->_replayData.teamP1;
+		this->_state.me.lastAction = NoAction;
+		this->_state.me.nextAction = NoAction;
+		this->_state.me.pokemonOnField = 0;
+		this->_state.me.discovered.fill({false, {false, false, false, false}});
+
+		this->_state.op.name = this->_replayData.nameP2;
+		this->_state.op.team = this->_replayData.teamP2;
+		this->_state.op.lastAction = NoAction;
+		this->_state.op.nextAction = NoAction;
+		this->_state.op.pokemonOnField = 0;
+		this->_state.op.discovered.fill({false, {false, false, false, false}});
+	}
+
+	void BattleHandler::stopReplay()
+	{
+		this->_playingReplay = false;
+		this->_replayInputs.clear();
+	}
+
+	bool BattleHandler::playingReplay() const
+	{
+		return this->_playingReplay;
 	}
 }

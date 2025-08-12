@@ -666,6 +666,8 @@ void makeMainMenuGUI(
 	auto readyButton = gui.get<tgui::Button>("Ready");
 	auto load = gui.get<tgui::Button>("Load");
 	auto save = gui.get<tgui::Button>("Save");
+	auto loadState = gui.get<tgui::Button>("LoadState");
+	auto loadReplay = gui.get<tgui::Button>("LoadReplay");
 	auto teamPanel = gui.get<tgui::Panel>("Team");
 	std::array<tgui::Panel::Ptr, 6> panels{
 		teamPanel->get<tgui::Panel>("Pkmn1"),
@@ -741,6 +743,18 @@ void makeMainMenuGUI(
 			makeMainMenuGUI(window, gui, emulator, game, resources, aisSelected, side, ready);
 		} catch (std::exception &e) {
 			Utils::dispMsg(Utils::getLastExceptionName(), "Cannot load save file \"" + path + "\"\n" + e.what(), MB_ICONERROR);
+		}
+	});
+	loadReplay->onClick.connect([&game]{
+		std::string path = Utils::openFileDialog("Open team file", ".", {{".+[.]replay", "Pokemon replay file"}});
+
+		if (path.empty())
+			return;
+
+		try {
+			game.loadReplay(path);
+		} catch (std::exception &e) {
+			Utils::dispMsg("Replay loading error", "Failed to load " + path + ": " + e.what(), MB_ICONERROR);
 		}
 	});
 	ip->setText(lastIp);
@@ -852,7 +866,7 @@ void mainMenu(sf::RenderWindow &window, std::unique_ptr<EmulatorGameHandle> &emu
 	makeMainMenuGUI(window, gui, emulator, game, resources, ai, side, ready);
 
 	window.setTitle(state.me.name + " - Preparing battle");
-	while (window.isOpen() && (!emulator || emulator->getStage() != EmulatorGameHandle::BATTLE) && (!ready || emulator)) {
+	while (window.isOpen() && (!emulator || emulator->getStage() != EmulatorGameHandle::BATTLE) && (!ready || emulator) && !game.playingReplay()) {
 		while (auto event = window.pollEvent()) {
 			if (event->is<sf::Event::Closed>())
 				window.close();
@@ -1020,7 +1034,11 @@ void gui(const std::string &trainerName)
 
 	window.setFramerateLimit(60);
 	while (window.isOpen()) {
-		if ((!emulator || emulator->getStage() != EmulatorGameHandle::BATTLE) && (!ready || emulator))
+		if (
+			!battleHandler.playingReplay() &&
+			(!emulator || emulator->getStage() != EmulatorGameHandle::BATTLE) &&
+			(!ready || emulator)
+		)
 			mainMenu(window, emulator, battleHandler, resources, ais, ready);
 		else {
 			if (emulator && emulator->getStage() != EmulatorGameHandle::BATTLE) {

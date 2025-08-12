@@ -9,6 +9,8 @@
 #include <vector>
 #include "Pokemon.hpp"
 
+#define TRAINER_DATA_SIZE (11 * 7 + 44 * 6 + 1)
+
 namespace PokemonGen1
 {
 	typedef std::pair<std::string, std::vector<Pokemon>> Trainer;

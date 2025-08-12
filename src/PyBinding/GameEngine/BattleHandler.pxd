@@ -10,6 +10,10 @@ cdef extern from "../../GameEngine/BattleHandler.hpp" namespace "PokemonGen1":
 
 		void logBattle(const string &message)
 		BattleState &getBattleState()
-		bool tick()
+		bool tick() except +
 		bool isFinished()
 		void reset()
+		bool saveReplay(const string &path)
+		void loadReplay(const string &path) except +
+		void stopReplay()
+		bool playingReplay() const

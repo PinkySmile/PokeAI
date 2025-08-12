@@ -13,7 +13,7 @@
 
 namespace PokemonGen1
 {
-	enum BattleAction {
+	enum BattleAction : unsigned char {
 		NoAction,
 		Attack1 = 0x60,
 		Attack2,
@@ -51,7 +51,7 @@ namespace PokemonGen1
 		PlayerState me;
 		PlayerState op;
 		RandomGenerator rng;
-		BattleLogger battleLogger;
+		BattleLogger battleLogger = [](const std::string &){};
 		std::function<bool ()> onTurnStart;
 		std::function<void ()> onBattleEnd;
 		std::function<void ()> onBattleStart;

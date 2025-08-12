@@ -1,10 +1,10 @@
-from GameEngine import loadTrainer, RandomGenerator
+from GameEngine import loadTrainer, BattleState
 import sys
 
-r = RandomGenerator()
+s = BattleState()
 with open(sys.argv[1], "rb") as fd:
 	data = fd.read()
-trainer = loadTrainer(data, r, print)
+trainer = loadTrainer(data, s)
 print(f"Trainer loaded: '{trainer[0]}'")
 for pkmn in trainer[1]:
 	print(pkmn.dump())

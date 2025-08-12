@@ -13,7 +13,7 @@ namespace PokemonGen1
 		Trainer result;
 		auto it = data.begin();
 
-		if (data.size() != 11 * 7 + 44 * 6 + 1)
+		if (data.size() != TRAINER_DATA_SIZE)
 			throw InvalidSaveFileException("The data size doesn't match (expected 342B but got " + std::to_string(data.size()) + "B)");
 		/* Content */
 		result.first = std::string(data.begin(), data.begin() + 11);

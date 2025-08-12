@@ -345,10 +345,18 @@ Button.Save {
 }
 
 Button.LoadState {
-    Position = (10, 470);
-    Size = (150, 22);
+    Position = (90, 470);
+    Renderer = &1;
+    Size = (70, 22);
     Text = "Load state";
-    TextSize = 13;
+    TextSize = 12;
+}
+
+Button.LoadReplay {
+    Position = (10, 470);
+    Size = (70, 22);
+    Text = "Load replay";
+    TextSize = 11;
 
     Renderer {
         BackgroundColor = #F5F5F5;

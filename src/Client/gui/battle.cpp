@@ -258,7 +258,7 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 			if (menu != 4)
 				clock.restart();
 			menu = 4;
-		} else if (state.me.nextAction)
+		} else if (state.me.nextAction || game.playingReplay())
 			menu = 3;
 		else if (menu == 3)
 			menu = 0;
@@ -268,6 +268,7 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 				window.close();
 			else if (auto keyEvent = event->getIf<sf::Event::KeyPressed>()) {
 				if (keyEvent->code == sf::Keyboard::Key::Escape) {
+					game.stopReplay();
 					state.me.nextAction = Run;
 					state.op.nextAction = Run;
 					state.onTurnStart();
@@ -275,7 +276,7 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 					if (menu >= 4)
 						menu -= 4;
 				}
-				if (ai1)
+				if (ai1 || game.playingReplay())
 					continue;
 				if (keyEvent->code == sf::Keyboard::Key::Up || keyEvent->code == sf::Keyboard::Key::Down) {
 					if (menu == 0) {
@@ -399,7 +400,7 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 			if (log.empty()) {
 				drawSprite(window, sprite, resources.waitingHUD, 96, 320);
 				drawText(window, text, "Waiting...", 128, 352);
-				if (updateManually && state.op.nextAction)
+				if (updateManually && (state.op.nextAction || game.playingReplay()))
 					state.onTurnStart();
 			} else {
 				clock.restart();
@@ -427,5 +428,6 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 	window.setView(view);
 	log.clear();
 	game.reset();
+	game.stopReplay();
 }
 

@@ -18,8 +18,8 @@ from State cimport BattleAction as __BattleAction, BattleActionToString as __Bat
 from BattleHandler cimport BattleHandler as __BattleHandler
 
 
-def loadTrainer(data, RandomGenerator rng, BattleState state):
-	trainer = __loadTrainer(data, dereference(rng.__instance), state.__instance.battleLogger)
+def loadTrainer(data, BattleState state):
+	trainer = __loadTrainer(data, state.__instance.rng, state.__instance.battleLogger)
 	result = []
 	for index in range(trainer.second.size()):
 		p = Pokemon()
@@ -1295,6 +1295,22 @@ cdef class BattleHandler:
 
 	def reset(self):
 		return self.__instance.reset()
+
+	def saveReplay(self, path):
+		if isinstance(path, str):
+			path = path.encode('ASCII')
+		return self.__instance.saveReplay(path)
+
+	def loadReplay(self, path):
+		if isinstance(path, str):
+			path = path.encode('ASCII')
+		self.__instance.loadReplay(path)
+
+	def stopReplay(self):
+		self.__instance.stopReplay()
+
+	def playingReplay(self):
+		return self.__instance.playingReplay()
 
 	@property
 	def state(self):

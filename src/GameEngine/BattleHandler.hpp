@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <map>
+#include <deque>
 #include "Pokemon.hpp"
 #include "RandomGenerator.hpp"
 #include "State.hpp"
@@ -42,17 +43,16 @@
 namespace PokemonGen1
 {
 	class BattleHandler {
-	private:
-		BattleState _state;
-		bool _isViewSwapped;
-		bool _finished = false;
-		bool _logMessages;
-
-		void _executeBattleActions();
-		void _makePlayersAttack(bool AIAttack, bool opponentAttack);
-		void _log(const std::string &msg);
-
 	public:
+		struct ReplayData {
+			std::string nameP1;
+			std::string nameP2;
+			std::vector<Pokemon> teamP1;
+			std::vector<Pokemon> teamP2;
+			std::vector<unsigned char> rngList;
+			std::vector<std::pair<BattleAction, BattleAction>> input;
+		};
+
 		BattleHandler(bool viewSwapped, bool logMessages);
 
 		void logBattle(const std::string &message);
@@ -61,6 +61,25 @@ namespace PokemonGen1
 		bool tick();
 		bool isFinished() const;
 		void reset();
+		bool saveReplay(const std::string &path);
+		void loadReplay(const std::string &path);
+		void stopReplay();
+		bool playingReplay() const;
+
+	private:
+		ReplayData _replayData;
+		BattleState _state;
+		std::deque<std::pair<BattleAction, BattleAction>> _replayInputs;
+		bool _playingReplay = false;
+		bool _isViewSwapped;
+		bool _started = false;
+		bool _finished = false;
+		bool _logMessages;
+
+		void _populateStartParams();
+		void _executeBattleActions();
+		void _makePlayersAttack(bool AIAttack, bool opponentAttack);
+		void _log(const std::string &msg);
 	};
 }
 
