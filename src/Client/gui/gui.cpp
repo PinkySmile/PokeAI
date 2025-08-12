@@ -520,9 +520,11 @@ void openChangePkmnBox(
 		sprite->setImage(resources.pokemonsFront[base.id]);
 
 		sprite->onClick.connect([&emulator, &state, &aisSelected, &side, &window, &resources, &gui, index, &pkmn, &game, &base, &ready](std::weak_ptr<tgui::Panel> pkmnPan, std::weak_ptr<tgui::Panel> bigPan){
-			state.me.team.at(index) = Pokemon(state.rng, state.battleLogger, pkmn.getNickname(), pkmn.getLevel(), base, pkmn.getMoveSet());
+			auto &s = (side ? state.op : state.me);
+
+			s.team.at(index) = Pokemon(state.rng, state.battleLogger, pkmn.getNickname(), pkmn.getLevel(), base, pkmn.getMoveSet());
 			gui.remove(bigPan.lock());
-			populatePokemonPanel(window, gui, emulator, game, resources, pkmnPan.lock(), index, state.me.team, aisSelected, side, ready);
+			populatePokemonPanel(window, gui, emulator, game, resources, pkmnPan.lock(), index, s.team, aisSelected, side, ready);
 		}, std::weak_ptr(pkmnPan), std::weak_ptr(bigPan));
 
 		type1->setPosition(115, 152);
