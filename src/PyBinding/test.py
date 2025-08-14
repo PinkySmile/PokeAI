@@ -74,6 +74,9 @@ def gen1AI(me, op, categories):
 				if me.team[index].getHealth() == 0:
 					continue
 				return BattleAction(BattleAction.Switch1 + index)
+	for i in range(0, len(scores)):
+		if moves[i].getID() == 0:
+			scores[i] = -1000
 	best = [0]
 	for i in range(1, len(scores)):
 		if scores[best[0]] > scores[i]:
@@ -106,7 +109,7 @@ def level1(me, _):
 	return BattleAction(BattleAction.Attack1 + random.choice(valid_moves))
 
 def level2(me, op):
-	return gen1AI(me, op, [1])
+	return gen1AI(me, op, [])
 
 battle = BattleHandler(False, False)
 battle.state.rng.makeRandomList(9)

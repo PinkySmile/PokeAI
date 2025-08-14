@@ -14,13 +14,6 @@ from StatsChange cimport StatsChange
 from StatusChange cimport StatusChange
 from RandomGenerator cimport RandomGenerator
 
-
-cdef extern from "<array>" namespace "std" nogil:
-	cdef cppclass arrayPkmn "array<PokemongGen1::Pokemon::Base, 256>":
-		arrayPkmn() except+
-		Move &operator[](size_t)
-
-
 cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 	cdef cppclass Pokemon:
 		ctypedef function[void (const string &)] Logger
@@ -48,7 +41,7 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 			unsigned char      catchRate
 			unsigned int       baseXpYield
 			set[AvailableMove] movePool
-			BaseStats          statsAtLevel[256]
+			Pokemon.BaseStats  statsAtLevel[256]
 			Base(const Base &)
 
 		struct UpgradableStats:
@@ -70,7 +63,7 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 			DamageResult()
 
 		Pokemon(const Pokemon &)
-		Pokemon(RandomGenerator &random, const Logger &battleLogger, const string &nickname, unsigned char level, const Base &base, const vector[Move] &moveSet, bool enemy) except +
+		Pokemon(RandomGenerator &random, const Pokemon.Logger &battleLogger, const string &nickname, unsigned char level, const Pokemon.Base &base, const vector[Move] &moveSet, bool enemy) except +
 		#Pokemon(RandomGenerator &random, const Logger &battleLogger, const string &nickname, const array[byte, ENCODED_SIZE] &data, bool enemy)
 		#Pokemon(RandomGenerator &random, const Logger &battleLogger, const nlohmann::json &json)
 
@@ -87,7 +80,7 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 		bool hasStatus(StatusChange status) const
 		void takeDamage(int damage)
 		void attack(unsigned char moveSlot, Pokemon &target)
-		DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized)
+		Pokemon.DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized)
 		void endTurn()
 		void switched()
 		int getPriorityFactor(unsigned char moveSlot)
@@ -130,18 +123,18 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 		const Move &getLastUsedMove()
 		pair[Type, Type] getTypes()
 		const vector[Move] &getMoveSet()
-		BaseStats getBaseStats()
-		UpgradableStats getStatsUpgradeStages()
+		Pokemon.BaseStats getBaseStats()
+		Pokemon.UpgradableStats getStatsUpgradeStages()
 		string getSpeciesName()
-		const BaseStats &getDvs()
-		const BaseStats &getStatExps()
+		const Pokemon.BaseStats &getDvs()
+		const Pokemon.BaseStats &getStatExps()
 		bool isEnemy()
-		void setStatExps(const BaseStats &statExps)
+		void setStatExps(const Pokemon.BaseStats &statExps)
 
 		void setTypes(pair[Type, Type] types)
 
 		@staticmethod
-		BaseStats makeStats(unsigned char level, const Base &base, const BaseStats &dvs, const BaseStats &evs)
+		Pokemon.BaseStats makeStats(unsigned char level, const Pokemon.Base &base, const Pokemon.BaseStats &dvs, const Pokemon.BaseStats &evs)
 
 	ctypedef enum PokemonSpecies:
 		Rhydon,
@@ -302,5 +295,5 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 	const map[unsigned char, Pokemon.Base] pokemonList
 
 cdef inline void evalLogger(void *func_p, const string &msg) noexcept:
-	f = msg
+	f: bytes = msg
 	(<object> func_p)(f.decode('ASCII'))

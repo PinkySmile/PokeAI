@@ -13,8 +13,8 @@ from StatusChange cimport StatusChange
 
 
 cdef extern from "<array>" namespace "std" nogil:
-	cdef cppclass arrayMoves "array<PokemongGen1::Move, 256>":
-		arrayMoves() except+
+	cdef cppclass ArrayMoves "array<PokemonGen1::Move, 256>":
+		ArrayMoves() except+
 		Move &operator[](size_t)
 
 cdef extern from "../../GameEngine/Move.hpp" namespace "PokemonGen1":
@@ -63,9 +63,9 @@ cdef extern from "../../GameEngine/Move.hpp" namespace "PokemonGen1":
 
 		const pair[unsigned int, unsigned int] &getNbRuns()
 		const pair[unsigned int, unsigned int] &getNbHits()
-		const StatusChangeProb &getStatusChange()
-		const vector[StatsChangeProb] &getOwnerChange()
-		const vector[StatsChangeProb] &getFoeChange()
+		const Move.StatusChangeProb &getStatusChange()
+		const vector[Move.StatsChangeProb] &getOwnerChange()
+		const vector[Move.StatsChangeProb] &getFoeChange()
 		bool needsLoading()
 		bool isInvulnerableDuringLoading()
 		bool needsRecharge()
@@ -95,10 +95,10 @@ cdef extern from "../../GameEngine/Move.hpp" namespace "PokemonGen1":
 
 		bool attack(Pokemon &owner, Pokemon &target, const Pokemon.Logger &logger)
 
-	extern const arrayMoves availableMoves
+	extern const ArrayMoves availableMoves
 
 	ctypedef enum AvailableMove:
-		None,
+		Empty "PokemonGen1::None",
 		Pound,
 		Karate_Chop,
 		Double_Slap,

@@ -8,3 +8,4 @@
 cmake-build-*
 build
 a.out
+*.replay

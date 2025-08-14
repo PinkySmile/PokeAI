@@ -1,4 +1,6 @@
-# cython: language_level=3
+
+from StatsChange cimport StatsChange
+from StatusChange cimport StatusChange# cython: language_level=3
 
 from libcpp.string cimport string
 from libcpp.pair cimport pair

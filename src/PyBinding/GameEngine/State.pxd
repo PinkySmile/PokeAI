@@ -8,8 +8,6 @@ from libcpp.functional cimport function
 
 from Pokemon cimport Pokemon
 from RandomGenerator cimport RandomGenerator
-from StatsChange cimport StatsChange
-from StatusChange cimport StatusChange
 
 cdef extern from "../../GameEngine/State.hpp" namespace "PokemonGen1":
 	ctypedef enum BattleAction:
@@ -49,8 +47,8 @@ cdef extern from "../../GameEngine/State.hpp" namespace "PokemonGen1":
 		function[void ()] onBattleEnd
 		function[void ()] onBattleStart
 
-	cdef function[unsigned char ()] pythonCallbackLambda(void *python_function, bool (*eval)(void *))
-	cdef function[void ()] pythonCallbackLambdaVoid(void *python_function, void (*eval)(void *))
+	cdef function[unsigned char ()] pythonCallbackLambda(void *python_function, bool (*e)(void *))
+	cdef function[void ()] pythonCallbackLambdaVoid(void *python_function, void (*e)(void *))
 
 cdef inline bool evalCallback(void *func_p) noexcept:
 	# recover Python function object from void* argument and call it
