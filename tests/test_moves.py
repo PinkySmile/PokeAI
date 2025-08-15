@@ -344,7 +344,6 @@ def test_move(move, random_state, low_stats):
 		print(state.op.team[0].dump())
 		print(starting_state[2], state.rng.getIndex(), starting_state[3], state.rng.getList())
 
-	nb_turns = 1
 	emulator.button_press('a')
 	emulator.tick()
 	emulator.button_release('a')
@@ -364,6 +363,9 @@ def test_move(move, random_state, low_stats):
 	while emulator.memory[0x9D64:0x9D6F] == [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
 		if not emulator.tick(1 if debug else 30):
 			exit(0)
+	state.me.nextAction = BattleAction.Attack1
+	state.op.nextAction = BattleAction.Attack1
+	battle.tick()
 	while True:
 		if not emulator.tick(1 if debug else 30):
 			exit(0)
@@ -375,7 +377,9 @@ def test_move(move, random_state, low_stats):
 			break
 		if emulator.memory[0x9D64:0x9D6F] == [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
 			# For multi turn moves, we do 2 turns
-			nb_turns += 1
+			state.me.nextAction = BattleAction.Attack1
+			state.op.nextAction = BattleAction.Attack1
+			battle.tick()
 			while emulator.memory[wSerialExchangeNybbleReceiveData] == 0xFF:
 				emulator.memory[wSerialExchangeNybbleReceiveData] = 0
 				if not emulator.tick():
@@ -385,10 +389,6 @@ def test_move(move, random_state, low_stats):
 					exit(0)
 	emulator.button_release('b')
 	ending_state = get_emulator_basic_state()
-	for i in range(nb_turns):
-		state.me.nextAction = BattleAction.Attack1
-		state.op.nextAction = BattleAction.Attack1
-		battle.tick()
 	if debug:
 		print(dump_basic_state(ending_state[0]))
 		print(dump_basic_state(ending_state[1]))
@@ -422,7 +422,7 @@ rand_lists = [
 	[0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80], #3
 	[0xA0, 0x40, 0xA0, 0x40, 0xA0, 0x40, 0xA0, 0x40, 0xA0], #4
 	[0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0xFF], #5
-	None,
+	None, None, None, None, None, None, None, None, None, None
 ]
 extra_lists = {
 	AvailableMove.Sand_Attack: [

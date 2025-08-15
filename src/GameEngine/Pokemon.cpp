@@ -463,6 +463,10 @@ namespace PokemonGen1
 	void Pokemon::resetStatsChanges()
 	{
 		this->_upgradedStats = {0, 0, 0, 0, 0, 0};
+		this->_computedStats.ATK = this->_baseStats.ATK;
+		this->_computedStats.DEF = this->_baseStats.DEF;
+		this->_computedStats.SPE = this->_baseStats.SPE;
+		this->_computedStats.SPD = this->_baseStats.SPD;
 	}
 
 	int Pokemon::getPriorityFactor(unsigned char moveSlot)

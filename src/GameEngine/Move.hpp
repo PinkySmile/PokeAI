@@ -173,7 +173,7 @@
 	target.resetStatsChanges();\
 	target.setStatus(STATUS_NONE);\
 	target.setGlobalCritRatio(1);\
-	logger("All status changes are eliminated!");\
+	logger("All STATUS changes are eliminated!");\
 	return true;\
 }, CANCEL_STATS_CHANGE_DESC
 
