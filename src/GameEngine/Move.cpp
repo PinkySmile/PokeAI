@@ -49,13 +49,14 @@ namespace PokemonGen1
 		_ppup(0),
 		_maxpp(maxpp),
 		_nbHit(0),
-		_accuracy(accuracy),
+		_accuracy(accuracy * 255 / 100),
 		_nbRuns(nbRuns),
 		_nbHits(nbHits),
 		_statusChange(statusChange),
 		_ownerChange(ownerChange),
 		_foeChange(foeChange),
 		_priority(priority),
+		_skipAccuracyCheck(accuracy > 100),
 		_needLoading(needLoading),
 		_invulnerableDuringLoading(invulnerableDuringLoading),
 		_needRecharge(needRecharge),
@@ -169,6 +170,7 @@ namespace PokemonGen1
 		_ownerChange(other._ownerChange),
 		_foeChange(other._foeChange),
 		_priority(other._priority),
+		_skipAccuracyCheck(other._skipAccuracyCheck),
 		_needLoading(other._needLoading),
 		_invulnerableDuringLoading(other._invulnerableDuringLoading),
 		_needRecharge(other._needRecharge),
@@ -201,6 +203,7 @@ namespace PokemonGen1
 		this->_ownerChange = other._ownerChange;
 		this->_foeChange = other._foeChange;
 		this->_priority = other._priority;
+		this->_skipAccuracyCheck = other._skipAccuracyCheck;
 		this->_needLoading = other._needLoading;
 		this->_invulnerableDuringLoading = other._invulnerableDuringLoading;
 		this->_needRecharge = other._needRecharge;
@@ -272,10 +275,9 @@ namespace PokemonGen1
 
 	bool Move::attack(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)
 	{
-		double multiplier = target.getEvasion() * owner.getAccuracy();
 		std::string msg = this->_keepGoingMsg;
 
-		if (!target.canGetHit() && this->_accuracy <= 100) {
+		if (!target.canGetHit() && !this->_skipAccuracyCheck) {
 			this->_nbHit--;
 			if (this->_missCallback)
 				this->_missCallback(owner, target, this->isFinished(), logger);
@@ -332,13 +334,20 @@ namespace PokemonGen1
 			damages = owner.calcDamage(target, this->_power, this->_type, this->_category, (r < spd));
 		}
 
-		if (this->_accuracy <= 100) {
-			unsigned random = owner.getRandomGenerator()();
+		if (!this->_skipAccuracyCheck) {
+			unsigned int random = owner.getRandomGenerator()();
+			unsigned int accuracyByte = target.getEvasion(owner.getAccuracy(this->_accuracy));
 
-			if (random / 2.55 >= this->_accuracy * multiplier) {
+			if (accuracyByte > 0xFF)
+				accuracyByte = 0xFF;
+			if (random >= accuracyByte) {
 				this->_nbHit = 0;
 				if (this->_missCallback)
 					this->_missCallback(owner, target, this->isFinished(), logger);
+				if (this->_power)
+					logger(target.getName() + "'s attack missed!");
+				else
+					logger("But it failed!");
 				return false;
 			} else if (!this->_nbHit)
 				owner.setRecharging(this->_needRecharge);
@@ -380,8 +389,7 @@ namespace PokemonGen1
 		}
 
 		if (
-			!this->_statusChange.cmpVal ||
-			(
+			!this->_statusChange.cmpVal || (
 				target.getTypes().first != this->_type &&
 				target.getTypes().second != this->_type &&
 				target.canHaveStatus(this->_statusChange.status) &&
@@ -414,6 +422,8 @@ namespace PokemonGen1
 
 	unsigned char Move::getAccuracy() const
 	{
+		if (this->_skipAccuracyCheck)
+			return 255;
 		return this->_accuracy;
 	}
 
@@ -633,7 +643,7 @@ namespace PokemonGen1
 		Move{0x7B, "Smog"        , TYPE_POISON  , PHYSICAL,  20,  70, 20, {STATUS_POISONED, 0x67}},
 		Move{0x7C, "Sludge"      , TYPE_POISON  , PHYSICAL,  65, 100, 20, {STATUS_POISONED, 0x67}},
 		Move{0x7D, "Bone Club"   , TYPE_GROUND  , PHYSICAL,  65,  85, 20},
-		Move{0x7E, "Fire Blast"  , TYPE_FIRE    , SPECIAL , 120,  85,  5, {STATUS_BURNED, 0x1A}},
+		Move{0x7E, "Fire Blast"  , TYPE_FIRE    , SPECIAL , 120,  85,  5, {STATUS_BURNED, 0x4D}},
 		Move{0x7F, "Waterfall"   , TYPE_WATER   , SPECIAL ,  80, 100, 15},
 		Move{0x80, "Clamp"       , TYPE_WATER   , SPECIAL,   35,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, WRAP_TARGET, GLITCH_HYPER_BEAM},
 		Move{0x81, "Swift"       , TYPE_NORMAL  , PHYSICAL,  60, 255, 20},

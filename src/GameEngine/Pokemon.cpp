@@ -14,6 +14,22 @@
 
 namespace PokemonGen1
 {
+	const std::pair<unsigned char, unsigned char> Pokemon::_ratios[13] = {
+		{25, 100}, // 0.25
+		{28, 100}, // 0.28
+		{33, 100}, // 0.33
+		{40, 100}, // 0.40
+		{50, 100}, // 0.50
+		{66, 100}, // 0.66
+		{ 1, 1},   // 1.00
+		{15, 10},  // 1.50
+		{ 2, 1},   // 2.00
+		{25, 10},  // 2.50
+		{ 3, 1},   // 3.00
+		{35, 10},  // 3.50
+		{ 4, 1},   // 4.00
+	};
+
 	Pokemon::Pokemon(RandomGenerator &random, const Logger &battleLogger, const std::string &nickname, unsigned char level, const Base &base, const std::vector<Move> &moveSet, bool enemy) :
 		_id(base.id),
 		_enemy(enemy),
@@ -300,8 +316,8 @@ namespace PokemonGen1
 		stream << ", " << std::setw(3) << this->getDefense()  << "DEF (" << std::setw(3) << this->getRawDefense() << "@" << std::showpos << static_cast<int>(this->_upgradedStats.DEF) << std::noshowpos << ")";
 		stream << ", " << std::setw(3) << this->getSpecial()  << "SPE (" << std::setw(3) << this->getRawSpecial() << "@" << std::showpos << static_cast<int>(this->_upgradedStats.SPE) << std::noshowpos << ")";
 		stream << ", " << std::setw(3) << this->getSpeed()    << "SPD (" << std::setw(3) << this->getRawSpeed()   << "@" << std::showpos << static_cast<int>(this->_upgradedStats.SPD) << std::noshowpos << ")";
-		stream << ", " << std::setprecision(4) << this->getAccuracy() * 100 << "%ACC (" << std::showpos << static_cast<int>(this->_upgradedStats.ACC) << std::noshowpos << ")";
-		stream << ", " << std::setprecision(4) << this->getEvasion()  * 100 << "%EVD (" << std::showpos << static_cast<int>(this->_upgradedStats.EVD) << std::noshowpos << ")";
+		stream << ", " << std::setprecision(4) << this->getAccuracyMul() * 100 << "%ACC (" << std::showpos << static_cast<int>(this->_upgradedStats.ACC) << std::noshowpos << ")";
+		stream << ", " << std::setprecision(4) << this->getEvasionMul()  * 100 << "%EVD (" << std::showpos << static_cast<int>(this->_upgradedStats.EVD) << std::noshowpos << ")";
 		stream << ", Status: " << std::hex << static_cast<int>(this->_currentStatus) << " ";
 		if (this->_currentStatus) {
 			for (unsigned i = 0; i < sizeof(this->_currentStatus) * 8; i++)
@@ -464,8 +480,7 @@ namespace PokemonGen1
 	{
 		if (this->_lastUsedMove.isFinished())
 			this->_lastUsedMove = move;
-		if (!this->_lastUsedMove.attack(*this, target, *this->_battleLogger))
-			this->_log("'s attack missed!");
+		this->_lastUsedMove.attack(*this, target, *this->_battleLogger);
 	}
 
 	void Pokemon::storeDamages(bool active)
@@ -526,16 +541,6 @@ namespace PokemonGen1
 	{
 		this->_flinched = false;
 		this->_wrapped = false;
-		if (this->_currentStatus & STATUS_BURNED) {
-			this->_log("'s hurt by the burn!");
-			this->takeDamage(this->getMaxHealth() / 16);
-		} else if (this->_currentStatus & STATUS_POISONED) {
-			this->_log("'s hurt by the poison!");
-			if (this->_currentStatus & STATUS_BAD_POISON)
-				this->takeDamage(this->getMaxHealth() * this->_badPoisonStage++ / 16);
-			else
-				this->takeDamage(this->getMaxHealth() / 16);
-		}
 	}
 
 	void Pokemon::_log(const std::string &msg) const
@@ -547,12 +552,12 @@ namespace PokemonGen1
 	{
 		if (this->_wrapped) {
 			this->_log(" can't move!");
-			return;
+			goto turn_damage_check;
 		}
 
 		if (this->_flinched) {
 			this->_log(" flinched!");
-			return;
+			goto turn_damage_check;
 		}
 
 		if (this->_currentStatus & STATUS_ASLEEP) {
@@ -563,12 +568,12 @@ namespace PokemonGen1
 				this->_log(" woke up!");
 				this->_currentStatus &= ~STATUS_ANY_NON_VOLATILE_STATUS;
 			}
-			return;
+			goto turn_damage_check;
 		}
 
 		if (this->_currentStatus & STATUS_FROZEN) {
 			this->_log(" is frozen solid!");
-			return;
+			goto turn_damage_check;
 		}
 
 		if (this->_currentStatus & STATUS_CONFUSED) {
@@ -581,7 +586,7 @@ namespace PokemonGen1
 					(*this->_battleLogger)("it's confusion!");
 					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false).damage);
 					this->_lastUsedMove = availableMoves[0x00];
-					return;
+					goto turn_damage_check;
 				}
 			} else if (!(this->_currentStatus & STATUS_CONFUSED))
 				this->_log(" is confused no more!");
@@ -590,13 +595,13 @@ namespace PokemonGen1
 		if ((this->_currentStatus & STATUS_PARALYZED) && (*this->_random)() < 0x3F) {
 			this->_log("'s fully paralyzed!");
 			this->_lastUsedMove = availableMoves[0x00];
-			return;
+			goto turn_damage_check;
 		}
 
 		if (this->_needsRecharge) {
 			this->_log(" must recharge!");
 			this->_needsRecharge = false;
-			return;
+			goto turn_damage_check;
 		}
 
 		if (moveSlot >= 4)
@@ -604,6 +609,18 @@ namespace PokemonGen1
 		else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
 			this->useMove(this->_moveSet[moveSlot], target);
 			this->_moveSet[moveSlot].setPP(this->_moveSet[moveSlot].getPP() ? this->_moveSet[moveSlot].getPP() - 1 : 63);
+		}
+
+	turn_damage_check:
+		if (this->_currentStatus & STATUS_BURNED) {
+			this->_log("'s hurt by the burn!");
+			this->takeDamage(this->getMaxHealth() / 16);
+		} else if (this->_currentStatus & STATUS_POISONED) {
+			this->_log("'s hurt by the poison!");
+			if (this->_currentStatus & STATUS_BAD_POISON)
+				this->takeDamage(this->getMaxHealth() * this->_badPoisonStage++ / 16);
+			else
+				this->takeDamage(this->getMaxHealth() / 16);
 		}
 	}
 
@@ -803,14 +820,24 @@ namespace PokemonGen1
 		return str;
 	}
 
-	double Pokemon::getAccuracy() const
+	unsigned int Pokemon::getAccuracy(unsigned int accuracy) const
 	{
-		return this->_getUpgradedStat(1, this->_upgradedStats.ACC);
+		return this->_getUpgradedStat(accuracy, this->_upgradedStats.ACC);
 	}
 
-	double Pokemon::getEvasion() const
+	unsigned int Pokemon::getEvasion(unsigned int accuracy) const
 	{
-		return this->_getUpgradedStat(1, -this->_upgradedStats.EVD);
+		return this->_getUpgradedStat(accuracy, -this->_upgradedStats.EVD);
+	}
+
+	double Pokemon::getAccuracyMul() const
+	{
+		return (double)Pokemon::_ratios[6 + this->_upgradedStats.ACC].first / (double)Pokemon::_ratios[6 + this->_upgradedStats.ACC].second;
+	}
+
+	double Pokemon::getEvasionMul() const
+	{
+		return (double)Pokemon::_ratios[6 - this->_upgradedStats.EVD].first / (double)Pokemon::_ratios[6 - this->_upgradedStats.EVD].second;
 	}
 
 	#define LOW(b) static_cast<unsigned char>((b) & 0xFFU)
@@ -861,25 +888,9 @@ namespace PokemonGen1
 		return this->_moveSet;
 	}
 
-	double Pokemon::_getUpgradedStat(unsigned short baseValue, char upgradeStage) const
+	unsigned int Pokemon::_getUpgradedStat(unsigned short baseValue, char upgradeStage) const
 	{
-		std::pair<unsigned char, unsigned char> ratios[] = {
-			{25, 100}, // 0.25
-			{28, 100}, // 0.28
-			{33, 100}, // 0.33
-			{40, 100}, // 0.40
-			{50, 100}, // 0.50
-			{66, 100}, // 0.66
-			{ 1, 1},   // 1.00
-			{15, 10},  // 1.50
-			{ 2, 1},   // 2.00
-			{25, 10},  // 2.50
-			{ 3, 1},   // 3.00
-			{35, 10},  // 3.50
-			{ 4, 1},   // 4.00
-		};
-
-		return baseValue * ratios[upgradeStage + 6].first / ratios[upgradeStage + 6].second;
+		return baseValue * Pokemon::_ratios[upgradeStage + 6].first / Pokemon::_ratios[upgradeStage + 6].second;
 	}
 
 	Pokemon::UpgradableStats Pokemon::getStatsUpgradeStages() const
@@ -1093,7 +1104,7 @@ namespace PokemonGen1
 			this->statsAtLevel[i] = Pokemon::makeStats(i, *this, {0xF, 0xF, 0xF, 0xF, 0xF, 0xF}, {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF});
 	}
 
-	unsigned char Pokemon::UpgradableStats::get(StatsChange stat) const
+	char Pokemon::UpgradableStats::get(StatsChange stat) const
 	{
 		switch (stat) {
 		case STATS_ATK:

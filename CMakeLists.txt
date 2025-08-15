@@ -14,8 +14,14 @@ find_package(TGUI 1 REQUIRED)
 
 include_directories(include src)
 
+if (SHARED_LIBRARY)
+	set(LIBRARY_TYPE SHARED)
+else()
+	set(LIBRARY_TYPE STATIC)
+endif()
+
 add_library(
-	PokemonGen1Core STATIC
+	PokemonGen1Core ${LIBRARY_TYPE}
 	src/GameEngine/BattleHandler.cpp
 	src/GameEngine/BattleHandler.hpp
 	src/GameEngine/Pokemon.cpp
@@ -40,7 +46,7 @@ add_library(
 
 
 add_library(
-	PokemonGen1Emulator STATIC
+	PokemonGen1Emulator ${LIBRARY_TYPE}
 	src/Emulator/EmulatorGameHandle.cpp
 	src/Emulator/EmulatorGameHandle.hpp
 	src/Emulator/EmulatorHandle.hpp
@@ -65,7 +71,7 @@ endif (WIN32)
 
 
 add_library(
-	PokemonGen1Client STATIC
+	PokemonGen1Client ${LIBRARY_TYPE}
 	src/Client/AIs/AIHeuristic.cpp
 	src/Client/AIs/AIHeuristic.hpp
 	src/Client/AIs/AI.hpp

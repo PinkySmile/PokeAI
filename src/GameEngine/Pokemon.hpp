@@ -73,7 +73,7 @@ namespace PokemonGen1
 			char EVD;
 			char ACC;
 
-			unsigned char get(StatsChange stat) const;
+			char get(StatsChange stat) const;
 		};
 
 		typedef std::function<void (const std::string &)> Logger;
@@ -162,8 +162,10 @@ namespace PokemonGen1
 		double                                _globalCritRatio;
 		const Logger *_battleLogger;
 
+		static const std::pair<unsigned char, unsigned char> _ratios[13];
+
 		void _log(const std::string &msg) const;
-		double _getUpgradedStat(unsigned short baseValue, char upgradeStage) const;
+		unsigned int _getUpgradedStat(unsigned short baseValue, char upgradeStage) const;
 
 	public:
 		struct DamageResult {
@@ -234,8 +236,10 @@ namespace PokemonGen1
 		[[nodiscard]] std::string getName(bool hasEnemy = true) const;
 		[[nodiscard]] std::string getNickname() const;
 		[[nodiscard]] unsigned getMaxHealth() const;
-		[[nodiscard]] double getAccuracy() const;
-		[[nodiscard]] double getEvasion() const;
+		[[nodiscard]] unsigned int getAccuracy(unsigned int accuracy) const;
+		[[nodiscard]] unsigned int getEvasion(unsigned int accuracy) const;
+		[[nodiscard]] double getAccuracyMul() const;
+		[[nodiscard]] double getEvasionMul() const;
 		[[nodiscard]] const Move &getLastUsedMove() const;
 		[[nodiscard]] std::pair<Type, Type> getTypes() const;
 		[[nodiscard]] const std::vector<Move> &getMoveSet() const;

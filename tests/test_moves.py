@@ -296,10 +296,10 @@ def test_move(move, random_state, low_stats):
 	emulator.memory[wLinkState] = LINK_STATE_BATTLING
 
 	# Move list: Constrict, -, -, -; 999/999 HP; 25 DEF; 25 SPE; 25 SPD
-	emulator.memory[wEnemyMonMoves + 0]   = emulator.memory[wEnemyMon1Moves + 0]    = AvailableMove.Constrict
-	emulator.memory[wEnemyMonMoves + 1]   = emulator.memory[wEnemyMon1Moves + 1]    = AvailableMove.Empty
-	emulator.memory[wEnemyMonMoves + 2]   = emulator.memory[wEnemyMon1Moves + 2]    = AvailableMove.Empty
-	emulator.memory[wEnemyMonMoves + 3]   = emulator.memory[wEnemyMon1Moves + 3]    = AvailableMove.Empty
+	emulator.memory[wEnemyMonMoves + 0]   = emulator.memory[wEnemyMon1Moves + 0]   = AvailableMove.Constrict
+	emulator.memory[wEnemyMonMoves + 1]   = emulator.memory[wEnemyMon1Moves + 1]   = AvailableMove.Empty
+	emulator.memory[wEnemyMonMoves + 2]   = emulator.memory[wEnemyMon1Moves + 2]   = AvailableMove.Empty
+	emulator.memory[wEnemyMonMoves + 3]   = emulator.memory[wEnemyMon1Moves + 3]   = AvailableMove.Empty
 	emulator.memory[wEnemyMonHP + 0]      = emulator.memory[wEnemyMon1HP + 0]      = 999 >> 8
 	emulator.memory[wEnemyMonHP + 1]      = emulator.memory[wEnemyMon1HP + 1]      = 999 & 0xFF
 	emulator.memory[wEnemyMonMaxHP + 0]   = emulator.memory[wEnemyMon1MaxHP + 0]   = emulator.memory[wEnemyMonUnmodifiedMaxHP + 0]   = 999 >> 8
@@ -342,8 +342,7 @@ def test_move(move, random_state, low_stats):
 		print(dump_basic_state(starting_state[1]))
 		print(state.me.team[0].dump())
 		print(state.op.team[0].dump())
-		print(starting_state[2], state.rng.getIndex())
-		print(starting_state[3], state.rng.getList())
+		print(starting_state[2], state.rng.getIndex(), starting_state[3], state.rng.getList())
 
 	nb_turns = 1
 	emulator.button_press('a')
@@ -395,9 +394,9 @@ def test_move(move, random_state, low_stats):
 		print(dump_basic_state(ending_state[1]))
 		print(state.me.team[0].dump())
 		print(state.op.team[0].dump())
-		print(ending_state[2], state.rng.getIndex())
-		print(ending_state[3], state.rng.getList())
+		print(ending_state[2], state.rng.getIndex(), ending_state[3], state.rng.getList())
 	f = compare_basic_states(battle.state, ending_state)
+	battle.saveReplay('test.replay')
 	state.rng.reset()
 	return f[0], f[1], [state.rng.getList()]
 
@@ -417,17 +416,32 @@ def run_test(test):
 	return errors, extra
 
 rand_lists = [
-	[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
-	[0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
-	[0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF],
-	[0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80],
-	[0xA0, 0x40, 0xA0, 0x40, 0xA0, 0x40, 0xA0, 0x40, 0xA0],
-	[0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0xFF],
+	[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], #0
+	[0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], #1
+	[0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF], #2
+	[0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80], #3
+	[0xA0, 0x40, 0xA0, 0x40, 0xA0, 0x40, 0xA0, 0x40, 0xA0], #4
+	[0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0xFF], #5
 	None,
 ]
+extra_lists = {
+	AvailableMove.Sand_Attack: [
+		[128,  17,  73,  86, 130,  10, 248,  81, 235]
+	],
+	AvailableMove.Smokescreen: [
+		[113, 153,  60,  60, 238, 124, 239,  30, 124],
+		[163, 145,  78, 209, 166, 188, 110, 110, 237],
+		[222, 200, 109,  20,  45, 136, 134,  33,  93]
+	],
+	AvailableMove.Fire_Blast: [
+		[248, 118, 7, 111, 14, 103, 172, 64, 130],
+		[111, 14, 248, 118, 7, 103, 172, 64, 130]
+	]
+}
+
 tests = []
 for move_index in range(1, AvailableMove.Struggle + 1):
-	for i, rand in enumerate(rand_lists):
+	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):
 		name = AvailableMove(move_index).name
 		tests.append({
 			'name': f'{name}[{i}](Low)',
@@ -436,11 +450,12 @@ for move_index in range(1, AvailableMove.Struggle + 1):
 			'group': name
 		})
 		tests.append({
-			'name': f'{AvailableMove(move_index).name}[{i}](High)',
+			'name': f'{name}[{i}](High)',
 			'cb': test_move,
 			'args': [move_index, rand, False],
 			'group': name
 		})
+
 results = []
 
 parser = ArgumentParser(prog=sys.argv[0])

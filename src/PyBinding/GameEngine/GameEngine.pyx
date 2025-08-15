@@ -1011,11 +1011,17 @@ cdef class Pokemon:
 	def getMaxHealth(self):
 		return self.__instance.getMaxHealth()
 
-	def getAccuracy(self):
-		return self.__instance.getAccuracy()
+	def getAccuracy(self, accuracy):
+		return self.__instance.getAccuracy(accuracy)
 
-	def getEvasion(self):
-		return self.__instance.getEvasion()
+	def getEvasion(self, accuracy):
+		return self.__instance.getEvasion(accuracy)
+
+	def getAccuracyMul(self):
+		return self.__instance.getAccuracyMul()
+
+	def getEvasionMul(self):
+		return self.__instance.getEvasionMul()
 
 	def getLastUsedMove(self):
 		m = Move()

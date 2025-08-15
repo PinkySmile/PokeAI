@@ -277,6 +277,7 @@ namespace PokemonGen1
 		std::vector<StatsChangeProb> _ownerChange;
 		std::vector<StatsChangeProb> _foeChange;
 		char _priority;
+		bool _skipAccuracyCheck;
 		bool _needLoading;
 		bool _invulnerableDuringLoading;
 		bool _needRecharge;
