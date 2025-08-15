@@ -1,3 +1,5 @@
+import time
+
 from pyboy import PyBoy
 from GameEngine import RandomGenerator, PokemonBase, Pokemon, PokemonSpecies, Move, AvailableMove, Type, BattleHandler, BattleAction, StatusChange, MoveCategory, getAttackDamageMultiplier, typeToStringShort, typeToString, statusToString
 from argparse import ArgumentParser
@@ -167,7 +169,7 @@ assert playerBaseAddr + specialOffset == wBattleMonSpecial
 assert playerBaseAddr + ppOffset == wBattleMonPP
 
 
-def get_basic_mon_state(base_address):
+def get_basic_mon_state(emulator, base_address):
 	nickname = bytes(emulator.memory[base_address + nickOffset:base_address + nickOffset + 11])
 	species = emulator.memory[base_address + speciesOffset]
 	hp = int.from_bytes(bytes(emulator.memory[base_address + hpOffset:base_address + hpOffset + 2]), byteorder='big')
@@ -202,8 +204,13 @@ def get_basic_mon_state(base_address):
 	}
 
 
-def get_emulator_basic_state():
-	return get_basic_mon_state(playerBaseAddr), get_basic_mon_state(enemyBaseAddr), emulator.memory[wLinkBattleRandomNumberListIndex], emulator.memory[wLinkBattleRandomNumberList:wLinkBattleRandomNumberList+9]
+def get_emulator_basic_state(emulator):
+	return (
+		get_basic_mon_state(emulator, playerBaseAddr),
+		get_basic_mon_state(emulator, enemyBaseAddr),
+		emulator.memory[wLinkBattleRandomNumberListIndex],
+		emulator.memory[wLinkBattleRandomNumberList:wLinkBattleRandomNumberList+9]
+	)
 
 
 def dump_basic_state(s):
@@ -276,7 +283,7 @@ def compare_basic_states(battle_state, emu_state):
 	return len(errors) == 0, errors
 
 
-def test_move(move, random_state, low_stats):
+def test_move(emulator, move, random_state, low_stats):
 	battle = BattleHandler(False, debug)
 	state = battle.state
 	if random_state is not None:
@@ -333,10 +340,10 @@ def test_move(move, random_state, low_stats):
 	emulator.memory[wBattleMonSpeed + 0]   = emulator.memory[wPartyMon1Speed + 0]   = emulator.memory[wPlayerMonUnmodifiedSpeed + 0]   = 300 >> 8
 	emulator.memory[wBattleMonSpeed + 1]   = emulator.memory[wPartyMon1Speed + 1]   = emulator.memory[wPlayerMonUnmodifiedSpeed + 1]   = 300 & 0xFF
 
-	state.me.team = [Pokemon(state, "", emulator.memory[wPartyMons:wPartyMons+44])]
+	state.me.team = [Pokemon(state, "", emulator.memory[wPartyMons:wPartyMons+44], True)]
 	state.op.team = [Pokemon(state, "", emulator.memory[wEnemyMons:wEnemyMons+44])]
 
-	starting_state = get_emulator_basic_state()
+	starting_state = get_emulator_basic_state(emulator)
 	if debug:
 		print(dump_basic_state(starting_state[0]))
 		print(dump_basic_state(starting_state[1]))
@@ -388,7 +395,7 @@ def test_move(move, random_state, low_stats):
 				if not emulator.tick(1 if debug else 30):
 					exit(0)
 	emulator.button_release('b')
-	ending_state = get_emulator_basic_state()
+	ending_state = get_emulator_basic_state(emulator)
 	if debug:
 		print(dump_basic_state(ending_state[0]))
 		print(dump_basic_state(ending_state[1]))
@@ -401,18 +408,19 @@ def test_move(move, random_state, low_stats):
 	return f[0], f[1], [state.rng.getList()]
 
 
-def run_test(test):
+def run_test(test, emulator):
 	if debug:
 		print(f"Testing {test['name']} ", test.get('args', []))
-	else:
+	elif jobs == 1:
 		print(f'{test['name']}: ', end="", flush=True)
-	success, errors, extra = test['cb'](*test.get('args', []))
-	if not success:
-		if debug:
-			print(errors)
-		print("\033[31mFailed\033[0m")
-	else:
-		print("\033[32mPassed\033[0m")
+	success, errors, extra = test['cb'](emulator, *test.get('args', []))
+	if jobs == 1:
+		if not success:
+			if debug:
+				print(errors)
+			print("\033[31mFailed\033[0m")
+		else:
+			print("\033[32mPassed\033[0m")
 	return errors, extra
 
 rand_lists = [
@@ -463,12 +471,14 @@ parser.add_argument('-d', '--debug', action='store_true')
 parser.add_argument('-e', '--emu-debug', action='store_true')
 parser.add_argument('-s', '--show-individual', action='store_true')
 parser.add_argument('-t', '--test', nargs='*')
+parser.add_argument('-j', '--jobs', default=1)
 parser.add_argument('-o', '--output')
 args = parser.parse_args()
 
 debug = args.debug
-emulator = PyBoy('pokeyellow.gbc', sound_volume=25, sound_emulated=debug, window='SDL2' if debug else 'null', debug=args.emu_debug)
+jobs = 1 if debug else int(args.jobs)
 
+tests_ran = 0
 if args.test is None:
 	tests_to_run = tests
 else:
@@ -480,20 +490,39 @@ else:
 			exit(1)
 		tests_to_run += l
 
+def run_tests(offset, count):
+	global tests_ran
+	emulator = PyBoy('pokeyellow.gbc', sound_volume=25, sound_emulated=debug and offset == 0, window='SDL2' if debug and offset == 0 else 'null', debug=args.emu_debug)
+	for test_object in tests_to_run[offset::count]:
+		errors, extra = run_test(test_object, emulator)
+		tests_ran += 1
+		results.append({
+			'name': test_object['name'],
+			'errors': errors,
+			'group': test_object['group'],
+			'extra': extra
+		})
+		if not emulator.tick():
+			return
 
-for test_object in tests_to_run:
-	errors, extra = run_test(test_object)
-	results.append({
-		'name': test_object['name'],
-		'errors': errors,
-		'group': test_object['group'],
-		'extra': extra
-	})
-	if not emulator.tick():
-		exit(0)
+if jobs == 1:
+	run_tests(0, 1)
+else:
+	threads = []
+	for i in range(jobs):
+		thread = threading.Thread(target=run_tests, args=[i, jobs])
+		thread.start()
+		threads.append(thread)
+	b = True
+	while b:
+		b = False
+		for thread in threads:
+			b = b or thread.is_alive()
+		print(f"{tests_ran}/{len(tests_to_run)}\n", end="\033[A")
+		time.sleep(0.1)
 
 
-success = 0
+successes = 0
 failures = 0
 groups = {}
 print()
@@ -503,7 +532,7 @@ for r in sorted(results, key=lambda x: len(x['errors']) != 0):
 		groups[r['group']] = [0, 0]
 	groups[r['group']][1] += 1
 	if not r['errors']:
-		success += 1
+		successes += 1
 		groups[r['group']][0] += 1
 		if args.show_individual:
 			print(f"{r['name']}: \033[32mPassed\033[0m")
@@ -530,10 +559,10 @@ for group, v in sorted(groups.items(), key=lambda f: 1 - f[1][0] / f[1][1]):
 	print(f'{v[0]}\033[0m/{v[1]}')
 	if fd is not None:
 		fd.write(f"{group}: {v[0]}/{v[1]}\n")
-print(f'{success} individual test(s) \033[32mpassed\033[0m. {failures} individual test(s) \033[31mfailed\033[0m.')
+print(f'{successes} individual test(s) \033[32mpassed\033[0m. {failures} individual test(s) \033[31mfailed\033[0m.')
 print(f'{group_succeed} test group(s) \033[32mpassed\033[0m. {group_failed} test group(s) \033[31mfailed\033[0m.')
 if fd is not None:
-	fd.write(f'{success} individual test(s) passed. {failures} individual test(s) failed.\n')
+	fd.write(f'{successes} individual test(s) passed. {failures} individual test(s) failed.\n')
 	fd.write(f'{group_succeed} test group(s) passed. {group_failed} test group(s) failed.\n')
 	fd.close()
 exit(0 if failures == 0 else 1)

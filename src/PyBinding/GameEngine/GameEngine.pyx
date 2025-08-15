@@ -884,14 +884,15 @@ cdef class Pokemon:
 	def attack(self, unsigned char moveSlot, Pokemon target):
 		self.__instance.attack(moveSlot, dereference(target.__instance))
 
-	def calcDamage(self, Pokemon target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized = True):
+	def calcDamage(self, Pokemon target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense):
 		cdef __Pokemon.DamageResult result = self.__instance.calcDamage(
 			dereference(target.__instance),
 			power,
 			cast(__Type, damageType),
 			cast(__Move.MoveCategory, category),
 			critical,
-			randomized
+			randomized,
+			halfDefense
 		)
 
 		return {

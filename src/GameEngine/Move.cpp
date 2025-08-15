@@ -15,7 +15,7 @@ namespace PokemonGen1
 		const std::string &name,
 		Type type,
 		MoveCategory category,
-		unsigned int power,
+		unsigned char power,
 		unsigned char accuracy,
 		unsigned char maxpp,
 		StatusChangeProb statusChange,
@@ -331,7 +331,7 @@ namespace PokemonGen1
 			unsigned char spd = std::min<unsigned int>(pokemonList.at(owner.getID()).SPD / 2 * this->_critChance, 255);
 
 			r = (r << 3U) | ((r & 0b11100000U) >> 5U);
-			damages = owner.calcDamage(target, this->_power, this->_type, this->_category, (r < spd));
+			damages = owner.calcDamage(target, this->_power, this->_type, this->_category, (r < spd), true, this->getID() == Explosion || this->getID() == Self_Destruct);
 		}
 
 		if (!this->_skipAccuracyCheck) {
@@ -574,7 +574,7 @@ namespace PokemonGen1
 		Move{0x36, "Mist"        , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code this move
 		Move{0x37, "Water Gun"   , TYPE_WATER   , SPECIAL ,  40, 100, 25},
 		Move{0x38, "Hydro Pump"  , TYPE_WATER   , SPECIAL , 120,  80,  5},
-		Move{0x39, "Surf"        , TYPE_WATER   , SPECIAL ,  90, 100, 15},
+		Move{0x39, "Surf"        , TYPE_WATER   , SPECIAL ,  95, 100, 15},
 		Move{0x3A, "Ice Beam"    , TYPE_ICE     , SPECIAL ,  95, 100, 10, {STATUS_FROZEN, 0x1A}},
 		Move{0x3B, "Blizzard"    , TYPE_ICE     , SPECIAL , 120,  90,  5, {STATUS_FROZEN, 0x1A}},
 		Move{0x3C, "Psybeam"     , TYPE_PSYCHIC , SPECIAL ,  65, 100, 20, {STATUS_CONFUSED, 0x19}},
@@ -637,7 +637,7 @@ namespace PokemonGen1
 		Move{0x75, "Bide"        , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {2, 3}, "", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, STORE_DAMAGES},
 		Move{0x76, "Metronome"   , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, USE_RANDOM_MOVE},
 		Move{0x77, "Mirror Move" , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, USE_LAST_FOE_MOVE},
-		Move{0x78, "Selfdestruct", TYPE_NORMAL  , PHYSICAL, 260, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SUICIDE, SUICIDE_MISS},
+		Move{0x78, "Selfdestruct", TYPE_NORMAL  , PHYSICAL, 130, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SUICIDE, SUICIDE_MISS},
 		Move{0x79, "Egg Bomb"    , TYPE_NORMAL  , PHYSICAL, 100,  75, 10},
 		Move{0x7A, "Lick"        , TYPE_GHOST   , PHYSICAL,  30, 100, 30, {STATUS_PARALYZED, 0x4D}},
 		Move{0x7B, "Smog"        , TYPE_POISON  , PHYSICAL,  20,  70, 20, {STATUS_POISONED, 0x67}},
@@ -670,7 +670,7 @@ namespace PokemonGen1
 		Move{0x96, "Splash"      , TYPE_NORMAL  , STATUS  ,   0, 255, 40},
 		Move{0x97, "Acid Armor"  , TYPE_POISON  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {{STATS_DEF, 2, 0}}},
 		Move{0x98, "Crabhammer"  , TYPE_WATER   , SPECIAL ,  90,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},
-		Move{0x99, "Explosion"   , TYPE_NORMAL  , PHYSICAL, 340, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SUICIDE, SUICIDE_MISS},
+		Move{0x99, "Explosion"   , TYPE_NORMAL  , PHYSICAL, 170, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SUICIDE, SUICIDE_MISS},
 		Move{0x9A, "Fury Swipes" , TYPE_NORMAL  , PHYSICAL,  18,  80, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x9B, "Bonemerang"  , TYPE_GROUND  , PHYSICAL,  50,  90, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, {2, 2}},
 		Move{0x9C, "Rest"        , TYPE_PSYCHIC , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEAL_ALL_HEALTH_AND_SLEEP},

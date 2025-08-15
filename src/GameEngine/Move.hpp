@@ -264,7 +264,7 @@ namespace PokemonGen1
 		std::string _name;
 		Type _type;
 		MoveCategory _category;
-		unsigned int _power;
+		unsigned char _power;
 		unsigned char _id;
 		unsigned char _pp;
 		unsigned char _ppup;
@@ -291,7 +291,7 @@ namespace PokemonGen1
 			const std::string &name,
 			Type type,
 			MoveCategory category,
-			unsigned int power,
+			unsigned char power,
 			unsigned char accuracy,
 			unsigned char maxpp,
 			StatusChangeProb statusChange = NO_STATUS_CHANGE,

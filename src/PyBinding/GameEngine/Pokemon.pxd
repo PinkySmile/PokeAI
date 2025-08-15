@@ -87,7 +87,7 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 		bool hasStatus(StatusChange status) const
 		void takeDamage(int damage)
 		void attack(unsigned char moveSlot, Pokemon &target)
-		Pokemon.DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized)
+		Pokemon.DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense)
 		void endTurn()
 		void switched()
 		int getPriorityFactor(unsigned char moveSlot)

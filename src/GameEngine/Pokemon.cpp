@@ -588,7 +588,7 @@ namespace PokemonGen1
 					this->setRecharging(false);
 					this->_log(" hurts itself in");
 					(*this->_battleLogger)("it's confusion!");
-					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false).damage);
+					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false).damage);
 					this->_lastUsedMove = availableMoves[0x00];
 					goto turn_damage_check;
 				}
@@ -741,7 +741,7 @@ namespace PokemonGen1
 		return this->_baseStats.SPD;
 	}
 
-	Pokemon::DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized) const
+	Pokemon::DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense) const
 	{
 		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
 
@@ -777,37 +777,44 @@ namespace PokemonGen1
 			};
 		}
 
+		if (halfDefense)
+			defense /= 2;
 		if (attack > 255 || defense > 255) {
 			attack = attack / 4 % 256;
 			defense = defense / 4 % 256;
 		}
 
-		unsigned char r = 255;
+		unsigned int damage = level;
 
-		if (randomized)
+		damage += damage;
+		damage /= 5;
+		damage += 2;
+		damage *= power;
+		damage *= attack;
+		damage /= defense;
+		damage /= 50;
+		if (damage > 997)
+			damage = 997;
+		damage += 2;
+		if (this->_types.first == damageType || this->_types.second == damageType)
+			damage += damage / 2;
+		damage *= effectiveness;
+
+		if (damage > 1 && randomized) {
+			unsigned char r;
+
 			do {
 				r = (*this->_random)();
 				r = (r >> 1U) | ((r & 0x01U) << 7U);
 			} while (r < 217);
-
-		//From Zarel/honko-damagecalc ->
-		//https://github.com/Zarel/honko-damagecalc/blob/dfff275e362ede0857b7564b3e5e2e6fc0e6782d/calc/src/mechanics/gen1.ts#L95
-		double damage = floor(floor(floor(2. * level / 5 + 2) * attack * power / defense) / 50);
-
-		if (damage > 997)
-			damage = 997;
-		damage += 2;
-		if (damage < 1)
-			damage = 1;
-		damage *= effectiveness;
-		damage *= r / 255.;
-		if (this->_types.first == damageType || this->_types.second == damageType)
-			damage *= 1.5;
+			damage *= r;
+			damage /= 255;
+		}
 
 		return {
 			.critical = critical,
-			.damage = static_cast<unsigned int>(floor(damage)),
-			.affect = true,
+			.damage = damage,
+			.affect = damage != 0,
 			.isVeryEffective = effectiveness > 1,
 			.isNotVeryEffective = effectiveness < 1,
 		};

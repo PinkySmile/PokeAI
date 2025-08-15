@@ -196,7 +196,7 @@ namespace PokemonGen1
 		bool hasStatus(StatusChange status) const;
 		void takeDamage(int damage);
 		void attack(unsigned char moveSlot, Pokemon &target);
-		DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized = true) const;
+		DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense) const;
 		void endTurn();
 		void switched();
 		int getPriorityFactor(unsigned char moveSlot);
