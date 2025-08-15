@@ -14,6 +14,13 @@ from StatsChange cimport StatsChange
 from StatusChange cimport StatusChange
 from RandomGenerator cimport RandomGenerator
 
+
+cdef extern from "<array>" namespace "std" nogil:
+	cdef cppclass DataArray "std::array<unsigned char, PokemonGen1::Pokemon::ENCODED_SIZE>":
+		DataArray() except+
+		unsigned char &operator[](size_t)
+
+
 cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 	cdef cppclass Pokemon:
 		ctypedef function[void (const string &)] Logger
@@ -64,7 +71,7 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 
 		Pokemon(const Pokemon &)
 		Pokemon(RandomGenerator &random, const Pokemon.Logger &battleLogger, const string &nickname, unsigned char level, const Pokemon.Base &base, const vector[Move] &moveSet, bool enemy) except +
-		#Pokemon(RandomGenerator &random, const Logger &battleLogger, const string &nickname, const array[byte, ENCODED_SIZE] &data, bool enemy)
+		Pokemon(RandomGenerator &random, const Logger &battleLogger, const string &nickname, const DataArray &data, bool enemy)
 		#Pokemon(RandomGenerator &random, const Logger &battleLogger, const nlohmann::json &json)
 
 		void setGlobalCritRatio(double ratio)
@@ -102,6 +109,8 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 
 		RandomGenerator &getRandomGenerator()
 		bool canHaveStatus(StatusChange status)
+		unsigned short getStatus()
+		unsigned short getNonVolatileStatus()
 		bool canGetHit()
 		unsigned char getID()
 		unsigned getDamagesStored()

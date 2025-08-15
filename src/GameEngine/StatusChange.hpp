@@ -26,7 +26,8 @@ namespace PokemonGen1
 		STATUS_FROZEN                  = 1U << 5U,
 		STATUS_PARALYZED               = 1U << 6U,
 		STATUS_KO                      = 1U << 7U, //From here, it is not handled by the game
-		STATUS_BADLY_POISONED          = (1U << 8U) | STATUS_POISONED,
+		STATUS_BAD_POISON              = 1U << 8U,
+		STATUS_BADLY_POISONED          = STATUS_BAD_POISON | STATUS_POISONED,
 		STATUS_ANY_NON_VOLATILE_STATUS = 0b11111111U,
 		STATUS_LEECHED                 = 1U << 9U,
 		STATUS_CONFUSED_FOR_1_TURN     = 1U << 10U,

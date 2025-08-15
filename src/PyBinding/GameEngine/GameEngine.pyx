@@ -12,7 +12,7 @@ from StatsChange cimport StatsChange as __StatsChange, statToString as __statToS
 from Type cimport Type as __Type, typeToString as __typeToString, typeToStringShort as __typeToStringShort, getAttackDamageMultiplier as __getAttackDamageMultiplier, TYPE_NORMAL, TYPE_FIGHTING, TYPE_FLYING, TYPE_POISON, TYPE_GROUND, TYPE_ROCK, TYPE_INVALID, TYPE_BUG, TYPE_GHOST, TYPE_FIRE, TYPE_WATER, TYPE_GRASS, TYPE_ELECTRIC, TYPE_PSYCHIC, TYPE_ICE, TYPE_DRAGON, TYPE_NEUTRAL_PHYSICAL, TYPE_NEUTRAL_SPECIAL
 from RandomGenerator cimport RandomGenerator as __RandomGenerator
 from Move cimport Move as __Move, AvailableMove as __AvailableMove, availableMoves, Empty as __Empty, Pound as __Pound, Karate_Chop as __Karate_Chop, Double_Slap as __Double_Slap, Comet_Punch as __Comet_Punch, Mega_Punch as __Mega_Punch, Pay_Day as __Pay_Day, Fire_Punch as __Fire_Punch, Ice_Punch as __Ice_Punch, Thunder_Punch as __Thunder_Punch, Scratch as __Scratch, Vise_Grip as __Vise_Grip, Guillotine as __Guillotine, Razor_Wind as __Razor_Wind, Swords_Dance as __Swords_Dance, Cut as __Cut, Gust as __Gust, Wing_Attack as __Wing_Attack, Whirlwind as __Whirlwind, Fly as __Fly, Bind as __Bind, Slam as __Slam, Vine_Whip as __Vine_Whip, Stomp as __Stomp, Double_Kick as __Double_Kick, Mega_Kick as __Mega_Kick, Jump_Kick as __Jump_Kick, Rolling_Kick as __Rolling_Kick, Sand_Attack as __Sand_Attack, Headbutt as __Headbutt, Horn_Attack as __Horn_Attack, Fury_Attack as __Fury_Attack, Horn_Drill as __Horn_Drill, Tackle as __Tackle, Body_Slam as __Body_Slam, Wrap as __Wrap, Take_Down as __Take_Down, Thrash as __Thrash, Double_Edge as __Double_Edge, Tail_Whip as __Tail_Whip, Poison_Sting as __Poison_Sting, Twineedle as __Twineedle, Pin_Missile as __Pin_Missile, Leer as __Leer, Bite as __Bite, Growl as __Growl, Roar as __Roar, Sing as __Sing, Supersonic as __Supersonic, Sonic_Boom as __Sonic_Boom, Disable as __Disable, Acid as __Acid, Ember as __Ember, Flamethrower as __Flamethrower, Mist as __Mist, Water_Gun as __Water_Gun, Hydro_Pump as __Hydro_Pump, Surf as __Surf, Ice_Beam as __Ice_Beam, Blizzard as __Blizzard, Psybeam as __Psybeam, Bubble_Beam as __Bubble_Beam, Aurora_Beam as __Aurora_Beam, Hyper_Beam as __Hyper_Beam, Peck as __Peck, Drill_Peck as __Drill_Peck, Submission as __Submission, Low_Kick as __Low_Kick, Counter as __Counter, Seismic_Toss as __Seismic_Toss, Strength as __Strength, Absorb as __Absorb, Mega_Drain as __Mega_Drain, Leech_Seed as __Leech_Seed, Growth as __Growth, Razor_Leaf as __Razor_Leaf, Solar_Beam as __Solar_Beam, Poison_Powder as __Poison_Powder, Stun_Spore as __Stun_Spore, Sleep_Powder as __Sleep_Powder, Petal_Dance as __Petal_Dance, String_Shot as __String_Shot, Dragon_Rage as __Dragon_Rage, Fire_Spin as __Fire_Spin, Thundershock as __Thundershock, Thunderbolt as __Thunderbolt, Thunder_Wave as __Thunder_Wave, Thunder as __Thunder, Rock_Throw as __Rock_Throw, Earthquake as __Earthquake, Fissure as __Fissure, Dig as __Dig, Toxic as __Toxic, Confusion as __Confusion, Psychic_M as __Psychic_M, Hypnosis as __Hypnosis, Meditate as __Meditate, Agility as __Agility, Quick_Attack as __Quick_Attack, Rage as __Rage, Teleport as __Teleport, Night_Shade as __Night_Shade, Mimic as __Mimic, Screech as __Screech, Double_Team as __Double_Team, Recover as __Recover, Harden as __Harden, Minimize as __Minimize, Smokescreen as __Smokescreen, Confuse_Ray as __Confuse_Ray, Withdraw as __Withdraw, Defense_Curl as __Defense_Curl, Barrier as __Barrier, Light_Screen as __Light_Screen, Haze as __Haze, Reflect as __Reflect, Focus_Energy as __Focus_Energy, Bide as __Bide, Metronome as __Metronome, Mirror_Move as __Mirror_Move, Self_Destruct as __Self_Destruct, Egg_Bomb as __Egg_Bomb, Lick as __Lick, Smog as __Smog, Sludge as __Sludge, Bone_Club as __Bone_Club, Fire_Blast as __Fire_Blast, Waterfall as __Waterfall, Clamp as __Clamp, Swift as __Swift, Skull_Bash as __Skull_Bash, Spike_Cannon as __Spike_Cannon, Constrict as __Constrict, Amnesia as __Amnesia, Kinesis as __Kinesis, Soft_Boiled as __Soft_Boiled, Hi_Jump_Kick as __Hi_Jump_Kick, Glare as __Glare, Dream_Eater as __Dream_Eater, Poison_Gas as __Poison_Gas, Barrage as __Barrage, Leech_Life as __Leech_Life, Lovely_Kiss as __Lovely_Kiss, Sky_Attack as __Sky_Attack, Transform as __Transform, Bubble as __Bubble, Dizzy_Punch as __Dizzy_Punch, Spore as __Spore, Flash as __Flash, Psywave as __Psywave, Splash as __Splash, Acid_Armor as __Acid_Armor, Crabhammer as __Crabhammer, Explosion as __Explosion, Fury_Swipes as __Fury_Swipes, Bonemerang as __Bonemerang, Rest as __Rest, Rock_Slide as __Rock_Slide, Hyper_Fang as __Hyper_Fang, Sharpen as __Sharpen, Conversion as __Conversion, Tri_Attack as __Tri_Attack, Super_Fang as __Super_Fang, Slash as __Slash, Substitute as __Substitute, Struggle as __Struggle, PHYSICAL as __PHYSICAL, SPECIAL as __SPECIAL, STATUS as __STATUS
-from Pokemon cimport pokemonList as __pokemonList, Pokemon as __Pokemon, pythonLoggerLambda, evalLogger, Rhydon as __Rhydon, Kangaskhan as __Kangaskhan, Nidoran_M as __Nidoran_M, Clefairy as __Clefairy, Spearow as __Spearow, Voltorb as __Voltorb, Nidoking as __Nidoking, Slowbro as __Slowbro, Ivysaur as __Ivysaur, Exeggutor as __Exeggutor, Lickitung as __Lickitung, Exeggcute as __Exeggcute, Grimer as __Grimer, Gengar as __Gengar, Nidoran_F as __Nidoran_F, Nidoqueen as __Nidoqueen, Cubone as __Cubone, Rhyhorn as __Rhyhorn, Lapras as __Lapras, Arcanine as __Arcanine, Mew as __Mew, Gyarados as __Gyarados, Shellder as __Shellder, Tentacool as __Tentacool, Gastly as __Gastly, Scyther as __Scyther, Staryu as __Staryu, Blastoise as __Blastoise, Pinsir as __Pinsir, Tangela as __Tangela, Growlithe as __Growlithe, Onix as __Onix, Fearow as __Fearow, Pidgey as __Pidgey, Slowpoke as __Slowpoke, Kadabra as __Kadabra, Graveler as __Graveler, Chansey as __Chansey, Machoke as __Machoke, Mr_Mime as __Mr_Mime, Hitmonlee as __Hitmonlee, Hitmonchan as __Hitmonchan, Arbok as __Arbok, Parasect as __Parasect, Psyduck as __Psyduck, Drowzee as __Drowzee, Golem as __Golem, Magmar as __Magmar, Electabuzz as __Electabuzz, Magneton as __Magneton, Koffing as __Koffing, Mankey as __Mankey, Seel as __Seel, Diglett as __Diglett, Tauros as __Tauros, Farfetchd as __Farfetchd, Venonat as __Venonat, Dragonite as __Dragonite, Doduo as __Doduo, Poliwag as __Poliwag, Jynx as __Jynx, Moltres as __Moltres, Articuno as __Articuno, Zapdos as __Zapdos, Ditto as __Ditto, Meowth as __Meowth, Krabby as __Krabby, Vulpix as __Vulpix, Ninetales as __Ninetales, Pikachu as __Pikachu, Raichu as __Raichu, Dratini as __Dratini, Dragonair as __Dragonair, Kabuto as __Kabuto, Kabutops as __Kabutops, Horsea as __Horsea, Seadra as __Seadra, Sandshrew as __Sandshrew, Sandslash as __Sandslash, Omanyte as __Omanyte, Omastar as __Omastar, Jigglypuff as __Jigglypuff, Wigglytuff as __Wigglytuff, Eevee as __Eevee, Flareon as __Flareon, Jolteon as __Jolteon, Vaporeon as __Vaporeon, Machop as __Machop, Zubat as __Zubat, Ekans as __Ekans, Paras as __Paras, Poliwhirl as __Poliwhirl, Poliwrath as __Poliwrath, Weedle as __Weedle, Kakuna as __Kakuna, Beedrill as __Beedrill, Dodrio as __Dodrio, Primeape as __Primeape, Dugtrio as __Dugtrio, Venomoth as __Venomoth, Dewgong as __Dewgong, Caterpie as __Caterpie, Metapod as __Metapod, Butterfree as __Butterfree, Machamp as __Machamp, Golduck as __Golduck, Hypno as __Hypno, Golbat as __Golbat, Mewtwo as __Mewtwo, Snorlax as __Snorlax, Magikarp as __Magikarp, Muk as __Muk, Kingler as __Kingler, Cloyster as __Cloyster, Electrode as __Electrode, Clefable as __Clefable, Weezing as __Weezing, Persian as __Persian, Marowak as __Marowak, Haunter as __Haunter, Abra as __Abra, Alakazam as __Alakazam, Pidgeotto as __Pidgeotto, Pidgeot as __Pidgeot, Starmie as __Starmie, Bulbasaur as __Bulbasaur, Venusaur as __Venusaur, Tentacruel as __Tentacruel, Goldeen as __Goldeen, Seaking as __Seaking, Ponyta as __Ponyta, Rapidash as __Rapidash, Rattata as __Rattata, Raticate as __Raticate, Nidorino as __Nidorino, Nidorina as __Nidorina, Geodude as __Geodude, Porygon as __Porygon, Aerodactyl as __Aerodactyl, Magnemite as __Magnemite, Charmander as __Charmander, Squirtle as __Squirtle, Charmeleon as __Charmeleon, Wartortle as __Wartortle, Charizard as __Charizard, Oddish as __Oddish, Gloom as __Gloom, Vileplume as __Vileplume, Bellsprout as __Bellsprout, Weepinbell as __Weepinbell, Victreebel as __Victreebel, Missingno as __Missingno
+from Pokemon cimport DataArray, pokemonList as __pokemonList, Pokemon as __Pokemon, pythonLoggerLambda, evalLogger, Rhydon as __Rhydon, Kangaskhan as __Kangaskhan, Nidoran_M as __Nidoran_M, Clefairy as __Clefairy, Spearow as __Spearow, Voltorb as __Voltorb, Nidoking as __Nidoking, Slowbro as __Slowbro, Ivysaur as __Ivysaur, Exeggutor as __Exeggutor, Lickitung as __Lickitung, Exeggcute as __Exeggcute, Grimer as __Grimer, Gengar as __Gengar, Nidoran_F as __Nidoran_F, Nidoqueen as __Nidoqueen, Cubone as __Cubone, Rhyhorn as __Rhyhorn, Lapras as __Lapras, Arcanine as __Arcanine, Mew as __Mew, Gyarados as __Gyarados, Shellder as __Shellder, Tentacool as __Tentacool, Gastly as __Gastly, Scyther as __Scyther, Staryu as __Staryu, Blastoise as __Blastoise, Pinsir as __Pinsir, Tangela as __Tangela, Growlithe as __Growlithe, Onix as __Onix, Fearow as __Fearow, Pidgey as __Pidgey, Slowpoke as __Slowpoke, Kadabra as __Kadabra, Graveler as __Graveler, Chansey as __Chansey, Machoke as __Machoke, Mr_Mime as __Mr_Mime, Hitmonlee as __Hitmonlee, Hitmonchan as __Hitmonchan, Arbok as __Arbok, Parasect as __Parasect, Psyduck as __Psyduck, Drowzee as __Drowzee, Golem as __Golem, Magmar as __Magmar, Electabuzz as __Electabuzz, Magneton as __Magneton, Koffing as __Koffing, Mankey as __Mankey, Seel as __Seel, Diglett as __Diglett, Tauros as __Tauros, Farfetchd as __Farfetchd, Venonat as __Venonat, Dragonite as __Dragonite, Doduo as __Doduo, Poliwag as __Poliwag, Jynx as __Jynx, Moltres as __Moltres, Articuno as __Articuno, Zapdos as __Zapdos, Ditto as __Ditto, Meowth as __Meowth, Krabby as __Krabby, Vulpix as __Vulpix, Ninetales as __Ninetales, Pikachu as __Pikachu, Raichu as __Raichu, Dratini as __Dratini, Dragonair as __Dragonair, Kabuto as __Kabuto, Kabutops as __Kabutops, Horsea as __Horsea, Seadra as __Seadra, Sandshrew as __Sandshrew, Sandslash as __Sandslash, Omanyte as __Omanyte, Omastar as __Omastar, Jigglypuff as __Jigglypuff, Wigglytuff as __Wigglytuff, Eevee as __Eevee, Flareon as __Flareon, Jolteon as __Jolteon, Vaporeon as __Vaporeon, Machop as __Machop, Zubat as __Zubat, Ekans as __Ekans, Paras as __Paras, Poliwhirl as __Poliwhirl, Poliwrath as __Poliwrath, Weedle as __Weedle, Kakuna as __Kakuna, Beedrill as __Beedrill, Dodrio as __Dodrio, Primeape as __Primeape, Dugtrio as __Dugtrio, Venomoth as __Venomoth, Dewgong as __Dewgong, Caterpie as __Caterpie, Metapod as __Metapod, Butterfree as __Butterfree, Machamp as __Machamp, Golduck as __Golduck, Hypno as __Hypno, Golbat as __Golbat, Mewtwo as __Mewtwo, Snorlax as __Snorlax, Magikarp as __Magikarp, Muk as __Muk, Kingler as __Kingler, Cloyster as __Cloyster, Electrode as __Electrode, Clefable as __Clefable, Weezing as __Weezing, Persian as __Persian, Marowak as __Marowak, Haunter as __Haunter, Abra as __Abra, Alakazam as __Alakazam, Pidgeotto as __Pidgeotto, Pidgeot as __Pidgeot, Starmie as __Starmie, Bulbasaur as __Bulbasaur, Venusaur as __Venusaur, Tentacruel as __Tentacruel, Goldeen as __Goldeen, Seaking as __Seaking, Ponyta as __Ponyta, Rapidash as __Rapidash, Rattata as __Rattata, Raticate as __Raticate, Nidorino as __Nidorino, Nidorina as __Nidorina, Geodude as __Geodude, Porygon as __Porygon, Aerodactyl as __Aerodactyl, Magnemite as __Magnemite, Charmander as __Charmander, Squirtle as __Squirtle, Charmeleon as __Charmeleon, Wartortle as __Wartortle, Charizard as __Charizard, Oddish as __Oddish, Gloom as __Gloom, Vileplume as __Vileplume, Bellsprout as __Bellsprout, Weepinbell as __Weepinbell, Victreebel as __Victreebel, Missingno as __Missingno
 from Team cimport loadTrainer as __loadTrainer, saveTrainer as __saveTrainer, Trainer
 from State cimport BattleAction as __BattleAction, BattleActionToString as __BattleActionToString, PlayerState as __PlayerState, BattleState as __BattleState, pythonCallbackLambda, pythonCallbackLambdaVoid, evalCallback, evalCallbackVoid, NoAction as __NoAction, Attack1 as __Attack1, Attack2 as __Attack2, Attack3 as __Attack3, Attack4 as __Attack4, Switch1 as __Switch1, Switch2 as __Switch2, Switch3 as __Switch3, Switch4 as __Switch4, Switch5 as __Switch5, Switch6 as __Switch6, StruggleMove as __StruggleMove, Run as __Run
 from BattleHandler cimport BattleHandler as __BattleHandler
@@ -55,10 +55,10 @@ cpdef enum Type:
 	Neutral_Physical = TYPE_NEUTRAL_PHYSICAL
 	Neutral_Special = TYPE_NEUTRAL_SPECIAL
 
-def typeToString(s: str):
+def typeToString(s: Type):
 	return __typeToString(s).decode('ASCII')
 
-def typeToStringShort(s: str):
+def typeToStringShort(s: Type):
 	return __typeToStringShort(s).decode('ASCII')
 
 def getAttackDamageMultiplier(__Type m, __Type d):
@@ -788,6 +788,8 @@ cdef class Pokemon:
 			del self.__instance
 
 	def __init__(self, *args):
+		cdef DataArray data
+
 		if len(args) == 0:
 			return
 		if len(args) == 1:
@@ -797,23 +799,38 @@ cdef class Pokemon:
 				return
 			if args[0] is None:
 				return
-		elif len(args) == 7 or len(args) == 6:
+		elif len(args) == 4 or len(args) == 3:
+			state: BattleState = args[0]
+			nickname: string = args[1] if isinstance(args[1], bytes) else args[1].encode('utf-8')
+			if len(args[2]) != 44:
+				raise TypeError("Invalid data length")
+			for i in range(44):
+				data[i] = args[2][i]
+			enemy: bool = False if len(args) == 3 else args[3]
+			self.__instance = new __Pokemon(
+				state.__instance.rng,
+				state.__instance.battleLogger,
+				nickname,
+				data,
+				enemy
+			)
+			return
+		elif len(args) == 6 or len(args) == 5:
 			moveSet: vector[__Move]
 
-			random: RandomGenerator = args[0]
-			state: BattleState = args[1]
-			nickname: string = args[2] if isinstance(args[2], bytes) else args[2].encode('utf-8')
-			level: int = args[3]
-			base = args[4]
-			moveSetPy: [Move] = args[5]
-			enemy: bool = False if len(args) == 6 else args[6]
+			state: BattleState = args[0]
+			nickname: string = args[1] if isinstance(args[1], bytes) else args[1].encode('utf-8')
+			level: int = args[2]
+			base = args[3]
+			moveSetPy: [Move] = args[4]
+			enemy: bool = False if len(args) == 5 else args[5]
 
 			for move in moveSetPy:
 				if not isinstance(move, Move):
 					raise TypeError("Moveset must contains Moves only")
 				moveSet.push_back(dereference((<Move>move).__instance))
 			self.__instance = new __Pokemon(
-				dereference(random.__instance),
+				state.__instance.rng,
 				state.__instance.battleLogger,
 				nickname,
 				level,
@@ -939,6 +956,12 @@ cdef class Pokemon:
 
 	def canHaveStatus(self, StatusChange status):
 		return self.__instance.canHaveStatus(cast(__StatusChange, status))
+
+	def getStatus(self):
+		return self.__instance.getStatus()
+
+	def getNonVolatileStatus(self):
+		return self.__instance.getNonVolatileStatus()
 
 	def canGetHit(self):
 		return self.__instance.canGetHit()

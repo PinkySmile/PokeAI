@@ -237,7 +237,7 @@ namespace PokemonGen1
 
 	void Pokemon::setStatus(PokemonGen1::StatusChange status)
 	{
-		if ((status & STATUS_BADLY_POISONED) && !(this->_currentStatus & STATUS_BADLY_POISONED))
+		if ((status & STATUS_BAD_POISON) && !(this->_currentStatus & STATUS_BAD_POISON))
 			this->_badPoisonStage = 1;
 		this->_currentStatus = status;
 		if ((status & STATUS_PARALYZED) || (status & STATUS_BURNED))
@@ -528,13 +528,13 @@ namespace PokemonGen1
 		this->_wrapped = false;
 		if (this->_currentStatus & STATUS_BURNED) {
 			this->_log("'s hurt by the burn!");
-			this->takeDamage(this->getHealth() / 16);
-		} else if ((this->_currentStatus & STATUS_POISONED) || (this->_currentStatus & STATUS_BADLY_POISONED)) {
+			this->takeDamage(this->getMaxHealth() / 16);
+		} else if (this->_currentStatus & STATUS_POISONED) {
 			this->_log("'s hurt by the poison!");
-			if (this->_currentStatus & STATUS_BADLY_POISONED)
-				this->takeDamage(this->getHealth() * this->_badPoisonStage++ / 16);
+			if (this->_currentStatus & STATUS_BAD_POISON)
+				this->takeDamage(this->getMaxHealth() * this->_badPoisonStage++ / 16);
 			else
-				this->takeDamage(this->getHealth() / 16);
+				this->takeDamage(this->getMaxHealth() / 16);
 		}
 	}
 
@@ -863,9 +863,23 @@ namespace PokemonGen1
 
 	double Pokemon::_getUpgradedStat(unsigned short baseValue, char upgradeStage) const
 	{
-		if (upgradeStage < 0)
-			return 2. * baseValue / (2 - upgradeStage);
-		return (upgradeStage + 2.) * baseValue / 2;
+		std::pair<unsigned char, unsigned char> ratios[] = {
+			{25, 100}, // 0.25
+			{28, 100}, // 0.28
+			{33, 100}, // 0.33
+			{40, 100}, // 0.40
+			{50, 100}, // 0.50
+			{66, 100}, // 0.66
+			{ 1, 1},   // 1.00
+			{15, 10},  // 1.50
+			{ 2, 1},   // 2.00
+			{25, 10},  // 2.50
+			{ 3, 1},   // 3.00
+			{35, 10},  // 3.50
+			{ 4, 1},   // 4.00
+		};
+
+		return baseValue * ratios[upgradeStage + 6].first / ratios[upgradeStage + 6].second;
 	}
 
 	Pokemon::UpgradableStats Pokemon::getStatsUpgradeStages() const
@@ -1034,6 +1048,16 @@ namespace PokemonGen1
 	const std::set<AvailableMove> &Pokemon::getLearnableMoveSet() const
 	{
 		return pokemonList.at(this->getID()).movePool;
+	}
+
+	unsigned short Pokemon::getStatus() const
+	{
+		return this->_currentStatus;
+	}
+
+	unsigned short Pokemon::getNonVolatileStatus() const
+	{
+		return this->_currentStatus & STATUS_ANY_NON_VOLATILE_STATUS;
 	}
 
 	Pokemon::Base::Base(

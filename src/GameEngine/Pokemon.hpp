@@ -78,12 +78,11 @@ namespace PokemonGen1
 
 		typedef std::function<void (const std::string &)> Logger;
 
-	private:
 		enum PacketElems {
 			PACK_SPECIES,
 			PACK_HP_HB,
 			PACK_HP_LB,
-			PACK_CURR_LEVEL,
+			PACK_BOX_LEVEL,
 			PACK_STATUS,
 			PACK_TYPEA,
 			PACK_TYPEB,
@@ -113,7 +112,7 @@ namespace PokemonGen1
 			PACK_PPS_MOVE2,
 			PACK_PPS_MOVE3,
 			PACK_PPS_MOVE4,
-			PACK_CURR_LEVEL_DUP,
+			PACK_CURR_LEVEL,
 			PACK_MAX_HP_HB,
 			PACK_MAX_HP_LB,
 			PACK_ATK_HB,
@@ -127,6 +126,7 @@ namespace PokemonGen1
 			PACK_SIZE
 		};
 
+	private:
 		struct PokemonState {
 			BaseStats                             stats;
 			unsigned char                         id;
@@ -216,6 +216,8 @@ namespace PokemonGen1
 
 		[[nodiscard]] RandomGenerator &getRandomGenerator();
 		[[nodiscard]] bool canHaveStatus(StatusChange status) const;
+		[[nodiscard]] unsigned short getStatus() const;
+		[[nodiscard]] unsigned short getNonVolatileStatus() const;
 		[[nodiscard]] bool canGetHit() const;
 		[[nodiscard]] unsigned char getID() const;
 		[[nodiscard]] unsigned getDamagesStored() const;

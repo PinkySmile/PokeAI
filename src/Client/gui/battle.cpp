@@ -45,7 +45,7 @@ void displayOpponentStats(sf::RenderWindow &window, sf::Text &text, sf::Rectangl
 	drawSprite(window, sprite, resources.hpOverlay, 64, 64);
 	if (pkmn.hasStatus(STATUS_BURNED)) {
 		drawText(window, text, "BRN", 124, 32);
-	} else if (pkmn.hasStatus(STATUS_POISONED) || pkmn.hasStatus(STATUS_BADLY_POISONED)) {
+	} else if (pkmn.hasStatus(STATUS_POISONED)) {
 		drawText(window, text, "PSN", 124, 32);
 	} else if (pkmn.hasStatus(STATUS_FROZEN)) {
 		drawText(window, text, "FRZ", 124, 32);

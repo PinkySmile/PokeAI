@@ -335,7 +335,7 @@ namespace PokemonGen1
 		if (this->_accuracy <= 100) {
 			unsigned random = owner.getRandomGenerator()();
 
-			if (random / 2.56 >= this->_accuracy * multiplier) {
+			if (random / 2.55 >= this->_accuracy * multiplier) {
 				this->_nbHit = 0;
 				if (this->_missCallback)
 					this->_missCallback(owner, target, this->isFinished(), logger);
