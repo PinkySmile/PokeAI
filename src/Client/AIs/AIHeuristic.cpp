@@ -161,7 +161,7 @@ namespace PokemonGen1
 
 		//From Zarel/honko-damagecalc ->
 		//https://github.com/Zarel/honko-damagecalc/blob/dfff275e362ede0857b7564b3e5e2e6fc0e6782d/calc/src/mechanics/gen1.ts#L95
-		double damages = fmax(
+		double damage = fmax(
 			(
 				fmin(
 					997,
@@ -177,9 +177,9 @@ namespace PokemonGen1
 			1
 		);
 
-		damages *= effectiveness * (1 + (owner.getTypes().first == damageType || owner.getTypes().second == damageType) / 2.);
+		damage *= effectiveness * (1 + (owner.getTypes().first == damageType || owner.getTypes().second == damageType) / 2.);
 
-		return {damages * 217 / 255, damages};
+		return {damage * 217 / 255, damage};
 	}
 
 	double AIHeuristic::_getBuffsValue(const Pokemon &target, const Pokemon &owner, const Move &move)

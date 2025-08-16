@@ -33,13 +33,13 @@
 }, "Removes the opponent recharge state and will make the target use it's move once more"
 
 #define SUICIDE_MISS [](Pokemon &owner, Pokemon &, bool, const std::function<void(const std::string &msg)> &){\
-	owner.takeDamage(owner.getHealth());\
+	owner.takeDamage(owner.getHealth(), true);\
 	return true;\
 }, "Kills user"
 
 #define TAKE_1DAMAGE [](Pokemon &owner, Pokemon &, bool, const std::function<void(const std::string &msg)> &logger){\
-	owner.takeDamage(1);\
-	logger(owner.getName() + " crashes!");\
+	logger(owner.getName() + " kept going and crashes!");\
+	owner.takeDamage(1, false);\
 	return true;\
 }, "Take 1 damage"
 
@@ -55,16 +55,20 @@
 #define OHKO_DESC "Kills in one hit if the user's speed is higher than the foe's"
 #define ONE_HIT_KO_HANDLE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
 	if (owner.getSpeed() >= target.getSpeed()) {\
-                target.takeDamage(target.getHealth());\
-                logger("One-hit KO!");\
-                return true;\
-        }\
-        return false;\
+		target.takeDamage(target.getHealth(), false);\
+		logger("One-hit KO!");\
+		return true;\
+	}\
+	logger(target.getName() + " is unaffected!");\
+	return false;\
 }, OHKO_DESC
 
 #define QU_RECOIL_DESC "Take a quarter of the damage dealt as recoil"
-#define TAKE_QUARTER_MOVE_DAMAGE [](Pokemon &owner, Pokemon &, unsigned damages, bool, const std::function<void(const std::string &msg)> &logger){\
-	owner.takeDamage(damages / 4);\
+#define TAKE_QUARTER_MOVE_DAMAGE [](Pokemon &owner, Pokemon &, unsigned damage, bool, const std::function<void(const std::string &msg)> &logger){\
+	if (damage <= 3)\
+		owner.takeDamage(1, true);\
+	else\
+		owner.takeDamage(damage / 4, true);\
 	logger(owner.getName() + "'s hits with recoil!");\
 	return true;\
 }, QU_RECOIL_DESC
@@ -77,8 +81,11 @@
 }, TRANSFORM_DESC
 
 #define TAKE_HALF_MOVE_DAMAGE_DESC "Take half dealt damage as recoil"
-#define TAKE_HALF_MOVE_DAMAGE [](Pokemon &owner, Pokemon &, unsigned damages, bool, const std::function<void(const std::string &msg)> &logger){\
-	owner.takeDamage(damages / 2);\
+#define TAKE_HALF_MOVE_DAMAGE [](Pokemon &owner, Pokemon &, unsigned damage, bool, const std::function<void(const std::string &msg)> &logger){ \
+	if (damage == 1)\
+		owner.takeDamage(1, true);\
+	else\
+		owner.takeDamage(damage / 2, true);\
 	logger(owner.getName() + "'s hits with recoil!");\
 	return true;\
 }, TAKE_HALF_MOVE_DAMAGE_DESC
@@ -95,21 +102,21 @@
 	return true;\
 }, CONFUSE_ON_LAST_DESC
 
-#define DEAL_20_DAMAGE_DESC "Deal 20 damages"
+#define DEAL_20_DAMAGE_DESC "Deal 20 damage"
 #define DEAL_20_DAMAGE [](Pokemon &, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
-	target.takeDamage(20);\
+	target.takeDamage(20, false);\
 	return true;\
 }, DEAL_20_DAMAGE_DESC
 
-#define DEAL_40_DAMAGE_DESC "Deal 40 damages"
+#define DEAL_40_DAMAGE_DESC "Deal 40 damage"
 #define DEAL_40_DAMAGE [](Pokemon &, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
-	target.takeDamage(40);\
+	target.takeDamage(40, false);\
 	return true;\
 }, DEAL_40_DAMAGE_DESC
 
-#define DEAL_LVL_AS_DAMAGE_DESC "Deal the user's level as raw damages"
+#define DEAL_LVL_AS_DAMAGE_DESC "Deal the user's level as raw damage"
 #define DEAL_LVL_AS_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
-	target.takeDamage(owner.getLevel());\
+	target.takeDamage(owner.getLevel(), false);\
 	return true;\
 }, DEAL_LVL_AS_DAMAGE_DESC
 
@@ -125,18 +132,21 @@
 	unsigned char r = owner.getRandomGenerator()();\
 \
 	/* Check on which side we are to account for bug causing desyncs. */\
-	/* The move can deal 0 damages if we are not on the user side,    */\
+	/* The move can deal 0 damage if we are not on the user side,     */\
 	/* so we reverse it to stay synced with the other game            */\
 	while ((owner.isEnemy() && !r) || r >= multipliedLevel)\
 		r = owner.getRandomGenerator()();\
 	\
-	target.takeDamage(r);\
+	target.takeDamage(r, false);\
 	return true;\
 }, DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_DESC
 
-#define ABSORB_HALF_DAMAGE_DESC "Absorb half dealt damages"
-#define ABSORB_HALF_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned damages, bool, const std::function<void(const std::string &msg)> &logger){\
-	owner.takeDamage(-(damages / 2));\
+#define ABSORB_HALF_DAMAGE_DESC "Absorb half dealt damage"
+#define ABSORB_HALF_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned damage, bool, const std::function<void(const std::string &msg)> &logger){\
+	if (damage == 1)\
+		owner.heal(1);\
+	else\
+		owner.heal(damage / 2);\
 	logger("Sucked health from " + target.getName() + "!");\
 	return true;\
 }, ABSORB_HALF_DAMAGE_DESC
@@ -147,7 +157,7 @@
         unsigned m = owner.getMaxHealth();\
         if ((h & 0xFF) - (m & 0xFF) - ((h >> 8) < (m >> 8)) == 0)\
 		return logger("But it failed!"), true;\
-	owner.takeDamage(-(owner.getMaxHealth() / 2));\
+	owner.heal(owner.getMaxHealth() / 2);\
 	logger(owner.getName() + " regained health!");\
 	return true;\
 }, HEAL_HALF_HEALTH_DESC
@@ -158,8 +168,8 @@
         unsigned m = owner.getMaxHealth();\
         if ((h & 0xFF) - (m & 0xFF) - ((h >> 8) < (m >> 8)) == 0)\
 		return logger("But it failed!"), true;\
-	owner.takeDamage(-owner.getMaxHealth());\
-	owner.setNonVolatileStatus(STATUS_ASLEEP, 2);\
+	owner.heal(owner.getMaxHealth());\
+	owner.setNonVolatileStatus(STATUS_ASLEEP_FOR_2_TURN);\
 	logger(owner.getName() + " started sleeping!");\
 	logger(owner.getName() + " regained health!");\
 	return true;\
@@ -183,10 +193,10 @@
 	return true;\
 }, SET_USER_CRIT_RATIO_TO_1_QUARTER_DESC
 
-#define STORE_DAMAGES_DESC "Store damages"
+#define STORE_DAMAGES_DESC "Store damage"
 #define STORE_DAMAGES [](Pokemon &owner, Pokemon &target, unsigned, bool last, const std::function<void(const std::string &msg)> &){\
 	if (last)\
-		target.takeDamage(owner.getDamagesStored() * 2);\
+		target.takeDamage(owner.getDamagesStored() * 2, false);\
 	owner.storeDamages(!last);\
 	return true;\
 }, STORE_DAMAGES_DESC
@@ -214,7 +224,7 @@
 
 #define SUICIDE_DESC "Kill user"
 #define SUICIDE [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
-	owner.takeDamage(owner.getHealth());\
+	owner.takeDamage(owner.getHealth(), true);\
 	return true;\
 }, SUICIDE_DESC
 
@@ -226,9 +236,28 @@
 
 #define DEAL_HALF_HP_DAMAGE_DESC "Deal half foe's HP"
 #define DEAL_HALF_HP_DAMAGE [](Pokemon &, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
-	target.takeDamage(target.getHealth() / 2);\
+	target.takeDamage(target.getHealth() / 2, false);\
 	return true;\
 }, DEAL_HALF_HP_DAMAGE_DESC
+
+#define DO_NOTHING_DESC "No effect"
+#define DO_NOTHING [](Pokemon &, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+	logger("No effect!");\
+	return true;\
+}, DO_NOTHING_DESC
+
+#define CREATE_SUBSTITUTE_DESC "Creates a substitute"
+#define CREATE_SUBSTITUTE [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){ \
+	if (owner.getSubstituteHealth())\
+		return logger(owner.getName() + " has a SUBSTITUTE!"), true;\
+	unsigned hp = owner.getMaxHealth() / 4;\
+	if (owner.getHealth() <= hp)\
+		return logger("Too weak to make a SUBSTITUTE!"), true;\
+	owner.takeDamage(hp, true);\
+	owner.setSubstituteHealth(hp);\
+	logger("It created a SUBSTITUTE!");\
+	return true;\
+}, CREATE_SUBSTITUTE_DESC
 
 namespace PokemonGen1
 {

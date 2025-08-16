@@ -156,10 +156,11 @@ namespace PokemonGen1
 		bool                                  _transformed = false;
 		bool                                  _wrapped = false;
 		bool                                  _storingDamages;
-		unsigned int                          _damagesStored;
+		unsigned int                          _damageStored;
 		unsigned char                         _badPoisonStage = 0;
 		unsigned short                        _currentStatus;
 		double                                _globalCritRatio;
+		unsigned short _subHealth = 0;
 		const Logger *_battleLogger;
 
 		static const std::pair<unsigned char, unsigned char> _ratios[13];
@@ -183,10 +184,11 @@ namespace PokemonGen1
 		Pokemon(RandomGenerator &random, const Logger &battleLogger, const std::string &nickname, const std::array<byte, ENCODED_SIZE> &data, bool enemy = false);
 		Pokemon(RandomGenerator &random, const Logger &battleLogger, const nlohmann::json &json);
 
+		unsigned short getSubstituteHealth() const;
+		void setSubstituteHealth(unsigned short health);
 		void setGlobalCritRatio(double ratio);
 		void setStatus(StatusChange status);
 		void setNonVolatileStatus(StatusChange status);
-		void setNonVolatileStatus(StatusChange status, unsigned duration);
 		bool addStatus(StatusChange status);
 		bool addStatus(StatusChange status, unsigned duration);
 		void resetStatsChanges();
@@ -194,7 +196,8 @@ namespace PokemonGen1
 		void useMove(const Move &move, Pokemon &target);
 		void storeDamages(bool active);
 		bool hasStatus(StatusChange status) const;
-		void takeDamage(int damage);
+		void heal(unsigned short health);
+		void takeDamage(unsigned short damage, bool skipSubstitute);
 		void attack(unsigned char moveSlot, Pokemon &target);
 		DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense) const;
 		void endTurn();

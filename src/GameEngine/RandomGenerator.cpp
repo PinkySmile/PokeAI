@@ -8,7 +8,7 @@
 namespace PokemonGen1
 {
 	RandomGenerator::RandomGenerator() :
-		_random(time(nullptr))
+		_random(std::random_device()())
 	{
 	}
 

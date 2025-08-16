@@ -63,15 +63,15 @@ namespace PokemonGen1
 		if (p1PriorityFactor == p2PriorityFactor)
 			p1Start = (this->_state.rng() - 80 >= 0) ^ this->_isViewSwapped;
 
-		if (!p1.getHealth())
+		if (!p1.getHealth() || !p2.getHealth())
 			return;
 		if (p1Attack && p1Start)
 			p1.attack(this->_state.me.nextAction - Attack1, p2);
-		if (!p2.getHealth())
+		if (!p1.getHealth() || !p2.getHealth())
 			return;
 		if (p2Attack)
 			p2.attack(this->_state.op.nextAction - Attack1, p1);
-		if (!p1.getHealth())
+		if (!p1.getHealth() || !p2.getHealth())
 			return;
 		if (p1Attack && !p1Start)
 			p1.attack(this->_state.me.nextAction - Attack1, p2);

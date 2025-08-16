@@ -77,7 +77,6 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 		void setGlobalCritRatio(double ratio)
 		void setStatus(StatusChange status)
 		void setNonVolatileStatus(StatusChange status)
-		void setNonVolatileStatus(StatusChange status, unsigned duration)
 		bool addStatus(StatusChange status)
 		bool addStatus(StatusChange status, unsigned duration)
 		void resetStatsChanges()
@@ -85,7 +84,8 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 		void useMove(const Move &move, Pokemon &target)
 		void storeDamages(bool active)
 		bool hasStatus(StatusChange status) const
-		void takeDamage(int damage)
+		void heal(int health)
+		void takeDamage(int damage, bool ignoreSubstitute)
 		void attack(unsigned char moveSlot, Pokemon &target)
 		Pokemon.DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense)
 		void endTurn()

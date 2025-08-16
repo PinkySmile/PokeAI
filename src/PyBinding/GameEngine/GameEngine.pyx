@@ -854,9 +854,6 @@ cdef class Pokemon:
 	def setNonVolatileStatus(self, StatusChange status):
 		return self.__instance.setNonVolatileStatus(status)
 
-	def setNonVolatileStatus(self, StatusChange status, unsigned duration):
-		return self.__instance.setNonVolatileStatus(status, duration)
-
 	def addStatus(self, StatusChange status):
 		return self.__instance.addStatus(status)
 
@@ -878,8 +875,11 @@ cdef class Pokemon:
 	def hasStatus(self, StatusChange status):
 		return self.__instance.hasStatus(status)
 
-	def takeDamage(self, int damage):
-		self.__instance.takeDamage(damage)
+	def heal(self, unsigned short health):
+		self.__instance.heal(health)
+
+	def takeDamage(self, unsigned short damage, bool ignoreSubstitute):
+		self.__instance.takeDamage(damage, ignoreSubstitute)
 
 	def attack(self, unsigned char moveSlot, Pokemon target):
 		self.__instance.attack(moveSlot, dereference(target.__instance))

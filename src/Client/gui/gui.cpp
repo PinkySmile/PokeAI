@@ -915,60 +915,60 @@ void mainMenu(sf::RenderWindow &window, std::unique_ptr<EmulatorGameHandle> &emu
 
 void loadResources(BattleResources &resources)
 {
-	resources.start.openFromFile("assets/sounds/battle_intro.wav");
-	resources.loop.openFromFile("assets/sounds/battle_loop.wav");
-	resources.levelSprite.loadFromFile("assets/level_icon.png");
+	(void)resources.start.openFromFile("assets/sounds/battle_intro.wav");
+	(void)resources.loop.openFromFile("assets/sounds/battle_loop.wav");
+	(void)resources.levelSprite.loadFromFile("assets/level_icon.png");
 
-	resources.categories[0].loadFromFile("assets/move_categories/physical.png");
-	resources.categories[1].loadFromFile("assets/move_categories/special.png");
-	resources.categories[2].loadFromFile("assets/move_categories/status.png");
+	(void)resources.categories[0].loadFromFile("assets/move_categories/physical.png");
+	(void)resources.categories[1].loadFromFile("assets/move_categories/special.png");
+	(void)resources.categories[2].loadFromFile("assets/move_categories/status.png");
 
 	for (int i = 0; i < 256; i++)
 		if (!resources.pokemonsBack[i].loadFromFile("assets/back_sprites/" + std::to_string(i) + "_back.png"))
-			resources.pokemonsBack[i].loadFromFile("assets/back_sprites/missingno_back.png");
+			(void)resources.pokemonsBack[i].loadFromFile("assets/back_sprites/missingno_back.png");
 
 	for (int i = 0; i < 256; i++)
 		if (!resources.pokemonsFront[i].loadFromFile("assets/front_sprites/" + std::to_string(i) + "_front.png"))
-			resources.pokemonsFront[i].loadFromFile("assets/front_sprites/missingno_front.png");
+			(void)resources.pokemonsFront[i].loadFromFile("assets/front_sprites/missingno_front.png");
 
-	resources.balls[0].loadFromFile("assets/pokeballs/pkmnOK.png");
-	resources.balls[1].loadFromFile("assets/pokeballs/pkmnNO.png");
-	resources.balls[2].loadFromFile("assets/pokeballs/pkmnFNT.png");
-	resources.balls[3].loadFromFile("assets/pokeballs/pkmnSTATUS.png");
+	(void)resources.balls[0].loadFromFile("assets/pokeballs/pkmnOK.png");
+	(void)resources.balls[1].loadFromFile("assets/pokeballs/pkmnNO.png");
+	(void)resources.balls[2].loadFromFile("assets/pokeballs/pkmnFNT.png");
+	(void)resources.balls[3].loadFromFile("assets/pokeballs/pkmnSTATUS.png");
 
-	resources.font.openFromFile("assets/font.ttf");
-	resources.hitSounds[0].loadFromFile("assets/sounds/not_effective_hit_sound.wav");
-	resources.hitSounds[1].loadFromFile("assets/sounds/hit_sound.wav");
-	resources.hitSounds[2].loadFromFile("assets/sounds/very_effective_hit_sound.wav");
+	(void)resources.font.openFromFile("assets/font.ttf");
+	(void)resources.hitSounds[0].loadFromFile("assets/sounds/not_effective_hit_sound.wav");
+	(void)resources.hitSounds[1].loadFromFile("assets/sounds/hit_sound.wav");
+	(void)resources.hitSounds[2].loadFromFile("assets/sounds/very_effective_hit_sound.wav");
 
 	for (int i = 0; i <= TYPE_DRAGON; i++)
 		try {
-			resources.types.at(typeToString(static_cast<Type>(i)));
+			(void)resources.types.at(typeToString(static_cast<Type>(i)));
 		} catch (std::out_of_range &) {
-			resources.types[typeToString(static_cast<Type>(i))].loadFromFile("assets/types/type_" + Utils::toLower(typeToString(static_cast<Type>(i))) + ".png");
+			(void)resources.types[typeToString(static_cast<Type>(i))].loadFromFile("assets/types/type_" + Utils::toLower(typeToString(static_cast<Type>(i))) + ".png");
 		}
 
-	resources.trainer[0][0].loadFromFile("assets/back_sprites/trainer_shadow_back.png");
-	resources.trainer[0][1].loadFromFile("assets/front_sprites/trainer_shadow_front.png");
-	resources.trainer[1][0].loadFromFile("assets/back_sprites/trainer_back.png");
-	resources.trainer[1][1].loadFromFile("assets/front_sprites/trainer_front.png");
+	(void)resources.trainer[0][0].loadFromFile("assets/back_sprites/trainer_shadow_back.png");
+	(void)resources.trainer[0][1].loadFromFile("assets/front_sprites/trainer_shadow_front.png");
+	(void)resources.trainer[1][0].loadFromFile("assets/back_sprites/trainer_back.png");
+	(void)resources.trainer[1][1].loadFromFile("assets/front_sprites/trainer_front.png");
 
-	resources.trainerLand.loadFromFile("assets/sounds/trainer_land.wav");
-	resources.hpOverlay.loadFromFile("assets/hp_overlay.png");
-	resources.choicesHUD.loadFromFile("assets/choices.png");
-	resources.attackHUD.loadFromFile("assets/attacks_overlay.png");
-	resources.waitingHUD.loadFromFile("assets/wait_overlay.png");
+	(void)resources.trainerLand.loadFromFile("assets/sounds/trainer_land.wav");
+	(void)resources.hpOverlay.loadFromFile("assets/hp_overlay.png");
+	(void)resources.choicesHUD.loadFromFile("assets/choices.png");
+	(void)resources.attackHUD.loadFromFile("assets/attacks_overlay.png");
+	(void)resources.waitingHUD.loadFromFile("assets/wait_overlay.png");
 
-	resources.arrows[0].loadFromFile("assets/arrow.png");
-	resources.arrows[1].loadFromFile("assets/selectArrow.png");
+	(void)resources.arrows[0].loadFromFile("assets/arrow.png");
+	(void)resources.arrows[1].loadFromFile("assets/selectArrow.png");
 
-	resources.boxes[0].loadFromFile("assets/text_box.png");
-	resources.boxes[1].loadFromFile("assets/VS_box.png");
-	resources.boxes[2].loadFromFile("assets/pkmns_border.png");
-	resources.boxes[3].loadFromFile("assets/pkmns_border_player_side.png");
+	(void)resources.boxes[0].loadFromFile("assets/text_box.png");
+	(void)resources.boxes[1].loadFromFile("assets/VS_box.png");
+	(void)resources.boxes[2].loadFromFile("assets/pkmns_border.png");
+	(void)resources.boxes[3].loadFromFile("assets/pkmns_border_player_side.png");
 
 	for (int i = 0; i < 256; i++)
-		resources.battleCries[i].loadFromFile("assets/cries/" + std::to_string(i) + "_cry.wav");
+		(void)resources.battleCries[i].loadFromFile("assets/cries/" + std::to_string(i) + "_cry.wav");
 }
 
 static std::string splitText(std::string str)

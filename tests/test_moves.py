@@ -243,43 +243,43 @@ def compare_basic_states(battle_state, emu_state):
 	errors = []
 
 	if rn_b != rn_e:
-		errors.append(f"RNG index {rn_b} vs {rn_e}")
+		errors.append(f"RNG index b.{rn_b} vs e.{rn_e}")
 	if rl_b != rl_e:
-		errors.append(f"RNG list {rl_b} vs {rl_e}")
+		errors.append(f"RNG list b.{rl_b} vs e.{rl_e}")
 
 	if me_b.getTypes()[0] != me_e['typeA']:
-		errors.append(f"P1 Type 1 {typeToString(me_b.getTypes()[0])} vs {typeToString(me_e['typeA'])}")
+		errors.append(f"P1 Type 1 b.{typeToString(me_b.getTypes()[0])} vs e.{typeToString(me_e['typeA'])}")
 	if me_b.getTypes()[1] != me_e['typeB']:
-		errors.append(f"P1 Type 2 {typeToString(me_b.getTypes()[1])} vs {typeToString(me_e['typeB'])}")
+		errors.append(f"P1 Type 2 b.{typeToString(me_b.getTypes()[1])} vs e.{typeToString(me_e['typeB'])}")
 	if me_b.getNonVolatileStatus() != me_e['status']:
-		errors.append(f"P1 Status {me_b.getNonVolatileStatus()} ({StatusChange(me_b.getNonVolatileStatus()).name}) vs {me_e['status']} ({StatusChange(me_e['status']).name})")
+		errors.append(f"P1 Status b.{me_b.getNonVolatileStatus()} ({StatusChange(me_b.getNonVolatileStatus()).name}) vs e.{me_e['status']} ({StatusChange(me_e['status']).name})")
 	if me_b.getHealth() != me_e['hp']:
-		errors.append(f"P1 Health {me_b.getHealth()} vs {me_e['hp']}")
+		errors.append(f"P1 Health b.{me_b.getHealth()} vs e.{me_e['hp']}")
 	if me_b.getAttack() != me_e['attack']:
-		errors.append(f"P1 Attack {me_b.getAttack()} vs {me_e['attack']}")
+		errors.append(f"P1 Attack b.{me_b.getAttack()} vs e.{me_e['attack']}")
 	if me_b.getDefense() != me_e['defense']:
-		errors.append(f"P1 Defense {me_b.getDefense()} vs {me_e['defense']}")
+		errors.append(f"P1 Defense b.{me_b.getDefense()} vs e.{me_e['defense']}")
 	if me_b.getSpecial() != me_e['special']:
-		errors.append(f"P1 Special {me_b.getSpecial()} vs {me_e['special']}")
+		errors.append(f"P1 Special b.{me_b.getSpecial()} vs e.{me_e['special']}")
 	if me_b.getSpeed() != me_e['speed']:
-		errors.append(f"P1 Speed {me_b.getSpeed()} vs {me_e['speed']}")
+		errors.append(f"P1 Speed b.{me_b.getSpeed()} vs e.{me_e['speed']}")
 
 	if op_b.getTypes()[0] != op_e['typeA']:
-		errors.append(f"P2 Type 1 {typeToString(op_b.getTypes()[0])} vs {typeToString(op_e['typeA'])}")
+		errors.append(f"P2 Type 1 b.{typeToString(op_b.getTypes()[0])} vs e.{typeToString(op_e['typeA'])}")
 	if op_b.getTypes()[1] != op_e['typeB']:
-		errors.append(f"P2 Type 2 {typeToString(op_b.getTypes()[1])} vs {typeToString(op_e['typeB'])}")
+		errors.append(f"P2 Type 2 b.{typeToString(op_b.getTypes()[1])} vs e.{typeToString(op_e['typeB'])}")
 	if op_b.getNonVolatileStatus() != op_e['status']:
-		errors.append(f"P2 Status {op_b.getNonVolatileStatus()} ({StatusChange(op_b.getNonVolatileStatus()).name}) vs {op_e['status']} ({StatusChange(op_e['status']).name})")
+		errors.append(f"P2 Status b.{op_b.getNonVolatileStatus()} ({StatusChange(op_b.getNonVolatileStatus()).name}) vs e.{op_e['status']} ({StatusChange(op_e['status']).name})")
 	if op_b.getHealth() != op_e['hp']:
-		errors.append(f"P2 Health {op_b.getHealth()} vs {op_e['hp']}")
+		errors.append(f"P2 Health b.{op_b.getHealth()} vs e.{op_e['hp']}")
 	if op_b.getAttack() != op_e['attack']:
-		errors.append(f"P2 Attack {op_b.getAttack()} vs {op_e['attack']}")
+		errors.append(f"P2 Attack b.{op_b.getAttack()} vs e.{op_e['attack']}")
 	if op_b.getDefense() != op_e['defense']:
-		errors.append(f"P2 Defense {op_b.getDefense()} vs {op_e['defense']}")
+		errors.append(f"P2 Defense b.{op_b.getDefense()} vs e.{op_e['defense']}")
 	if op_b.getSpecial() != op_e['special']:
-		errors.append(f"P2 Special {op_b.getSpecial()} vs {op_e['special']}")
+		errors.append(f"P2 Special b.{op_b.getSpecial()} vs e.{op_e['special']}")
 	if op_b.getSpeed() != op_e['speed']:
-		errors.append(f"P2 Speed {op_b.getSpeed()} vs {op_e['speed']}")
+		errors.append(f"P2 Speed b.{op_b.getSpeed()} vs e.{op_e['speed']}")
 	return len(errors) == 0, errors
 
 
@@ -325,10 +325,14 @@ def test_move(emulator, move, random_state, low_stats):
 		emulator.memory[wEnemyMonSpecial + 1] = emulator.memory[wEnemyMon1Special + 1] = emulator.memory[wEnemyMonUnmodifiedSpecial + 1] = 999 & 0xFF
 		emulator.memory[wEnemyMonSpeed + 0]   = emulator.memory[wEnemyMon1Speed + 0]   = emulator.memory[wEnemyMonUnmodifiedSpeed + 0]   = 999 >> 8
 		emulator.memory[wEnemyMonSpeed + 1]   = emulator.memory[wEnemyMon1Speed + 1]   = emulator.memory[wEnemyMonUnmodifiedSpeed + 1]   = 999 & 0xFF
+	#emulator.memory[wEnemyMonType1] = Type.Ghost
+	#emulator.memory[wEnemyMonType2] = Type.Ghost
+	#emulator.memory[wEnemyMons + PACK_TYPEA] = Type.Ghost
+	#emulator.memory[wEnemyMons + PACK_TYPEB] = Type.Ghost
 
 	# Move list: <move>, -, -, -; 300 ATK; 300 DEF; 300 SPE; 300 SPD
 	emulator.memory[wBattleMonMoves + 0]   = emulator.memory[wPartyMon1Moves + 0]   = move
-	emulator.memory[wBattleMonMoves + 1]   = emulator.memory[wPartyMon1Moves + 1]   = AvailableMove.Empty
+	emulator.memory[wBattleMonMoves + 1]   = emulator.memory[wPartyMon1Moves + 1]   = AvailableMove.Ember
 	emulator.memory[wBattleMonMoves + 2]   = emulator.memory[wPartyMon1Moves + 2]   = AvailableMove.Empty
 	emulator.memory[wBattleMonMoves + 3]   = emulator.memory[wPartyMon1Moves + 3]   = AvailableMove.Empty
 	emulator.memory[wBattleMonAttack + 0]  = emulator.memory[wPartyMon1Attack + 0]  = emulator.memory[wPlayerMonUnmodifiedAttack + 0]  = 300 >> 8
@@ -349,32 +353,32 @@ def test_move(emulator, move, random_state, low_stats):
 		print(dump_basic_state(starting_state[1]))
 		print(state.me.team[0].dump())
 		print(state.op.team[0].dump())
-		print(starting_state[2], state.rng.getIndex(), starting_state[3], state.rng.getList())
+		print(state.rng.getIndex(), starting_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', starting_state[3])))
 
 	emulator.button_press('a')
-	emulator.tick()
+	emulator.tick(render=debug)
 	emulator.button_release('a')
-	emulator.tick(10)
+	emulator.tick(10, render=debug)
 	emulator.button_press('a')
-	emulator.tick()
+	emulator.tick(render=debug)
 	emulator.button_release('a')
-	emulator.tick()
+	emulator.tick(render=debug)
 	emulator.button_press('b')
+	while emulator.memory[0x9D64:0x9D6F] != [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
+		if not emulator.tick(1 if debug else 30, render=debug):
+			exit(0)
 	while emulator.memory[wSerialExchangeNybbleReceiveData] == 0xFF:
 		emulator.memory[wSerialExchangeNybbleReceiveData] = 0
-		if not emulator.tick():
-			exit(0)
-	while emulator.memory[0x9D64:0x9D6F] != [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
-		if not emulator.tick(1 if debug else 30):
+		if not emulator.tick(render=debug):
 			exit(0)
 	while emulator.memory[0x9D64:0x9D6F] == [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
-		if not emulator.tick(1 if debug else 30):
+		if not emulator.tick(1 if debug else 30, render=debug):
 			exit(0)
 	state.me.nextAction = BattleAction.Attack1
 	state.op.nextAction = BattleAction.Attack1
 	battle.tick()
 	while True:
-		if not emulator.tick(1 if debug else 30):
+		if not emulator.tick(1 if debug else 30, render=debug):
 			exit(0)
 		if emulator.memory[0x9DD0] == 0xE1 and emulator.memory[0x9DD1] == 0xE2:
 			break
@@ -389,10 +393,10 @@ def test_move(emulator, move, random_state, low_stats):
 			battle.tick()
 			while emulator.memory[wSerialExchangeNybbleReceiveData] == 0xFF:
 				emulator.memory[wSerialExchangeNybbleReceiveData] = 0
-				if not emulator.tick():
+				if not emulator.tick(render=debug):
 					exit(0)
 			while emulator.memory[0x9D64:0x9D6F] == [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
-				if not emulator.tick(1 if debug else 30):
+				if not emulator.tick(1 if debug else 30, render=debug):
 					exit(0)
 	emulator.button_release('b')
 	ending_state = get_emulator_basic_state(emulator)
@@ -401,7 +405,7 @@ def test_move(emulator, move, random_state, low_stats):
 		print(dump_basic_state(ending_state[1]))
 		print(state.me.team[0].dump())
 		print(state.op.team[0].dump())
-		print(ending_state[2], state.rng.getIndex(), ending_state[3], state.rng.getList())
+		print(state.rng.getIndex(), ending_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', ending_state[3])))
 	f = compare_basic_states(battle.state, ending_state)
 	battle.saveReplay('test.replay')
 	state.rng.reset()
@@ -444,6 +448,17 @@ extra_lists = {
 	AvailableMove.Fire_Blast: [
 		[248, 118, 7, 111, 14, 103, 172, 64, 130],
 		[111, 14, 248, 118, 7, 103, 172, 64, 130]
+	],
+	AvailableMove.String_Shot: [
+		[4, 63, 161, 224, 216, 223, 104, 116, 239]
+	],
+	AvailableMove.Clamp: [
+		[185, 140, 44, 9, 213, 131, 159, 100, 113],
+		[29, 229, 85, 215, 221, 195, 7, 38, 118]
+	],
+	AvailableMove.Wrap: [
+		[185, 140, 44, 9, 213, 131, 159, 100, 113],
+		[29, 229, 85, 215, 221, 195, 7, 38, 118]
 	]
 }
 
@@ -502,7 +517,7 @@ def run_tests(offset, count):
 			'group': test_object['group'],
 			'extra': extra
 		})
-		if not emulator.tick():
+		if not emulator.tick(render=debug):
 			return
 
 if jobs == 1:

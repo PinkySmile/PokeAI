@@ -46,7 +46,7 @@ namespace PokemonGen1
 		_level(level),
 		_catchRate{base.catchRate},
 		_storingDamages(false),
-		_damagesStored(0),
+		_damageStored(0),
 		_currentStatus(STATUS_NONE),
 		_globalCritRatio(-1),
 		_battleLogger(&battleLogger)
@@ -99,7 +99,7 @@ namespace PokemonGen1
 		_level{data[PACK_CURR_LEVEL]},
 		_catchRate{data[PACK_CATCH_RATE]},
 		_storingDamages(false),
-		_damagesStored(0),
+		_damageStored(0),
 		_currentStatus{data[PACK_STATUS]},
 		_globalCritRatio(-1),
 		_battleLogger(&battleLogger)
@@ -175,7 +175,7 @@ namespace PokemonGen1
 		_level{json["level"]},
 		_catchRate{json["catchRate"]},
 		_storingDamages(json["storingDamages"]),
-		_damagesStored(json["damagesStored"]),
+		_damageStored(json["damageStored"]),
 		_currentStatus{json["currentStatus"]},
 		_globalCritRatio(json["globalCritRatio"]),
 		_battleLogger(&battleLogger)
@@ -237,16 +237,6 @@ namespace PokemonGen1
 			this->_badPoisonStage = 1;
 		this->_currentStatus &= ~STATUS_ANY_NON_VOLATILE_STATUS;
 		this->_currentStatus |= status;
-		if (status == STATUS_PARALYZED || status == STATUS_BURNED)
-			this->applyStatusDebuff();
-	}
-
-	void Pokemon::setNonVolatileStatus(StatusChange status, unsigned int duration)
-	{
-		if (status == STATUS_BADLY_POISONED)
-			this->_badPoisonStage = 1;
-		this->_currentStatus &= ~STATUS_ANY_NON_VOLATILE_STATUS;
-		this->_currentStatus |= status * duration;
 		if (status == STATUS_PARALYZED || status == STATUS_BURNED)
 			this->applyStatusDebuff();
 	}
@@ -357,7 +347,7 @@ namespace PokemonGen1
 			{ "transformed",     this->_transformed },
 			{ "wrapped",         this->_wrapped },
 			{ "storingDamages",  this->_storingDamages },
-			{ "damagesStored",   this->_damagesStored },
+			{ "damageStored",   this->_damageStored },
 			{ "badPoisonStage",  this->_badPoisonStage },
 			{ "currentStatus",   this->_currentStatus },
 			{ "globalCritRatio", this->_globalCritRatio },
@@ -490,9 +480,9 @@ namespace PokemonGen1
 	void Pokemon::storeDamages(bool active)
 	{
 		if (!active)
-			this->_damagesStored = 0;
+			this->_damageStored = 0;
 		else if (!this->_storingDamages)
-			this->_log(" is storing damages!");
+			this->_log(" is storing damage!");
 		this->_storingDamages = active;
 	}
 
@@ -508,7 +498,7 @@ namespace PokemonGen1
 
 	unsigned Pokemon::getDamagesStored() const
 	{
-		return this->_damagesStored;
+		return this->_damageStored;
 	}
 
 	unsigned char Pokemon::getID() const
@@ -588,7 +578,7 @@ namespace PokemonGen1
 					this->setRecharging(false);
 					this->_log(" hurts itself in");
 					(*this->_battleLogger)("it's confusion!");
-					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false).damage);
+					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false).damage, false);
 					this->_lastUsedMove = availableMoves[0x00];
 					goto turn_damage_check;
 				}
@@ -618,13 +608,24 @@ namespace PokemonGen1
 	turn_damage_check:
 		if (this->_currentStatus & STATUS_BURNED) {
 			this->_log("'s hurt by the burn!");
-			this->takeDamage(this->getMaxHealth() / 16);
+			this->takeDamage(this->getMaxHealth() / 16, true);
 		} else if (this->_currentStatus & STATUS_POISONED) {
 			this->_log("'s hurt by the poison!");
 			if (this->_currentStatus & STATUS_BAD_POISON)
-				this->takeDamage(this->getMaxHealth() * this->_badPoisonStage++ / 16);
+				this->takeDamage(this->getMaxHealth() * this->_badPoisonStage++ / 16, true);
 			else
-				this->takeDamage(this->getMaxHealth() / 16);
+				this->takeDamage(this->getMaxHealth() / 16, true);
+		}
+		if (this->_currentStatus & STATUS_LEECHED) {
+			unsigned short damage;
+
+			(*this->_battleLogger)("LEECH SEED saps " + this->getName() + "!");
+			if (this->_currentStatus & STATUS_BAD_POISON)
+				damage = this->getMaxHealth() * this->_badPoisonStage++ / 16;
+			else
+				damage = this->getMaxHealth() / 16;
+			this->takeDamage(damage, true);
+			target.heal(damage);
 		}
 	}
 
@@ -687,7 +688,31 @@ namespace PokemonGen1
 		return true;
 	}
 
-	void Pokemon::takeDamage(int damage)
+	unsigned short Pokemon::getSubstituteHealth() const
+	{
+		return this->_subHealth;
+	}
+
+	void Pokemon::setSubstituteHealth(unsigned short health)
+	{
+		this->_subHealth = health;
+	}
+
+	void Pokemon::heal(unsigned short health)
+	{
+		if (!this->_computedStats.HP)
+			return;
+
+		if (!health)
+			return;
+
+		if (this->_computedStats.HP + health > this->_computedStats.maxHP)
+			this->_computedStats.HP = this->_computedStats.maxHP;
+		else
+			this->_computedStats.HP += health;
+	}
+
+	void Pokemon::takeDamage(unsigned short damage, bool skipSubstitute)
 	{
 		if (!this->_computedStats.HP)
 			return;
@@ -695,10 +720,18 @@ namespace PokemonGen1
 		if (!damage)
 			return;
 
-		if (damage > static_cast<int>(this->_computedStats.HP))
+		if (!skipSubstitute && this->_subHealth) {
+			(*this->_battleLogger)("The SUBSTITUTE took damage for " + this->getName() + "!");
+			if (this->_subHealth < damage) {
+				this->_subHealth = 0;
+				this->_log("'s SUBSTITUTE broke!");
+			} else
+				this->_subHealth -= damage;
+			return;
+		}
+
+		if (damage > this->_computedStats.HP)
 			this->_computedStats.HP = 0;
-		else if (damage < static_cast<int>(this->_computedStats.HP - this->_computedStats.maxHP))
-			this->_computedStats.HP = this->_computedStats.maxHP;
 		else
 			this->_computedStats.HP -= damage;
 
@@ -744,16 +777,6 @@ namespace PokemonGen1
 	Pokemon::DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense) const
 	{
 		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
-
-		if (effectiveness == 0)
-			return {
-				.critical = false,
-				.damage = 0,
-				.affect = false,
-				.isVeryEffective = false,
-				.isNotVeryEffective = false,
-			};
-
 		unsigned defense;
 		unsigned attack;
 		unsigned level = this->_level * (1 + critical);
@@ -810,7 +833,6 @@ namespace PokemonGen1
 			damage *= r;
 			damage /= 255;
 		}
-
 		return {
 			.critical = critical,
 			.damage = damage,
@@ -1053,7 +1075,7 @@ namespace PokemonGen1
 			move.reset();
 		this->_wrapped = false;
 		this->_storingDamages = false;
-		this->_damagesStored = 0;
+		this->_damageStored = 0;
 		this->_badPoisonStage = 0;
 		this->_currentStatus = STATUS_NONE;
 		this->_globalCritRatio = -1;
