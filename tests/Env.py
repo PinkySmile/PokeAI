@@ -52,7 +52,7 @@ class PokemonYellowBattle(Env):
 		self.episode_trigger = episode_trigger
 		self.recording = False
 		if self.render_mode == "human":
-			self.emulator = PyBoy('pokeyellow.gbc', sound_volume=25, window='SDL2', debug=True)
+			self.emulator = PyBoy('pokeyellow.gbc', sound_volume=25, window='SDL2')
 		elif self.render_mode == "rgb_array_list":
 			self.emulator = PyBoy('pokeyellow.gbc', sound_volume=0, window='null')
 		else:
@@ -89,7 +89,7 @@ class PokemonYellowBattle(Env):
 		for i in range(0, count, step):
 			if not self.emulator.tick(step):
 				exit(0)
-			self.last_frames.append(self.emulator.screen.ndarray[:, :, :3])
+			self.last_frames.append(self.emulator.screen.ndarray[:, :, :3].copy())
 
 
 	def wait_for_start_turn(self):

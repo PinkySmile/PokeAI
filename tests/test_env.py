@@ -9,7 +9,7 @@ print(p.reset(options={
 	"p1team": [{
 		"species": PokemonSpecies.Charmander,
 		"name": "CHARMANDER",
-		"level": 105,
+		"level": 5,
 		"moves": [AvailableMove.Tackle]
 	}],
 	"p2team": [{
