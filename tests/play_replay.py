@@ -1,5 +1,4 @@
 import os.path
-
 from pyboy import PyBoy
 from GameEngine import Pokemon, PokemonSpecies, AvailableMove, BattleHandler, BattleAction, StatusChange, Type, typeToStringShort, typeToString, statusToString, convertString
 from argparse import ArgumentParser
