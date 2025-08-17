@@ -6,6 +6,8 @@ from typing import Any
 from GameEngine import BattleHandler, BattleAction, convertString, typeToStringShort, statusToString, Pokemon, PokemonBase, Move
 from scipy.stats import truncate
 
+wBattleMonPP = 0xD02C
+
 wLinkBattleRandomNumberListIndex = 0xCCDE
 wLinkBattleRandomNumberList = 0xD147
 wLinkState = 0xD12A
@@ -31,13 +33,13 @@ t_bring_out_which = [0x81, 0xB1, 0xA8, 0xAD, 0xA6, 0x7F, 0xAE, 0xB4, 0xB3, 0x7F,
 class PokemonYellowBattle(Env):
 	metadata = {
 		'render_modes': ["human", "ansi", "rgb_array_list"],
-		'render_fps': 600
+		'render_fps': 180
 	}
-	action_space = Discrete(11)
+	action_space = Discrete(3)
 	observation_space = Box(
-		low=array([0, 0, 0, 0], dtype=float32),
-		high=array([999, 999, 999, 999], dtype=float32),
-		shape=(4,),
+		low=array([0, 0, 0, 0, 0, 0], dtype=float32),
+		high=array([999, 999, 999, 999, 26, 26], dtype=float32),
+		shape=(6,),
 		dtype=float32
 	)
 
@@ -187,13 +189,17 @@ class PokemonYellowBattle(Env):
 			state.me.team[state.me.pokemonOnField].getMaxHealth(),
 			state.op.team[state.op.pokemonOnField].getHealth(),
 			state.op.team[state.op.pokemonOnField].getMaxHealth(),
+			state.op.team[state.op.pokemonOnField].getTypes()[0],
+			state.op.team[state.op.pokemonOnField].getTypes()[1],
 		], dtype=float32)
 		self.last_state = (ob, {})
 		return self.last_state
 
 
 	def compute_reward(self, old, new):
-		return (new[0][0] - new[0][2]) / abs(new[0][1] - new[0][3]) * 2
+		if new[0][2] == 0:
+			return 100
+		return (new[0][0] - new[0][2]) / (1 + abs(new[0][1] - new[0][3])) * 2
 
 
 	def step(self, action):
