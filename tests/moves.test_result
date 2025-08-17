@@ -61,7 +61,7 @@ Leech_Seed: 32/32
 Growth: 32/32
 Razor_Leaf: 32/32
 Solar_Beam: 32/32
-Poison_Powder: 32/32
+Poisonpowder: 32/32
 Stun_Spore: 32/32
 Sleep_Powder: 32/32
 String_Shot: 34/34
@@ -112,7 +112,7 @@ Spike_Cannon: 32/32
 Constrict: 32/32
 Amnesia: 32/32
 Kinesis: 32/32
-Soft_Boiled: 32/32
+Softboiled: 32/32
 Hi_Jump_Kick: 32/32
 Glare: 32/32
 Poison_Gas: 32/32
@@ -139,29 +139,29 @@ Super_Fang: 32/32
 Slash: 32/32
 Substitute: 32/32
 Struggle: 32/32
-Metronome: 31/32
-Low_Kick: 28/32
-Disable: 19/32
-Guillotine: 17/32
-Rolling_Kick: 17/32
-Fissure: 17/32
-Hyper_Fang: 17/32
+Metronome: 29/32
+Low_Kick: 26/32
+Disable: 21/32
+Bone_Club: 17/32
+Guillotine: 16/32
 Horn_Drill: 16/32
-Bone_Club: 16/32
-Twineedle: 13/32
+Fissure: 16/32
+Hyper_Fang: 16/32
+Rolling_Kick: 15/32
 Petal_Dance: 13/32
-Mimic: 11/32
+Bite: 12/32
+Headbutt: 11/32
+Stomp: 10/32
 Thrash: 10/32
-Stomp: 9/32
-Headbutt: 9/32
-Bite: 9/32
+Twineedle: 10/32
+Mimic: 9/32
 Double_Kick: 2/32
 Rage: 2/32
-Dream_Eater: 2/32
+Dream_Eater: 1/32
 Fly: 0/32
 Counter: 0/32
 Dig: 0/32
 Transform: 0/32
 Sharpen: 0/32
-4792 individual test(s) passed. 510 individual test(s) failed.
+4786 individual test(s) passed. 516 individual test(s) failed.
 141 test group(s) passed. 24 test group(s) failed.
