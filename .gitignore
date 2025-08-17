@@ -14,3 +14,4 @@ turn*.state
 pokeyellow.gbc.ram
 pokeyellow.gbc.state
 *.replay_states
+__pycache__
