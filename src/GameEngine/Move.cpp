@@ -388,7 +388,7 @@ namespace PokemonGen1
 		}
 
 		if (hits > 1)
-			logger("Hits " + std::to_string(hits) + " times!");
+			logger("Hit the enemy " + std::to_string(hits) + " times!");
 
 		bool sub = target.getSubstituteHealth() != 0;
 
@@ -557,7 +557,7 @@ namespace PokemonGen1
 		Move{0x15, "Slam"        , TYPE_NORMAL  , PHYSICAL,  80,  75, 20},
 		Move{0x16, "Vine Whip"   , TYPE_GRASS   , SPECIAL ,  35, 100, 25},
 		Move{0x17, "Stomp"       , TYPE_NORMAL  , PHYSICAL,  65, 100, 20},
-		Move{0x18, "Double Kick" , TYPE_FIGHTING, PHYSICAL,  65, 100, 20},
+		Move{0x18, "Double Kick" , TYPE_FIGHTING, PHYSICAL,  30, 100, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, {2, 2}},
 		Move{0x19, "Mega Kick"   , TYPE_NORMAL  , PHYSICAL, 120,  75,  5},
 		Move{0x1A, "Jump Kick"   , TYPE_FIGHTING, PHYSICAL,  70,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NO_CALLBACK, TAKE_1DAMAGE},
 		Move{0x1B, "Rolling Kick", TYPE_FIGHTING, PHYSICAL,  60,  85, 15},
@@ -692,7 +692,7 @@ namespace PokemonGen1
 		Move{0x9C, "Rest"        , TYPE_PSYCHIC , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEAL_ALL_HEALTH_AND_SLEEP},
 		Move{0x9D, "Rock Slide"  , TYPE_ROCK    , PHYSICAL,  75,  90, 10},
 		Move{0x9E, "Hyper Fang"  , TYPE_NORMAL  , PHYSICAL,  80,  90, 15, {STATUS_FLINCHED, 0x1A}},
-		Move{0x9F, "Sharpen"     , TYPE_NORMAL  , STATUS  ,   0,   0, 30, NO_STATUS_CHANGE, {{STATS_ATK, 1, 0}}},
+		Move{0x9F, "Sharpen"     , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, {{STATS_ATK, 1, 0}}},
 		Move{0xA0, "Conversion"  , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CONVERSION},
 		Move{0xA1, "Tri Attack"  , TYPE_NORMAL  , PHYSICAL,  80, 100, 10},
 		Move{0xA2, "Super Fang"  , TYPE_NORMAL  , PHYSICAL,   0,  90, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_HALF_HP_DAMAGE},
