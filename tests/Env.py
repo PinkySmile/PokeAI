@@ -224,11 +224,11 @@ class PokemonYellowBattle(Env):
 		if options is None:
 			self.battle.reset()
 		else:
-			state.rng.setList([self.np_random.integers(low=0, high=255) for _ in range(9)])
 			state.me.name = options["p1name"]
 			state.op.name = options["p2name"]
 			state.me.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(m) for m in p["moves"]]) for p in options["p1team"]]
 			state.op.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(m) for m in p["moves"]]) for p in options["p2team"]]
+		state.rng.setList([self.np_random.integers(low=0, high=255) for _ in range(9)])
 		self.init_emulator(state)
 		return self.make_observation(state)
 
