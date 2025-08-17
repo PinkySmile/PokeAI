@@ -41,13 +41,16 @@ class PokemonYellowBattle(Env):
 		dtype=float32
 	)
 
-	def __init__(self, render_mode=None, opponent_callback=lambda _: BattleAction.Attack1):
+	def __init__(self, render_mode=None, episode_trigger=None, opponent_callback=lambda _: BattleAction.Attack1):
 		self.battle = BattleHandler(False, False)
 		self.op = opponent_callback
 		self.max_turns = -1
 		self.current_turn = 0
 		self.render_mode = render_mode
 		self.last_frames = []
+		self.episode_id = 0
+		self.episode_trigger = episode_trigger
+		self.recording = False
 		if self.render_mode == "human":
 			self.emulator = PyBoy('pokeyellow.gbc', sound_volume=25, window='SDL2', debug=True)
 		elif self.render_mode == "rgb_array_list":
@@ -103,7 +106,7 @@ class PokemonYellowBattle(Env):
 
 
 	def step_emulator(self, state):
-		if self.emulator is None:
+		if self.emulator is None or not self.recording:
 			return
 
 		if self.emulator.memory[0x9D64:0x9D6F] != t_waiting:
@@ -162,7 +165,7 @@ class PokemonYellowBattle(Env):
 
 
 	def init_emulator(self, state):
-		if self.emulator is None:
+		if self.emulator is None or not self.recording:
 			return
 
 		with open("pokeyellow_replay.state", "rb")as fd:
@@ -190,7 +193,7 @@ class PokemonYellowBattle(Env):
 
 
 	def compute_reward(self, old, new):
-		return 0
+		return (new[0] - new[2]) / abs(new[1] - new[2]) * 2
 
 
 	def step(self, action):
@@ -212,6 +215,11 @@ class PokemonYellowBattle(Env):
 		super().reset(seed=seed)
 		self.battle.reset()
 		self.current_turn = 0
+		self.episode_id += 1
+		if self.episode_trigger:
+			self.recording = self.episode_trigger(self.episode_id)
+		else:
+			self.recording = True
 		state = self.battle.state
 		if options is None:
 			self.battle.reset()
