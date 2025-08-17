@@ -30,7 +30,8 @@ t_bring_out_which = [0x81, 0xB1, 0xA8, 0xAD, 0xA6, 0x7F, 0xAE, 0xB4, 0xB3, 0x7F,
 
 class PokemonYellowBattle(Env):
 	metadata = {
-		'render_modes': ["human", "ansi", "rgb_array_list"]
+		'render_modes': ["human", "ansi", "rgb_array_list"],
+		'render_fps': 600
 	}
 	action_space = Discrete(11)
 	observation_space = Box(
@@ -205,16 +206,19 @@ class PokemonYellowBattle(Env):
 		return observation, self.compute_reward(old, self.last_state), self.battle.isFinished(), False, info
 
 
-	def reset(self, seed = None, options = None):
+	def reset(self, seed=None, options=None):
 		super().reset(seed=seed)
 		self.battle.reset()
 		self.current_turn = 0
 		state = self.battle.state
-		state.rng.setList([self.np_random.integers(low=0, high=255) for _ in range(9)])
-		state.me.name = options["p1name"]
-		state.op.name = options["p2name"]
-		state.me.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(m) for m in p["moves"]]) for p in options["p1team"]]
-		state.op.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(m) for m in p["moves"]]) for p in options["p2team"]]
+		if options is not None:
+			self.battle.reset()
+		else:
+			state.rng.setList([self.np_random.integers(low=0, high=255) for _ in range(9)])
+			state.me.name = options["p1name"]
+			state.op.name = options["p2name"]
+			state.me.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(m) for m in p["moves"]]) for p in options["p1team"]]
+			state.op.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(m) for m in p["moves"]]) for p in options["p2team"]]
 		self.init_emulator(state)
 		return self.make_observation(state)
 
