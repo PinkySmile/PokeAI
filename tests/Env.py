@@ -49,7 +49,7 @@ class PokemonYellowBattle(Env):
 		self.render_mode = render_mode
 		self.last_frames = []
 		if self.render_mode == "human":
-			self.emulator = PyBoy('pokeyellow.gbc', sound_volume=25, window='SDL2')
+			self.emulator = PyBoy('pokeyellow.gbc', sound_volume=25, window='SDL2', debug=True)
 		elif self.render_mode == "rgb_array_list":
 			self.emulator = PyBoy('pokeyellow.gbc', sound_volume=0, window='null')
 		else:
@@ -86,11 +86,13 @@ class PokemonYellowBattle(Env):
 		for i in range(0, count, step):
 			if not self.emulator.tick(step):
 				exit(0)
-			self.last_frames.append(self.emulator.screen.ndarray)
+			self.last_frames.append(self.emulator.screen.ndarray[:, :, :3])
 
 
 	def wait_for_start_turn(self):
 		while True:
+			if self.emulator.memory[0x9C00:0x9C20] == [0x59, 0x5A, 0x58, 0x59, 0x59, 0x5A, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0F, 0x0F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F]:
+				break
 			if self.emulator.memory[0x9D64:0x9D6F] == t_waiting:
 				break
 			if self.emulator.memory[wBattleMonHP:wBattleMonHP+2] != [0, 0] and self.emulator.memory[0x9DD0] == 0xE1 and self.emulator.memory[0x9DD1] == 0xE2:

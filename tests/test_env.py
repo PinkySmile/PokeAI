@@ -2,14 +2,14 @@ from GameEngine import PokemonSpecies, AvailableMove
 from Env import PokemonYellowBattle
 import gymnasium as gym
 
-p = gym.make('PokemonYellow', render_mode="rgb_array_list")
+p = gym.make('PokemonYellow', render_mode="human")
 print(p.reset(options={
 	"p1name": "test",
 	"p2name": "test2",
 	"p1team": [{
 		"species": PokemonSpecies.Charmander,
 		"name": "CHARMANDER",
-		"level": 5,
+		"level": 105,
 		"moves": [AvailableMove.Tackle]
 	}],
 	"p2team": [{
