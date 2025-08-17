@@ -28,7 +28,7 @@ namespace PokemonGen1
 		STATUS_KO                      = 1U << 7U, //From here, it is not handled by the game
 		STATUS_BAD_POISON              = 1U << 8U,
 		STATUS_BADLY_POISONED          = STATUS_BAD_POISON | STATUS_POISONED,
-		STATUS_ANY_NON_VOLATILE_STATUS = 0b11111111U,
+		STATUS_ANY_NON_VOLATILE_STATUS = 0b1111111U,
 		STATUS_LEECHED                 = 1U << 9U,
 		STATUS_CONFUSED_FOR_1_TURN     = 1U << 10U,
 		STATUS_CONFUSED_FOR_2_TURN     = 1U << 11U,

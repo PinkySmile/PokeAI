@@ -9,3 +9,7 @@ cmake-build-*
 build
 a.out
 *.replay
+turn*.json
+turn*.state
+pokeyellow.gbc.ram
+pokeyellow.gbc.state

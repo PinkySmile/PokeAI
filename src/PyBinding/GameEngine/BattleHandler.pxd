@@ -15,5 +15,7 @@ cdef extern from "../../GameEngine/BattleHandler.hpp" namespace "PokemonGen1":
 		void reset()
 		bool saveReplay(const string &path)
 		void loadReplay(const string &path) except +
+		bool saveState(const string &path)
+		bool loadState(const string &path) except +
 		void stopReplay()
 		bool playingReplay() const

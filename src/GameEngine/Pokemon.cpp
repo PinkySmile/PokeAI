@@ -131,7 +131,7 @@ namespace PokemonGen1
 			},
 			.id    = json["oldState"]["id"],
 			.moves = {},
-			.types = { json["types"]["oldState"][0], json["types"]["oldState"][1] },
+			.types = { json["oldState"]["types"][0], json["oldState"]["types"][1] },
 		},
 		_id(json["id"]),
 		_enemy(json["enemy"]),
@@ -184,13 +184,13 @@ namespace PokemonGen1
 		for (auto &move : json["moveSet"]) {
 			this->_moveSet.push_back(availableMoves[move["id"]]);
 			this->_moveSet.back().setPP(move["pp"]);
-			this->_moveSet.back().setPPUp(move["ppup"]);
+			this->_moveSet.back().setPPUp(move["ppUp"]);
 		}
 		this->_oldState.moves.reserve(4);
-		for (auto &move : json["moveSet"]) {
+		for (auto &move : json["oldState"]["moves"]) {
 			this->_oldState.moves.push_back(availableMoves[move["id"]]);
 			this->_oldState.moves.back().setPP(move["pp"]);
-			this->_oldState.moves.back().setPPUp(move["ppup"]);
+			this->_oldState.moves.back().setPPUp(move["ppUp"]);
 		}
 		this->_lastUsedMove.setHitsLeft(json["lastUsedMove"]["hitsLeft"]);
 		this->_computedStats = this->_baseStats;
@@ -363,6 +363,7 @@ namespace PokemonGen1
 					{ "SPE",   this->_oldState.stats.SPE }
 				} },
 				{ "id", this->_oldState.id },
+				{ "types", { this->_oldState.types.first, this->_oldState.types.second } },
 				{ "moves", nlohmann::json::array() }
 			} },
 			{ "lastUsedMove", {
@@ -735,8 +736,10 @@ namespace PokemonGen1
 		else
 			this->_computedStats.HP -= damage;
 
-		if (!this->_computedStats.HP)
+		if (!this->_computedStats.HP) {
+			this->_currentStatus = STATUS_KO;
 			this->_log(" fainted!");
+		}
 	}
 
 	bool Pokemon::canGetHit() const

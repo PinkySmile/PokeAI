@@ -748,7 +748,7 @@ void makeMainMenuGUI(
 		}
 	});
 	loadReplay->onClick.connect([&game]{
-		std::string path = Utils::openFileDialog("Open team file", ".", {{".+[.]replay", "Pokemon replay file"}});
+		std::string path = Utils::openFileDialog("Open replay file", ".", {{".+[.]replay", "Pokemon replay file"}});
 
 		if (path.empty())
 			return;
@@ -757,6 +757,18 @@ void makeMainMenuGUI(
 			game.loadReplay(path);
 		} catch (std::exception &e) {
 			Utils::dispMsg("Replay loading error", "Failed to load " + path + ": " + e.what(), MB_ICONERROR);
+		}
+	});
+	loadState->onClick.connect([&game]{
+		std::string path = Utils::openFileDialog("Open state file", ".", {{".+[.]json", "Pokemon state file"}});
+
+		if (path.empty())
+			return;
+
+		try {
+			game.loadState(path);
+		} catch (std::exception &e) {
+			Utils::dispMsg("State loading error", "Failed to load " + path + ": " + e.what(), MB_ICONERROR);
 		}
 	});
 	ip->setText(lastIp);

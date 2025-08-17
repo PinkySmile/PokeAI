@@ -1,11 +1,9 @@
-import time
-
 from pyboy import PyBoy
 from GameEngine import RandomGenerator, PokemonBase, Pokemon, PokemonSpecies, Move, AvailableMove, Type, BattleHandler, BattleAction, StatusChange, MoveCategory, getAttackDamageMultiplier, typeToStringShort, typeToString, statusToString
 from argparse import ArgumentParser
 import sys
+import time
 import threading
-import traceback
 
 wLinkBattleRandomNumberListIndex = 0xCCDE
 wLinkBattleRandomNumberList = 0xD147
@@ -293,7 +291,7 @@ def test_move(emulator, move, random_state, low_stats):
 		state.rng.makeRandomList(9)
 	if debug:
 		state.battleLogger = print
-	fd = open("pokeyellow.state", "rb")
+	fd = open("pokeyellow_test_move.state", "rb")
 	emulator.load_state(fd)
 	fd.close()
 	l = state.rng.getList()
@@ -407,7 +405,6 @@ def test_move(emulator, move, random_state, low_stats):
 		print(state.op.team[0].dump())
 		print(state.rng.getIndex(), ending_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', ending_state[3])))
 	f = compare_basic_states(battle.state, ending_state)
-	battle.saveReplay('test.replay')
 	state.rng.reset()
 	return f[0], f[1], [state.rng.getList()]
 

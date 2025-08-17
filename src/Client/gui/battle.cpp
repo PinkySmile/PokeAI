@@ -422,13 +422,11 @@ void battle(sf::RenderWindow &window, BattleHandler &game, BattleResources &reso
 		char buf[4096];
 		time_t timer;
 		char timebuffer[40];
-		char timebuffer2[40];
 		struct tm* tm_info;
 
 		time(&timer);
 		tm_info = localtime(&timer);
-		strftime(timebuffer, 40, "%Y-%m-%d", tm_info);
-		strftime(timebuffer2, 40, "%H_%M_%S", tm_info);
+		strftime(timebuffer, 40, "%Y-%m-%d_%H_%M_%S", tm_info);
 		sprintf(buf, "replays/%s.replay", timebuffer);
 		std::filesystem::create_directory("replays");
 		game.saveReplay(buf);

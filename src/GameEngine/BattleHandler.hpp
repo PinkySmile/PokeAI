@@ -63,6 +63,8 @@ namespace PokemonGen1
 		void reset();
 		bool saveReplay(const std::string &path);
 		void loadReplay(const std::string &path);
+		bool saveState(const std::string &path);
+		bool loadState(const std::string &path);
 		void stopReplay();
 		bool playingReplay() const;
 

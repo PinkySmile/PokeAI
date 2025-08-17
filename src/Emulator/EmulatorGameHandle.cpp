@@ -21,7 +21,7 @@ namespace PokemonGen1
 		{ CHAR_ARR_BLA, "►" },
 		{ CHAR_ARR_DOW, "▼" },
 		{ CHAR_TRAINER, "<TRAINER>"},
-		{ CHAR_PK_NUM, "pₖ" },
+		{ CHAR_PK_NUM, "Pₖ" },
 		{ CHAR_MN_NUM, "mₙ" },
 		{ CHAR_MAL_NUM, "♂" },
 		{ CHAR_FEM_NUM, "♀" }

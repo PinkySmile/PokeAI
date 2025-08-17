@@ -9,6 +9,7 @@
 #include "BattleHandler.hpp"
 #include "Exception.hpp"
 #include "Team.hpp"
+#include "nlohmann/json.hpp"
 
 namespace PokemonGen1
 {
@@ -194,8 +195,13 @@ namespace PokemonGen1
 		if (this->_finished)
 			return false;
 		if (this->_playingReplay) {
-			this->_state.me.nextAction = this->_replayInputs.front().first;
-			this->_state.op.nextAction = this->_replayInputs.front().second;
+			if (!this->_isViewSwapped) {
+				this->_state.me.nextAction = this->_replayInputs.front().first;
+				this->_state.op.nextAction = this->_replayInputs.front().second;
+			} else {
+				this->_state.op.nextAction = this->_replayInputs.front().first;
+				this->_state.me.nextAction = this->_replayInputs.front().second;
+			}
 			this->_replayInputs.pop_front();
 		}
 		if (this->_state.me.nextAction == NoAction || this->_state.op.nextAction == NoAction)
@@ -211,6 +217,8 @@ namespace PokemonGen1
 		for (const Pokemon &pkmn : this->_state.op.team)
 			this->_log(pkmn.dump());
 		this->_log("Game is " + std::string(this->_finished ? "" : "NOT ") + "finished");
+		this->_state.me.lastAction = this->_state.me.nextAction;
+		this->_state.op.lastAction = this->_state.op.nextAction;
 		this->_state.me.nextAction = NoAction;
 		this->_state.op.nextAction = NoAction;
 		if (this->_playingReplay && this->_replayInputs.empty())
@@ -356,5 +364,74 @@ namespace PokemonGen1
 	bool BattleHandler::playingReplay() const
 	{
 		return this->_playingReplay;
+	}
+
+	bool BattleHandler::saveState(const std::string &path)
+	{
+		std::ofstream stream{path};
+
+		if (stream.fail())
+			return false;
+
+		nlohmann::json state;
+
+		state["state"] = this->_state.serialize();
+		state["replay"] = this->_playingReplay;
+		state["replayInfo"] = {
+			{ "p1", {
+				{ "name", this->_replayData.nameP1 },
+				{ "team", nlohmann::json::array() }
+			}},
+			{ "p2", {
+				{ "name", this->_replayData.nameP1 },
+				{ "team", nlohmann::json::array() }
+			}},
+			{ "rng", this->_replayData.rngList },
+			{ "inputs", nlohmann::json::array() }
+		};
+		for (auto &pkmn : this->_replayData.teamP1)
+			state["replayInfo"]["p1"]["team"].push_back(pkmn.serialize());
+		for (auto &pkmn : this->_replayData.teamP2)
+			state["replayInfo"]["p2"]["team"].push_back(pkmn.serialize());
+		for (auto &input : this->_replayData.input)
+			state["replayInfo"]["inputs"].push_back(nlohmann::json::array({input.first, input.second}));
+		if (this->_playingReplay) {
+			for (auto &input : this->_replayInputs)
+				state["replayInputs"].push_back(nlohmann::json::array({input.first, input.second}));
+		}
+		stream << state.dump(4);
+		return true;
+	}
+
+	bool BattleHandler::loadState(const std::string &path)
+	{
+		std::ifstream stream{path};
+
+		if (stream.fail())
+			return false;
+
+		nlohmann::json state;
+
+		stream >> state;
+		this->_state.deserialize(state["state"]);
+		this->_playingReplay = state["replay"];
+		this->_replayData.nameP1 = state["replayInfo"]["p1"]["name"];
+		this->_replayData.nameP2 = state["replayInfo"]["p2"]["name"];
+		this->_replayData.teamP1.clear();
+		for (auto &j : state["replayInfo"]["p1"]["team"])
+			this->_replayData.teamP1.emplace_back(this->_state.rng, this->_state.battleLogger, j);
+		this->_replayData.teamP2.clear();
+		for (auto &j : state["replayInfo"]["p2"]["team"])
+			this->_replayData.teamP2.emplace_back(this->_state.rng, this->_state.battleLogger, j);
+		this->_replayData.rngList = state["replayInfo"]["rng"].get<std::vector<unsigned char>>();
+		this->_replayData.input.clear();
+		for (auto &j : state["replayInfo"]["inputs"])
+			this->_replayData.input.emplace_back(j[0], j[1]);
+		if (this->_playingReplay) {
+			this->_replayInputs.clear();
+			for (auto &j: state["replayInputs"])
+				this->_replayInputs.emplace_back(j[0], j[1]);
+		}
+		return true;
 	}
 }

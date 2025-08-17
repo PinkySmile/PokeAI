@@ -21,6 +21,21 @@ cdef extern from "<array>" namespace "std" nogil:
 		unsigned char &operator[](size_t)
 
 
+cdef extern from "../../Emulator/EmulatorGameHandle.hpp" namespace "PokemonGen1":
+	cdef cppclass EmulatorGameHandle:
+		void setReady(bool ready)
+		#Gen1ConnectionStage getStage()
+		#void setStage(Gen1ConnectionStage stage)
+		bool isConnected()
+		bool isReady()
+		#std::pair<unsigned, unsigned> getBattleSendingProgress()
+
+		@staticmethod
+		vector[unsigned char] convertString(const string &str)
+		@staticmethod
+		string convertString(const vector[unsigned char] &str)
+
+
 cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 	cdef cppclass Pokemon:
 		ctypedef function[void (const string &)] Logger
@@ -95,7 +110,7 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 		void setRecharging(bool recharging)
 		void transform(const Pokemon &target)
 		const set[AvailableMove] &getLearnableMoveSet() const
-		#array[unsigned char, ENCODED_SIZE] encode() const
+		DataArray encode() const
 		string dump() const
 		#nlohmann::json serialize()
 
