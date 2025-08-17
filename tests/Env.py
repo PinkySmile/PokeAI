@@ -211,7 +211,7 @@ class PokemonYellowBattle(Env):
 		self.battle.reset()
 		self.current_turn = 0
 		state = self.battle.state
-		if options is not None:
+		if options is None:
 			self.battle.reset()
 		else:
 			state.rng.setList([self.np_random.integers(low=0, high=255) for _ in range(9)])
