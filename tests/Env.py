@@ -210,6 +210,7 @@ class PokemonYellowBattle(Env):
 		self.episode_id = 0
 		self.episode_trigger = episode_trigger
 		self.recording = False
+		self.last_state = None
 		if self.render_mode == "human":
 			self.emulator = PyBoy('pokeyellow.gbc', sound_volume=25, window='SDL2')
 		elif self.render_mode == "rgb_array_list":
@@ -349,7 +350,12 @@ class PokemonYellowBattle(Env):
 			state.op.team[state.op.pokemonOnField].getTypes()[0],
 			state.op.team[state.op.pokemonOnField].getTypes()[1],
 		], dtype=float32)
-		self.last_state = (ob, {})
+		moveMask = [int(m.getID() != 0 and m.getPP() != 0) for m in state.me.team[state.me.pokemonOnField].getMoveSet()]
+		switchMask = [int(len(state.me.team) > i and state.me.pokemonOnField) != i for i in range(6)]
+		canUseStruggle = int(not any(moveMask))
+		self.last_state = (ob, {
+			'mask': moveMask + switchMask + [canUseStruggle]
+		})
 		return self.last_state
 
 
