@@ -1,6 +1,6 @@
 from gymnasium import Env, register
 from gymnasium.spaces import Discrete, Box
-from numpy import array, int16, float32
+from numpy import array, int16, float32, int8
 from pyboy import PyBoy
 from typing import Any
 from GameEngine import BattleHandler, BattleState, BattleAction, PokemonSpecies, AvailableMove, convertString, typeToStringShort, statusToString, Pokemon, PokemonBase, Move, loadTrainer as __loadTrainer
@@ -354,7 +354,7 @@ class PokemonYellowBattle(Env):
 		switchMask = [int(len(state.me.team) > i and state.me.pokemonOnField != i) for i in range(6)]
 		canUseStruggle = int(not any(moveMask))
 		self.last_state = (ob, {
-			'mask': moveMask + switchMask + [canUseStruggle]
+			'mask': array(moveMask + switchMask + [canUseStruggle], dtype=int8)
 		})
 		return self.last_state
 
