@@ -3,7 +3,7 @@ from gymnasium.spaces import Discrete, Box
 from numpy import array, int16, float32
 from pyboy import PyBoy
 from typing import Any
-from GameEngine import BattleHandler, BattleState, BattleAction, convertString, typeToStringShort, statusToString, Pokemon, PokemonBase, Move, loadTrainer as __loadTrainer
+from GameEngine import BattleHandler, BattleState, BattleAction, PokemonSpecies, AvailableMove, convertString, typeToStringShort, statusToString, Pokemon, PokemonBase, Move, loadTrainer as __loadTrainer
 from scipy.stats import truncate
 
 wBattleMonPP = 0xD02C
@@ -29,6 +29,138 @@ wBattleMonHP = 0xD014
 
 t_waiting = [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7] # Waiting...!
 t_bring_out_which = [0x81, 0xB1, 0xA8, 0xAD, 0xA6, 0x7F, 0xAE, 0xB4, 0xB3, 0x7F, 0xB6, 0xA7, 0xA8, 0xA2, 0xA7] # Bring out which
+
+
+class Examples:
+	Brock={
+		"sprite": 0,
+		"p1name": "Ash",
+		"p2name": "Brock",
+		"p1team": [
+			{
+				"name": "PIKACHU",
+				"level": 11,
+				"species": PokemonSpecies.Pikachu,
+				"moves": [AvailableMove.Thundershock, AvailableMove.Quick_Attack, AvailableMove.Tail_Whip, AvailableMove.Thunder_Wave]
+			},
+			{
+				"name": "MANKEY",
+				"level": 8,
+				"species": PokemonSpecies.Mankey,
+				"moves": [AvailableMove.Scratch, AvailableMove.Leer]
+			},
+			{
+				"name": "NIDORAN~",
+				"level": 8,
+				"species": PokemonSpecies.Nidoran_M,
+				"moves": [AvailableMove.Tackle, AvailableMove.Leer, AvailableMove.Horn_Attack]
+			},
+			{
+				"name": "PIDGEY",
+				"level": 7,
+				"species": PokemonSpecies.Pidgey,
+				"moves": [AvailableMove.Gust, AvailableMove.Sand_Attack]
+			}
+		],
+		"p2team": [
+			{
+				"name": "GEODUDE",
+				"level": 10,
+				"species": PokemonSpecies.Geodude,
+				"moves": [AvailableMove.Tackle]
+			},
+			{
+				"name": "ONIX",
+				"level": 12,
+				"species": PokemonSpecies.Geodude,
+				"moves": [AvailableMove.Bide, AvailableMove.Bind, AvailableMove.Screech, AvailableMove.Tackle]
+			}
+		]
+	}
+	Misty={
+		"sprite": 0,
+		"p1name": "Ash",
+		"p2name": "Misty",
+		"p1team": [
+			{
+				"name": "PIKACHU",
+				"level": 15,
+				"species": PokemonSpecies.Pikachu,
+				"moves": [AvailableMove.Thundershock, AvailableMove.Quick_Attack, AvailableMove.Double_Team, AvailableMove.Thunder_Wave]
+			},
+			{
+				"name": "MANKEY",
+				"level": 9,
+				"species": PokemonSpecies.Mankey,
+				"moves": [AvailableMove.Scratch, AvailableMove.Leer, AvailableMove.Low_Kick]
+			},
+			{
+				"name": "NIDORAN~",
+				"level": 9,
+				"species": PokemonSpecies.Nidoran_M,
+				"moves": [AvailableMove.Tackle, AvailableMove.Leer, AvailableMove.Horn_Attack]
+			},
+			{
+				"name": "PIDGEY",
+				"level": 8,
+				"species": PokemonSpecies.Pidgey,
+				"moves": [AvailableMove.Gust, AvailableMove.Sand_Attack]
+			}
+		],
+		"p2team": [
+			{
+				"name": "STARYU",
+				"level": 18,
+				"species": PokemonSpecies.Staryu,
+				"moves": [AvailableMove.Tackle, AvailableMove.Water_Gun]
+			},
+			{
+				"name": "STARMIE",
+				"level": 21,
+				"species": PokemonSpecies.Starmie,
+				"moves": [AvailableMove.Bubble_Beam, AvailableMove.Harden, AvailableMove.Water_Gun, AvailableMove.Tackle]
+			}
+		]
+	}
+	LtSurge={
+		"sprite": 0,
+		"p1name": "Ash",
+		"p2name": "LT. Surge",
+		"p1team": [
+			{
+				"name": "PIKACHU",
+				"level": 22,
+				"species": PokemonSpecies.Pikachu,
+				"moves": [AvailableMove.Thundershock, AvailableMove.Slam, AvailableMove.Double_Team, AvailableMove.Thunder_Wave]
+			},
+			{
+				"name": "MANKEY",
+				"level": 15,
+				"species": PokemonSpecies.Mankey,
+				"moves": [AvailableMove.Scratch, AvailableMove.Leer, AvailableMove.Low_Kick, AvailableMove.Karate_Chop]
+			},
+			{
+				"name": "NIDORINO",
+				"level": 16,
+				"species": PokemonSpecies.Nidorino,
+				"moves": [AvailableMove.Tackle, AvailableMove.Leer, AvailableMove.Horn_Attack, AvailableMove.Double_Kick]
+			},
+			{
+				"name": "PIDGEY",
+				"level": 15,
+				"species": PokemonSpecies.Pidgey,
+				"moves": [AvailableMove.Gust, AvailableMove.Sand_Attack, AvailableMove.Quick_Attack]
+			}
+		],
+		"p2team": [
+			{
+				"name": "RAICHU",
+				"level": 28,
+				"species": PokemonSpecies.Raichu,
+				"moves": [AvailableMove.Growl, AvailableMove.Mega_Kick, AvailableMove.Mega_Punch, AvailableMove.Thunderbolt]
+			}
+		]
+	}
 
 
 def basic_opponent(state):
