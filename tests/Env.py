@@ -3,7 +3,7 @@ from gymnasium.spaces import Discrete, Box
 from numpy import array, int16, float32
 from pyboy import PyBoy
 from typing import Any
-from GameEngine import BattleHandler, BattleAction, convertString, typeToStringShort, statusToString, Pokemon, PokemonBase, Move
+from GameEngine import BattleHandler, BattleState, BattleAction, convertString, typeToStringShort, statusToString, Pokemon, PokemonBase, Move, loadTrainer as __loadTrainer
 from scipy.stats import truncate
 
 wBattleMonPP = 0xD02C
@@ -30,6 +30,30 @@ wBattleMonHP = 0xD014
 t_waiting = [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7] # Waiting...!
 t_bring_out_which = [0x81, 0xB1, 0xA8, 0xAD, 0xA6, 0x7F, 0xAE, 0xB4, 0xB3, 0x7F, 0xB6, 0xA7, 0xA8, 0xA2, 0xA7] # Bring out which
 
+
+def basic_opponent(state):
+	pkmn = state.op.team[state.op.pokemonOnField]
+	if pkmn.getHealth() == 0:
+		return BattleAction.Switch1 + state.op.pokemonOnField
+	for i, move in pkmn.getMoveSet():
+		if move.getID() != 0 and move.getPP() != 0:
+			return BattleAction.Attack1 + i
+	return BattleAction.StruggleMove
+
+
+def loadTrainer(path):
+	state = BattleState()
+	with open(path, "rb") as fd:
+		data = fd.read()
+	name, team = __loadTrainer(data, state)
+	return name, [{
+		"name": p.getName(False),
+		"level": p.getLevel(),
+		"species": p.getID(),
+		"moves": [m.getID() for m in p.getMoveSet()]
+	} for p in team]
+
+
 class PokemonYellowBattle(Env):
 	metadata = {
 		'render_modes': ["human", "ansi", "rgb_array_list"],
@@ -37,13 +61,14 @@ class PokemonYellowBattle(Env):
 	}
 	action_space = Discrete(3)
 	observation_space = Box(
-		low=array([0, 0, 0, 0, 0, 0], dtype=float32),
+		#                  HP1,MHP1, HP2,MHP2, T1, T2
+		low= array([  0,   0,   0,   0,  0,  0], dtype=float32),
 		high=array([999, 999, 999, 999, 26, 26], dtype=float32),
 		shape=(6,),
 		dtype=float32
 	)
 
-	def __init__(self, render_mode=None, episode_trigger=None, opponent_callback=lambda _: BattleAction.Attack1):
+	def __init__(self, render_mode=None, episode_trigger=None, opponent_callback=basic_opponent):
 		self.battle = BattleHandler(False, False)
 		self.op = opponent_callback
 		self.max_turns = -1
