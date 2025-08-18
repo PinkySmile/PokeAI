@@ -351,7 +351,7 @@ class PokemonYellowBattle(Env):
 			state.op.team[state.op.pokemonOnField].getTypes()[1],
 		], dtype=float32)
 		moveMask = [int(m.getID() != 0 and m.getPP() != 0) for m in state.me.team[state.me.pokemonOnField].getMoveSet()]
-		switchMask = [int(len(state.me.team) > i and state.me.pokemonOnField) != i for i in range(6)]
+		switchMask = [int(len(state.me.team) > i and state.me.pokemonOnField != i) for i in range(6)]
 		canUseStruggle = int(not any(moveMask))
 		self.last_state = (ob, {
 			'mask': moveMask + switchMask + [canUseStruggle]
