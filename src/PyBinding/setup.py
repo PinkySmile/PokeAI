@@ -13,9 +13,9 @@ extensions = [
 ]
 
 setup(
-	name='PyGen1',
+	name='GameEngine',
 	version='1.0',
-	packages=['PyGen1'],
+	packages=['GameEngine'],
 	url='',
 	ext_modules=cythonize(extensions, build_dir="build"),
 	license='MIT',
