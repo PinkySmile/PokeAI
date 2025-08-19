@@ -1137,6 +1137,18 @@ class PokemonYellowBattle(Env):
 			state.me.nextAction = BattleAction.Attack1 + action
 		state.op.nextAction = self.op(state, self.np_random)
 		old = state.copy()
+		if state.me.nextAction == BattleAction.StruggleMove:
+			assert state.me.team[state.me.pokemonOnField].getHealth() != 0
+			assert all(m.getPP() == 0 or m.getID() == 0 for m in state.me.team[state.me.pokemonOnField].getMoveSet())
+		if BattleAction.Attack1 <= state.me.nextAction <= BattleAction.Attack4:
+			assert state.me.team[state.me.pokemonOnField].getHealth() != 0
+			assert state.me.nextAction - BattleAction.Attack1 < len(state.me.team[state.me.pokemonOnField].getMoveSet())
+			assert state.me.team[state.me.pokemonOnField].getMoveSet()[state.me.nextAction - BattleAction.Attack1].getID() != 0
+			assert state.me.team[state.me.pokemonOnField].getMoveSet()[state.me.nextAction - BattleAction.Attack1].getPP() != 0
+		if BattleAction.Switch1 <= state.me.nextAction <= BattleAction.Switch6:
+			assert state.me.nextAction - BattleAction.Switch1 != state.me.pokemonOnField
+			assert state.me.nextAction - BattleAction.Switch1 < len(state.me.team)
+			assert state.me.team[state.me.nextAction - BattleAction.Switch1].getHealth() != 0
 		self.battle.tick()
 		self.current_turn += 1
 		if (self.battle.isFinished() or self.render_mode == "rgb_array_list") and self.replay_folder:
