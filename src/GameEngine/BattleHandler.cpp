@@ -64,7 +64,7 @@ namespace PokemonGen1
 		bool p1Start = p1PriorityFactor > p2PriorityFactor;
 
 		if (p1PriorityFactor == p2PriorityFactor)
-			p1Start = (this->_state.rng() - 80 >= 0) ^ this->_isViewSwapped;
+			p1Start = (this->_state.rng() <= 0x80) ^ this->_isViewSwapped;
 
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
