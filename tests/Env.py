@@ -1114,8 +1114,8 @@ class PokemonYellowBattle(Env):
 			state.me.nextAction = BattleAction.Attack1 + action
 		state.op.nextAction = self.op(state, self.np_random)
 		self.battle.tick()
-		if self.replay_folder:
-			self.battle.save_replay(os.path.join(self.replay_folder, f"episode-{self.episode_id}.replay"))
+		if (self.battle.isFinished() or self.render_mode == "rgb_array_list") and self.replay_folder:
+			self.battle.saveReplay(os.path.join(self.replay_folder, f"episode-{self.episode_id}.replay"))
 		observation, info = self.make_observation(state)
 		self.step_emulator(state)
 		# self.spec.max_episode_steps
