@@ -66,16 +66,22 @@ namespace PokemonGen1
 
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
-		if (p1Attack && p1Start)
+		if (p1Attack && p1Start) {
+			this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
 			p1.attack(this->_state.me.nextAction - Attack1, p2);
+		}
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
-		if (p2Attack)
+		if (p2Attack) {
+			this->_state.me.discovered[this->_state.op.pokemonOnField].second[this->_state.op.nextAction - Attack1] = true;
 			p2.attack(this->_state.op.nextAction - Attack1, p1);
+		}
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
-		if (p1Attack && !p1Start)
+		if (p1Attack && !p1Start) {
+			this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
 			p1.attack(this->_state.me.nextAction - Attack1, p2);
+		}
 	}
 
 	void BattleHandler::_executeBattleActions()
@@ -118,6 +124,7 @@ namespace PokemonGen1
 				}
 				this->_state.me.pokemonOnField = this->_state.me.nextAction - Switch1;
 				this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName(false) + " go");
+				this->_state.op.discovered[this->_state.me.pokemonOnField].first = true;
 				break;
 			case Attack1:
 			case Attack2:
@@ -150,6 +157,7 @@ namespace PokemonGen1
 				}
 				this->_state.op.pokemonOnField = this->_state.op.nextAction - Switch1;
 				this->logBattle(this->_state.op.name + " sent out " + this->_state.op.team[this->_state.op.pokemonOnField].getName(false));
+				this->_state.me.discovered[this->_state.op.pokemonOnField].first = true;
 				break;
 			case Attack1:
 			case Attack2:
@@ -206,6 +214,8 @@ namespace PokemonGen1
 		}
 		if (this->_state.me.nextAction == NoAction || this->_state.op.nextAction == NoAction)
 			throw std::runtime_error("No action selected");
+		this->_state.me.discovered[this->_state.op.pokemonOnField].first = true;
+		this->_state.op.discovered[this->_state.me.pokemonOnField].first = true;
 		this->_replayData.input.emplace_back(this->_state.me.nextAction, this->_state.op.nextAction);
 		this->_log("P1 will do " + BattleActionToString(this->_state.me.nextAction));
 		this->_log("P2 will do " + BattleActionToString(this->_state.op.nextAction));
@@ -248,6 +258,7 @@ namespace PokemonGen1
 		this->_state.me.nextAction = NoAction;
 		this->_state.me.pokemonOnField = 0;
 		this->_state.me.discovered.fill({false, {false, false, false, false}});
+		this->_state.me.discovered[0].first = true;
 		for (auto &pkmn : this->_state.me.team)
 			pkmn.reset();
 
@@ -255,6 +266,7 @@ namespace PokemonGen1
 		this->_state.op.nextAction = NoAction;
 		this->_state.op.pokemonOnField = 0;
 		this->_state.op.discovered.fill({false, {false, false, false, false}});
+		this->_state.op.discovered[0].first = true;
 		for (auto &pkmn : this->_state.op.team)
 			pkmn.reset();
 	}

@@ -2,9 +2,8 @@ from gymnasium import Env, register
 from gymnasium.spaces import Discrete, Box
 from numpy import array, int16, float32, int8
 from pyboy import PyBoy
-from typing import Any
-from GameEngine import BattleHandler, BattleState, BattleAction, StatusChange, MoveCategory, PokemonSpecies, AvailableMove, convertString, typeToStringShort, getAttackDamageMultiplier, statusToString, Pokemon, PokemonBase, Move, loadTrainer as __loadTrainer
-from scipy.stats import truncate
+import os
+from GameEngine import Type, BattleHandler, BattleState, BattleAction, StatusChange, MoveCategory, PokemonSpecies, AvailableMove, convertString, typeToStringShort, getAttackDamageMultiplier, statusToString, Pokemon, PokemonBase, Move, loadTrainer as __loadTrainer
 
 wBattleMonPP = 0xD02C
 
@@ -489,14 +488,341 @@ class PokemonYellowBattle(Env):
 	}
 	action_space = Discrete(11)
 	observation_space = Box(
-		#                  HP1,MHP1, HP2,MHP2, T1, T2
-		low= array([  0,   0,   0,   0,  0,  0], dtype=float32),
-		high=array([999, 999, 999, 999, 26, 26], dtype=float32),
-		shape=(6,),
+		low= array([
+			# My pokemon on field
+			# HP,  MaxHP,
+			  0,   0,
+			# ATK, DEF, SPD, SPE
+			  0,   0,   0,   0,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+			# SLP, PSN, BRN, FRZ, PAR, TOX, LEE, CFZ
+			  0,   0,   0,   0,   0,   0,   0,   0,
+			# Upgrade stages
+			# ATK, DEF, SPD, SPE, ACC, EVD
+			  0,   0,   0,   0,   0,   0,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  0,       0,       -10,     -10,     -10,     -10,     -10,     -10,
+			# Opponent pokemon on field
+			# HP,  MaxHP,
+			  0,   0,
+			# ATK, DEF, SPD, SPE
+			  0,   0,   0,   0,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+			# SLP, PSN, BRN, FRZ, PAR, TOX, LEE, CFZ
+			  0,   0,   0,   0,   0,   0,   0,   0,
+			# Upgrade stages
+			# ATK, DEF, SPD, SPE, ACC, EVD
+			  0,   0,   0,   0,   0,   0,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  -1,      -1,      -10,     -10,     -10,     -10,     -10,     -10,
+
+			# Pokémon 1 in team
+			# HP,  MaxHP,
+			  0,   0,
+			# ATK, DEF, SPD, SPE
+			  0,   0,   0,   0,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+			# SLP, PSN, BRN, FRZ, PAR
+			  0,   0,   0,   0,   0,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  0,       0,       -10,     -10,     -10,     -10,     -10,     -10,
+			# Pokémon 2 in team
+			# HP,  MaxHP,
+			 -10,  -10,
+			# ATK, DEF, SPD, SPE
+			  -10, -10, -10, -10,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
+			# SLP, PSN, BRN, FRZ, PAR
+			  -10, -10, -10, -10, -10,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+			# Pokémon 3 in team
+			# HP,  MaxHP,
+			  -10,  -10,
+			# ATK, DEF, SPD, SPE
+			  -10, -10, -10, -10,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
+			# SLP, PSN, BRN, FRZ, PAR
+			  -10, -10, -10, -10, -10,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+			# Pokémon 4 in team
+			# HP,  MaxHP,
+			  -10,  -10,
+			# ATK, DEF, SPD, SPE
+			  -10, -10, -10, -10,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
+			# SLP, PSN, BRN, FRZ, PAR
+			  -10, -10, -10, -10, -10,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  -10,     -10,       -10,   -10,     -10,     -10,     -10,     -10,
+			# Pokémon 5 in team
+			# HP,  MaxHP,
+			  -10,  -10,
+			# ATK, DEF, SPD, SPE
+			  -10, -10, -10, -10,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
+			# SLP, PSN, BRN, FRZ, PAR
+			  -10, -10, -10, -10, -10,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+			# Pokémon 6 in team
+			# HP,  MaxHP,
+			  -10,  -10,
+			# ATK, DEF, SPD, SPE
+			  -10, -10, -10, -10,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
+			# SLP, PSN, BRN, FRZ, PAR
+			  -10, -10, -10, -10, -10,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+
+
+			# Pokémon 1 in opponent's team
+			# HP,  MaxHP,
+			  0,   0,
+			# ATK, DEF, SPD, SPE
+			  0,   0,   0,   0,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+			# SLP, PSN, BRN, FRZ, PAR
+			  0,   0,   0,   0,   0,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  -10,    -10,      -10,     -10,     -10,     -10,     -10,     -10,
+			# Pokémon 2 in opponent's team
+			# HP,  MaxHP,
+			 -10,  -10,
+			# ATK, DEF, SPD, SPE
+			  -10, -10, -10, -10,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
+			# SLP, PSN, BRN, FRZ, PAR
+			  -10, -10, -10, -10, -10,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+			# Pokémon 3 in opponent's team
+			# HP,  MaxHP,
+			  -10,  -10,
+			# ATK, DEF, SPD, SPE
+			  -10, -10, -10, -10,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
+			# SLP, PSN, BRN, FRZ, PAR
+			  -10, -10, -10, -10, -10,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+			# Pokémon 4 in opponent's team
+			# HP,  MaxHP,
+			  -10,  -10,
+			# ATK, DEF, SPD, SPE
+			  -10, -10, -10, -10,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
+			# SLP, PSN, BRN, FRZ, PAR
+			  -10, -10, -10, -10, -10,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  -10,     -10,       -10,   -10,     -10,     -10,     -10,     -10,
+			# Pokémon 5 in opponent's team
+			# HP,  MaxHP,
+			  -10,  -10,
+			# ATK, DEF, SPD, SPE
+			  -10, -10, -10, -10,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
+			# SLP, PSN, BRN, FRZ, PAR
+			  -10, -10, -10, -10, -10,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+			# Pokémon 6 in opponent's team
+			# HP,  MaxHP,
+			  -10,  -10,
+			# ATK, DEF, SPD, SPE
+			  -10, -10, -10, -10,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
+			# SLP, PSN, BRN, FRZ, PAR
+			  -10, -10, -10, -10, -10,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+		], dtype=float32),
+		high=array([
+			# My pokémon on field
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR, TOX, LEE, CFZ
+			  1,   1,   1,   1,   1,   1,   1,   1,
+			# Upgrade stages
+			# ATK, DEF, SPD, SPE, ACC, EVD
+			  12,  12,  12,  12,  12,  12,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+			
+			# My opponent on field
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR, TOX, LEE, CFZ
+			  1,   1,   1,   1,   1,   1,   1,   1,
+			# Upgrade stages
+			# ATK, DEF, SPD, SPE, ACC, EVD
+			  12,  12,  12,  12,  12,  12,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+
+			# Pokémon 1 in team
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR
+			  1,   1,   1,   1,   1,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+			# Pokémon 2 in team
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR
+			  1,   1,   1,   1,   1,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+			# Pokémon 3 in team
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR
+			  1,   1,   1,   1,   1,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+			# Pokémon 4 in team
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR
+			  1,   1,   1,   1,   1,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+			# Pokémon 5 in team
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR
+			  1,   1,   1,   1,   1,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+			# Pokémon 6 in team
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR
+			  1,   1,   1,   1,   1,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+
+			# Pokémon 1 in opponent's team
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR
+			  1,   1,   1,   1,   1,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+			# Pokémon 2 in opponent's team
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR
+			  1,   1,   1,   1,   1,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+			# Pokémon 3 in opponent's team
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR
+			  1,   1,   1,   1,   1,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+			# Pokémon 4 in opponent's team
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR
+			  1,   1,   1,   1,   1,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+			# Pokémon 5 in opponent's team
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR
+			  1,   1,   1,   1,   1,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+			# Pokémon 6 in opponent's team
+			# HP,  MaxHP,
+			  999, 999,
+			# ATK, DEF, SPD, SPE
+			  999, 999, 999, 999,
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
+			# SLP, PSN, BRN, FRZ, PAR
+			  1,   1,   1,   1,   1,
+			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
+			  164,     40,      164,     40,      164,     40,      164,     40,
+		], dtype=float32),
+		shape=(494,),
 		dtype=float32
 	)
 
-	def __init__(self, render_mode=None, episode_trigger=None, opponent_callback=basic_opponent):
+	def __init__(self, render_mode=None, episode_trigger=None, opponent_callback=basic_opponent, replay_folder=None):
 		self.battle = BattleHandler(False, False)
 		self.op = opponent_callback
 		self.base_op = opponent_callback
@@ -508,6 +834,7 @@ class PokemonYellowBattle(Env):
 		self.episode_trigger = episode_trigger
 		self.recording = False
 		self.last_state = None
+		self.replay_folder = replay_folder
 		if self.render_mode == "human":
 			self.emulator = PyBoy('pokeyellow.gbc', sound_volume=25, window='SDL2')
 		elif self.render_mode == "rgb_array_list":
@@ -638,16 +965,116 @@ class PokemonYellowBattle(Env):
 		self.wait_for_start_turn()
 
 
+	@staticmethod
+	def observe_pokemon_on_field(me_state, op_state):
+		pokemon = me_state.team[me_state.pokemonOnField]
+		boosts = pokemon.getStatsUpgradeStages()
+		status = pokemon.getStatus()
+		status = [
+			bool(status & StatusChange.Asleep),
+			bool(status & StatusChange.Poisoned),
+			bool(status & StatusChange.Burned),
+			bool(status & StatusChange.Frozen),
+			bool(status & StatusChange.Paralyzed),
+			bool(status & StatusChange.Badly_poisoned),
+			bool(status & StatusChange.Leeched),
+			bool(status & StatusChange.Confused)
+		]
+		types = pokemon.getTypes()
+		types = [
+			types[0] == Type.Normal   or types[1] == Type.Normal,
+			types[0] == Type.Fighting or types[1] == Type.Fighting,
+			types[0] == Type.Flying   or types[1] == Type.Flying,
+			types[0] == Type.Poison   or types[1] == Type.Poison,
+			types[0] == Type.Ground   or types[1] == Type.Ground,
+			types[0] == Type.Rock     or types[1] == Type.Rock,
+			types[0] == Type.Bug      or types[1] == Type.Bug,
+			types[0] == Type.Ghost    or types[1] == Type.Ghost,
+			types[0] == Type.Fire     or types[1] == Type.Fire,
+			types[0] == Type.Water    or types[1] == Type.Water,
+			types[0] == Type.Grass    or types[1] == Type.Grass,
+			types[0] == Type.Electric or types[1] == Type.Electric,
+			types[0] == Type.Psychic  or types[1] == Type.Psychic,
+			types[0] == Type.Ice      or types[1] == Type.Ice,
+			types[0] == Type.Dragon   or types[1] == Type.Dragon,
+		]
+		move_set = pokemon.getMoveSet()
+		move_set += [None] * (4 - len(move_set))
+		moves = [
+			-1 if op_state is not None and not op_state.isPkmnMoveDiscovered(me_state.pokemonOnField, k) else i
+			for k, s in enumerate(move_set) for i in ([s.getID(), s.getPP()] if s is not None else [-10, -10])
+		]
+		return [
+			pokemon.getHealth(), pokemon.getMaxHealth(),
+			pokemon.getAttack(), pokemon.getDefense(), pokemon.getSpeed(), pokemon.getSpecial(),
+			*types,
+			*status,
+			boosts['ATK'] + 6, boosts['DEF'] + 6, boosts['SPD'] + 6, boosts['SPE'] + 6,
+			boosts['ACC'] + 6, boosts['EVD'] + 6,
+			*moves
+		]
+
+
+	@staticmethod
+	def observe_pokemon(pokemon, slot, op_state):
+		if op_state and not op_state.isPkmnDiscovered(slot):
+			return [-1] * 34
+		status = pokemon.getNonVolatileStatus()
+		status = [
+			bool(status & StatusChange.Asleep),
+			bool(status & StatusChange.Poisoned),
+			bool(status & StatusChange.Burned),
+			bool(status & StatusChange.Frozen),
+			bool(status & StatusChange.Paralyzed),
+		]
+		types = pokemon.getTypes()
+		types = [
+			types[0] == Type.Normal   or types[1] == Type.Normal,
+			types[0] == Type.Fighting or types[1] == Type.Fighting,
+			types[0] == Type.Flying   or types[1] == Type.Flying,
+			types[0] == Type.Poison   or types[1] == Type.Poison,
+			types[0] == Type.Ground   or types[1] == Type.Ground,
+			types[0] == Type.Rock     or types[1] == Type.Rock,
+			types[0] == Type.Bug      or types[1] == Type.Bug,
+			types[0] == Type.Ghost    or types[1] == Type.Ghost,
+			types[0] == Type.Fire     or types[1] == Type.Fire,
+			types[0] == Type.Water    or types[1] == Type.Water,
+			types[0] == Type.Grass    or types[1] == Type.Grass,
+			types[0] == Type.Electric or types[1] == Type.Electric,
+			types[0] == Type.Psychic  or types[1] == Type.Psychic,
+			types[0] == Type.Ice      or types[1] == Type.Ice,
+			types[0] == Type.Dragon   or types[1] == Type.Dragon,
+			]
+		move_set = pokemon.getMoveSet()
+		move_set += [None] * (4 - len(move_set))
+		moves = [
+			-1 if op_state is not None and not op_state.isPkmnMoveDiscovered(slot, k) else i
+			for k, s in enumerate(move_set) for i in ([s.getID(), s.getPP()] if s is not None else [-1, -1])
+		]
+		return [
+			pokemon.getHealth(), pokemon.getMaxHealth(),
+			pokemon.getRawAttack(), pokemon.getRawDefense(), pokemon.getRawSpeed(), pokemon.getRawSpecial(),
+			*types, *status, *moves
+		]
+
+
 	def make_observation(self, state):
-		ob = array([
-			state.me.team[state.me.pokemonOnField].getHealth(),
-			state.me.team[state.me.pokemonOnField].getMaxHealth(),
-			state.op.team[state.op.pokemonOnField].getHealth(),
-			state.op.team[state.op.pokemonOnField].getMaxHealth(),
-			state.op.team[state.op.pokemonOnField].getTypes()[0],
-			state.op.team[state.op.pokemonOnField].getTypes()[1],
-		], dtype=float32)
-		moveMask = [int(m.getID() != 0 and m.getPP() != 0) for m in state.me.team[state.me.pokemonOnField].getMoveSet()] + [False for i in range(len(state.me.team[state.me.pokemonOnField].getMoveSet()), 4)]
+		me_team = state.me.team
+		op_team = state.op.team
+		ob = self.observe_pokemon_on_field(state.me, None)
+		ob += self.observe_pokemon_on_field(state.op, state.me)
+		for i in range(6):
+			if len(me_team) > i:
+				ob += self.observe_pokemon(me_team[i], i, None)
+			else:
+				ob += [-10] * 34
+		for i in range(6):
+			if len(op_team) > i:
+				ob += self.observe_pokemon(op_team[i], i, state.me)
+			else:
+				ob += [-10] * 34
+		ob = array(ob, dtype=float32)
+		moveMask = [int(m.getID() != 0 and m.getPP() != 0) for m in state.me.team[state.me.pokemonOnField].getMoveSet()] + [False for _ in range(len(state.me.team[state.me.pokemonOnField].getMoveSet()), 4)]
 		switchMask = [int(len(state.me.team) > i and state.me.pokemonOnField != i and state.me.team[i].getHealth() > 0) for i in range(6)]
 		canUseStruggle = int(not any(moveMask))
 		self.last_state = (ob, {
@@ -671,6 +1098,8 @@ class PokemonYellowBattle(Env):
 			state.me.nextAction = BattleAction.Attack1 + action
 		state.op.nextAction = self.op(state, self.np_random)
 		self.battle.tick()
+		if self.battle.isFinished() and self.replay_folder:
+			self.battle.save_replay(os.path.join(self.replay_folder, f"episode-{self.episode_id}.replay"))
 		observation, info = self.make_observation(state)
 		self.step_emulator(state)
 		# self.spec.max_episode_steps
@@ -724,6 +1153,7 @@ class PokemonYellowBattle(Env):
 		if self.render_mode == 'ansi':
 			state = self.battle.state
 			messages = "\n".join(self.messages)
+			self.messages = []
 			p1 = state.me.name + "'s team (P1)\n" + "\n".join(self.serialize_mon(s, i, state.op) for i, s in enumerate(state.me.team))
 			p2 = state.op.name + "'s team (P2)\n" + "\n".join(self.serialize_mon(s, i, state.me) for i, s in enumerate(state.op.team))
 			return messages + "\n" + p1 + "\n" + p2
