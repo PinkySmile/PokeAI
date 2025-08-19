@@ -490,7 +490,7 @@ class PokemonYellowBattle(Env):
 	observation_space = Box(
 		low= array([
 			# Offset 0
-			# My pokemon on field
+			# My pokémon on field
 			# HP,  MaxHP,
 			  0,   0,
 			# ATK, DEF, SPD, SPE
@@ -506,7 +506,7 @@ class PokemonYellowBattle(Env):
 			  0,       0,       -10,     -10,     -10,     -10,     -10,     -10,
 
 			# Offset 43
-			# Opponent pokemon on field
+			# Opponent pokémon on field
 			# HP,  MaxHP,
 			  0,   0,
 			# ATK, DEF, SPD, SPE
@@ -1114,7 +1114,7 @@ class PokemonYellowBattle(Env):
 			state.me.nextAction = BattleAction.Attack1 + action
 		state.op.nextAction = self.op(state, self.np_random)
 		self.battle.tick()
-		if self.battle.isFinished() and self.replay_folder:
+		if self.replay_folder:
 			self.battle.save_replay(os.path.join(self.replay_folder, f"episode-{self.episode_id}.replay"))
 		observation, info = self.make_observation(state)
 		self.step_emulator(state)
