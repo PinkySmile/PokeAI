@@ -1122,8 +1122,10 @@ class PokemonYellowBattle(Env):
 			moveMask = [int(m.getID() != 0 and m.getPP() != 0) for m in pkmn.getMoveSet()] + [False for _ in range(len(pkmn.getMoveSet()), 4)]
 			canUseStruggle = int(not any(moveMask))
 		switchMask = [int(len(state.me.team) > i and state.me.pokemonOnField != i and state.me.team[i].getHealth() > 0) for i in range(6)]
+		result = moveMask + switchMask + [canUseStruggle]
+		assert not any(result) == self.battle.isFinished()
 		self.last_state = (ob, {
-			'mask': array(moveMask + switchMask + [canUseStruggle], dtype=int8)
+			'mask': array(result, dtype=int8)
 		})
 		return self.last_state
 
