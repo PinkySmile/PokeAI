@@ -107,7 +107,7 @@ def basic_opponent(state, rng):
 	pkmn = state.op.team[state.op.pokemonOnField]
 	if pkmn.getHealth() == 0:
 		return BattleAction.Switch1 + state.op.pokemonOnField
-	for i, move in pkmn.getMoveSet():
+	for i, move in enumerate(pkmn.getMoveSet()):
 		if move.getID() != 0 and move.getPP() != 0:
 			return BattleAction.Attack1 + i
 	return BattleAction.StruggleMove
