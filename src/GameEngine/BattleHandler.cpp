@@ -35,6 +35,8 @@ namespace PokemonGen1
 		this->_state.onTurnStart = [this]{
 			return this->tick();
 		};
+		this->_state.me.discovered[0].first = true;
+		this->_state.op.discovered[0].first = true;
 	}
 
 	void BattleHandler::logBattle(const std::string &message)

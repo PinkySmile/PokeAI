@@ -106,7 +106,7 @@ def gen1AI(me, op, categories, random):
 def basic_opponent(state, rng):
 	pkmn = state.op.team[state.op.pokemonOnField]
 	if pkmn.getHealth() == 0:
-		return BattleAction.Switch1 + state.op.pokemonOnField
+		return BattleAction.Switch1 + state.op.pokemonOnField + 1
 	for i, move in enumerate(pkmn.getMoveSet()):
 		if move.getID() != 0 and move.getPP() != 0:
 			return BattleAction.Attack1 + i
@@ -489,6 +489,7 @@ class PokemonYellowBattle(Env):
 	action_space = Discrete(11)
 	observation_space = Box(
 		low= array([
+			# Offset 0
 			# My pokemon on field
 			# HP,  MaxHP,
 			  0,   0,
@@ -503,6 +504,8 @@ class PokemonYellowBattle(Env):
 			  0,   0,   0,   0,   0,   0,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
 			  0,       0,       -10,     -10,     -10,     -10,     -10,     -10,
+
+			# Offset 43
 			# Opponent pokemon on field
 			# HP,  MaxHP,
 			  0,   0,
@@ -518,6 +521,7 @@ class PokemonYellowBattle(Env):
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
 			  -1,      -1,      -10,     -10,     -10,     -10,     -10,     -10,
 
+			# Offset 86
 			# Pokémon 1 in team
 			# HP,  MaxHP,
 			  0,   0,
@@ -529,6 +533,7 @@ class PokemonYellowBattle(Env):
 			  0,   0,   0,   0,   0,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
 			  0,       0,       -10,     -10,     -10,     -10,     -10,     -10,
+			# Offset 120
 			# Pokémon 2 in team
 			# HP,  MaxHP,
 			 -10,  -10,
@@ -540,6 +545,7 @@ class PokemonYellowBattle(Env):
 			  -10, -10, -10, -10, -10,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
 			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+			# Offset 154
 			# Pokémon 3 in team
 			# HP,  MaxHP,
 			  -10,  -10,
@@ -551,6 +557,7 @@ class PokemonYellowBattle(Env):
 			  -10, -10, -10, -10, -10,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
 			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+			# Offset 188
 			# Pokémon 4 in team
 			# HP,  MaxHP,
 			  -10,  -10,
@@ -562,6 +569,7 @@ class PokemonYellowBattle(Env):
 			  -10, -10, -10, -10, -10,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
 			  -10,     -10,       -10,   -10,     -10,     -10,     -10,     -10,
+			# Offset 222
 			# Pokémon 5 in team
 			# HP,  MaxHP,
 			  -10,  -10,
@@ -573,6 +581,7 @@ class PokemonYellowBattle(Env):
 			  -10, -10, -10, -10, -10,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
 			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+			# Offset 256
 			# Pokémon 6 in team
 			# HP,  MaxHP,
 			  -10,  -10,
@@ -586,6 +595,7 @@ class PokemonYellowBattle(Env):
 			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
 
 
+			# Offset 290
 			# Pokémon 1 in opponent's team
 			# HP,  MaxHP,
 			  0,   0,
@@ -597,6 +607,7 @@ class PokemonYellowBattle(Env):
 			  0,   0,   0,   0,   0,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
 			  -10,    -10,      -10,     -10,     -10,     -10,     -10,     -10,
+			# Offset 324
 			# Pokémon 2 in opponent's team
 			# HP,  MaxHP,
 			 -10,  -10,
@@ -608,6 +619,7 @@ class PokemonYellowBattle(Env):
 			  -10, -10, -10, -10, -10,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
 			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+			# Offset 358
 			# Pokémon 3 in opponent's team
 			# HP,  MaxHP,
 			  -10,  -10,
@@ -619,6 +631,7 @@ class PokemonYellowBattle(Env):
 			  -10, -10, -10, -10, -10,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
 			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+			# Offset 392
 			# Pokémon 4 in opponent's team
 			# HP,  MaxHP,
 			  -10,  -10,
@@ -630,6 +643,7 @@ class PokemonYellowBattle(Env):
 			  -10, -10, -10, -10, -10,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
 			  -10,     -10,       -10,   -10,     -10,     -10,     -10,     -10,
+			# Offset 426
 			# Pokémon 5 in opponent's team
 			# HP,  MaxHP,
 			  -10,  -10,
@@ -641,6 +655,7 @@ class PokemonYellowBattle(Env):
 			  -10, -10, -10, -10, -10,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
 			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+			# Offset 460
 			# Pokémon 6 in opponent's team
 			# HP,  MaxHP,
 			  -10,  -10,
@@ -652,6 +667,7 @@ class PokemonYellowBattle(Env):
 			  -10, -10, -10, -10, -10,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
 			  -10,     -10,     -10,     -10,     -10,     -10,     -10,     -10,
+			# Offset 494
 		], dtype=float32),
 		high=array([
 			# My pokémon on field
