@@ -982,8 +982,7 @@ class PokemonYellowBattle(Env):
 			self.tick_emulator()
 		while (
 			self.emulator.memory[0x9D64:0x9D6F] == t_waiting or
-			# When switching from death, screen flashes, so we also wait during the flash
-			(isDead and self.emulator.memory[0x9D64:0x9D6F] == [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+			self.emulator.memory[0x9D6A:0x9D74] != [0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x77, 0x7F]
 		):
 			self.tick_emulator()
 		self.wait_for_start_turn()
