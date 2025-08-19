@@ -1125,8 +1125,8 @@ class PokemonYellowBattle(Env):
 
 
 	def compute_reward(self, old, new):
-		if new.op.team[new.op.pokemonOnField] == 0:
-			return 100
+		if all(f.getHealth() == 0 for f in new.op.team):
+			return 100 / self.current_turn
 		return sum(p.getHealth() for p in new.me.team) / sum(p.getMaxHealth() for p in new.me.team) - sum(p.getHealth() for p in new.op.team) / sum(p.getMaxHealth() for p in new.op.team)
 
 
