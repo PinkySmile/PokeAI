@@ -1111,7 +1111,6 @@ class PokemonYellowBattle(Env):
 		self.battle.reset()
 		self.current_turn = 0
 		self.episode_id += 1
-		self.op = options.get("ai", self.base_op)
 		if self.episode_trigger:
 			self.recording = self.episode_trigger(self.episode_id)
 		else:
@@ -1120,6 +1119,7 @@ class PokemonYellowBattle(Env):
 		if options is None:
 			self.battle.reset()
 		else:
+			self.op = options.get("ai", self.base_op)
 			state.me.name = options["p1name"]
 			state.op.name = options["p2name"]
 			state.me.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(m) for m in p["moves"]]) for p in options["p1team"]]
