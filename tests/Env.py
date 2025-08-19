@@ -1114,9 +1114,14 @@ class PokemonYellowBattle(Env):
 			else:
 				ob += [-10] * 34
 		ob = array(ob, dtype=float32)
-		moveMask = [int(m.getID() != 0 and m.getPP() != 0) for m in state.me.team[state.me.pokemonOnField].getMoveSet()] + [False for _ in range(len(state.me.team[state.me.pokemonOnField].getMoveSet()), 4)]
+		pkmn = state.me.team[state.me.pokemonOnField]
+		if pkmn.getHealth() == 0:
+			moveMask = [False, False, False, False]
+			canUseStruggle = False
+		else:
+			moveMask = [int(m.getID() != 0 and m.getPP() != 0) for m in pkmn.getMoveSet()] + [False for _ in range(len(pkmn.getMoveSet()), 4)]
+			canUseStruggle = int(not any(moveMask))
 		switchMask = [int(len(state.me.team) > i and state.me.pokemonOnField != i and state.me.team[i].getHealth() > 0) for i in range(6)]
-		canUseStruggle = int(not any(moveMask))
 		self.last_state = (ob, {
 			'mask': array(moveMask + switchMask + [canUseStruggle], dtype=int8)
 		})
