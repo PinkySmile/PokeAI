@@ -31,6 +31,7 @@ Take_Down: 32/32
 Double_Edge: 32/32
 Tail_Whip: 32/32
 Poison_Sting: 32/32
+Twineedle: 32/32
 Pin_Missile: 32/32
 Leer: 32/32
 Growl: 32/32
@@ -98,12 +99,14 @@ Haze: 32/32
 Reflect: 32/32
 Focus_Energy: 32/32
 Bide: 32/32
+Metronome: 32/32
 Mirror_Move: 32/32
 Self_Destruct: 32/32
 Egg_Bomb: 32/32
 Lick: 32/32
 Smog: 32/32
 Sludge: 32/32
+Bone_Club: 32/32
 Fire_Blast: 36/36
 Waterfall: 32/32
 Clamp: 36/36
@@ -141,27 +144,24 @@ Super_Fang: 32/32
 Slash: 32/32
 Substitute: 32/32
 Struggle: 32/32
-Metronome: 31/32
-Low_Kick: 28/32
-Hyper_Fang: 19/32
-Disable: 17/32
+Low_Kick: 25/32
+Disable: 18/32
+Fissure: 17/32
 Guillotine: 16/32
 Horn_Drill: 16/32
-Fissure: 16/32
+Hyper_Fang: 15/32
 Rolling_Kick: 14/32
-Thrash: 14/32
-Bite: 14/32
-Petal_Dance: 12/32
-Twineedle: 11/32
-Bone_Club: 11/32
-Stomp: 10/32
-Headbutt: 9/32
-Mimic: 9/32
+Mimic: 13/32
+Headbutt: 11/32
+Bite: 11/32
+Thrash: 9/32
+Stomp: 7/32
+Petal_Dance: 7/32
 Rage: 2/32
-Dream_Eater: 2/32
+Dream_Eater: 1/32
 Fly: 0/32
 Counter: 0/32
 Dig: 0/32
 Transform: 0/32
-4849 individual test(s) passed. 453 individual test(s) failed.
-143 test group(s) passed. 22 test group(s) failed.
+4876 individual test(s) passed. 426 individual test(s) failed.
+146 test group(s) passed. 19 test group(s) failed.

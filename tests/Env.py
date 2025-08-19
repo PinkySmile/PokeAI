@@ -1060,7 +1060,7 @@ class PokemonYellowBattle(Env):
 			types[0] == Type.Psychic  or types[1] == Type.Psychic,
 			types[0] == Type.Ice      or types[1] == Type.Ice,
 			types[0] == Type.Dragon   or types[1] == Type.Dragon,
-			]
+		]
 		move_set = pokemon.getMoveSet()
 		move_set += [None] * (4 - len(move_set))
 		moves = [
@@ -1100,26 +1100,26 @@ class PokemonYellowBattle(Env):
 
 
 	def compute_reward(self, old, new):
-		if new[0][2] == 0:
+		if new.op.team[new.op.pokemonOnField] == 0:
 			return 100
-		return (new[0][0] - new[0][2]) / (1 + abs(new[0][1] - new[0][3])) * 2
+		return sum(p.getHealth() for p in new.me.team) / sum(p.getMaxHealth() for p in new.me.team) - sum(p.getHealth() for p in new.op.team) / sum(p.getMaxHealth() for p in new.op.team)
 
 
 	def step(self, action):
-		old = self.last_state
 		state = self.battle.state
 		if action == 10:
 			state.me.nextAction = BattleAction.StruggleMove
 		else:
 			state.me.nextAction = BattleAction.Attack1 + action
 		state.op.nextAction = self.op(state, self.np_random)
+		old = state.copy()
 		self.battle.tick()
 		if (self.battle.isFinished() or self.render_mode == "rgb_array_list") and self.replay_folder:
 			self.battle.saveReplay(os.path.join(self.replay_folder, f"episode-{self.episode_id}.replay"))
 		observation, info = self.make_observation(state)
 		self.step_emulator(state)
 		# self.spec.max_episode_steps
-		return observation, self.compute_reward(old, self.last_state), self.battle.isFinished(), False, info
+		return observation, self.compute_reward(old, state), self.battle.isFinished(), False, info
 
 
 	def reset(self, seed=None, options=None):

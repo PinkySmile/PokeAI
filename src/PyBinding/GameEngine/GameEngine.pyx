@@ -1251,6 +1251,13 @@ cdef class BattleState:
 		self.__onBattleEndPy = None
 		self.__onBattleStartPy = None
 
+	def copy(self):
+		cdef __BattleState *obj = new __BattleState(dereference(self.__instance))
+		b = BattleState()
+		del b.__instance
+		b.__instance = obj
+		return b
+
 	@property
 	def me(self):
 		p = PlayerState()

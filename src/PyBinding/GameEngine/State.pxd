@@ -46,6 +46,9 @@ cdef extern from "../../GameEngine/State.hpp" namespace "PokemonGen1":
 		function[unsigned char ()] onTurnStart
 		function[void ()] onBattleEnd
 		function[void ()] onBattleStart
+		BattleState()
+		BattleState(const BattleState &)
+		BattleState &operator=(const BattleState &)
 
 	cdef function[unsigned char ()] pythonCallbackLambda(void *python_function, bool (*e)(void *))
 	cdef function[void ()] pythonCallbackLambdaVoid(void *python_function, void (*e)(void *))
