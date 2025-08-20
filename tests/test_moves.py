@@ -281,7 +281,7 @@ def compare_basic_states(battle_state, emu_state):
 	return len(errors) == 0, errors
 
 
-def test_move(emulator, move, random_state, low_stats):
+def test_move(emulator, move, random_state, scenario):
 	battle = BattleHandler(False, debug)
 	state = battle.state
 	if random_state is not None:
@@ -301,7 +301,10 @@ def test_move(emulator, move, random_state, low_stats):
 	emulator.memory[wLinkState] = LINK_STATE_BATTLING
 
 	# Move list: Constrict, -, -, -; 999/999 HP; 25 DEF; 25 SPE; 25 SPD
-	emulator.memory[wEnemyMonMoves + 0]   = emulator.memory[wEnemyMon1Moves + 0]   = AvailableMove.Constrict
+	if scenario & 2:
+		emulator.memory[wEnemyMonMoves] = emulator.memory[wEnemyMon1Moves] = AvailableMove.Bubble
+	else:
+		emulator.memory[wEnemyMonMoves] = emulator.memory[wEnemyMon1Moves] = AvailableMove.Constrict
 	emulator.memory[wEnemyMonMoves + 1]   = emulator.memory[wEnemyMon1Moves + 1]   = AvailableMove.Empty
 	emulator.memory[wEnemyMonMoves + 2]   = emulator.memory[wEnemyMon1Moves + 2]   = AvailableMove.Empty
 	emulator.memory[wEnemyMonMoves + 3]   = emulator.memory[wEnemyMon1Moves + 3]   = AvailableMove.Empty
@@ -309,14 +312,18 @@ def test_move(emulator, move, random_state, low_stats):
 	emulator.memory[wEnemyMonHP + 1]      = emulator.memory[wEnemyMon1HP + 1]      = 999 & 0xFF
 	emulator.memory[wEnemyMonMaxHP + 0]   = emulator.memory[wEnemyMon1MaxHP + 0]   = emulator.memory[wEnemyMonUnmodifiedMaxHP + 0]   = 999 >> 8
 	emulator.memory[wEnemyMonMaxHP + 1]   = emulator.memory[wEnemyMon1MaxHP + 1]   = emulator.memory[wEnemyMonUnmodifiedMaxHP + 1]   = 999 & 0xFF
-	if low_stats:
+	if scenario & 1:
+		emulator.memory[wEnemyMonAttack + 0]  = emulator.memory[wEnemyMon1Attack + 0]  = emulator.memory[wEnemyMonUnmodifiedAttack + 0]  = 999 >> 8
+		emulator.memory[wEnemyMonAttack + 1]  = emulator.memory[wEnemyMon1Attack + 1]  = emulator.memory[wEnemyMonUnmodifiedAttack + 1]  = 999 & 0xFF
 		emulator.memory[wEnemyMonDefense + 0] = emulator.memory[wEnemyMon1Defense + 0] = emulator.memory[wEnemyMonUnmodifiedDefense + 0] = 25 >> 8
 		emulator.memory[wEnemyMonDefense + 1] = emulator.memory[wEnemyMon1Defense + 1] = emulator.memory[wEnemyMonUnmodifiedDefense + 1] = 25 & 0xFF
-		emulator.memory[wEnemyMonSpecial + 0] = emulator.memory[wEnemyMon1Special + 0] = emulator.memory[wEnemyMonUnmodifiedSpecial + 0] = 25 >> 8
-		emulator.memory[wEnemyMonSpecial + 1] = emulator.memory[wEnemyMon1Special + 1] = emulator.memory[wEnemyMonUnmodifiedSpecial + 1] = 25 & 0xFF
+		emulator.memory[wEnemyMonSpecial + 0] = emulator.memory[wEnemyMon1Special + 0] = emulator.memory[wEnemyMonUnmodifiedSpecial + 0] = 999 >> 8
+		emulator.memory[wEnemyMonSpecial + 1] = emulator.memory[wEnemyMon1Special + 1] = emulator.memory[wEnemyMonUnmodifiedSpecial + 1] = 999 & 0xFF
 		emulator.memory[wEnemyMonSpeed + 0]   = emulator.memory[wEnemyMon1Speed + 0]   = emulator.memory[wEnemyMonUnmodifiedSpeed + 0]   = 25 >> 8
 		emulator.memory[wEnemyMonSpeed + 1]   = emulator.memory[wEnemyMon1Speed + 1]   = emulator.memory[wEnemyMonUnmodifiedSpeed + 1]   = 25 & 0xFF
 	else:
+		emulator.memory[wEnemyMonAttack + 0]  = emulator.memory[wEnemyMon1Attack + 0]  = emulator.memory[wEnemyMonUnmodifiedAttack + 0]  = 999 >> 8
+		emulator.memory[wEnemyMonAttack + 1]  = emulator.memory[wEnemyMon1Attack + 1]  = emulator.memory[wEnemyMonUnmodifiedAttack + 1]  = 999 & 0xFF
 		emulator.memory[wEnemyMonDefense + 0] = emulator.memory[wEnemyMon1Defense + 0] = emulator.memory[wEnemyMonUnmodifiedDefense + 0] = 999 >> 8
 		emulator.memory[wEnemyMonDefense + 1] = emulator.memory[wEnemyMon1Defense + 1] = emulator.memory[wEnemyMonUnmodifiedDefense + 1] = 999 & 0xFF
 		emulator.memory[wEnemyMonSpecial + 0] = emulator.memory[wEnemyMon1Special + 0] = emulator.memory[wEnemyMonUnmodifiedSpecial + 0] = 999 >> 8
@@ -328,15 +335,19 @@ def test_move(emulator, move, random_state, low_stats):
 	#emulator.memory[wEnemyMons + PACK_TYPEA] = Type.Ghost
 	#emulator.memory[wEnemyMons + PACK_TYPEB] = Type.Ghost
 
-	# Move list: <move>, -, -, -; 300 ATK; 300 DEF; 300 SPE; 300 SPD
+	# Move list: <move>, -, -, -; 999/999HP; 300 ATK; 300 DEF; 300 SPE; 300 SPD
 	emulator.memory[wBattleMonMoves + 0]   = emulator.memory[wPartyMon1Moves + 0]   = move
 	emulator.memory[wBattleMonMoves + 1]   = emulator.memory[wPartyMon1Moves + 1]   = AvailableMove.Ember
 	emulator.memory[wBattleMonMoves + 2]   = emulator.memory[wPartyMon1Moves + 2]   = AvailableMove.Empty
 	emulator.memory[wBattleMonMoves + 3]   = emulator.memory[wPartyMon1Moves + 3]   = AvailableMove.Empty
+	emulator.memory[wBattleMonHP + 0]      = emulator.memory[wPartyMon1HP + 0]      = 999 >> 8
+	emulator.memory[wBattleMonHP + 1]      = emulator.memory[wPartyMon1HP + 1]      = 999 & 0xFF
+	emulator.memory[wBattleMonMaxHP + 0]   = emulator.memory[wPartyMon1MaxHP + 0]   = 999 >> 8
+	emulator.memory[wBattleMonMaxHP + 1]   = emulator.memory[wPartyMon1MaxHP + 1]   = 999 & 0xFF
 	emulator.memory[wBattleMonAttack + 0]  = emulator.memory[wPartyMon1Attack + 0]  = emulator.memory[wPlayerMonUnmodifiedAttack + 0]  = 300 >> 8
 	emulator.memory[wBattleMonAttack + 1]  = emulator.memory[wPartyMon1Attack + 1]  = emulator.memory[wPlayerMonUnmodifiedAttack + 1]  = 300 & 0xFF
-	emulator.memory[wBattleMonDefense + 0] = emulator.memory[wPartyMon1Defense + 0] = emulator.memory[wPlayerMonUnmodifiedDefense + 0] = 300 >> 8
-	emulator.memory[wBattleMonDefense + 1] = emulator.memory[wPartyMon1Defense + 1] = emulator.memory[wPlayerMonUnmodifiedDefense + 1] = 300 & 0xFF
+	emulator.memory[wBattleMonDefense + 0] = emulator.memory[wPartyMon1Defense + 0] = emulator.memory[wPlayerMonUnmodifiedDefense + 0] = 100 >> 8
+	emulator.memory[wBattleMonDefense + 1] = emulator.memory[wPartyMon1Defense + 1] = emulator.memory[wPlayerMonUnmodifiedDefense + 1] = 100 & 0xFF
 	emulator.memory[wBattleMonSpecial + 0] = emulator.memory[wPartyMon1Special + 0] = emulator.memory[wPlayerMonUnmodifiedSpecial + 0] = 300 >> 8
 	emulator.memory[wBattleMonSpecial + 1] = emulator.memory[wPartyMon1Special + 1] = emulator.memory[wPlayerMonUnmodifiedSpecial + 1] = 300 & 0xFF
 	emulator.memory[wBattleMonSpeed + 0]   = emulator.memory[wPartyMon1Speed + 0]   = emulator.memory[wPlayerMonUnmodifiedSpeed + 0]   = 300 >> 8
@@ -472,15 +483,27 @@ for move_index in range(1, AvailableMove.Struggle + 1):
 	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):
 		name = AvailableMove(move_index).name
 		tests.append({
-			'name': f'{name}[{i}](Low)',
+			'name': f'{name}[{i}](LP)',
 			'cb': test_move,
-			'args': [move_index, rand, True],
+			'args': [move_index, rand, 1],
 			'group': name
 		})
 		tests.append({
-			'name': f'{name}[{i}](High)',
+			'name': f'{name}[{i}](HP)',
 			'cb': test_move,
-			'args': [move_index, rand, False],
+			'args': [move_index, rand, 0],
+			'group': name
+		})
+		tests.append({
+			'name': f'{name}[{i}](LS)',
+			'cb': test_move,
+			'args': [move_index, rand, 3],
+			'group': name
+		})
+		tests.append({
+			'name': f'{name}[{i}](HS)',
+			'cb': test_move,
+			'args': [move_index, rand, 2],
 			'group': name
 		})
 
