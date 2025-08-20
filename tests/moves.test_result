@@ -18,10 +18,13 @@ Whirlwind: 32/32
 Bind: 32/32
 Slam: 32/32
 Vine_Whip: 32/32
+Stomp: 38/38
 Double_Kick: 32/32
 Mega_Kick: 32/32
 Jump_Kick: 32/32
+Rolling_Kick: 32/32
 Sand_Attack: 34/34
+Headbutt: 32/32
 Horn_Attack: 32/32
 Fury_Attack: 32/32
 Tackle: 32/32
@@ -34,6 +37,7 @@ Poison_Sting: 32/32
 Twineedle: 32/32
 Pin_Missile: 32/32
 Leer: 32/32
+Bite: 32/32
 Growl: 32/32
 Roar: 32/32
 Sing: 32/32
@@ -55,6 +59,7 @@ Hyper_Beam: 32/32
 Peck: 32/32
 Drill_Peck: 32/32
 Submission: 32/32
+Low_Kick: 34/34
 Seismic_Toss: 32/32
 Strength: 32/32
 Absorb: 32/32
@@ -99,7 +104,6 @@ Haze: 32/32
 Reflect: 32/32
 Focus_Energy: 32/32
 Bide: 32/32
-Metronome: 32/32
 Mirror_Move: 32/32
 Self_Destruct: 32/32
 Egg_Bomb: 32/32
@@ -137,6 +141,7 @@ Fury_Swipes: 32/32
 Bonemerang: 32/32
 Rest: 32/32
 Rock_Slide: 32/32
+Hyper_Fang: 32/32
 Sharpen: 32/32
 Conversion: 32/32
 Tri_Attack: 32/32
@@ -144,24 +149,19 @@ Super_Fang: 32/32
 Slash: 32/32
 Substitute: 32/32
 Struggle: 32/32
-Low_Kick: 25/32
-Disable: 18/32
+Metronome: 30/32
+Disable: 21/32
 Fissure: 17/32
 Guillotine: 16/32
 Horn_Drill: 16/32
-Hyper_Fang: 15/32
-Rolling_Kick: 14/32
-Mimic: 13/32
-Headbutt: 11/32
-Bite: 11/32
-Thrash: 9/32
-Stomp: 7/32
-Petal_Dance: 7/32
+Petal_Dance: 11/32
+Mimic: 11/32
+Thrash: 7/32
 Rage: 2/32
-Dream_Eater: 1/32
 Fly: 0/32
 Counter: 0/32
 Dig: 0/32
+Dream_Eater: 0/32
 Transform: 0/32
-4876 individual test(s) passed. 426 individual test(s) failed.
-146 test group(s) passed. 19 test group(s) failed.
+4993 individual test(s) passed. 317 individual test(s) failed.
+151 test group(s) passed. 14 test group(s) failed.

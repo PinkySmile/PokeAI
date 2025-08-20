@@ -30,28 +30,27 @@ t_waiting = [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7] #
 t_bring_out_which = [0x81, 0xB1, 0xA8, 0xAD, 0xA6, 0x7F, 0xAE, 0xB4, 0xB3, 0x7F, 0xB6, 0xA7, 0xA8, 0xA2, 0xA7] # Bring out which
 
 banned_moves = [ # These moves aren't implemented properly in the engine
-	AvailableMove.Low_Kick,
-	AvailableMove.Disable,
+	# Repeat -> Confuse moves
+	AvailableMove.Thrash,
+	AvailableMove.Petal_Dance,
+	# OHKO
 	AvailableMove.Fissure,
 	AvailableMove.Guillotine,
 	AvailableMove.Horn_Drill,
-	AvailableMove.Hyper_Fang,
-	AvailableMove.Rolling_Kick,
-	AvailableMove.Mimic,
-	AvailableMove.Headbutt,
-	AvailableMove.Bite,
-	AvailableMove.Thrash,
-	AvailableMove.Stomp,
-	AvailableMove.Petal_Dance,
-	AvailableMove.Rage,
-	AvailableMove.Dream_Eater,
+	# Invul turn 1
 	AvailableMove.Fly,
-	AvailableMove.Counter,
 	AvailableMove.Dig,
-	AvailableMove.Transform,
-	AvailableMove.Bide,
+	# Screens
 	AvailableMove.Reflect,
 	AvailableMove.Light_Screen,
+	# Misc
+	AvailableMove.Disable,
+	AvailableMove.Mimic,
+	AvailableMove.Counter,
+	AvailableMove.Rage,
+	AvailableMove.Dream_Eater,
+	AvailableMove.Bide,
+	AvailableMove.Transform,
 ]
 
 
@@ -1183,8 +1182,8 @@ class PokemonYellowBattle(Env):
 			self.op = options.get("ai", self.base_op)
 			state.me.name = options["p1name"]
 			state.op.name = options["p2name"]
-			state.me.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Splash if m in banned_moves else m) for m in p["moves"]]) for p in options["p1team"]]
-			state.op.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Splash if m in banned_moves else m) for m in p["moves"]]) for p in options["p2team"]]
+			state.me.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m) for m in p["moves"]]) for p in options["p1team"]]
+			state.op.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m) for m in p["moves"]]) for p in options["p2team"]]
 		state.rng.setList([self.np_random.integers(low=0, high=255) for _ in range(9)])
 		self.init_emulator(state)
 		return self.make_observation(state)

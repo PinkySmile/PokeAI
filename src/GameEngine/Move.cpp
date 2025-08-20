@@ -405,12 +405,13 @@ namespace PokemonGen1
 		if (!sub) {
 			if (
 				!this->_statusChange.cmpVal || (
-					target.getTypes().first != this->_type &&
-					target.getTypes().second != this->_type &&
-					target.canHaveStatus(this->_statusChange.status) &&
-					rng() < this->_statusChange.cmpVal
+					(this->_statusChange.status == STATUS_FLINCHED || (
+						target.getTypes().first != this->_type &&
+						target.getTypes().second != this->_type &&
+						target.canHaveStatus(this->_statusChange.status)
+					)) && rng() < this->_statusChange.cmpVal
 				)
-				)
+			)
 				target.addStatus(this->_statusChange.status);
 
 			bool addedStatus = false;
@@ -556,11 +557,11 @@ namespace PokemonGen1
 		Move{0x14, "Bind"        , TYPE_NORMAL  , PHYSICAL,  15,  75, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, WRAP_TARGET, GLITCH_HYPER_BEAM},
 		Move{0x15, "Slam"        , TYPE_NORMAL  , PHYSICAL,  80,  75, 20},
 		Move{0x16, "Vine Whip"   , TYPE_GRASS   , SPECIAL ,  35, 100, 25},
-		Move{0x17, "Stomp"       , TYPE_NORMAL  , PHYSICAL,  65, 100, 20},
+		Move{0x17, "Stomp"       , TYPE_NORMAL  , PHYSICAL,  65, 100, 20, {STATUS_FLINCHED, 0x4D}},
 		Move{0x18, "Double Kick" , TYPE_FIGHTING, PHYSICAL,  30, 100, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, {2, 2}},
 		Move{0x19, "Mega Kick"   , TYPE_NORMAL  , PHYSICAL, 120,  75,  5},
 		Move{0x1A, "Jump Kick"   , TYPE_FIGHTING, PHYSICAL,  70,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NO_CALLBACK, TAKE_1DAMAGE},
-		Move{0x1B, "Rolling Kick", TYPE_FIGHTING, PHYSICAL,  60,  85, 15},
+		Move{0x1B, "Rolling Kick", TYPE_FIGHTING, PHYSICAL,  60,  85, 15, {STATUS_FLINCHED, 0x4D}},
 		Move{0x1C, "Sand-Attack" , TYPE_NORMAL  , STATUS  ,   0, 100, 15, NO_STATUS_CHANGE, {}, {{STATS_ACC, -1, 0}}},
 		Move{0x1D, "Headbutt"    , TYPE_NORMAL  , PHYSICAL,  70, 100, 15, {STATUS_FLINCHED, 0x4D}},
 		Move{0x1E, "Horn Attack" , TYPE_NORMAL  , PHYSICAL,  65, 100, 25},
@@ -599,8 +600,8 @@ namespace PokemonGen1
 		Move{0x3F, "Hyper Beam"  , TYPE_NORMAL  , PHYSICAL, 150,  90,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, true},
 		Move{0x40, "Peck"        , TYPE_FLYING  , PHYSICAL,  35, 100, 35},
 		Move{0x41, "Drill Peck"  , TYPE_FLYING  , PHYSICAL,  80, 100, 20},
-		Move{0x42, "Submission"  , TYPE_FIGHTING, PHYSICAL,  80, 80, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_QUARTER_MOVE_DAMAGE},
-		Move{0x43, "Low Kick"    , TYPE_FIGHTING, PHYSICAL,  50, 100, 20, {STATUS_FLINCHED, 0x4D}},
+		Move{0x42, "Submission"  , TYPE_FIGHTING, PHYSICAL,  80,  80, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_QUARTER_MOVE_DAMAGE},
+		Move{0x43, "Low Kick"    , TYPE_FIGHTING, PHYSICAL,  50,  90, 20, {STATUS_FLINCHED, 0x4D}},
 		Move{0x44, "Counter"     , TYPE_FIGHTING, PHYSICAL,  80,  80, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, -5, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code this move
 		Move{0x45, "Seismic Toss", TYPE_FIGHTING, STATUS,     0, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_LVL_AS_DAMAGE},
 		Move{0x46, "Strength"    , TYPE_NORMAL  , PHYSICAL,  80, 100, 15},
