@@ -12,7 +12,7 @@ def check_obs(obs):
 		print(f"#{i} not in range: {low[i]} <= {obs[i]} <= {high[i]}")
 
 
-p = gym.make('PokemonYellow', render_mode="ansi")
+p = gym.make('PokemonYellow', render_mode="human")
 finished = False
 observation, info = p.reset(options={
 	"p1name": "PokeAI",
@@ -44,8 +44,6 @@ observation, info = p.reset(options={
 	]
 })
 
-print(observation, info, len(observation))
-observation, info = p.reset()
 print(observation, info, len(observation))
 check_obs(observation)
 while not finished:

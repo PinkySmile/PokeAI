@@ -102,7 +102,6 @@ Barrier: 64/64
 Haze: 64/64
 Focus_Energy: 64/64
 Bide: 64/64
-Metronome: 64/64
 Mirror_Move: 64/64
 Self_Destruct: 64/64
 Egg_Bomb: 64/64
@@ -148,20 +147,21 @@ Super_Fang: 64/64
 Slash: 64/64
 Substitute: 64/64
 Struggle: 64/64
+Metronome: 63/64
+Thrash: 60/64
+Petal_Dance: 60/64
 Light_Screen: 53/64
-Reflect: 52/64
-Disable: 36/64
-Fissure: 34/64
-Horn_Drill: 33/64
-Guillotine: 32/64
-Thrash: 19/64
-Petal_Dance: 18/64
-Mimic: 17/64
-Rage: 4/64
-Dream_Eater: 1/64
-Fly: 0/64
+Reflect: 53/64
+Disable: 41/64
+Guillotine: 34/64
+Rage: 34/64
+Fissure: 33/64
+Fly: 32/64
+Horn_Drill: 32/64
+Dig: 32/64
+Mimic: 14/64
+Dream_Eater: 3/64
 Counter: 0/64
-Dig: 0/64
 Transform: 0/64
-9959 individual test(s) passed. 661 individual test(s) failed.
-150 test group(s) passed. 15 test group(s) failed.
+10140 individual test(s) passed. 480 individual test(s) failed.
+149 test group(s) passed. 16 test group(s) failed.

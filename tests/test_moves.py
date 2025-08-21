@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 import sys
 import time
 import threading
+from Emulator import Emulator
 
 wLinkBattleRandomNumberListIndex = 0xCCDE
 wLinkBattleRandomNumberList = 0xD147
@@ -167,7 +168,7 @@ assert playerBaseAddr + specialOffset == wBattleMonSpecial
 assert playerBaseAddr + ppOffset == wBattleMonPP
 
 
-def get_basic_mon_state(emulator, base_address):
+def get_basic_mon_state(emulator, base_address, baseStats):
 	nickname = bytes(emulator.memory[base_address + nickOffset:base_address + nickOffset + 11])
 	species = emulator.memory[base_address + speciesOffset]
 	hp = int.from_bytes(bytes(emulator.memory[base_address + hpOffset:base_address + hpOffset + 2]), byteorder='big')
@@ -183,6 +184,11 @@ def get_basic_mon_state(emulator, base_address):
 	speed = int.from_bytes(bytes(emulator.memory[base_address + speedOffset:base_address + speedOffset + 2]), byteorder='big')
 	special = int.from_bytes(bytes(emulator.memory[base_address + specialOffset:base_address + specialOffset + 2]), byteorder='big')
 	pps = emulator.memory[base_address + ppOffset:base_address + ppOffset + 4]
+	baseMaxHp = int.from_bytes(bytes(emulator.memory[baseStats:baseStats + 2]), byteorder='big')
+	baseAttack = int.from_bytes(bytes(emulator.memory[baseStats + 2:baseStats + 4]), byteorder='big')
+	baseDefense = int.from_bytes(bytes(emulator.memory[baseStats + 4:baseStats + 6]), byteorder='big')
+	baseSpeed = int.from_bytes(bytes(emulator.memory[baseStats + 6:baseStats + 8]), byteorder='big')
+	baseSpecial = int.from_bytes(bytes(emulator.memory[baseStats + 8:baseStats + 10]), byteorder='big')
 	return {
 		'nickname': nickname,
 		'species': PokemonSpecies(species),
@@ -199,13 +205,18 @@ def get_basic_mon_state(emulator, base_address):
 		'speed': speed,
 		'special': special,
 		'pps': pps,
+		'baseMaxHp': baseMaxHp,
+		'baseAttack': baseAttack,
+		'baseDefense': baseDefense,
+		'baseSpeed': baseSpeed,
+		'baseSpecial': baseSpecial,
 	}
 
 
 def get_emulator_basic_state(emulator):
 	return (
-		get_basic_mon_state(emulator, playerBaseAddr),
-		get_basic_mon_state(emulator, enemyBaseAddr),
+		get_basic_mon_state(emulator, playerBaseAddr, wPlayerMonUnmodifiedMaxHP),
+		get_basic_mon_state(emulator, enemyBaseAddr, wEnemyMonUnmodifiedMaxHP),
 		emulator.memory[wLinkBattleRandomNumberListIndex],
 		emulator.memory[wLinkBattleRandomNumberList:wLinkBattleRandomNumberList+9]
 	)
@@ -218,10 +229,10 @@ def dump_basic_state(s):
 	else:
 		r += "    , "
 	r += f'{s['hp']: >3d}/{s['maxHp']: >3d}HP, '
-	r += f'{s['attack']: >3d}ATK (???@+0), '
-	r += f'{s['defense']: >3d}DEF (???@+0), '
-	r += f'{s['special']: >3d}SPE (???@+0), '
-	r += f'{s['speed']: >3d}SPD (???@+0), '
+	r += f'{s['attack']: >3d}ATK ({s['baseAttack']: >3d}@+?), '
+	r += f'{s['defense']: >3d}DEF ({s['baseDefense']: >3d}@+?), '
+	r += f'{s['special']: >3d}SPE ({s['baseSpecial']: >3d}@+?), '
+	r += f'{s['speed']: >3d}SPD ({s['baseSpeed']: >3d}@+?), '
 	r += f'100%ACC (+0), '
 	r += f'100%EVD (+0), '
 	r += f'Status: {s['status']} {statusToString(s['status'])}, '
@@ -281,9 +292,10 @@ def compare_basic_states(battle_state, emu_state):
 	return len(errors) == 0, errors
 
 
-def test_move(emulator, move, random_state, scenario):
+def test_move(emulator_gen1, move, random_state, scenario):
 	battle = BattleHandler(False, debug)
 	state = battle.state
+	emulator = emulator_gen1.emulator
 	if random_state is not None:
 		assert len(random_state) == 9
 		state.rng.setList(random_state)
@@ -291,70 +303,83 @@ def test_move(emulator, move, random_state, scenario):
 		state.rng.makeRandomList(9)
 	if debug:
 		state.battleLogger = print
-	fd = open("pokeyellow_test_move.state", "rb")
-	emulator.load_state(fd)
-	fd.close()
-	l = state.rng.getList()
-	emulator.memory[wLinkBattleRandomNumberListIndex] = 0
-	for i in range(9):
-		emulator.memory[wLinkBattleRandomNumberList + i] = l[i]
-	emulator.memory[wLinkState] = LINK_STATE_BATTLING
 
-	# Move list: Constrict, -, -, -; 999/999 HP; 25 DEF; 25 SPE; 25 SPD
+	pokemon_data = [0] * 44
+	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
+	pokemon_data[PACK_CURR_LEVEL] = 5
+	pokemon_data[PACK_STATUS] = StatusChange.OK
+	pokemon_data[PACK_TYPEA] = Type.Normal
+	pokemon_data[PACK_TYPEB] = Type.Normal
 	if scenario & 2:
-		emulator.memory[wEnemyMonMoves] = emulator.memory[wEnemyMon1Moves] = AvailableMove.Bubble
+		pokemon_data[PACK_MOVE1] = AvailableMove.Bubble
 	else:
-		emulator.memory[wEnemyMonMoves] = emulator.memory[wEnemyMon1Moves] = AvailableMove.Constrict
-	emulator.memory[wEnemyMonMoves + 1]   = emulator.memory[wEnemyMon1Moves + 1]   = AvailableMove.Empty
-	emulator.memory[wEnemyMonMoves + 2]   = emulator.memory[wEnemyMon1Moves + 2]   = AvailableMove.Empty
-	emulator.memory[wEnemyMonMoves + 3]   = emulator.memory[wEnemyMon1Moves + 3]   = AvailableMove.Empty
-	emulator.memory[wEnemyMonHP + 0]      = emulator.memory[wEnemyMon1HP + 0]      = 999 >> 8
-	emulator.memory[wEnemyMonHP + 1]      = emulator.memory[wEnemyMon1HP + 1]      = 999 & 0xFF
-	emulator.memory[wEnemyMonMaxHP + 0]   = emulator.memory[wEnemyMon1MaxHP + 0]   = emulator.memory[wEnemyMonUnmodifiedMaxHP + 0]   = 999 >> 8
-	emulator.memory[wEnemyMonMaxHP + 1]   = emulator.memory[wEnemyMon1MaxHP + 1]   = emulator.memory[wEnemyMonUnmodifiedMaxHP + 1]   = 999 & 0xFF
+		pokemon_data[PACK_MOVE1] = AvailableMove.Constrict
+	pokemon_data[PACK_MOVE2] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
+	pokemon_data[PACK_PPS_MOVE1] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 10
+	pokemon_data[PACK_PPS_MOVE3] = 10
+	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
+	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
+	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
+	pokemon_data[PACK_MAX_HP + 0] = 999 >> 8
+	pokemon_data[PACK_MAX_HP + 1] = 999 & 0xFF
+
 	if scenario & 1:
-		emulator.memory[wEnemyMonAttack + 0]  = emulator.memory[wEnemyMon1Attack + 0]  = emulator.memory[wEnemyMonUnmodifiedAttack + 0]  = 999 >> 8
-		emulator.memory[wEnemyMonAttack + 1]  = emulator.memory[wEnemyMon1Attack + 1]  = emulator.memory[wEnemyMonUnmodifiedAttack + 1]  = 999 & 0xFF
-		emulator.memory[wEnemyMonDefense + 0] = emulator.memory[wEnemyMon1Defense + 0] = emulator.memory[wEnemyMonUnmodifiedDefense + 0] = 25 >> 8
-		emulator.memory[wEnemyMonDefense + 1] = emulator.memory[wEnemyMon1Defense + 1] = emulator.memory[wEnemyMonUnmodifiedDefense + 1] = 25 & 0xFF
-		emulator.memory[wEnemyMonSpecial + 0] = emulator.memory[wEnemyMon1Special + 0] = emulator.memory[wEnemyMonUnmodifiedSpecial + 0] = 999 >> 8
-		emulator.memory[wEnemyMonSpecial + 1] = emulator.memory[wEnemyMon1Special + 1] = emulator.memory[wEnemyMonUnmodifiedSpecial + 1] = 999 & 0xFF
-		emulator.memory[wEnemyMonSpeed + 0]   = emulator.memory[wEnemyMon1Speed + 0]   = emulator.memory[wEnemyMonUnmodifiedSpeed + 0]   = 25 >> 8
-		emulator.memory[wEnemyMonSpeed + 1]   = emulator.memory[wEnemyMon1Speed + 1]   = emulator.memory[wEnemyMonUnmodifiedSpeed + 1]   = 25 & 0xFF
+		pokemon_data[PACK_ATK + 0] = 999 >> 8
+		pokemon_data[PACK_ATK + 1] = 999 & 0xFF
+		pokemon_data[PACK_DEF + 0] = 25  >> 8
+		pokemon_data[PACK_DEF + 1] = 25  & 0xFF
+		pokemon_data[PACK_SPD + 0] = 25  >> 8
+		pokemon_data[PACK_SPD + 1] = 25  & 0xFF
+		pokemon_data[PACK_SPE + 0] = 999 >> 8
+		pokemon_data[PACK_SPE + 1] = 999 & 0xFF
 	else:
-		emulator.memory[wEnemyMonAttack + 0]  = emulator.memory[wEnemyMon1Attack + 0]  = emulator.memory[wEnemyMonUnmodifiedAttack + 0]  = 999 >> 8
-		emulator.memory[wEnemyMonAttack + 1]  = emulator.memory[wEnemyMon1Attack + 1]  = emulator.memory[wEnemyMonUnmodifiedAttack + 1]  = 999 & 0xFF
-		emulator.memory[wEnemyMonDefense + 0] = emulator.memory[wEnemyMon1Defense + 0] = emulator.memory[wEnemyMonUnmodifiedDefense + 0] = 999 >> 8
-		emulator.memory[wEnemyMonDefense + 1] = emulator.memory[wEnemyMon1Defense + 1] = emulator.memory[wEnemyMonUnmodifiedDefense + 1] = 999 & 0xFF
-		emulator.memory[wEnemyMonSpecial + 0] = emulator.memory[wEnemyMon1Special + 0] = emulator.memory[wEnemyMonUnmodifiedSpecial + 0] = 999 >> 8
-		emulator.memory[wEnemyMonSpecial + 1] = emulator.memory[wEnemyMon1Special + 1] = emulator.memory[wEnemyMonUnmodifiedSpecial + 1] = 999 & 0xFF
-		emulator.memory[wEnemyMonSpeed + 0]   = emulator.memory[wEnemyMon1Speed + 0]   = emulator.memory[wEnemyMonUnmodifiedSpeed + 0]   = 999 >> 8
-		emulator.memory[wEnemyMonSpeed + 1]   = emulator.memory[wEnemyMon1Speed + 1]   = emulator.memory[wEnemyMonUnmodifiedSpeed + 1]   = 999 & 0xFF
-	#emulator.memory[wEnemyMonType1] = Type.Ghost
-	#emulator.memory[wEnemyMonType2] = Type.Ghost
-	#emulator.memory[wEnemyMons + PACK_TYPEA] = Type.Ghost
-	#emulator.memory[wEnemyMons + PACK_TYPEB] = Type.Ghost
+		pokemon_data[PACK_ATK + 0] = 999 >> 8
+		pokemon_data[PACK_ATK + 1] = 999 & 0xFF
+		pokemon_data[PACK_DEF + 0] = 999 >> 8
+		pokemon_data[PACK_DEF + 1] = 999 & 0xFF
+		pokemon_data[PACK_SPD + 0] = 999 >> 8
+		pokemon_data[PACK_SPD + 1] = 999 & 0xFF
+		pokemon_data[PACK_SPE + 0] = 999 >> 8
+		pokemon_data[PACK_SPE + 1] = 999 & 0xFF
+	state.op.team = [Pokemon(state, "", pokemon_data)]
 
-	# Move list: <move>, -, -, -; 999/999HP; 300 ATK; 300 DEF; 300 SPE; 300 SPD
-	emulator.memory[wBattleMonMoves + 0]   = emulator.memory[wPartyMon1Moves + 0]   = move
-	emulator.memory[wBattleMonMoves + 1]   = emulator.memory[wPartyMon1Moves + 1]   = AvailableMove.Ember
-	emulator.memory[wBattleMonMoves + 2]   = emulator.memory[wPartyMon1Moves + 2]   = AvailableMove.Empty
-	emulator.memory[wBattleMonMoves + 3]   = emulator.memory[wPartyMon1Moves + 3]   = AvailableMove.Empty
-	emulator.memory[wBattleMonHP + 0]      = emulator.memory[wPartyMon1HP + 0]      = 999 >> 8
-	emulator.memory[wBattleMonHP + 1]      = emulator.memory[wPartyMon1HP + 1]      = 999 & 0xFF
-	emulator.memory[wBattleMonMaxHP + 0]   = emulator.memory[wPartyMon1MaxHP + 0]   = 999 >> 8
-	emulator.memory[wBattleMonMaxHP + 1]   = emulator.memory[wPartyMon1MaxHP + 1]   = 999 & 0xFF
-	emulator.memory[wBattleMonAttack + 0]  = emulator.memory[wPartyMon1Attack + 0]  = emulator.memory[wPlayerMonUnmodifiedAttack + 0]  = 300 >> 8
-	emulator.memory[wBattleMonAttack + 1]  = emulator.memory[wPartyMon1Attack + 1]  = emulator.memory[wPlayerMonUnmodifiedAttack + 1]  = 300 & 0xFF
-	emulator.memory[wBattleMonDefense + 0] = emulator.memory[wPartyMon1Defense + 0] = emulator.memory[wPlayerMonUnmodifiedDefense + 0] = 100 >> 8
-	emulator.memory[wBattleMonDefense + 1] = emulator.memory[wPartyMon1Defense + 1] = emulator.memory[wPlayerMonUnmodifiedDefense + 1] = 100 & 0xFF
-	emulator.memory[wBattleMonSpecial + 0] = emulator.memory[wPartyMon1Special + 0] = emulator.memory[wPlayerMonUnmodifiedSpecial + 0] = 300 >> 8
-	emulator.memory[wBattleMonSpecial + 1] = emulator.memory[wPartyMon1Special + 1] = emulator.memory[wPlayerMonUnmodifiedSpecial + 1] = 300 & 0xFF
-	emulator.memory[wBattleMonSpeed + 0]   = emulator.memory[wPartyMon1Speed + 0]   = emulator.memory[wPlayerMonUnmodifiedSpeed + 0]   = 300 >> 8
-	emulator.memory[wBattleMonSpeed + 1]   = emulator.memory[wPartyMon1Speed + 1]   = emulator.memory[wPlayerMonUnmodifiedSpeed + 1]   = 300 & 0xFF
+	pokemon_data = [0] * 44
+	pokemon_data[PACK_SPECIES] = PokemonSpecies.Pikachu
+	pokemon_data[PACK_CURR_LEVEL] = 5
+	pokemon_data[PACK_STATUS] = StatusChange.OK
+	pokemon_data[PACK_TYPEA] = Type.Electric
+	pokemon_data[PACK_TYPEB] = Type.Electric
+	pokemon_data[PACK_MOVE1] = move
+	pokemon_data[PACK_MOVE2] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
+	pokemon_data[PACK_PPS_MOVE1] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 10
+	pokemon_data[PACK_PPS_MOVE3] = 10
+	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
+	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
+	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
+	pokemon_data[PACK_MAX_HP + 0] = 999 >> 8
+	pokemon_data[PACK_MAX_HP + 1] = 999 & 0xFF
+	pokemon_data[PACK_ATK + 0] = 300 >> 8
+	pokemon_data[PACK_ATK + 1] = 300 & 0xFF
+	pokemon_data[PACK_DEF + 0] = 100 >> 8
+	pokemon_data[PACK_DEF + 1] = 100 & 0xFF
+	pokemon_data[PACK_SPD + 0] = 300 >> 8
+	pokemon_data[PACK_SPD + 1] = 300 & 0xFF
+	pokemon_data[PACK_SPE + 0] = 300 >> 8
+	pokemon_data[PACK_SPE + 1] = 300 & 0xFF
+	state.me.team = [Pokemon(state, "", pokemon_data, True)]
 
-	state.me.team = [Pokemon(state, "", emulator.memory[wPartyMons:wPartyMons+44], True)]
-	state.op.team = [Pokemon(state, "", emulator.memory[wEnemyMons:wEnemyMons+44])]
+	with open("pokeyellow_replay.state", "rb") as fd:
+		emulator_gen1.init_battle(fd, state)
+	#with open("pokeyellow_test_move.state", "rb") as fd:
+	#	emulator_gen1.init_battle(fd, state, sync_data=True)
 
 	starting_state = get_emulator_basic_state(emulator)
 	if debug:
@@ -364,50 +389,11 @@ def test_move(emulator, move, random_state, scenario):
 		print(state.op.team[0].dump())
 		print(state.rng.getIndex(), starting_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', starting_state[3])))
 
-	emulator.button_press('a')
-	emulator.tick(render=debug)
-	emulator.button_release('a')
-	emulator.tick(10, render=debug)
-	emulator.button_press('a')
-	emulator.tick(render=debug)
-	emulator.button_release('a')
-	emulator.tick(render=debug)
-	emulator.button_press('b')
-	while emulator.memory[0x9D64:0x9D6F] != [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
-		if not emulator.tick(1 if debug else 30, render=debug):
-			exit(0)
-	while emulator.memory[wSerialExchangeNybbleReceiveData] == 0xFF:
-		emulator.memory[wSerialExchangeNybbleReceiveData] = 0
-		if not emulator.tick(render=debug):
-			exit(0)
-	while emulator.memory[0x9D64:0x9D6F] == [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
-		if not emulator.tick(1 if debug else 30, render=debug):
-			exit(0)
 	state.me.nextAction = BattleAction.Attack1
 	state.op.nextAction = BattleAction.Attack1
 	battle.tick()
-	while True:
-		if not emulator.tick(1 if debug else 30, render=debug):
-			exit(0)
-		if emulator.memory[0x9DD0] == 0xE1 and emulator.memory[0x9DD1] == 0xE2:
-			break
-		if emulator.memory[0x9DC1:0x9DCC] == [0x80, 0x92, 0x87, 0x7F, 0xAB, 0xAE, 0xB2, 0xB3, 0x7F, 0xB3, 0xAE]: # "ASH lost to"
-			break
-		if emulator.memory[0x9DC1:0x9DCD] == [0x80, 0x92, 0x87, 0x7F, 0xA3, 0xA4, 0xA5, 0xA4, 0xA0, 0xB3, 0xA4, 0xA3]: # "ASH defeated"
-			break
-		if emulator.memory[0x9D64:0x9D6F] == [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
-			# For multi turn moves, we do 2 turns
-			state.me.nextAction = BattleAction.Attack1
-			state.op.nextAction = BattleAction.Attack1
-			battle.tick()
-			while emulator.memory[wSerialExchangeNybbleReceiveData] == 0xFF:
-				emulator.memory[wSerialExchangeNybbleReceiveData] = 0
-				if not emulator.tick(render=debug):
-					exit(0)
-			while emulator.memory[0x9D64:0x9D6F] == [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
-				if not emulator.tick(1 if debug else 30, render=debug):
-					exit(0)
-	emulator.button_release('b')
+	emulator_gen1.step(state)
+
 	ending_state = get_emulator_basic_state(emulator)
 	if debug:
 		print(dump_basic_state(ending_state[0]))
@@ -535,7 +521,7 @@ else:
 
 def run_tests(offset, count):
 	global tests_ran
-	emulator = PyBoy('pokeyellow.gbc', sound_volume=25, sound_emulated=debug and offset == 0, window='SDL2' if debug and offset == 0 else 'null', debug=args.emu_debug)
+	emulator = Emulator(has_interface=debug and offset == 0, sound_volume=25 if debug and offset == 0 else 0, save_frames=False, debug=args.emu_debug)
 	for test_object in tests_to_run[offset::count]:
 		errors, extra = run_test(test_object, emulator)
 		tests_ran += 1
@@ -545,8 +531,6 @@ def run_tests(offset, count):
 			'group': test_object['group'],
 			'extra': extra
 		})
-		if not emulator.tick(render=debug):
-			return
 
 if jobs == 1:
 	run_tests(0, 1)

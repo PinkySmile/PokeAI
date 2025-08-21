@@ -1,8 +1,9 @@
+import sys
 import os.path
 from pyboy import PyBoy
+from Emulator import Emulator
 from GameEngine import Pokemon, PokemonSpecies, AvailableMove, BattleHandler, BattleAction, StatusChange, Type, typeToStringShort, typeToString, statusToString, convertString
 from argparse import ArgumentParser
-import sys
 
 wCurrentMenuItem = 0xCC26
 wLinkBattleRandomNumberListIndex = 0xCCDE
@@ -289,35 +290,6 @@ def compare_basic_states(battle_state, emu_state):
 	return len(errors) == 0, errors
 
 
-def copy_battle_data_to_emulator(state, teamBaseAddress, nameAddress, speciesArray, nameListAddress):
-	emulator.memory[speciesArray] = len(state.team)
-	for i, pkmn in enumerate(state.team):
-		emulator.memory[speciesArray + i + 1] = pkmn.getID()
-		data = pkmn.encode()
-		for k, b in enumerate(data):
-			emulator.memory[teamBaseAddress + i * len(data) + k] = b
-		data = convertString(pkmn.getName(False))
-		for j in range(11):
-			if j < len(data):
-				emulator.memory[nameListAddress + i * 11 + j] = data[j]
-			else:
-				emulator.memory[nameListAddress + i * 11 + j] = 0x50
-	emulator.memory[speciesArray + len(state.team) + 1] = 0xFF
-	data = convertString(state.name)
-	for j in range(11):
-		if j < len(data):
-			emulator.memory[nameAddress + j] = data[j]
-		else:
-			emulator.memory[nameAddress + j] = 0x50
-
-
-def tickEmulator(count=1):
-	step = 1 if not args.fast and turn + 1 >= to_turn else 30
-	for i in range(0, count, step):
-		if not emulator.tick(step):
-			exit(0)
-
-
 parser = ArgumentParser(prog=sys.argv[0])
 parser.add_argument('-t', '--to-turn', default=0)
 parser.add_argument('-v', '--volume', default=25)
@@ -326,7 +298,7 @@ parser.add_argument('-e', '--emu-debug', action='store_true')
 parser.add_argument('-s', '--swap-side', action='store_true')
 parser.add_argument('replay_file')
 args = parser.parse_args()
-emulator = PyBoy('pokeyellow.gbc', sound_volume=int(args.volume), sound_emulated=not args.fast, window='SDL2' if not args.fast else 'null', debug=args.emu_debug)
+emulator = Emulator(has_interface=not args.fast, sound_volume=int(args.volume), save_frames=False, debug=args.emu_debug)
 
 battle = BattleHandler(args.swap_side, False)
 state = battle.state
@@ -350,95 +322,22 @@ print("\n".join(pkmn.dump() for pkmn in state.op.team))
 print()
 if not args.fast:
 	state.battleLogger = print
-fd = open("pokeyellow_replay.state", "rb")
-emulator.load_state(fd)
-fd.close()
-l = state.rng.getList()
-emulator.memory[wLinkBattleRandomNumberListIndex] = 0
-for i in range(9):
-	emulator.memory[wLinkBattleRandomNumberList + i] = l[i]
-emulator.memory[wLinkState] = LINK_STATE_BATTLING
 
-copy_battle_data_to_emulator(state.me, wPartyMons, wPlayerName,  wPartyCount,      wPartyMonNicks)
-copy_battle_data_to_emulator(state.op, wEnemyMons, wTrainerName, wEnemyPartyCount, wEnemyMonNicks)
+
+with open("pokeyellow_replay.state", "rb") as fd:
+	if not emulator.init_battle(fd, state):
+		exit(0)
+
 turn = 0
-while True:
-	if emulator.memory[0x9D64:0x9D6F] == [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
-		break
-	if emulator.memory[wBattleMonHP:wBattleMonHP+2] != [0, 0] and emulator.memory[0x9DD0] == 0xE1 and emulator.memory[0x9DD1] == 0xE2:
-		break
-	if emulator.memory[wBattleMonHP:wBattleMonHP+2] == [0, 0] and emulator.memory[0x9DC1:0x9DD0] == [0x81, 0xB1, 0xA8, 0xAD, 0xA6, 0x7F, 0xAE, 0xB4, 0xB3, 0x7F, 0xB6, 0xA7, 0xA8, 0xA2, 0xA7]: # Bring out which
-		break
-	tickEmulator()
 while not battle.isFinished():
 	print(f" ---------- TURN {turn + 1:<3} ----------")
 	with open(state_folder + f"/turn{turn:03d}.state", "wb") as fd:
-		emulator.save_state(fd)
+		emulator.emulator.save_state(fd)
 	battle.saveState(state_folder + f"/turn{turn:03d}.json")
 	battle.tick()
-	if emulator.memory[0x9D64:0x9D6F] != [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
-		if emulator.memory[wBattleMonHP:wBattleMonHP+2] == [0, 0]:
-			tickEmulator(10)
-			emulator.memory[wCurrentMenuItem] = state.me.lastAction - BattleAction.Switch1
-			tickEmulator(10)
-			emulator.button_press('a')
-			tickEmulator(10)
-			emulator.button_release('a')
-			tickEmulator(10)
-			emulator.button_press('a')
-			tickEmulator(10)
-			emulator.button_release('a')
-		else:
-			if BattleAction.Run == state.me.lastAction:
-				emulator.memory[wCurrentMenuItem] = 3
-			elif BattleAction.Switch1 <= state.me.lastAction <= BattleAction.Switch6:
-				emulator.memory[wCurrentMenuItem] = 2
-			else:
-				emulator.memory[wCurrentMenuItem] = 0
-			tickEmulator(10)
-			emulator.button_press('a')
-			tickEmulator(10)
-			emulator.button_release('a')
-			if BattleAction.Switch1 <= state.me.lastAction <= BattleAction.Switch6:
-				tickEmulator(10)
-				emulator.memory[wCurrentMenuItem] = state.me.lastAction - BattleAction.Switch1
-				tickEmulator(30)
-				emulator.button_press('a')
-				tickEmulator(10)
-				emulator.button_release('a')
-				tickEmulator(10)
-				emulator.button_press('a')
-				tickEmulator(10)
-				emulator.button_release('a')
-			elif state.me.lastAction != BattleAction.StruggleMove:
-				emulator.memory[wCurrentMenuItem] = state.me.lastAction - BattleAction.Attack1 + 1
-				tickEmulator(10)
-				emulator.button_press('a')
-				tickEmulator(10)
-				emulator.button_release('a')
-
-	isDead = emulator.memory[wBattleMonHP:wBattleMonHP+2] == [0, 0]
-	while emulator.memory[0x9D64:0x9D6F] != [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
-		tickEmulator()
-	while emulator.memory[wSerialExchangeNybbleReceiveData] == 0xFF:
-		emulator.memory[wSerialExchangeNybbleReceiveData] = state.op.lastAction - BattleAction.Attack1
-		tickEmulator()
-	while (
-		emulator.memory[0x9D64:0x9D6F] == [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7] or # Waiting...!
-		emulator.memory[0x9D6A:0x9D74] != [0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x77, 0x7F]
-	):
-		tickEmulator()
-	while True:
-		if emulator.memory[0x9C00:0x9C20] == [0x59, 0x5A, 0x58, 0x59, 0x59, 0x5A, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0F, 0x0F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F]:
-			break
-		if emulator.memory[0x9D64:0x9D6F] == [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7]: # Waiting...!
-			break
-		if emulator.memory[wBattleMonHP:wBattleMonHP+2] != [0, 0] and emulator.memory[0x9DD0] == 0xE1 and emulator.memory[0x9DD1] == 0xE2:
-			break
-		if emulator.memory[wBattleMonHP:wBattleMonHP+2] == [0, 0] and emulator.memory[0x9DC1:0x9DD0] == [0x81, 0xB1, 0xA8, 0xAD, 0xA6, 0x7F, 0xAE, 0xB4, 0xB3, 0x7F, 0xB6, 0xA7, 0xA8, 0xA2, 0xA7]: # Bring out which
-			break
-		tickEmulator()
-	emulator_state = get_emulator_basic_state(emulator)
+	if not emulator.step(state):
+		break
+	emulator_state = get_emulator_basic_state(emulator.emulator)
 	if not args.fast:
 		print(dump_basic_state(emulator_state[0]))
 		print(dump_basic_state(emulator_state[1]))
@@ -451,8 +350,8 @@ while not battle.isFinished():
 		print("Desync detected!")
 		print("\n".join(f[1]))
 		with open(state_folder + f"/turn{turn:03d}.state", "rb") as fd:
-			emulator.load_state(fd)
+			emulator.emulator.load_state(fd)
 		battle.loadState(state_folder + f"/turn{turn:03d}.json")
-		while True:
-			tickEmulator()
+		while not args.fast and emulator.emulator.tick():
+			break
 	turn += 1

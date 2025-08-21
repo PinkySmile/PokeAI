@@ -301,6 +301,8 @@ namespace PokemonGen1
 			return "Ground";
 		case TYPE_ROCK:
 			return "Rock";
+		case TYPE_BIRD:
+			return "Bird";
 		case TYPE_BUG:
 			return "Bug";
 		case TYPE_GHOST:
@@ -339,6 +341,8 @@ namespace PokemonGen1
 			return "Gnd";
 		case TYPE_ROCK:
 			return "Roc";
+		case TYPE_BIRD:
+			return "Brd";
 		case TYPE_BUG:
 			return "Bug";
 		case TYPE_GHOST:
@@ -373,8 +377,10 @@ namespace PokemonGen1
 
 	double getAttackDamageMultiplier(Type attackType, std::pair<Type, Type> target)
 	{
-		if (target.first == target.second)
-			return getAttackDamageMultiplier(attackType, target.first);
-		return getAttackDamageMultiplier(attackType, target.first) * getAttackDamageMultiplier(attackType, target.second);
+		auto result = getAttackDamageMultiplier(attackType, target.first);
+
+		if (target.first != target.second)
+			result *= getAttackDamageMultiplier(attackType, target.second);
+		return result;
 	}
 }

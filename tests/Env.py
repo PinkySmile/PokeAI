@@ -3,31 +3,8 @@ from gymnasium.spaces import Discrete, Box
 from numpy import array, int16, float32, int8
 from pyboy import PyBoy
 import os
+from Emulator import Emulator
 from GameEngine import Type, BattleHandler, BattleState, BattleAction, StatusChange, MoveCategory, PokemonSpecies, AvailableMove, convertString, typeToStringShort, getAttackDamageMultiplier, statusToString, Pokemon, PokemonBase, Move, loadTrainer as __loadTrainer
-
-wBattleMonPP = 0xD02C
-
-wLinkBattleRandomNumberListIndex = 0xCCDE
-wLinkBattleRandomNumberList = 0xD147
-wLinkState = 0xD12A
-wSerialExchangeNybbleReceiveData = 0xCC3E
-LINK_STATE_BATTLING = 4
-wCurrentMenuItem = 0xCC26
-
-wPartyMons = 0xD16A
-wPartyCount = 0xD162
-wPlayerName = 0xD157
-wPartyMonNicks = 0xD2B4
-
-wEnemyMons = 0xD8A3
-wEnemyPartyCount = 0xD89B
-wEnemyMonNicks = 0xD9ED
-wTrainerName = 0xD049
-
-wBattleMonHP = 0xD014
-
-t_waiting = [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7] # Waiting...!
-t_bring_out_which = [0x81, 0xB1, 0xA8, 0xAD, 0xA6, 0x7F, 0xAE, 0xB4, 0xB3, 0x7F, 0xB6, 0xA7, 0xA8, 0xA2, 0xA7] # Bring out which
 
 banned_moves = [ # These moves aren't implemented properly in the engine
 	# Repeat -> Confuse moves
@@ -876,9 +853,9 @@ class PokemonYellowBattle(Env):
 		self.last_state = None
 		self.replay_folder = replay_folder
 		if self.render_mode == "human":
-			self.emulator = PyBoy('pokeyellow.gbc', sound_volume=25, window='SDL2')
+			self.emulator = Emulator(has_interface=True, sound_volume=25, save_frames=False)
 		elif self.render_mode == "rgb_array_list":
-			self.emulator = PyBoy('pokeyellow.gbc', sound_volume=0, window='null')
+			self.emulator = Emulator(has_interface=False, sound_volume=0, save_frames=True)
 		else:
 			self.emulator = None
 		self.messages = []
@@ -886,122 +863,17 @@ class PokemonYellowBattle(Env):
 			self.battle.state.battleLogger = lambda x: self.messages.append(x)
 
 
-	def copy_battle_data_to_emulator(self, state, team_base_address, name_address, species_array, name_list_address):
-		self.emulator.memory[species_array] = len(state.team)
-		for i, pkmn in enumerate(state.team):
-			self.emulator.memory[species_array + i + 1] = pkmn.getID()
-			data = pkmn.encode()
-			for k, b in enumerate(data):
-				self.emulator.memory[team_base_address + i * len(data) + k] = b
-			data = convertString(pkmn.getName(False))
-			for j in range(11):
-				if j < len(data):
-					self.emulator.memory[name_list_address + i * 11 + j] = data[j]
-				else:
-					self.emulator.memory[name_list_address + i * 11 + j] = 0x50
-		self.emulator.memory[species_array + len(state.team) + 1] = 0xFF
-		data = convertString(state.name)
-		for j in range(11):
-			if j < len(data):
-				self.emulator.memory[name_address + j] = data[j]
-			else:
-				self.emulator.memory[name_address + j] = 0x50
-
-
-	def tick_emulator(self, count=1):
-		step = 1 if self.render_mode == "human" or self.render_mode == "rgb_array_list" else 30
-		for i in range(0, count, step):
-			if not self.emulator.tick(step):
-				exit(0)
-			self.last_frames.append(self.emulator.screen.ndarray[:, :, :3].copy())
-
-
-	def wait_for_start_turn(self):
-		while True:
-			if self.emulator.memory[0x9C00:0x9C20] == [0x59, 0x5A, 0x58, 0x59, 0x59, 0x5A, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0F, 0x0F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F]:
-				break
-			if self.emulator.memory[0x9D64:0x9D6F] == t_waiting:
-				break
-			if self.emulator.memory[wBattleMonHP:wBattleMonHP+2] != [0, 0] and self.emulator.memory[0x9DD0] == 0xE1 and self.emulator.memory[0x9DD1] == 0xE2:
-				break
-			if self.emulator.memory[wBattleMonHP:wBattleMonHP+2] == [0, 0] and self.emulator.memory[0x9DC1:0x9DD0] == t_bring_out_which:
-				break
-			self.tick_emulator()
-
-
 	def step_emulator(self, state):
 		if self.emulator is None or not self.recording:
 			return
-
-		if self.emulator.memory[0x9D64:0x9D6F] != t_waiting:
-			if self.emulator.memory[wBattleMonHP:wBattleMonHP+2] == [0, 0]:
-				self.tick_emulator(10)
-				self.emulator.memory[wCurrentMenuItem] = state.me.lastAction - BattleAction.Switch1
-				self.tick_emulator(10)
-				self.emulator.button_press('a')
-				self.tick_emulator(10)
-				self.emulator.button_release('a')
-				self.tick_emulator(10)
-				self.emulator.button_press('a')
-				self.tick_emulator(10)
-				self.emulator.button_release('a')
-			else:
-				if BattleAction.Run == state.me.lastAction:
-					self.emulator.memory[wCurrentMenuItem] = 3
-				elif BattleAction.Switch1 <= state.me.lastAction <= BattleAction.Switch6:
-					self.emulator.memory[wCurrentMenuItem] = 2
-				else:
-					self.emulator.memory[wCurrentMenuItem] = 0
-				self.tick_emulator(10)
-				self.emulator.button_press('a')
-				self.tick_emulator(10)
-				self.emulator.button_release('a')
-				if BattleAction.Switch1 <= state.me.lastAction <= BattleAction.Switch6:
-					self.tick_emulator(10)
-					self.emulator.memory[wCurrentMenuItem] = state.me.lastAction - BattleAction.Switch1
-					self.tick_emulator(30)
-					self.emulator.button_press('a')
-					self.tick_emulator(10)
-					self.emulator.button_release('a')
-					self.tick_emulator(10)
-					self.emulator.button_press('a')
-					self.tick_emulator(10)
-					self.emulator.button_release('a')
-				elif state.me.lastAction != BattleAction.StruggleMove:
-					self.emulator.memory[wCurrentMenuItem] = state.me.lastAction - BattleAction.Attack1 + 1
-					self.tick_emulator(10)
-					self.emulator.button_press('a')
-					self.tick_emulator(10)
-					self.emulator.button_release('a')
-		isDead = self.emulator.memory[wBattleMonHP:wBattleMonHP+2] == [0, 0]
-		while self.emulator.memory[0x9D64:0x9D6F] != t_waiting:
-			self.tick_emulator()
-		while self.emulator.memory[wSerialExchangeNybbleReceiveData] == 0xFF:
-			self.emulator.memory[wSerialExchangeNybbleReceiveData] = state.op.lastAction - BattleAction.Attack1
-			self.tick_emulator()
-		while (
-			self.emulator.memory[0x9D64:0x9D6F] == t_waiting or
-			self.emulator.memory[0x9D6A:0x9D74] != [0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x77, 0x7F]
-		):
-			self.tick_emulator()
-		self.wait_for_start_turn()
+		self.emulator.step(state)
 
 
 	def init_emulator(self, state):
 		if self.emulator is None or not self.recording:
 			return
-
-		with open("pokeyellow_replay.state", "rb")as fd:
-			self.emulator.load_state(fd)
-		l = state.rng.getList()
-		self.emulator.memory[wLinkBattleRandomNumberListIndex] = 0
-		for i in range(9):
-			self.emulator.memory[wLinkBattleRandomNumberList + i] = l[i]
-		self.last_frames = []
-		self.emulator.memory[wLinkState] = LINK_STATE_BATTLING
-		self.copy_battle_data_to_emulator(state.me, wPartyMons, wPlayerName,  wPartyCount,      wPartyMonNicks)
-		self.copy_battle_data_to_emulator(state.op, wEnemyMons, wTrainerName, wEnemyPartyCount, wEnemyMonNicks)
-		self.wait_for_start_turn()
+		with open("pokeyellow_replay.state", "rb") as fd:
+			self.emulator.init_battle(fd, state)
 
 
 	@staticmethod
@@ -1227,5 +1099,6 @@ class PokemonYellowBattle(Env):
 	def close(self):
 		if self.emulator is not None:
 			self.emulator.stop(False)
+
 
 register('PokemonYellow', PokemonYellowBattle)
