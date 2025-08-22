@@ -14,35 +14,37 @@ def check_obs(obs):
 
 p = gym.make('PokemonYellow', render_mode="human")
 finished = False
-observation, info = p.reset(options={
-	"p1name": "PokeAI",
-	"p2name": "Opponent",
-	"p1team": [{
-		"species": PokemonSpecies.Charmander,
-		"name": "CHARMANDER",
-		"level": 10,
-		"moves": [AvailableMove.Bone_Club, AvailableMove.Water_Gun, AvailableMove.Thundershock]
-	}],
-	"p2team": [{
-		"species": PokemonSpecies.Articuno,
-		"name": "ARTICUNO",
-		"level": 5,
-		"moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
-	},
-		{
-			"species": PokemonSpecies.Diglett,
-			"name": "DIGLETT",
-			"level": 10,
-			"moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
-		},
-		{
-			"species": PokemonSpecies.Charmander,
-			"name": "CHARMANDER",
-			"level": 10,
-			"moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
-		}
-	]
-})
+params = Examples.Brock
+# params = {
+# 	"p1name": "PokeAI",
+# 	"p2name": "Opponent",
+# 	"p1team": [{
+# 		"species": PokemonSpecies.Charmander,
+# 		"name": "CHARMANDER",
+# 		"level": 10,
+# 		"moves": [AvailableMove.Bone_Club, AvailableMove.Water_Gun, AvailableMove.Thundershock]
+# 	}],
+# 	"p2team": [{
+# 		"species": PokemonSpecies.Articuno,
+# 		"name": "ARTICUNO",
+# 		"level": 5,
+# 		"moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
+# 	},
+# 		{
+# 			"species": PokemonSpecies.Diglett,
+# 			"name": "DIGLETT",
+# 			"level": 10,
+# 			"moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
+# 		},
+# 		{
+# 			"species": PokemonSpecies.Charmander,
+# 			"name": "CHARMANDER",
+# 			"level": 10,
+# 			"moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
+# 		}
+# 	]
+# }
+observation, info = p.reset(options=params)
 
 print(observation, info, len(observation))
 check_obs(observation)

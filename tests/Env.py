@@ -1,33 +1,66 @@
+import os
 from gymnasium import Env, register
 from gymnasium.spaces import Discrete, Box
 from numpy import array, int16, float32, int8
-from pyboy import PyBoy
-import os
 from Emulator import Emulator
 from GameEngine import Type, BattleHandler, BattleState, BattleAction, StatusChange, MoveCategory, PokemonSpecies, AvailableMove, convertString, typeToStringShort, getAttackDamageMultiplier, statusToString, Pokemon, PokemonBase, Move, loadTrainer as __loadTrainer
 
 banned_moves = [ # These moves aren't implemented properly in the engine
-	# Repeat -> Confuse moves
-	AvailableMove.Thrash,
-	AvailableMove.Petal_Dance,
+	# Trap moves
+	AvailableMove.Wrap,
+	AvailableMove.Bind,
+	AvailableMove.Fire_Spin,
+	AvailableMove.Clamp,
+
 	# OHKO
 	AvailableMove.Fissure,
 	AvailableMove.Guillotine,
 	AvailableMove.Horn_Drill,
+
 	# Invul turn 1
-	AvailableMove.Fly,
 	AvailableMove.Dig,
-	# Screens
-	AvailableMove.Reflect,
-	AvailableMove.Light_Screen,
-	# Misc
-	AvailableMove.Disable,
-	AvailableMove.Mimic,
-	AvailableMove.Counter,
+	AvailableMove.Fly,
+
+	# Repeat moves
 	AvailableMove.Rage,
-	AvailableMove.Dream_Eater,
-	AvailableMove.Bide,
+	AvailableMove.Thrash,
+	AvailableMove.Petal_Dance,
+
+	# Status inducing moves
+	AvailableMove.Spore,
+	AvailableMove.Thunder_Wave,
+	AvailableMove.Sing,
+	AvailableMove.Poisonpowder,
+	AvailableMove.Hypnosis,
+	AvailableMove.Stun_Spore,
+	AvailableMove.Sleep_Powder,
+	AvailableMove.Glare,
+	AvailableMove.Confusion,
+	AvailableMove.Poison_Gas,
+	AvailableMove.Lovely_Kiss,
+	AvailableMove.Toxic,
+
+	# Some attacking moves
+	AvailableMove.Hyper_Beam,
+	AvailableMove.Submission,
+	AvailableMove.Psybeam,
+	AvailableMove.Mega_Kick,
+	AvailableMove.Hydro_Pump,
+	AvailableMove.Blizzard,
+	AvailableMove.Fire_Blast,
+
+	# Screens
+	AvailableMove.Light_Screen,
+	AvailableMove.Reflect,
+
+	# Misc
+	AvailableMove.Counter,
 	AvailableMove.Transform,
+	AvailableMove.Dream_Eater,
+	AvailableMove.Mimic,
+	AvailableMove.Disable,
+	AvailableMove.Agility,
+	AvailableMove.Metronome,
 ]
 
 
@@ -1054,6 +1087,14 @@ class PokemonYellowBattle(Env):
 			self.op = options.get("ai", self.base_op)
 			state.me.name = options["p1name"]
 			state.op.name = options["p2name"]
+			for p in options["p1team"]:
+				for m in p["moves"]:
+					if m in banned_moves:
+						print(f"Warning: {AvailableMove(m).name} in team 1, on {p["name"]} doesn't work and has been replaced with Pound")
+			for p in options["p2team"]:
+				for m in p["moves"]:
+					if m in banned_moves:
+						print(f"Warning: {AvailableMove(m).name} in team 2, on {p["name"]} doesn't work and has been replaced with Pound")
 			state.me.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m) for m in p["moves"]]) for p in options["p1team"]]
 			state.op.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m) for m in p["moves"]]) for p in options["p2team"]]
 		state.rng.setList([self.np_random.integers(low=0, high=255) for _ in range(9)])

@@ -194,9 +194,11 @@
 }, SET_USER_CRIT_RATIO_TO_1_QUARTER_DESC
 
 #define STORE_DAMAGES_DESC "Store damage"
-#define STORE_DAMAGES [](Pokemon &owner, Pokemon &target, unsigned, bool last, const std::function<void(const std::string &msg)> &){\
-	if (last)\
+#define STORE_DAMAGES [](Pokemon &owner, Pokemon &target, unsigned, bool last, const std::function<void(const std::string &msg)> &logger){\
+	if (last) {\
 		target.takeDamage(owner.getDamagesStored() * 2, false);\
+		logger(owner.getName() + " unleashes energy!");\
+	}\
 	owner.storeDamages(!last);\
 	return true;\
 }, STORE_DAMAGES_DESC

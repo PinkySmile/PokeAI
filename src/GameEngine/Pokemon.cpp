@@ -482,8 +482,6 @@ namespace PokemonGen1
 	{
 		if (!active)
 			this->_damageStored = 0;
-		else if (!this->_storingDamages)
-			this->_log(" is storing damage!");
 		this->_storingDamages = active;
 	}
 
@@ -720,6 +718,9 @@ namespace PokemonGen1
 
 		if (!damage)
 			return;
+
+		if (this->_storingDamages)
+			this->_damageStored += damage;
 
 		if (!skipSubstitute && this->_subHealth) {
 			(*this->_battleLogger)("The SUBSTITUTE took damage for " + this->getName() + "!");
