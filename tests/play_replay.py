@@ -325,8 +325,7 @@ if not args.fast:
 
 
 with open("pokeyellow_replay.state", "rb") as fd:
-	if not emulator.init_battle(fd, state):
-		exit(0)
+	emulator.init_battle(fd, state)
 
 turn = 0
 while not battle.isFinished():
@@ -335,8 +334,7 @@ while not battle.isFinished():
 		emulator.emulator.save_state(fd)
 	battle.saveState(state_folder + f"/turn{turn:03d}.json")
 	battle.tick()
-	if not emulator.step(state):
-		break
+	emulator.step(state)
 	emulator_state = get_emulator_basic_state(emulator.emulator)
 	if not args.fast:
 		print(dump_basic_state(emulator_state[0]))
