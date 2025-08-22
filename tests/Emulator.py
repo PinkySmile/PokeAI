@@ -200,7 +200,6 @@ class Emulator:
 				self.emulator.memory[wEnemyMonPP    + i] = 0
 
 
-
 	def tick(self, count=1):
 		step = 1 if self.has_interface else 30
 		for i in range(0, count, step):

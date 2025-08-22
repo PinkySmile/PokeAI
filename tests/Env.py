@@ -872,7 +872,7 @@ class PokemonYellowBattle(Env):
 		dtype=float32
 	)
 
-	def __init__(self, render_mode=None, episode_trigger=None, opponent_callback=basic_opponent, replay_folder=None):
+	def __init__(self, render_mode=None, episode_trigger=None, opponent_callback=basic_opponent, replay_folder=None, shuffle_teams=False):
 		self.battle = BattleHandler(False, False)
 		self.op = opponent_callback
 		self.base_op = opponent_callback
@@ -883,6 +883,7 @@ class PokemonYellowBattle(Env):
 		self.episode_id = 0
 		self.episode_trigger = episode_trigger
 		self.recording = False
+		self.shuffle_teams = shuffle_teams
 		self.last_state = None
 		self.replay_folder = replay_folder
 		if self.render_mode == "human":
@@ -1063,7 +1064,7 @@ class PokemonYellowBattle(Env):
 			assert state.me.team[state.me.nextAction - BattleAction.Switch1].getHealth() != 0
 		self.battle.tick()
 		self.current_turn += 1
-		if (self.battle.isFinished() or self.render_mode == "rgb_array_list") and self.replay_folder:
+		if self.battle.isFinished() and self.replay_folder:
 			self.battle.saveReplay(os.path.join(self.replay_folder, f"episode-{self.episode_id}.replay"))
 		observation, info = self.make_observation(state)
 		self.step_emulator(state)
@@ -1083,6 +1084,21 @@ class PokemonYellowBattle(Env):
 		state = self.battle.state
 		if options is None:
 			self.battle.reset()
+			if self.shuffle_teams:
+				state.me.team = self.np_random.permutation([Pokemon(
+					self.battle.state,
+					p.getName(False),
+					p.getLevel(),
+					PokemonBase(p.getID()),
+					self.np_random.permutation(list(Move(m.getID()) for m in p.getMoveSet() if m.getID()))
+				) for p in state.me.team])
+				state.op.team = self.np_random.permutation([Pokemon(
+					self.battle.state,
+					p.getName(False),
+					p.getLevel(),
+					PokemonBase(p.getID()),
+					self.np_random.permutation(list(Move(m.getID()) for m in p.getMoveSet() if m.getID()))
+				) for p in state.op.team])
 		else:
 			self.op = options.get("ai", self.base_op)
 			state.me.name = options["p1name"]
@@ -1098,6 +1114,7 @@ class PokemonYellowBattle(Env):
 			state.me.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m) for m in p["moves"]]) for p in options["p1team"]]
 			state.op.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m) for m in p["moves"]]) for p in options["p2team"]]
 		state.rng.setList([self.np_random.integers(low=0, high=255) for _ in range(9)])
+
 		self.init_emulator(state)
 		return self.make_observation(state)
 
