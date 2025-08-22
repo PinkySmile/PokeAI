@@ -12,7 +12,7 @@ def check_obs(obs):
 		print(f"#{i} not in range: {low[i]} <= {obs[i]} <= {high[i]}")
 
 
-p = gym.make('PokemonYellow', render_mode="human")
+p = gym.make('PokemonYellow', render_mode="human", shuffle_teams=True)
 finished = False
 params = Examples.Brock
 # params = {
