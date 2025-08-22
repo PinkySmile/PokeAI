@@ -182,7 +182,7 @@ class Examples:
 			},
 			{
 				"name": "PIDGEY",
-				"level": 7,
+				"level": 9,
 				"species": PokemonSpecies.Pidgey,
 				"moves": [AvailableMove.Gust, AvailableMove.Sand_Attack]
 			}
@@ -526,7 +526,7 @@ def loadTrainer(path):
 class PokemonYellowBattle(Env):
 	metadata = {
 		'render_modes': ["human", "ansi", "rgb_array_list"],
-		'render_fps': 180
+		'render_fps': 10
 	}
 	action_space = Discrete(11)
 	observation_space = Box(
