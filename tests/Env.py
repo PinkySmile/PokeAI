@@ -147,9 +147,17 @@ def basic_opponent(state, rng):
 	return BattleAction.StruggleMove
 
 
+def gen1AI_1(state, rng):
+	gen1AI(state.op, state.me, [1], rng)
+
+
+def gen1AI_13(state, rng):
+	gen1AI(state.op, state.me, [1, 3], rng)
+
+
 class Examples:
 	Brock={
-		"ai": lambda state, rng: gen1AI(state.op, state.me, [1], rng),
+		"ai": gen1AI_1,
 		"sprite": 0,
 		"p1name": "Ash",
 		"p2name": "Brock",
@@ -195,7 +203,7 @@ class Examples:
 		]
 	}
 	Misty={
-		"ai": lambda state, rng: gen1AI(state.op, state.me, [1, 3], rng),
+		"ai": gen1AI_13,
 		"sprite": 0,
 		"p1name": "Ash",
 		"p2name": "Misty",
@@ -241,7 +249,7 @@ class Examples:
 		]
 	}
 	LtSurge={
-		"ai": lambda state, rng: gen1AI(state.op, state.me, [1], rng),
+		"ai": gen1AI_1,
 		"sprite": 0,
 		"p1name": "Ash",
 		"p2name": "LT. Surge",
@@ -281,7 +289,7 @@ class Examples:
 		]
 	}
 	Erika={
-		"ai": lambda state, rng: gen1AI(state.op, state.me, [1, 3], rng),
+		"ai": gen1AI_13,
 		"sprite": 0,
 		"p1name": "Ash",
 		"p2name": "Erika",
@@ -333,7 +341,7 @@ class Examples:
 		]
 	}
 	Sabrina={
-		"ai": lambda state, rng: gen1AI(state.op, state.me, [1], rng),
+		"ai": gen1AI_1,
 		"sprite": 0,
 		"p1name": "Ash",
 		"p2name": "Sabrina",
@@ -385,7 +393,7 @@ class Examples:
 		]
 	}
 	Blaine={
-		"ai": lambda state, rng: gen1AI(state.op, state.me, [1], rng),
+		"ai": gen1AI_1,
 		"sprite": 0,
 		"p1name": "Ash",
 		"p2name": "Blaine",
@@ -437,7 +445,7 @@ class Examples:
 		]
 	}
 	Giovanni={
-		"ai": lambda state, rng: gen1AI(state.op, state.me, [1, 3], rng),
+		"ai": gen1AI_13,
 		"sprite": 0,
 		"p1name": "Ash",
 		"p2name": "Giovanni",
