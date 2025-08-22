@@ -254,8 +254,7 @@ class Emulator:
 			self.emulator.button('a', 5)
 			self.tick(10)
 		elif BattleAction.Attack1 <= action <= BattleAction.Attack4:
-			while self.emulator.memory[wCurrentMenuItem] != action - BattleAction.Attack1 + 1:
-				print(self.emulator.memory[wCurrentMenuItem])
+			while self.emulator.memory[wCurrentMenuItem] != action - BattleAction.Attack1 + 1 and self.emulator.memory[0x9D64:0x9D6F] != t_waiting:
 				self.emulator.button('up', 5)
 				self.tick(10)
 			self.emulator.button('a', 5)
@@ -292,3 +291,7 @@ class Emulator:
 
 	def stop(self, save):
 		self.emulator.stop(save)
+
+
+	def is_finished(self):
+		return self.emulator.memory[0x9C00:0x9C20] == t_oak_lab
