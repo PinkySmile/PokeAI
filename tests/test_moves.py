@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 import sys
 import time
 import threading
-from Emulator import Emulator
+from Emulator import Emulator, t_waiting
 
 wLinkBattleRandomNumberListIndex = 0xCCDE
 wLinkBattleRandomNumberList = 0xD147
@@ -292,7 +292,7 @@ def compare_basic_states(battle_state, emu_state):
 	return len(errors) == 0, errors
 
 
-def test_move(emulator_gen1, move, random_state, scenario):
+def test_move(emulator_gen1, move, random_state, scenario, min_turns=6):
 	battle = BattleHandler(False, debug)
 	state = battle.state
 	emulator = emulator_gen1.emulator
@@ -389,21 +389,24 @@ def test_move(emulator_gen1, move, random_state, scenario):
 		print(state.op.team[0].dump())
 		print(state.rng.getIndex(), starting_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', starting_state[3])))
 
-	state.me.nextAction = BattleAction.Attack1
-	state.op.nextAction = BattleAction.Attack1
-	battle.tick()
-	emulator_gen1.step(state)
-
-	ending_state = get_emulator_basic_state(emulator)
-	if debug:
-		print(dump_basic_state(ending_state[0]))
-		print(dump_basic_state(ending_state[1]))
-		print(state.me.team[0].dump())
-		print(state.op.team[0].dump())
-		print(state.rng.getIndex(), ending_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', ending_state[3])))
-	f = compare_basic_states(battle.state, ending_state)
-	state.rng.reset()
-	return f[0], f[1], [state.rng.getList()]
+	current_turn = 0
+	while True:
+		state.me.nextAction = BattleAction.Attack1
+		state.op.nextAction = BattleAction.Attack1
+		battle.tick()
+		emulator_gen1.step(state)
+		current_turn += 1
+		ending_state = get_emulator_basic_state(emulator)
+		if debug:
+			print(dump_basic_state(ending_state[0]))
+			print(dump_basic_state(ending_state[1]))
+			print(state.me.team[0].dump())
+			print(state.op.team[0].dump())
+			print(state.rng.getIndex(), ending_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', ending_state[3])))
+		f = compare_basic_states(battle.state, ending_state)
+		if not f[0] or battle.isFinished() or (current_turn > min_turns and emulator.memory[0x9D64:0x9D6F] != t_waiting):
+			state.rng.reset()
+			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.getList()]
 
 
 def run_test(test, emulator):
