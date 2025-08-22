@@ -289,6 +289,12 @@ class Emulator:
 		return self.wait_for_start_turn()
 
 
+	def get_last_frames(self):
+		old = self.last_frames
+		self.last_frames = []
+		return old
+
+
 	def stop(self, save):
 		self.emulator.stop(save)
 

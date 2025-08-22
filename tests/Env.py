@@ -1131,9 +1131,7 @@ class PokemonYellowBattle(Env):
 			p2 = state.op.name + "'s team (P2)\n" + "\n".join(self.serialize_mon(s, i, state.me) for i, s in enumerate(state.op.team))
 			return messages + "\n" + p1 + "\n" + p2
 		if self.render_mode == 'rgb_array_list':
-			old = self.last_frames
-			self.last_frames = []
-			return old
+			return self.emulator.get_last_frames()
 		return None
 
 
