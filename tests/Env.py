@@ -148,11 +148,11 @@ def basic_opponent(state, rng):
 
 
 def gen1AI_1(state, rng):
-	gen1AI(state.op, state.me, [1], rng)
+	return gen1AI(state.op, state.me, [1], rng)
 
 
 def gen1AI_13(state, rng):
-	gen1AI(state.op, state.me, [1, 3], rng)
+	return gen1AI(state.op, state.me, [1, 3], rng)
 
 
 class Examples:
