@@ -26,20 +26,6 @@ banned_moves = [ # These moves aren't implemented properly in the engine
 	AvailableMove.Thrash,
 	AvailableMove.Petal_Dance,
 
-	# Status inducing moves
-	AvailableMove.Spore,
-	AvailableMove.Thunder_Wave,
-	AvailableMove.Sing,
-	AvailableMove.Poisonpowder,
-	AvailableMove.Hypnosis,
-	AvailableMove.Stun_Spore,
-	AvailableMove.Sleep_Powder,
-	AvailableMove.Glare,
-	AvailableMove.Confusion,
-	AvailableMove.Poison_Gas,
-	AvailableMove.Lovely_Kiss,
-	AvailableMove.Toxic,
-
 	# Some attacking moves
 	AvailableMove.Hyper_Beam,
 	AvailableMove.Submission,
@@ -48,6 +34,7 @@ banned_moves = [ # These moves aren't implemented properly in the engine
 	AvailableMove.Hydro_Pump,
 	AvailableMove.Blizzard,
 	AvailableMove.Fire_Blast,
+	AvailableMove.Confusion,
 
 	# Screens
 	AvailableMove.Light_Screen,

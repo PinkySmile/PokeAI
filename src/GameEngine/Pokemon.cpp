@@ -282,7 +282,19 @@ namespace PokemonGen1
 			this->_flinched = true;
 			return true;
 		}
-		this->_log(" is now " + statusToString(status) + "!");
+
+		std::map<StatusChange, std::string> messages = {
+			{ STATUS_ASLEEP_FOR_1_TURN,   " fell asleep!" },
+			{ STATUS_POISONED,            "" },
+			{ STATUS_BURNED,              "" },
+			{ STATUS_FROZEN,              "" },
+			{ STATUS_PARALYZED,           "'s paralyzed! It may not attack!" },
+			{ STATUS_BADLY_POISONED,      "'s badly poisoned!" },
+			{ STATUS_LEECHED,             "" },
+			{ STATUS_CONFUSED_FOR_1_TURN, " became confused!" }
+		};
+
+		this->_log(messages[status]);
 		if (status == STATUS_BADLY_POISONED)
 			this->_badPoisonStage = 1;
 		this->_currentStatus |= (status * duration);
@@ -575,8 +587,7 @@ namespace PokemonGen1
 				this->_log(" is confused!");
 				if ((*this->_random)() >= 0x80) {
 					this->setRecharging(false);
-					this->_log(" hurts itself in");
-					(*this->_battleLogger)("it's confusion!");
+					(*this->_battleLogger)("It hurt itself in its confusion!");
 					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false).damage, false);
 					this->_lastUsedMove = availableMoves[0x00];
 					goto turn_damage_check;
@@ -605,24 +616,23 @@ namespace PokemonGen1
 		}
 
 	turn_damage_check:
+		unsigned short damage;
+
 		if (this->_currentStatus & STATUS_BURNED) {
 			this->_log("'s hurt by the burn!");
 			this->takeDamage(this->getMaxHealth() / 16, true);
 		} else if (this->_currentStatus & STATUS_POISONED) {
 			this->_log("'s hurt by the poison!");
+			damage = this->getMaxHealth() / 16;
 			if (this->_currentStatus & STATUS_BAD_POISON)
-				this->takeDamage(this->getMaxHealth() * this->_badPoisonStage++ / 16, true);
-			else
-				this->takeDamage(this->getMaxHealth() / 16, true);
+				damage *= this->_badPoisonStage++;
+			this->takeDamage(damage, true);
 		}
 		if (this->_currentStatus & STATUS_LEECHED) {
-			unsigned short damage;
-
 			(*this->_battleLogger)("LEECH SEED saps " + this->getName() + "!");
+			damage = this->getMaxHealth() / 16;
 			if (this->_currentStatus & STATUS_BAD_POISON)
-				damage = this->getMaxHealth() * this->_badPoisonStage++ / 16;
-			else
-				damage = this->getMaxHealth() / 16;
+				damage *= this->_badPoisonStage++;
 			this->takeDamage(damage, true);
 			target.heal(damage);
 		}

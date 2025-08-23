@@ -314,11 +314,23 @@ namespace PokemonGen1
 
 		this->_nbHit--;
 
-		if (!msg.empty())
+		if (msg == "<NONE>");
+		else if (!msg.empty())
 			logger(owner.getName() + msg);
 		else
 			logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
 
+		bool sub = target.getSubstituteHealth() != 0;
+		std::map<StatusChange, std::string> messages = {
+			{ STATUS_ASLEEP,         target.getName() + "'s already asleep!" },
+			{ STATUS_POISONED,       "It didn't affect " + target.getName() + "!" },
+			{ STATUS_BURNED,         "" },
+			{ STATUS_FROZEN,         "" },
+			{ STATUS_PARALYZED,      "It didn't affect " + target.getName() + "!" },
+			{ STATUS_BADLY_POISONED, "It didn't affect " + target.getName() + "!" },
+			{ STATUS_LEECHED,        "" },
+			{ STATUS_CONFUSED,       "But, it failed!" }
+		};
 		Pokemon::DamageResult damage{
 			.critical = false,
 			.damage = 0,
@@ -327,12 +339,23 @@ namespace PokemonGen1
 			.isNotVeryEffective = false,
 		};
 
+		if (
+			this->_category == STATUS &&
+			!target.canHaveStatus(this->_statusChange.status) &&
+			this->_statusChange.status &&
+			this->_statusChange.status != STATUS_CONFUSED
+		) {
+			logger(messages[this->_statusChange.status]);
+			if (this->_missCallback)
+				this->_missCallback(owner, target, this->isFinished(), logger);
+			return true;
+		}
 		if ((this->_category != STATUS || this->_type == TYPE_ELECTRIC) && getAttackDamageMultiplier(this->_type, target.getTypes()) == 0) {
 			if (this->_category != STATUS) {
 				rng(); // FIXME: Apparently 2 RNG ticks are required when the enemy isn't affected?????
 				rng(); //        Check out the code path in the assembly to figure out what these 2 values are used for.
 			}
-			logger("It doesn't affect " + target.getName() + "!");
+			logger("It didn't affect " + target.getName() + "!");
 			if (this->_missCallback)
 				this->_missCallback(owner, target, this->isFinished(), logger);
 			return true;
@@ -359,10 +382,21 @@ namespace PokemonGen1
 				if (this->_missCallback)
 					this->_missCallback(owner, target, this->isFinished(), logger);
 				else if (!this->_power)
-					logger("But it failed!");
+					logger("But, it failed!");
 				return false;
 			} else if (!this->_nbHit)
 				owner.setRecharging(this->_needRecharge);
+		}
+
+		if (
+			this->_category == STATUS &&
+			!target.canHaveStatus(this->_statusChange.status) &&
+			this->_statusChange.status == STATUS_CONFUSED
+		) {
+			logger(messages[this->_statusChange.status]);
+			if (this->_missCallback)
+				this->_missCallback(owner, target, this->isFinished(), logger);
+			return true;
 		}
 
 		if (damage.critical)
@@ -389,8 +423,6 @@ namespace PokemonGen1
 
 		if (hits > 1)
 			logger("Hit the enemy " + std::to_string(hits) + " times!");
-
-		bool sub = target.getSubstituteHealth() != 0;
 
 		if (this->_power)
 			target.takeDamage(damage.damage * hits, false);
@@ -651,7 +683,7 @@ namespace PokemonGen1
 		Move{0x72, "Haze"        , TYPE_ICE     , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CANCEL_STATS_CHANGE},
 		Move{0x73, "Reflect"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code the move
 		Move{0x74, "Focus Energy", TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SET_USER_CRIT_RATIO_TO_1_QUARTER},
-		Move{0x75, "Bide"        , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, "", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, STORE_DAMAGES},
+		Move{0x75, "Bide"        , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, "<NONE>", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, STORE_DAMAGES},
 		Move{0x76, "Metronome"   , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, USE_RANDOM_MOVE},
 		Move{0x77, "Mirror Move" , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, USE_LAST_FOE_MOVE},
 		Move{0x78, "Selfdestruct", TYPE_NORMAL  , PHYSICAL, 130, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SUICIDE, SUICIDE_MISS},

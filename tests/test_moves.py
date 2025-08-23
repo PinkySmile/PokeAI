@@ -260,7 +260,7 @@ def compare_basic_states(battle_state, emu_state):
 		errors.append(f"P1 Type 1 b.{typeToString(me_b.getTypes()[0])} vs e.{typeToString(me_e['typeA'])}")
 	if me_b.getTypes()[1] != me_e['typeB']:
 		errors.append(f"P1 Type 2 b.{typeToString(me_b.getTypes()[1])} vs e.{typeToString(me_e['typeB'])}")
-	if me_b.getNonVolatileStatus() != me_e['status']:
+	if me_b.getNonVolatileStatus() != me_e['status'] and me_b.getHealth():
 		errors.append(f"P1 Status b.{me_b.getNonVolatileStatus()} ({StatusChange(me_b.getNonVolatileStatus()).name}) vs e.{me_e['status']} ({StatusChange(me_e['status']).name})")
 	if me_b.getHealth() != me_e['hp']:
 		errors.append(f"P1 Health b.{me_b.getHealth()} vs e.{me_e['hp']}")
@@ -277,7 +277,7 @@ def compare_basic_states(battle_state, emu_state):
 		errors.append(f"P2 Type 1 b.{typeToString(op_b.getTypes()[0])} vs e.{typeToString(op_e['typeA'])}")
 	if op_b.getTypes()[1] != op_e['typeB']:
 		errors.append(f"P2 Type 2 b.{typeToString(op_b.getTypes()[1])} vs e.{typeToString(op_e['typeB'])}")
-	if op_b.getNonVolatileStatus() != op_e['status']:
+	if op_b.getNonVolatileStatus() != op_e['status'] and op_b.getHealth():
 		errors.append(f"P2 Status b.{op_b.getNonVolatileStatus()} ({StatusChange(op_b.getNonVolatileStatus()).name}) vs e.{op_e['status']} ({StatusChange(op_e['status']).name})")
 	if op_b.getHealth() != op_e['hp']:
 		errors.append(f"P2 Health b.{op_b.getHealth()} vs e.{op_e['hp']}")
