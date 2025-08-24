@@ -188,7 +188,7 @@ namespace PokemonGen1
 		bool addStatus(StatusChange status, unsigned duration);
 		void resetStatsChanges();
 		bool changeStat(enum StatsChange stat, char nb);
-		void useMove(const Move &move, Pokemon &target);
+		bool useMove(const Move &move, Pokemon &target);
 		void storeDamages(bool active);
 		bool hasStatus(StatusChange status) const;
 		void heal(unsigned short health);

@@ -484,11 +484,20 @@ namespace PokemonGen1
 		return (move ? move->getPriority() : 0) * 262140 + static_cast<int>(this->getSpeed());
 	}
 
-	void Pokemon::useMove(const Move &move, Pokemon &target)
+	bool Pokemon::useMove(const Move &move, Pokemon &target)
 	{
-		if (this->_lastUsedMove.isFinished())
+		bool moveStarted = false;
+
+		if (this->_lastUsedMove.isFinished()) {
 			this->_lastUsedMove = move;
+			moveStarted = true;
+		}
 		this->_lastUsedMove.attack(*this, target, *this->_battleLogger);
+		if (this->_lastUsedMove.needsLoading())
+			return this->_lastUsedMove.isFinished();
+		if (this->_lastUsedMove.getNbRuns().second)
+			return moveStarted;
+		return this->_lastUsedMove.isFinished();
 	}
 
 	void Pokemon::storeDamages(bool active)
@@ -622,8 +631,8 @@ namespace PokemonGen1
 		if (moveSlot >= 4) {
 			this->useMove(availableMoves[Struggle], target);
 		} else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
-			this->useMove(this->_moveSet[moveSlot], target);
-			this->_moveSet[moveSlot].setPP(this->_moveSet[moveSlot].getPP() ? this->_moveSet[moveSlot].getPP() - 1 : 63);
+			if (this->useMove(this->_moveSet[moveSlot], target))
+				this->_moveSet[moveSlot].setPP(this->_moveSet[moveSlot].getPP() ? this->_moveSet[moveSlot].getPP() - 1 : 63);
 		}
 
 	turn_damage_check:
