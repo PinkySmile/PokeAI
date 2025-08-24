@@ -329,16 +329,18 @@ namespace PokemonGen1
 				owner.setInvincible(this->_invulnerableDuringLoading);
 				return true;
 			}
-		} else if (!this->_needLoading) {
 			this->_nbHit--;
-			if (this->_keepGoingMsg == "<NONE>");
-			else if (!this->_keepGoingMsg.empty())
+			logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
+		} else if (this->_hitCallBackDescription == WRAP_TARGET_DESC) {
+			this->_nbHit--;
+			if (!this->_keepGoingMsg.empty())
 				logger(owner.getName() + this->_keepGoingMsg);
 			goto skipAccuracyAndDamageCheck;
+		} else {
+			if (!this->_keepGoingMsg.empty())
+				logger(owner.getName() + this->_keepGoingMsg);
+			this->_nbHit--;
 		}
-
-		this->_nbHit--;
-		logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
 
 		if (
 			this->_category == STATUS &&
@@ -704,7 +706,7 @@ namespace PokemonGen1
 		Move{0x72, "Haze"        , TYPE_ICE     , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CANCEL_STATS_CHANGE},
 		Move{0x73, "Reflect"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code the move
 		Move{0x74, "Focus Energy", TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SET_USER_CRIT_RATIO_TO_1_QUARTER},
-		Move{0x75, "Bide"        , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, "<NONE>", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, STORE_DAMAGES},
+		Move{0x75, "Bide"        , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, "", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, STORE_DAMAGES},
 		Move{0x76, "Metronome"   , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, USE_RANDOM_MOVE},
 		Move{0x77, "Mirror Move" , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, USE_LAST_FOE_MOVE},
 		Move{0x78, "Selfdestruct", TYPE_NORMAL  , PHYSICAL, 130, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SUICIDE, SUICIDE_MISS},
