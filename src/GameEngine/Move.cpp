@@ -367,7 +367,20 @@ namespace PokemonGen1
 			return true;
 		}
 
-		if (this->_power) {
+		if (this->_power == 255) {
+			rng(); // Crit-check, but result doesn't matter
+			if (owner.getSpeed() < target.getSpeed()) {
+				logger(target.getName() + " is unaffected!");
+				return false;
+			}
+			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, false, true, false);
+			damage.affect = true;
+			damage.critical = false;
+			damage.isVeryEffective = false;
+			damage.isNotVeryEffective = false;
+			this->_lastDamage = damage.damage;
+			logger("One-hit KO!");
+		} else if (this->_power) {
 			unsigned char r = rng();
 			unsigned char spd = std::min<unsigned int>(pokemonList.at(owner.getID()).SPD / 2 * this->_critChance, 255);
 
@@ -384,7 +397,7 @@ namespace PokemonGen1
 				accuracyByte = 0xFF;
 			if ((this->getID() == Dream_Eater && !target.hasStatus(STATUS_ASLEEP)) || random >= accuracyByte) {
 				this->_nbHit = 0;
-				if (this->_power)
+				if (this->_power != 0)
 					logger(owner.getName() + "'s attack missed!");
 				if (this->_missCallback)
 					this->_missCallback(owner, target, this->isFinished(), logger);
@@ -586,7 +599,7 @@ namespace PokemonGen1
 		Move{0x09, "ThunderPunch", TYPE_ELECTRIC, SPECIAL,   75, 100, 15, {STATUS_PARALYZED, 0x1A}},
 		Move{0x0A, "Scratch"     , TYPE_NORMAL  , PHYSICAL,  40, 100, 35},
 		Move{0x0B, "ViceGrip"    , TYPE_NORMAL  , PHYSICAL,  55, 100, 30},
-		Move{0x0C, "Guillotine"  , TYPE_NORMAL  , PHYSICAL,   0,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ONE_HIT_KO_HANDLE},
+		Move{0x0C, "Guillotine"  , TYPE_NORMAL  , PHYSICAL, 255,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ONE_HIT_KO_HANDLE},
 		Move{0x0D, "Razor Wind"  , TYPE_NORMAL  , PHYSICAL,  80,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("whipped up a whirlwind!")},
 		Move{0x0E, "Swords Dance", TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {{STATS_ATK, 2, 0}}},
 		Move{0x0F, "Cut"         , TYPE_NORMAL  , PHYSICAL,  50,  95, 30},
@@ -606,7 +619,7 @@ namespace PokemonGen1
 		Move{0x1D, "Headbutt"    , TYPE_NORMAL  , PHYSICAL,  70, 100, 15, {STATUS_FLINCHED, 0x4D}},
 		Move{0x1E, "Horn Attack" , TYPE_NORMAL  , PHYSICAL,  65, 100, 25},
 		Move{0x1F, "Fury Attack" , TYPE_NORMAL  , PHYSICAL,  15,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
-		Move{0x20, "Horn Drill"  , TYPE_NORMAL  , PHYSICAL,   0,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ONE_HIT_KO_HANDLE},
+		Move{0x20, "Horn Drill"  , TYPE_NORMAL  , PHYSICAL, 255,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ONE_HIT_KO_HANDLE},
 		Move{0x21, "Tackle"      , TYPE_NORMAL  , PHYSICAL,  35,  95, 35},
 		Move{0x22, "Body Slam"   , TYPE_NORMAL  , PHYSICAL,  85, 100, 15, {STATUS_PARALYZED, 0x4D}},
 		Move{0x23, "Wrap"        , TYPE_NORMAL  , PHYSICAL,  15,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, WRAP_TARGET, GLITCH_HYPER_BEAM},
@@ -664,7 +677,7 @@ namespace PokemonGen1
 		Move{0x57, "Thunder"     , TYPE_ELECTRIC, SPECIAL , 120,  70, 10, {STATUS_PARALYZED, 0x1A}},
 		Move{0x58, "Rock Throw"  , TYPE_ROCK    , PHYSICAL,  50,  65, 15},
 		Move{0x59, "Earthquake"  , TYPE_GROUND  , PHYSICAL, 100, 100, 10},
-		Move{0x5A, "Fissure"     , TYPE_GROUND  , PHYSICAL,   0,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ONE_HIT_KO_HANDLE},
+		Move{0x5A, "Fissure"     , TYPE_GROUND  , PHYSICAL, 255,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ONE_HIT_KO_HANDLE},
 		Move{0x5B, "Dig"         , TYPE_GROUND  , PHYSICAL, 100, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("dug a hole!"), true},
 		Move{0x5C, "Toxic"       , TYPE_POISON  , STATUS  ,   0,  85, 10, {STATUS_BADLY_POISONED, 0}},
 		Move{0x5D, "Confusion"   , TYPE_PSYCHIC , SPECIAL ,  50, 100, 25, {STATUS_CONFUSED, 0x19}},

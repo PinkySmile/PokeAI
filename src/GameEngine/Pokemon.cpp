@@ -805,48 +805,50 @@ namespace PokemonGen1
 		unsigned defense;
 		unsigned attack;
 		unsigned level = this->_level * (1 + critical);
+		unsigned int damage = 65535;
 
-		switch (category) {
-		case SPECIAL:
-			attack  = critical ? this->getRawSpecial()  : this->getSpecial();
-			defense = critical ? target.getRawSpecial() : target.getSpecial();
-			break;
-		case PHYSICAL:
-			attack  = critical ? this->getRawAttack()   : this->getAttack();
-			defense = critical ? target.getRawDefense() : target.getDefense();
-			break;
-		default:
-			return {
-				.critical = false,
-				.damage = 0,
-				.affect = true,
-				.isVeryEffective = false,
-				.isNotVeryEffective = false,
-			};
+		if (power != 255) {
+			switch (category) {
+			case SPECIAL:
+				attack = critical ? this->getRawSpecial() : this->getSpecial();
+				defense = critical ? target.getRawSpecial() : target.getSpecial();
+				break;
+			case PHYSICAL:
+				attack = critical ? this->getRawAttack() : this->getAttack();
+				defense = critical ? target.getRawDefense() : target.getDefense();
+				break;
+			default:
+				return {
+					.critical = false,
+					.damage = 0,
+					.affect = true,
+					.isVeryEffective = false,
+					.isNotVeryEffective = false,
+				};
+			}
+
+			if (halfDefense)
+				defense /= 2;
+			if (attack > 255 || defense > 255) {
+				attack = attack / 4 % 256;
+				defense = defense / 4 % 256;
+			}
+
+			damage = level;
+			damage += damage;
+			damage /= 5;
+			damage += 2;
+			damage *= power;
+			damage *= attack;
+			damage /= defense;
+			damage /= 50;
+			if (damage > 997)
+				damage = 997;
+			damage += 2;
+			if (this->_types.first == damageType || this->_types.second == damageType)
+				damage += damage / 2;
+			damage *= effectiveness;
 		}
-
-		if (halfDefense)
-			defense /= 2;
-		if (attack > 255 || defense > 255) {
-			attack = attack / 4 % 256;
-			defense = defense / 4 % 256;
-		}
-
-		unsigned int damage = level;
-
-		damage += damage;
-		damage /= 5;
-		damage += 2;
-		damage *= power;
-		damage *= attack;
-		damage /= defense;
-		damage /= 50;
-		if (damage > 997)
-			damage = 997;
-		damage += 2;
-		if (this->_types.first == damageType || this->_types.second == damageType)
-			damage += damage / 2;
-		damage *= effectiveness;
 
 		if (damage > 1 && randomized) {
 			unsigned char r;

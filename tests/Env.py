@@ -6,11 +6,6 @@ from Emulator import Emulator
 from GameEngine import Type, BattleHandler, BattleState, BattleAction, StatusChange, MoveCategory, PokemonSpecies, AvailableMove, convertString, typeToStringShort, getAttackDamageMultiplier, statusToString, Pokemon, PokemonBase, Move, loadTrainer as __loadTrainer
 
 banned_moves = [ # These moves aren't implemented properly in the engine
-	# OHKO
-	AvailableMove.Fissure,
-	AvailableMove.Guillotine,
-	AvailableMove.Horn_Drill,
-
 	# Invul turn 1
 	AvailableMove.Dig,
 	AvailableMove.Fly,

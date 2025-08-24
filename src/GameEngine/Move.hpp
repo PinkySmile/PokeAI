@@ -54,15 +54,7 @@
 
 //Hit callbacks
 #define OHKO_DESC "Kills in one hit if the user's speed is higher than the foe's"
-#define ONE_HIT_KO_HANDLE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
-	if (owner.getSpeed() >= target.getSpeed()) {\
-		target.takeDamage(target.getHealth(), false);\
-		logger("One-hit KO!");\
-		return true;\
-	}\
-	logger(target.getName() + " is unaffected!");\
-	return false;\
-}, OHKO_DESC
+#define ONE_HIT_KO_HANDLE nullptr, OHKO_DESC
 
 #define QU_RECOIL_DESC "Take a quarter of the damage dealt as recoil"
 #define TAKE_QUARTER_MOVE_DAMAGE [](Pokemon &owner, Pokemon &, unsigned damage, bool, const std::function<void(const std::string &msg)> &logger){\
