@@ -8,6 +8,7 @@ from libcpp.string cimport string
 from libcpp.functional cimport function
 from libcpp.set cimport set
 
+from Damage cimport DamageResult
 from Type cimport Type
 from Move cimport Move, AvailableMove, MoveCategory
 from StatsChange cimport StatsChange
@@ -75,14 +76,6 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 			char ACC
 			UpgradableStats()
 			unsigned char get(StatsChange stat)
-
-		struct DamageResult:
-			bool critical
-			unsigned damage
-			bool affect
-			bool isVeryEffective
-			bool isNotVeryEffective
-			DamageResult()
 
 		Pokemon(const Pokemon &)
 		Pokemon(RandomGenerator &random, const Pokemon.Logger &battleLogger, const string &nickname, unsigned char level, const Pokemon.Base &base, const vector[Move] &moveSet, bool enemy) except +

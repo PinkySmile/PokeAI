@@ -42,6 +42,7 @@ add_library(
 	src/GameEngine/Team.hpp
 	src/GameEngine/Utils.cpp
 	src/GameEngine/Utils.hpp
+	src/GameEngine/Damage.hpp
 )
 
 

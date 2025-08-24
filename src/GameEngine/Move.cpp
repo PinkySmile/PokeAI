@@ -10,6 +10,17 @@
 
 namespace PokemonGen1
 {
+	static std::map<StatusChange, std::string> messages = {
+		{ STATUS_ASLEEP,         "<TARGET>'s already asleep!" },
+		{ STATUS_POISONED,       "It didn't affect <TARGET>!" },
+		{ STATUS_BURNED,         "" },
+		{ STATUS_FROZEN,         "" },
+		{ STATUS_PARALYZED,      "It didn't affect <TARGET>!" },
+		{ STATUS_BADLY_POISONED, "It didn't affect <TARGET>!" },
+		{ STATUS_LEECHED,        "" },
+		{ STATUS_CONFUSED,       "But, it failed!" }
+	};
+
 	Move::Move(
 		unsigned char id,
 		const std::string &name,
@@ -277,8 +288,17 @@ namespace PokemonGen1
 
 	bool Move::attack(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)
 	{
-		std::string msg = this->_keepGoingMsg;
+		std::string msg;
+		unsigned hits = 1;
+		DamageResult damage = {
+			.critical = false,
+			.damage = 0,
+			.affect = true,
+			.isVeryEffective = false,
+			.isNotVeryEffective = false,
+		};
 		auto &rng = owner.getRandomGenerator();
+		bool sub = target.getSubstituteHealth() != 0;
 
 		if (this->getID() == Whirlwind || this->getID() == Roar) {
 			logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
@@ -305,39 +325,20 @@ namespace PokemonGen1
 				this->_nbHit += this->_nbRuns.first;
 			}
 			if (this->_needLoading) {
-				logger(owner.getName() + " " + this->_loadingMsg + "!");
+				logger(owner.getName() + " " + this->_loadingMsg);
 				owner.setInvincible(this->_invulnerableDuringLoading);
 				return true;
 			}
-			msg = "";
+		} else if (!this->_needLoading) {
+			this->_nbHit--;
+			if (this->_keepGoingMsg == "<NONE>");
+			else if (!this->_keepGoingMsg.empty())
+				logger(owner.getName() + this->_keepGoingMsg);
+			goto skipAccuracyAndDamageCheck;
 		}
 
 		this->_nbHit--;
-
-		if (msg == "<NONE>");
-		else if (!msg.empty())
-			logger(owner.getName() + msg);
-		else
-			logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
-
-		bool sub = target.getSubstituteHealth() != 0;
-		std::map<StatusChange, std::string> messages = {
-			{ STATUS_ASLEEP,         target.getName() + "'s already asleep!" },
-			{ STATUS_POISONED,       "It didn't affect " + target.getName() + "!" },
-			{ STATUS_BURNED,         "" },
-			{ STATUS_FROZEN,         "" },
-			{ STATUS_PARALYZED,      "It didn't affect " + target.getName() + "!" },
-			{ STATUS_BADLY_POISONED, "It didn't affect " + target.getName() + "!" },
-			{ STATUS_LEECHED,        "" },
-			{ STATUS_CONFUSED,       "But, it failed!" }
-		};
-		Pokemon::DamageResult damage{
-			.critical = false,
-			.damage = 0,
-			.affect = true,
-			.isVeryEffective = false,
-			.isNotVeryEffective = false,
-		};
+		logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
 
 		if (
 			this->_category == STATUS &&
@@ -345,7 +346,12 @@ namespace PokemonGen1
 			this->_statusChange.status &&
 			this->_statusChange.status != STATUS_CONFUSED
 		) {
-			logger(messages[this->_statusChange.status]);
+			auto s = messages[this->_statusChange.status];
+			auto pos = s.find("<TARGET>");
+
+			if (pos != std::string::npos)
+				s.replace(pos, 8, target.getName());
+			logger(s);
 			if (this->_missCallback)
 				this->_missCallback(owner, target, this->isFinished(), logger);
 			return true;
@@ -367,6 +373,7 @@ namespace PokemonGen1
 
 			r = (r << 3U) | ((r & 0b11100000U) >> 5U);
 			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, (r < spd), true, this->getID() == Explosion || this->getID() == Self_Destruct);
+			this->_lastDamage = damage.damage;
 		}
 
 		if (!this->_skipAccuracyCheck) {
@@ -399,17 +406,6 @@ namespace PokemonGen1
 			return true;
 		}
 
-		if (damage.critical)
-			logger("Critical hit!");
-
-		if (damage.isNotVeryEffective)
-			logger("It's not very effective!");
-
-		if (damage.isVeryEffective)
-			logger("It's super effective!");
-
-		unsigned hits = 0;
-
 		if (this->_nbHits.second == this->_nbHits.first)
 			hits = this->_nbHits.first;
 		else if (this->_nbHits.second - 1 == this->_nbHits.first)
@@ -419,18 +415,31 @@ namespace PokemonGen1
 			if (hits >= 2)
 				hits = rng() & 3U;
 			hits += this->_nbHits.first;
+		} else
+			throw std::runtime_error("Invalid hit count value in " + this->getName());
+
+	skipAccuracyAndDamageCheck:
+		if (this->_power) {
+			if (damage.critical)
+				logger("Critical hit!");
+			for (size_t i = 0; i < hits; i++) {
+				if (damage.isNotVeryEffective)
+					logger("It's not very effective!");
+				if (damage.isVeryEffective)
+					logger("It's super effective!");
+				target.takeDamage(this->_lastDamage, false);
+				// Stop when the sub dies
+				if (sub != (target.getSubstituteHealth() != 0))
+					break;
+			}
+			if (hits > 1)
+				logger("Hit the enemy " + std::to_string(hits) + " times!");
 		}
-
-		if (hits > 1)
-			logger("Hit the enemy " + std::to_string(hits) + " times!");
-
-		if (this->_power)
-			target.takeDamage(damage.damage * hits, false);
 
 		if (!target.getHealth()) {
 			owner.setRecharging(false);
 			if (this->_hitCallback)
-				return this->_hitCallback(owner, target, damage.damage, this->isFinished(), logger);
+				return this->_hitCallback(owner, target, this->_lastDamage, this->isFinished(), logger);
 			return true;
 		}
 
@@ -459,8 +468,7 @@ namespace PokemonGen1
 		}
 
 		if (this->_hitCallback)
-			return this->_hitCallback(owner, target, damage.damage, this->isFinished(), logger);
-
+			return this->_hitCallback(owner, target, this->_lastDamage, this->isFinished(), logger);
 		return true;
 	}
 

@@ -449,6 +449,7 @@ namespace PokemonGen1
 	{
 		this->resetStatsChanges();
 		this->_lastUsedMove = availableMoves[0x00];
+		this->_wrapped = false;
 		if (this->_transformed) {
 			this->_id = this->_oldState.id;
 			this->_moveSet = this->_oldState.moves;
@@ -519,7 +520,10 @@ namespace PokemonGen1
 
 	void Pokemon::setWrapped(bool isWrapped)
 	{
-		this->_wrapped = isWrapped;
+		if (isWrapped)
+			this->_wrapped = isWrapped;
+		else
+			this->_stopWrapped = true;
 	}
 
 	unsigned Pokemon::getSpeed() const
@@ -545,7 +549,10 @@ namespace PokemonGen1
 	void Pokemon::endTurn()
 	{
 		this->_flinched = false;
-		this->_wrapped = false;
+		if (this->_stopWrapped) {
+			this->_wrapped = false;
+			this->_stopWrapped = false;
+		}
 	}
 
 	void Pokemon::_log(const std::string &msg) const
@@ -555,32 +562,32 @@ namespace PokemonGen1
 
 	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
 	{
-		if (this->_wrapped) {
-			this->_log(" can't move!");
-			goto turn_damage_check;
-		}
-
-		if (this->_flinched) {
-			this->_log(" flinched!");
-			goto turn_damage_check;
-		}
-
 		if (this->_currentStatus & STATUS_ASLEEP) {
 			this->_currentStatus--;
 			if (this->_currentStatus & STATUS_ASLEEP)
 				this->_log(" is fast asleep!");
-			else {
+			else
 				this->_log(" woke up!");
-				this->_currentStatus &= ~STATUS_ANY_NON_VOLATILE_STATUS;
-			}
 			goto turn_damage_check;
 		}
-
 		if (this->_currentStatus & STATUS_FROZEN) {
 			this->_log(" is frozen solid!");
 			goto turn_damage_check;
 		}
-
+		if (this->_wrapped) {
+			this->_log(" can't move!");
+			goto turn_damage_check;
+		}
+		if (this->_flinched) {
+			this->_log(" flinched!");
+			goto turn_damage_check;
+		}
+		if (this->_needsRecharge) {
+			this->_log(" must recharge!");
+			this->_needsRecharge = false;
+			goto turn_damage_check;
+		}
+		// TODO: Check disabled no more
 		if (this->_currentStatus & STATUS_CONFUSED) {
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if ((this->_currentStatus & STATUS_CONFUSED)) {
@@ -589,28 +596,32 @@ namespace PokemonGen1
 					this->setRecharging(false);
 					(*this->_battleLogger)("It hurt itself in its confusion!");
 					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false).damage, false);
-					this->_lastUsedMove = availableMoves[0x00];
+					// clear bide, thrashing about, charging up, and multi-turn moves such as warp
+					// but NOT rage!
+					if (this->_lastUsedMove.getID() != AvailableMove::Rage)
+						this->_lastUsedMove = availableMoves[0x00];
 					goto turn_damage_check;
 				}
 			} else if (!(this->_currentStatus & STATUS_CONFUSED))
 				this->_log(" is confused no more!");
 		}
-
+		// TODO: Check disabled move
 		if ((this->_currentStatus & STATUS_PARALYZED) && (*this->_random)() < 0x3F) {
 			this->_log("'s fully paralyzed!");
-			this->_lastUsedMove = availableMoves[0x00];
+			// clear bide, thrashing about, charging up, and multi-turn moves such as warp
+			// but NOT rage!
+			if (this->_lastUsedMove.getID() != AvailableMove::Rage)
+				this->_lastUsedMove = availableMoves[0x00];
 			goto turn_damage_check;
 		}
 
-		if (this->_needsRecharge) {
-			this->_log(" must recharge!");
-			this->_needsRecharge = false;
-			goto turn_damage_check;
-		}
-
-		if (moveSlot >= 4)
+		// Check if using bind
+		// Check if thrashing about (Thrash & Petal Dance)
+		// Check if using multiturn move
+		// Check if using rage
+		if (moveSlot >= 4) {
 			this->useMove(availableMoves[Struggle], target);
-		else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
+		} else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
 			this->useMove(this->_moveSet[moveSlot], target);
 			this->_moveSet[moveSlot].setPP(this->_moveSet[moveSlot].getPP() ? this->_moveSet[moveSlot].getPP() - 1 : 63);
 		}
@@ -788,7 +799,7 @@ namespace PokemonGen1
 		return this->_baseStats.SPD;
 	}
 
-	Pokemon::DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense) const
+	DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense) const
 	{
 		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
 		unsigned defense;

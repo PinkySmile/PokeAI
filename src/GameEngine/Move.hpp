@@ -11,6 +11,7 @@
 #include "Type.hpp"
 #include "StatusChange.hpp"
 #include "StatsChange.hpp"
+#include "Damage.hpp"
 
 
 #define DEFAULT_MOVE(id) Move{id, "Move "#id, TYPE_INVALID, STATUS, 0, 0, 0, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, nullptr, "This move is invalid and will cause desync when used"}
@@ -91,8 +92,8 @@
 }, TAKE_HALF_MOVE_DAMAGE_DESC
 
 #define WRAP_TARGET_DESC "Set the foe in the wrapped state for all the move duration"
-#define WRAP_TARGET [](Pokemon &, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
-	target.setWrapped(true);\
+#define WRAP_TARGET [](Pokemon &, Pokemon &target, unsigned, bool last, const std::function<void(const std::string &msg)> &){\
+	target.setWrapped(!last);\
 	return true;\
 }, WRAP_TARGET_DESC
 
@@ -302,6 +303,7 @@ namespace PokemonGen1
 		unsigned char _maxpp;
 		unsigned char _nbHit;
 		unsigned char _accuracy;
+		unsigned int _lastDamage;
 		std::pair<unsigned, unsigned> _nbRuns;
 		std::pair<unsigned, unsigned> _nbHits;
 		StatusChangeProb _statusChange;

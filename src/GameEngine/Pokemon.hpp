@@ -16,6 +16,7 @@
 #include "Type.hpp"
 #include "StatusChange.hpp"
 #include "RandomGenerator.hpp"
+#include "Damage.hpp"
 
 typedef unsigned char byte;
 
@@ -155,6 +156,7 @@ namespace PokemonGen1
 		unsigned char                         _catchRate;
 		bool                                  _transformed = false;
 		bool                                  _wrapped = false;
+		bool                                  _stopWrapped = false;
 		bool                                  _storingDamages;
 		unsigned int                          _damageStored;
 		unsigned char                         _badPoisonStage = 0;
@@ -169,13 +171,6 @@ namespace PokemonGen1
 		unsigned int _getUpgradedStat(unsigned short baseValue, char upgradeStage) const;
 
 	public:
-		struct DamageResult {
-			bool critical;
-			unsigned damage;
-			bool affect;
-			bool isVeryEffective;
-			bool isNotVeryEffective;
-		};
 
 		static constexpr unsigned NICK_SIZE = 10;
 		static constexpr unsigned ENCODED_SIZE = PACK_SIZE;

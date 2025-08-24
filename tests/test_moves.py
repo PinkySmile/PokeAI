@@ -272,6 +272,9 @@ def compare_basic_states(battle_state, emu_state):
 		errors.append(f"P1 Special b.{me_b.getSpecial()} vs e.{me_e['special']}")
 	if me_b.getSpeed() != me_e['speed']:
 		errors.append(f"P1 Speed b.{me_b.getSpeed()} vs e.{me_e['speed']}")
+	pps = [m.getPP() for m in me_b.getMoveSet()]
+	if pps != me_e['pps']:
+		errors.append(f"P1 PPs b.{pps} vs e.{me_e['pps']}")
 
 	if op_b.getTypes()[0] != op_e['typeA']:
 		errors.append(f"P2 Type 1 b.{typeToString(op_b.getTypes()[0])} vs e.{typeToString(op_e['typeA'])}")
@@ -391,7 +394,10 @@ def test_move(emulator_gen1, move, random_state, scenario, min_turns=6):
 
 	current_turn = 0
 	while True:
-		state.me.nextAction = BattleAction.Attack1
+		if state.me.team[0].getMoveSet()[0].getPP() != 0:
+			state.me.nextAction = BattleAction.Attack1
+		else:
+			state.me.nextAction = BattleAction.StruggleMove
 		state.op.nextAction = BattleAction.Attack1
 		battle.tick()
 		emulator_gen1.step(state)
@@ -501,7 +507,8 @@ results = []
 parser = ArgumentParser(prog=sys.argv[0])
 parser.add_argument('-d', '--debug', action='store_true')
 parser.add_argument('-e', '--emu-debug', action='store_true')
-parser.add_argument('-s', '--show-individual', action='store_true')
+parser.add_argument('-i', '--show-individual', action='store_true')
+parser.add_argument('-f', '--show-failure', action='store_true')
 parser.add_argument('-t', '--test', nargs='*')
 parser.add_argument('-j', '--jobs', default=1)
 parser.add_argument('-o', '--output')
@@ -569,7 +576,7 @@ for r in sorted(results, key=lambda x: len(x['errors']) != 0):
 			if fd is not None:
 				fd.write(f"{r['name']}: Passed\n")
 		continue
-	if args.show_individual:
+	if args.show_individual or args.show_failure:
 		print(f"{r['name']} {r['extra']}: \033[31mFailed\033[0m")
 		print("\n".join(f"\033[31;1m - {f}\033[0m" for f in r['errors']))
 		if fd is not None:
