@@ -273,7 +273,7 @@ def dump_basic_state(s):
 	r += f'100%ACC (+0), '
 	r += f'100%EVD (+0), '
 	r += f'Status: {s['status']} {statusToString(s['status'])}, '
-	if s['status_flag'][1] & (1 << HAS_SUBSTITUTE_UP):
+	if s['status_flags'][1] & (1 << HAS_SUBSTITUTE_UP):
 		r += f"Sub {s['substitute']}HP, "
 	r += f'Moves: {", ".join(f'{m.name} {s['pps'][i]}/?PP' for i, m in enumerate(s['moves']) if m)}'
 	return r

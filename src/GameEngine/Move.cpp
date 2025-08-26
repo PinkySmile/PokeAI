@@ -445,9 +445,6 @@ namespace PokemonGen1
 					logger("It's not very effective!");
 				if (damage.isVeryEffective)
 					logger("It's super effective!");
-				// Stop when the sub dies
-				if (sub != target.hasSubstitute())
-					break;
 			}
 			if (hits > 1)
 				logger("Hit the enemy " + std::to_string(hits) + " times!");
@@ -459,6 +456,8 @@ namespace PokemonGen1
 				return this->_hitCallback(owner, target, this->_lastDamage, this->isFinished(), logger);
 			return true;
 		}
+
+		bool addedStatus = false;
 
 		if (!sub) {
 			if (
@@ -472,17 +471,15 @@ namespace PokemonGen1
 			)
 				target.addStatus(this->_statusChange.status);
 
-			bool addedStatus = false;
-
 			for (const auto &val: this->_foeChange)
 				if (!val.cmpVal || rng() < val.cmpVal)
 					addedStatus |= target.changeStat(val.stat, val.nb);
-			for (const auto &val: this->_ownerChange)
-				if (!val.cmpVal || rng() < val.cmpVal)
-					addedStatus |= owner.changeStat(val.stat, val.nb);
-			if (addedStatus)
-				target.applyStatusDebuff();
 		}
+		for (const auto &val: this->_ownerChange)
+			if (!val.cmpVal || rng() < val.cmpVal)
+				addedStatus |= owner.changeStat(val.stat, val.nb);
+		if (addedStatus)
+			target.applyStatusDebuff();
 
 		if (this->_hitCallback)
 			return this->_hitCallback(owner, target, this->_lastDamage, this->isFinished(), logger);
