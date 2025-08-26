@@ -298,7 +298,7 @@ namespace PokemonGen1
 			.isNotVeryEffective = false,
 		};
 		auto &rng = owner.getRandomGenerator();
-		bool sub = target.getSubstituteHealth() != 0;
+		bool sub = target.hasSubstitute();
 
 		if (this->getID() == Whirlwind || this->getID() == Roar) {
 			logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
@@ -435,16 +435,18 @@ namespace PokemonGen1
 
 	skipAccuracyAndDamageCheck:
 		if (this->_power) {
-			if (damage.critical)
-				logger("Critical hit!");
 			for (size_t i = 0; i < hits; i++) {
+				if (this->_lastDamage > target.getHealth())
+					this->_lastDamage = target.getHealth();
+				target.takeDamage(this->_lastDamage, false);
+				if (i == 0 && damage.critical)
+					logger("Critical hit!");
 				if (damage.isNotVeryEffective)
 					logger("It's not very effective!");
 				if (damage.isVeryEffective)
 					logger("It's super effective!");
-				target.takeDamage(this->_lastDamage, false);
 				// Stop when the sub dies
-				if (sub != (target.getSubstituteHealth() != 0))
+				if (sub != target.hasSubstitute())
 					break;
 			}
 			if (hits > 1)

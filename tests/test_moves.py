@@ -65,6 +65,41 @@ PACK_SPE = 42
 
 wPartyMons = 0xD16A
 wEnemyMons = 0xD8A3
+wPlayerSubstituteHP = 0xCCD7
+wEnemySubstituteHP = 0xCCD8
+wPlayerBattleStatus1 = 0xD061
+wPlayerBattleStatus2 = 0xD062
+wPlayerBattleStatus3 = 0xD063
+wEnemyBattleStatus1 = 0xD066
+wEnemyBattleStatus2 = 0xD067
+wEnemyBattleStatus3 = 0xD068
+
+# wPlayerBattleStatus1 or wEnemyBattleStatus1 bit flags
+STORING_ENERGY =  0 # Bide
+THRASHING_ABOUT =  1 # Thrash, Petal Dance
+ATTACKING_MULTIPLE_TIMES =  2 # e.g. Double Kick, Fury Attack
+FLINCHED =  3
+CHARGING_UP =  4 # e.g. Solar Beam, Fly
+USING_TRAPPING_MOVE =  5 # e.g. Wrap
+INVULNERABLE =  6 # charging up Fly/Dig
+CONFUSED =  7
+
+# wPlayerBattleStatus2 or wEnemyBattleStatus2 bit flags
+USING_X_ACCURACY =  0
+PROTECTED_BY_MIST =  1
+GETTING_PUMPED =  2 # Focus Energy
+HAS_SUBSTITUTE_UP =  4
+NEEDS_TO_RECHARGE =  5 # Hyper Beam
+USING_RAGE =  6
+SEEDED =  7 # Leech Seed
+
+# wPlayerBattleStatus3 or wEnemyBattleStatus3 bit flags
+BADLY_POISONED =  0 # Toxic
+HAS_LIGHT_SCREEN_UP =  1
+HAS_REFLECT_UP =  2
+TRANSFORMED =  3
+
+
 
 wPartyMon1HP = 0xD16B
 wPartyMon1MaxHP = 0xD18C
@@ -168,7 +203,7 @@ assert playerBaseAddr + specialOffset == wBattleMonSpecial
 assert playerBaseAddr + ppOffset == wBattleMonPP
 
 
-def get_basic_mon_state(emulator, base_address, baseStats):
+def get_basic_mon_state(emulator, base_address, base_stats, sub_addr, status1_addr):
 	nickname = bytes(emulator.memory[base_address + nickOffset:base_address + nickOffset + 11])
 	species = emulator.memory[base_address + speciesOffset]
 	hp = int.from_bytes(bytes(emulator.memory[base_address + hpOffset:base_address + hpOffset + 2]), byteorder='big')
@@ -184,11 +219,11 @@ def get_basic_mon_state(emulator, base_address, baseStats):
 	speed = int.from_bytes(bytes(emulator.memory[base_address + speedOffset:base_address + speedOffset + 2]), byteorder='big')
 	special = int.from_bytes(bytes(emulator.memory[base_address + specialOffset:base_address + specialOffset + 2]), byteorder='big')
 	pps = emulator.memory[base_address + ppOffset:base_address + ppOffset + 4]
-	baseMaxHp = int.from_bytes(bytes(emulator.memory[baseStats:baseStats + 2]), byteorder='big')
-	baseAttack = int.from_bytes(bytes(emulator.memory[baseStats + 2:baseStats + 4]), byteorder='big')
-	baseDefense = int.from_bytes(bytes(emulator.memory[baseStats + 4:baseStats + 6]), byteorder='big')
-	baseSpeed = int.from_bytes(bytes(emulator.memory[baseStats + 6:baseStats + 8]), byteorder='big')
-	baseSpecial = int.from_bytes(bytes(emulator.memory[baseStats + 8:baseStats + 10]), byteorder='big')
+	baseMaxHp = int.from_bytes(bytes(emulator.memory[base_stats:base_stats + 2]), byteorder='big')
+	baseAttack = int.from_bytes(bytes(emulator.memory[base_stats + 2:base_stats + 4]), byteorder='big')
+	baseDefense = int.from_bytes(bytes(emulator.memory[base_stats + 4:base_stats + 6]), byteorder='big')
+	baseSpeed = int.from_bytes(bytes(emulator.memory[base_stats + 6:base_stats + 8]), byteorder='big')
+	baseSpecial = int.from_bytes(bytes(emulator.memory[base_stats + 8:base_stats + 10]), byteorder='big')
 	return {
 		'nickname': nickname,
 		'species': PokemonSpecies(species),
@@ -210,13 +245,15 @@ def get_basic_mon_state(emulator, base_address, baseStats):
 		'baseDefense': baseDefense,
 		'baseSpeed': baseSpeed,
 		'baseSpecial': baseSpecial,
+		'substitute': emulator.memory[sub_addr],
+		'status_flags': emulator.memory[status1_addr:status1_addr + 3]
 	}
 
 
 def get_emulator_basic_state(emulator):
 	return (
-		get_basic_mon_state(emulator, playerBaseAddr, wPlayerMonUnmodifiedMaxHP),
-		get_basic_mon_state(emulator, enemyBaseAddr, wEnemyMonUnmodifiedMaxHP),
+		get_basic_mon_state(emulator, playerBaseAddr, wPlayerMonUnmodifiedMaxHP, wPlayerSubstituteHP, wPlayerBattleStatus1),
+		get_basic_mon_state(emulator, enemyBaseAddr, wEnemyMonUnmodifiedMaxHP, wEnemySubstituteHP, wEnemyBattleStatus1),
 		emulator.memory[wLinkBattleRandomNumberListIndex],
 		emulator.memory[wLinkBattleRandomNumberList:wLinkBattleRandomNumberList+9]
 	)
@@ -236,6 +273,8 @@ def dump_basic_state(s):
 	r += f'100%ACC (+0), '
 	r += f'100%EVD (+0), '
 	r += f'Status: {s['status']} {statusToString(s['status'])}, '
+	if s['status_flag'][1] & (1 << HAS_SUBSTITUTE_UP):
+		r += f"Sub {s['substitute']}HP, "
 	r += f'Moves: {", ".join(f'{m.name} {s['pps'][i]}/?PP' for i, m in enumerate(s['moves']) if m)}'
 	return r
 
@@ -264,6 +303,11 @@ def compare_basic_states(battle_state, emu_state):
 		errors.append(f"P1 Status b.{me_b.getNonVolatileStatus()} ({StatusChange(me_b.getNonVolatileStatus()).name}) vs e.{me_e['status']} ({StatusChange(me_e['status']).name})")
 	if me_b.getHealth() != me_e['hp']:
 		errors.append(f"P1 Health b.{me_b.getHealth()} vs e.{me_e['hp']}")
+	has_substitute = ((me_e['status_flags'][1] & (1 << HAS_SUBSTITUTE_UP)) != 0)
+	if me_b.hasSubstitute() != has_substitute:
+		errors.append(f"P1 Has substitute b.{me_b.hasSubstitute()} vs e.{has_substitute}")
+	if me_b.hasSubstitute() and has_substitute and me_b.getSubstituteHealth() != me_e['substitute']:
+		errors.append(f"P1 Substitute health b.{me_b.getSubstituteHealth()} vs e.{me_e['substitute']}")
 	if me_b.getAttack() != me_e['attack']:
 		errors.append(f"P1 Attack b.{me_b.getAttack()} vs e.{me_e['attack']}")
 	if me_b.getDefense() != me_e['defense']:
@@ -284,6 +328,11 @@ def compare_basic_states(battle_state, emu_state):
 		errors.append(f"P2 Status b.{op_b.getNonVolatileStatus()} ({StatusChange(op_b.getNonVolatileStatus()).name}) vs e.{op_e['status']} ({StatusChange(op_e['status']).name})")
 	if op_b.getHealth() != op_e['hp']:
 		errors.append(f"P2 Health b.{op_b.getHealth()} vs e.{op_e['hp']}")
+	has_substitute = ((op_e['status_flags'][1] & (1 << HAS_SUBSTITUTE_UP)) != 0)
+	if op_b.hasSubstitute() != has_substitute:
+		errors.append(f"P2 Has substitute b.{op_b.hasSubstitute()} vs e.{has_substitute}")
+	if op_b.hasSubstitute() and has_substitute and op_b.getSubstituteHealth() != op_e['substitute']:
+		errors.append(f"P2 Substitute health b.{op_b.getSubstituteHealth()} vs e.{op_e['substitute']}")
 	if op_b.getAttack() != op_e['attack']:
 		errors.append(f"P2 Attack b.{op_b.getAttack()} vs e.{op_e['attack']}")
 	if op_b.getDefense() != op_e['defense']:
@@ -313,7 +362,9 @@ def test_move(emulator_gen1, move, random_state, scenario, min_turns=6):
 	pokemon_data[PACK_STATUS] = StatusChange.OK
 	pokemon_data[PACK_TYPEA] = Type.Normal
 	pokemon_data[PACK_TYPEB] = Type.Normal
-	if scenario & 2:
+	if scenario & 4:
+		pokemon_data[PACK_MOVE1] = AvailableMove.Substitute
+	elif scenario & 2:
 		pokemon_data[PACK_MOVE1] = AvailableMove.Bubble
 	else:
 		pokemon_data[PACK_MOVE1] = AvailableMove.Constrict
@@ -440,6 +491,9 @@ rand_lists = [
 	None, None, None, None, None, None, None, None, None, None
 ]
 extra_lists = {
+	AvailableMove.Pound: [
+		[204, 110, 122, 190, 50, 241, 10, 146, 180]
+	],
 	AvailableMove.Sand_Attack: [
 		[128,  17,  73,  86, 130,  10, 248,  81, 235]
 	],
@@ -470,9 +524,17 @@ extra_lists = {
 	],
 	AvailableMove.Low_Kick: [
 		[9, 26, 245, 52, 74, 71, 220, 133, 230]
+	],
+	AvailableMove.Submission: [
+		[229, 8, 157, 51, 158, 233, 42, 83, 10]
+	],
+	AvailableMove.Double_Kick: [
+		[198, 46, 19, 167, 197, 228, 144, 12, 228]
 	]
 }
 
+# TODO: Add trap move + switch test
+# TODO: Add substitute + move test
 tests = []
 for move_index in range(1, AvailableMove.Struggle + 1):
 	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):
@@ -499,6 +561,12 @@ for move_index in range(1, AvailableMove.Struggle + 1):
 			'name': f'{name}[{i}](HS)',
 			'cb': test_move,
 			'args': [move_index, rand, 2],
+			'group': name
+		})
+		tests.append({
+			'name': f'{name}[{i}](Sub)',
+			'cb': test_move,
+			'args': [move_index, rand, 5],
 			'group': name
 		})
 

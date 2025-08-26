@@ -243,7 +243,7 @@
 
 #define CREATE_SUBSTITUTE_DESC "Creates a substitute"
 #define CREATE_SUBSTITUTE [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){ \
-	if (owner.getSubstituteHealth())\
+	if (owner.hasSubstitute())\
 		return logger(owner.getName() + " has a SUBSTITUTE!"), true;\
 	unsigned hp = owner.getMaxHealth() / 4;\
 	if (owner.getHealth() <= hp)\

@@ -1022,6 +1022,12 @@ cdef class Pokemon:
 	def getHealth(self):
 		return self.__instance.getHealth()
 
+	def getSubstituteHealth(self):
+		return self.__instance.getSubstituteHealth()
+
+	def hasSubstitute(self):
+		return self.__instance.hasSubstitute()
+
 	def getName(self, bool hasEnemy = True):
 		return self.__instance.getName(hasEnemy).decode('ASCII')
 

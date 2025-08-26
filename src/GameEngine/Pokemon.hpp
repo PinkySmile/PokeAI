@@ -163,6 +163,7 @@ namespace PokemonGen1
 		unsigned short                        _currentStatus;
 		double                                _globalCritRatio;
 		unsigned short _subHealth = 0;
+		bool _hasSub = false;
 		const Logger *_battleLogger;
 
 		static const std::pair<unsigned char, unsigned char> _ratios[13];
@@ -180,6 +181,7 @@ namespace PokemonGen1
 		Pokemon(RandomGenerator &random, const Logger &battleLogger, const nlohmann::json &json);
 
 		unsigned short getSubstituteHealth() const;
+		bool hasSubstitute() const;
 		void setSubstituteHealth(unsigned short health);
 		void setGlobalCritRatio(double ratio);
 		void setStatus(StatusChange status);

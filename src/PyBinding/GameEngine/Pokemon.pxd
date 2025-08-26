@@ -132,6 +132,8 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 		unsigned getRawDefense()
 		unsigned getRawSpeed()
 		unsigned getHealth()
+		unsigned short getSubstituteHealth()
+		bool hasSubstitute()
 		string getName(bool hasEnemy)
 		string getNickname()
 		unsigned getMaxHealth()

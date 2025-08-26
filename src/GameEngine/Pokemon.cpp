@@ -327,6 +327,8 @@ namespace PokemonGen1
 					stream << statusToString(static_cast<StatusChange>(1U << i)) << ", ";
 		} else
 			stream << "OK, ";
+		if (this->_hasSub)
+			stream << "Sub " << std::dec << this->_subHealth << "HP, ";
 		stream << "Moves: ";
 		if (this->_moveSet.empty())
 			stream << "None";
@@ -450,6 +452,8 @@ namespace PokemonGen1
 		this->resetStatsChanges();
 		this->_lastUsedMove = availableMoves[0x00];
 		this->_wrapped = false;
+		this->_subHealth = 0;
+		this->_hasSub = false;
 		if (this->_transformed) {
 			this->_id = this->_oldState.id;
 			this->_moveSet = this->_oldState.moves;
@@ -722,9 +726,15 @@ namespace PokemonGen1
 		return this->_subHealth;
 	}
 
+	bool Pokemon::hasSubstitute() const
+	{
+		return this->_hasSub;
+	}
+
 	void Pokemon::setSubstituteHealth(unsigned short health)
 	{
 		this->_subHealth = health;
+		this->_hasSub = true;
 	}
 
 	void Pokemon::heal(unsigned short health)
@@ -752,10 +762,11 @@ namespace PokemonGen1
 		if (this->_storingDamages)
 			this->_damageStored += damage;
 
-		if (!skipSubstitute && this->_subHealth) {
+		if (!skipSubstitute && this->_hasSub) {
 			(*this->_battleLogger)("The SUBSTITUTE took damage for " + this->getName() + "!");
 			if (this->_subHealth < damage) {
 				this->_subHealth = 0;
+				this->_hasSub = false;
 				this->_log("'s SUBSTITUTE broke!");
 			} else
 				this->_subHealth -= damage;
