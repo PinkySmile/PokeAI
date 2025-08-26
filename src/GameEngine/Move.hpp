@@ -387,7 +387,7 @@ namespace PokemonGen1
 		None = 0x00,
 		Pound = 0x01,
 		Karate_Chop = 0x02,
-		Double_Slap = 0x03,
+		Doubleslap = 0x03,
 		Comet_Punch = 0x04,
 		Mega_Punch = 0x05,
 		Pay_Day = 0x06,

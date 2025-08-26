@@ -530,6 +530,9 @@ extra_lists = {
 	],
 	AvailableMove.Double_Kick: [
 		[198, 46, 19, 167, 197, 228, 144, 12, 228]
+	],
+	AvailableMove.Doubleslap: [
+		[137, 49, 218, 202, 45, 152, 150, 134, 58]
 	]
 }
 

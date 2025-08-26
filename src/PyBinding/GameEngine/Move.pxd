@@ -101,7 +101,7 @@ cdef extern from "../../GameEngine/Move.hpp" namespace "PokemonGen1":
 		Empty "PokemonGen1::None",
 		Pound,
 		Karate_Chop,
-		Double_Slap,
+		Doubleslap,
 		Comet_Punch,
 		Mega_Punch,
 		Pay_Day,

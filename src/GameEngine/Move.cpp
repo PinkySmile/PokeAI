@@ -421,6 +421,21 @@ namespace PokemonGen1
 			return true;
 		}
 
+	skipAccuracyAndDamageCheck:
+		if (this->_power) {
+			if (this->_lastDamage > target.getHealth())
+				this->_lastDamage = target.getHealth();
+			target.takeDamage(this->_lastDamage, false);
+			if (damage.critical)
+				logger("Critical hit!");
+			if (damage.isNotVeryEffective)
+				logger("It's not very effective!");
+			if (damage.isVeryEffective)
+				logger("It's super effective!");
+			if (sub != target.hasSubstitute())
+				return true;
+		}
+
 		if (this->_nbHits.second == this->_nbHits.first)
 			hits = this->_nbHits.first;
 		else if (this->_nbHits.second - 1 == this->_nbHits.first)
@@ -433,9 +448,8 @@ namespace PokemonGen1
 		} else
 			throw std::runtime_error("Invalid hit count value in " + this->getName());
 
-	skipAccuracyAndDamageCheck:
 		if (this->_power) {
-			for (size_t i = 0; i < hits; i++) {
+			for (size_t i = 1; i < hits; i++) {
 				if (this->_lastDamage > target.getHealth())
 					this->_lastDamage = target.getHealth();
 				target.takeDamage(this->_lastDamage, false);
@@ -446,8 +460,7 @@ namespace PokemonGen1
 				if (damage.isVeryEffective)
 					logger("It's super effective!");
 			}
-			if (hits > 1)
-				logger("Hit the enemy " + std::to_string(hits) + " times!");
+			logger("Hit the enemy " + std::to_string(hits) + " times!");
 		}
 
 		if (!target.getHealth()) {
@@ -591,7 +604,7 @@ namespace PokemonGen1
 		Move{0x00, "-"           , TYPE_INVALID , STATUS,    0,    0,  0, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, nullptr, "No move. This move is invalid and will cause desync when used."},
 		Move{0x01, "Pound"       , TYPE_NORMAL  , PHYSICAL,  40, 100, 35},
 		Move{0x02, "Karate Chop" , TYPE_NORMAL  , PHYSICAL,  50, 100, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},
-		Move{0x03, "DoubleSlap"  , TYPE_NORMAL  , PHYSICAL,  15,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
+		Move{0x03, "Doubleslap"  , TYPE_NORMAL  , PHYSICAL,  15,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x04, "Comet Punch" , TYPE_NORMAL  , PHYSICAL,  18,  85, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x05, "Mega Punch"  , TYPE_NORMAL  , PHYSICAL,  80,  85, 20},
 		Move{0x06, "Pay Day"     , TYPE_NORMAL  , PHYSICAL,  40, 100, 20},

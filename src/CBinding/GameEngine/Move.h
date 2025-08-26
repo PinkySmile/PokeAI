@@ -23,7 +23,7 @@ typedef enum PokemonGen1_AvailableMove
 	PokemonGen1_Move_None = 0x00,
 	PokemonGen1_Move_Pound = 0x01,
 	PokemonGen1_Move_Karate_Chop = 0x02,
-	PokemonGen1_Move_Double_Slap = 0x03,
+	PokemonGen1_Move_Doubleslap = 0x03,
 	PokemonGen1_Move_Comet_Punch = 0x04,
 	PokemonGen1_Move_Mega_Punch = 0x05,
 	PokemonGen1_Move_Pay_Day = 0x06,
