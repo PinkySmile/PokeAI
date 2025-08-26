@@ -300,6 +300,10 @@ namespace PokemonGen1
 		auto &rng = owner.getRandomGenerator();
 		bool sub = target.hasSubstitute();
 
+		if (sub && this->_category == STATUS && (!this->_foeChange.empty() || this->_statusChange.status)) {
+			logger("But, it failed!");
+			return false;
+		}
 		if (this->getID() == Whirlwind || this->getID() == Roar) {
 			logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
 			logger(target.getName() + " is unaffected!");
@@ -448,7 +452,7 @@ namespace PokemonGen1
 		} else
 			throw std::runtime_error("Invalid hit count value in " + this->getName());
 
-		if (this->_power) {
+		if (this->_power && hits > 1) {
 			for (size_t i = 1; i < hits; i++) {
 				if (this->_lastDamage > target.getHealth())
 					this->_lastDamage = target.getHealth();

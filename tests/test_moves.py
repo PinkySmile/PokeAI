@@ -581,7 +581,7 @@ parser.add_argument('-e', '--emu-debug', action='store_true')
 parser.add_argument('-i', '--show-individual', action='store_true')
 parser.add_argument('-f', '--show-failure', action='store_true')
 parser.add_argument('-t', '--test', nargs='*')
-parser.add_argument('-j', '--jobs', default=1)
+parser.add_argument('-j', '--jobs', default=1, type=int)
 parser.add_argument('-o', '--output')
 args = parser.parse_args()
 
