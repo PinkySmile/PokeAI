@@ -573,6 +573,11 @@ namespace PokemonGen1
 		(*this->_battleLogger)(this->getName() + msg);
 	}
 
+	void Pokemon::setSubstitute()
+	{
+		this->_hasSub = true;
+	}
+
 	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
 	{
 		if (this->_currentStatus & STATUS_ASLEEP) {
@@ -608,7 +613,11 @@ namespace PokemonGen1
 				if ((*this->_random)() >= 0x80) {
 					this->setRecharging(false);
 					(*this->_battleLogger)("It hurt itself in its confusion!");
-					this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false).damage, false);
+					if (this->_hasSub) {
+						target.setSubstitute();
+						target.takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false).damage, false);
+					} else
+						this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false).damage, false);
 					// clear bide, thrashing about, charging up, and multi-turn moves such as warp
 					// but NOT rage!
 					if (this->_lastUsedMove.getID() != AvailableMove::Rage)

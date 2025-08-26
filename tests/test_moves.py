@@ -533,6 +533,9 @@ extra_lists = {
 	],
 	AvailableMove.Doubleslap: [
 		[137, 49, 218, 202, 45, 152, 150, 134, 58]
+	],
+	AvailableMove.Confuse_Ray: [
+		[93, 179, 138, 177, 116, 218, 202, 3, 108]
 	]
 }
 

@@ -182,6 +182,7 @@ namespace PokemonGen1
 
 		unsigned short getSubstituteHealth() const;
 		bool hasSubstitute() const;
+		void setSubstitute();
 		void setSubstituteHealth(unsigned short health);
 		void setGlobalCritRatio(double ratio);
 		void setStatus(StatusChange status);
