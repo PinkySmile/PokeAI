@@ -246,10 +246,10 @@
 	if (owner.hasSubstitute())\
 		return logger(owner.getName() + " has a SUBSTITUTE!"), true;\
 	unsigned hp = owner.getMaxHealth() / 4;\
-	if (owner.getHealth() <= hp)\
+	if (owner.getHealth() < hp) /* Apparently you can die if you have exactly the right HP!? */\
 		return logger("Too weak to make a SUBSTITUTE!"), true;\
-	owner.takeDamage(hp, true);\
 	owner.setSubstituteHealth(hp);\
+	owner.takeDamage(hp, true);\
 	logger("It created a SUBSTITUTE!");\
 	return true;\
 }, CREATE_SUBSTITUTE_DESC

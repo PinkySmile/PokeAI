@@ -447,6 +447,12 @@ namespace PokemonGen1
 		return json;
 	}
 
+	void Pokemon::opponentSwitched()
+	{
+		if (this->_lastUsedMove.getHitCallBackDescription() == WRAP_TARGET_DESC && !this->_lastUsedMove.isFinished())
+			this->_lastUsedMove = availableMoves[0x00];
+	}
+
 	void Pokemon::switched()
 	{
 		this->resetStatsChanges();
@@ -492,11 +498,12 @@ namespace PokemonGen1
 	{
 		bool moveStarted = false;
 
-		if (this->_lastUsedMove.isFinished()) {
+		if (this->_lastUsedMove.isFinished() || this->_lastUsedMove.getID() == 0) {
 			this->_lastUsedMove = move;
 			moveStarted = true;
 		}
-		this->_lastUsedMove.attack(*this, target, *this->_battleLogger);
+		if (!this->_lastUsedMove.attack(*this, target, *this->_battleLogger))
+			return true;
 		if (this->_lastUsedMove.needsLoading())
 			return this->_lastUsedMove.isFinished();
 		if (this->_lastUsedMove.getNbRuns().second)
@@ -580,6 +587,8 @@ namespace PokemonGen1
 
 	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
 	{
+		Move *move;
+
 		if (this->_currentStatus & STATUS_ASLEEP) {
 			this->_currentStatus--;
 			if (this->_currentStatus & STATUS_ASLEEP)
@@ -641,12 +650,21 @@ namespace PokemonGen1
 		// Check if thrashing about (Thrash & Petal Dance)
 		// Check if using multiturn move
 		// Check if using rage
-		if (moveSlot >= 4) {
+		if (this->_forcedAttack > 0) {
+			move = &this->_moveSet[this->_forcedAttack - 1];
+			if (this->useMove(*move, target))
+				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
+		} else if (moveSlot >= 4) {
 			this->useMove(availableMoves[Struggle], target);
 		} else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
-			if (this->useMove(this->_moveSet[moveSlot], target))
-				this->_moveSet[moveSlot].setPP(this->_moveSet[moveSlot].getPP() ? this->_moveSet[moveSlot].getPP() - 1 : 63);
+			move = &this->_moveSet[moveSlot];
+			if (this->useMove(*move, target))
+				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
 		}
+		if (!this->_lastUsedMove.isFinished())
+			this->_forcedAttack = moveSlot + 1;
+		else
+			this->_forcedAttack = 0;
 
 	turn_damage_check:
 		unsigned short damage;
@@ -742,6 +760,8 @@ namespace PokemonGen1
 
 	void Pokemon::setSubstituteHealth(unsigned short health)
 	{
+		if (this->getHealth() == 0)
+			return;
 		this->_subHealth = health;
 		this->_hasSub = true;
 	}
@@ -790,6 +810,7 @@ namespace PokemonGen1
 		if (!this->_computedStats.HP) {
 			this->_currentStatus = STATUS_KO;
 			this->_log(" fainted!");
+			this->_hasSub = false;
 		}
 	}
 
@@ -1125,8 +1146,9 @@ namespace PokemonGen1
 		this->_flinched = false;
 		this->_needsRecharge = 0;
 		this->_invincible = false;
-		this->_lastUsedMove = availableMoves.at(0);
 		this->_upgradedStats = {0, 0, 0, 0, 0, 0};
+		this->_hasSub = false;
+		this->_subHealth = 0;
 		for (auto &move : this->_moveSet)
 			move.reset();
 		this->_wrapped = false;

@@ -399,6 +399,7 @@ def test_move(emulator_gen1, move, random_state, scenario, min_turns=6):
 		pokemon_data[PACK_SPD + 1] = 999 & 0xFF
 		pokemon_data[PACK_SPE + 0] = 999 >> 8
 		pokemon_data[PACK_SPE + 1] = 999 & 0xFF
+	state.op.name = "Player 2"
 	state.op.team = [Pokemon(state, "", pokemon_data)]
 
 	pokemon_data = [0] * 44
@@ -428,6 +429,7 @@ def test_move(emulator_gen1, move, random_state, scenario, min_turns=6):
 	pokemon_data[PACK_SPD + 1] = 300 & 0xFF
 	pokemon_data[PACK_SPE + 0] = 300 >> 8
 	pokemon_data[PACK_SPE + 1] = 300 & 0xFF
+	state.me.name = "Player 1"
 	state.me.team = [Pokemon(state, "", pokemon_data, True)]
 
 	with open("pokeyellow_replay.state", "rb") as fd:
@@ -435,16 +437,21 @@ def test_move(emulator_gen1, move, random_state, scenario, min_turns=6):
 	#with open("pokeyellow_test_move.state", "rb") as fd:
 	#	emulator_gen1.init_battle(fd, state, sync_data=True)
 
-	starting_state = get_emulator_basic_state(emulator)
+	current_turn = 0
+	emulator_state = get_emulator_basic_state(emulator)
 	if debug:
-		print(dump_basic_state(starting_state[0]))
-		print(dump_basic_state(starting_state[1]))
+		print(dump_basic_state(emulator_state[0]))
+		print(dump_basic_state(emulator_state[1]))
 		print(state.me.team[0].dump())
 		print(state.op.team[0].dump())
-		print(state.rng.getIndex(), starting_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', starting_state[3])))
-
-	current_turn = 0
+		print(state.rng.getIndex(), emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', emulator_state[3])))
+	f = compare_basic_states(battle.state, emulator_state)
+	if not f[0]:
+		state.rng.reset()
+		return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.getList()]
 	while True:
+		if debug:
+			print(f' ---------- TURN {current_turn + 1} ----------')
 		if state.me.team[0].getMoveSet()[0].getPP() != 0:
 			state.me.nextAction = BattleAction.Attack1
 		else:
@@ -453,14 +460,148 @@ def test_move(emulator_gen1, move, random_state, scenario, min_turns=6):
 		battle.tick()
 		emulator_gen1.step(state)
 		current_turn += 1
-		ending_state = get_emulator_basic_state(emulator)
+		emulator_state = get_emulator_basic_state(emulator)
 		if debug:
-			print(dump_basic_state(ending_state[0]))
-			print(dump_basic_state(ending_state[1]))
+			print(dump_basic_state(emulator_state[0]))
+			print(dump_basic_state(emulator_state[1]))
 			print(state.me.team[0].dump())
 			print(state.op.team[0].dump())
-			print(state.rng.getIndex(), ending_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', ending_state[3])))
-		f = compare_basic_states(battle.state, ending_state)
+			print(state.rng.getIndex(), emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', emulator_state[3])))
+		f = compare_basic_states(battle.state, emulator_state)
+		if not f[0] or battle.isFinished() or (current_turn > min_turns and emulator.memory[0x9D64:0x9D6F] != t_waiting):
+			state.rng.reset()
+			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.getList()]
+
+
+def test_bind_switch(emulator_gen1, move, random_state, scenario):
+	min_turns = 6
+	battle = BattleHandler(False, debug)
+	state = battle.state
+	emulator = emulator_gen1.emulator
+	if random_state is not None:
+		assert len(random_state) == 9
+		state.rng.setList(random_state)
+	else:
+		state.rng.makeRandomList(9)
+	if debug:
+		state.battleLogger = print
+
+	pokemon_data = [0] * 44
+	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
+	pokemon_data[PACK_CURR_LEVEL] = 5
+	pokemon_data[PACK_STATUS] = StatusChange.OK
+	pokemon_data[PACK_TYPEA] = Type.Normal
+	pokemon_data[PACK_TYPEB] = Type.Normal
+	if scenario & 1:
+		pokemon_data[PACK_MOVE1] = AvailableMove.Substitute
+	else:
+		pokemon_data[PACK_MOVE1] = AvailableMove.Constrict
+	pokemon_data[PACK_MOVE2] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
+	pokemon_data[PACK_PPS_MOVE1] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 10
+	pokemon_data[PACK_PPS_MOVE3] = 10
+	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
+	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
+	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
+	pokemon_data[PACK_MAX_HP + 0] = 999 >> 8
+	pokemon_data[PACK_MAX_HP + 1] = 999 & 0xFF
+
+	pokemon_data[PACK_ATK + 0] = 999 >> 8
+	pokemon_data[PACK_ATK + 1] = 999 & 0xFF
+	pokemon_data[PACK_DEF + 0] = 25  >> 8
+	pokemon_data[PACK_DEF + 1] = 25  & 0xFF
+	pokemon_data[PACK_SPD + 0] = 25  >> 8
+	pokemon_data[PACK_SPD + 1] = 25  & 0xFF
+	pokemon_data[PACK_SPE + 0] = 999 >> 8
+	pokemon_data[PACK_SPE + 1] = 999 & 0xFF
+	state.op.name = "Player 2"
+	state.op.team = [Pokemon(state, "", pokemon_data), Pokemon(state, "", pokemon_data)]
+
+	pokemon_data = [0] * 44
+	pokemon_data[PACK_SPECIES] = PokemonSpecies.Pikachu
+	pokemon_data[PACK_CURR_LEVEL] = 5
+	pokemon_data[PACK_STATUS] = StatusChange.OK
+	pokemon_data[PACK_TYPEA] = Type.Electric
+	pokemon_data[PACK_TYPEB] = Type.Electric
+	pokemon_data[PACK_MOVE1] = move
+	pokemon_data[PACK_MOVE2] = AvailableMove.Fire_Blast
+	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
+	pokemon_data[PACK_PPS_MOVE1] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 10
+	pokemon_data[PACK_PPS_MOVE3] = 10
+	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
+	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
+	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
+	pokemon_data[PACK_MAX_HP + 0] = 999 >> 8
+	pokemon_data[PACK_MAX_HP + 1] = 999 & 0xFF
+	pokemon_data[PACK_ATK + 0] = 300 >> 8
+	pokemon_data[PACK_ATK + 1] = 300 & 0xFF
+	pokemon_data[PACK_DEF + 0] = 100 >> 8
+	pokemon_data[PACK_DEF + 1] = 100 & 0xFF
+	pokemon_data[PACK_SPD + 0] = 300 >> 8
+	pokemon_data[PACK_SPD + 1] = 300 & 0xFF
+	pokemon_data[PACK_SPE + 0] = 300 >> 8
+	pokemon_data[PACK_SPE + 1] = 300 & 0xFF
+	state.me.name = "Player 1"
+	state.me.team = [Pokemon(state, "", pokemon_data, True)]
+
+	with open("pokeyellow_replay.state", "rb") as fd:
+		emulator_gen1.init_battle(fd, state)
+	#with open("pokeyellow_test_move.state", "rb") as fd:
+	#	emulator_gen1.init_battle(fd, state, sync_data=True)
+
+	current_turn = 0
+	emulator_state = get_emulator_basic_state(emulator)
+	if debug:
+		print(dump_basic_state(emulator_state[0]))
+		print(dump_basic_state(emulator_state[1]))
+		print(state.me.team[0].dump())
+		print(state.op.team[0].dump())
+		print(state.rng.getIndex(), emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', emulator_state[3])))
+	f = compare_basic_states(battle.state, emulator_state)
+	if not f[0]:
+		state.rng.reset()
+		return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.getList()]
+	while True:
+		if debug:
+			print(f' ---------- TURN {current_turn + 1} ----------')
+		if state.op.team[state.op.pokemonOnField]:
+			state.me.nextAction = BattleAction.Attack1
+			if state.op.team[1].getHealth() != 0:
+				state.op.nextAction = BattleAction.Switch2
+			else:
+				state.op.nextAction = BattleAction.Switch1
+		elif current_turn % 2 == 1:
+			state.me.nextAction = BattleAction.Attack2
+			if current_turn % 4 == 0:
+				if state.op.team[1].getHealth() != 0:
+					state.op.nextAction = BattleAction.Switch2
+				else:
+					state.op.nextAction = BattleAction.Attack1
+			else:
+				if state.op.team[0].getHealth() != 0:
+					state.op.nextAction = BattleAction.Switch1
+				else:
+					state.op.nextAction = BattleAction.Attack2
+		else:
+			state.me.nextAction = BattleAction.Attack1
+			state.op.nextAction = BattleAction.Attack1
+		battle.tick()
+		emulator_gen1.step(state)
+		current_turn += 1
+		emulator_state = get_emulator_basic_state(emulator)
+		if debug:
+			print(dump_basic_state(emulator_state[0]))
+			print(dump_basic_state(emulator_state[1]))
+			print(state.me.team[0].dump())
+			print(state.op.team[0].dump())
+			print(state.rng.getIndex(), emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', emulator_state[3])))
+		f = compare_basic_states(battle.state, emulator_state)
 		if not f[0] or battle.isFinished() or (current_turn > min_turns and emulator.memory[0x9D64:0x9D6F] != t_waiting):
 			state.rng.reset()
 			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.getList()]
@@ -480,6 +621,7 @@ def run_test(test, emulator):
 		else:
 			print("\033[32mPassed\033[0m")
 	return errors, extra
+
 
 rand_lists = [
 	[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], #0
@@ -538,6 +680,12 @@ extra_lists = {
 		[93, 179, 138, 177, 116, 218, 202, 3, 108]
 	]
 }
+binding_moves = [
+	AvailableMove.Bind,
+	AvailableMove.Wrap,
+	AvailableMove.Clamp,
+	AvailableMove.Fire_Spin
+]
 
 # TODO: Add trap move + switch test
 # TODO: Add substitute + move test
@@ -575,11 +723,27 @@ for move_index in range(1, AvailableMove.Struggle + 1):
 			'args': [move_index, rand, 5],
 			'group': name
 		})
+for move_index in binding_moves:
+	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):
+		name = AvailableMove(move_index).name
+		tests.append({
+			'name': f'{name}&Switch[{i}](Atk)',
+			'cb': test_bind_switch,
+			'args': [move_index, rand, 0],
+			'group': name
+		})
+		tests.append({
+			'name': f'{name}&Switch[{i}](Sub)',
+			'cb': test_bind_switch,
+			'args': [move_index, rand, 1],
+			'group': name
+		})
 
 results = []
 
 parser = ArgumentParser(prog=sys.argv[0])
 parser.add_argument('-d', '--debug', action='store_true')
+parser.add_argument('-v', '--display-emulator', action='store_true')
 parser.add_argument('-e', '--emu-debug', action='store_true')
 parser.add_argument('-i', '--show-individual', action='store_true')
 parser.add_argument('-f', '--show-failure', action='store_true')
@@ -605,7 +769,7 @@ else:
 
 def run_tests(offset, count):
 	global tests_ran
-	emulator = Emulator(has_interface=debug and offset == 0, sound_volume=25 if debug and offset == 0 else 0, save_frames=False, debug=args.emu_debug)
+	emulator = Emulator(has_interface=args.display_emulator and offset == 0, sound_volume=25 if debug and offset == 0 else 0, save_frames=False, debug=args.emu_debug)
 	for test_object in tests_to_run[offset::count]:
 		errors, extra = run_test(test_object, emulator)
 		tests_ran += 1

@@ -163,6 +163,7 @@ namespace PokemonGen1
 		unsigned short                        _currentStatus;
 		double                                _globalCritRatio;
 		unsigned short _subHealth = 0;
+		unsigned char _forcedAttack = 0;
 		bool _hasSub = false;
 		const Logger *_battleLogger;
 
@@ -200,6 +201,7 @@ namespace PokemonGen1
 		DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense) const;
 		void endTurn();
 		void switched();
+		void opponentSwitched();
 		int getPriorityFactor(unsigned char moveSlot);
 		void setWrapped(bool isWrapped);
 		void setRecharging(bool recharging = true);
