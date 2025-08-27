@@ -314,14 +314,7 @@ namespace PokemonGen1
 			logger(target.getName() + " is unaffected!");
 			return false;
 		}
-		if (!target.canGetHit() && !this->_skipAccuracyCheck) {
-			this->_nbHit--;
-			if (this->_missCallback)
-				this->_missCallback(owner, target, this->isFinished(), logger);
-			return false;
-		}
 
-		owner.setInvincible(false);
 		if (!this->_nbHit) {
 			if (this->_nbRuns.second == this->_nbRuns.first)
 				this->_nbHit = this->_nbRuns.first;
@@ -335,7 +328,8 @@ namespace PokemonGen1
 			}
 			if (this->_needLoading) {
 				logger(owner.getName() + " " + this->_loadingMsg);
-				owner.setInvincible(this->_invulnerableDuringLoading);
+				if (this->_invulnerableDuringLoading)
+					owner.setInvincible(true);
 				return true;
 			}
 			this->_nbHit--;
@@ -346,10 +340,14 @@ namespace PokemonGen1
 				logger(owner.getName() + this->_keepGoingMsg);
 			goto skipAccuracyAndDamageCheck;
 		} else {
+			if (this->_needLoading)
+				logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
 			if (!this->_keepGoingMsg.empty())
 				logger(owner.getName() + this->_keepGoingMsg);
 			this->_nbHit--;
 		}
+		if (this->_invulnerableDuringLoading && this->_needLoading)
+			owner.setInvincible(false);
 
 		if (
 			this->_category == STATUS &&
@@ -401,12 +399,11 @@ namespace PokemonGen1
 		}
 
 		if (!this->_skipAccuracyCheck) {
-			unsigned int random = rng();
 			unsigned int accuracyByte = target.getEvasion(owner.getAccuracy(this->_accuracy));
 
 			if (accuracyByte > 0xFF)
 				accuracyByte = 0xFF;
-			if ((this->getID() == Dream_Eater && !target.hasStatus(STATUS_ASLEEP)) || random >= accuracyByte) {
+			if (!target.canGetHit() || (this->getID() == Dream_Eater && !target.hasStatus(STATUS_ASLEEP)) || rng() >= accuracyByte) {
 				this->_nbHit = 0;
 				if (this->_power != 0)
 					logger(owner.getName() + "'s attack missed!");
@@ -415,8 +412,7 @@ namespace PokemonGen1
 				else if (!this->_power)
 					logger("But, it failed!");
 				return false;
-			} else if (!this->_nbHit)
-				owner.setRecharging(this->_needRecharge);
+			}
 		}
 
 		if (
@@ -432,7 +428,7 @@ namespace PokemonGen1
 
 	skipAccuracyAndDamageCheck:
 		if (this->_power) {
-			if (this->_lastDamage > target.getHealth())
+			if (!target.hasSubstitute() && this->_lastDamage > target.getHealth())
 				this->_lastDamage = target.getHealth();
 			target.takeDamage(this->_lastDamage, false);
 			if (damage.critical)
@@ -459,11 +455,7 @@ namespace PokemonGen1
 
 		if (this->_power && hits > 1) {
 			for (size_t i = 1; i < hits; i++) {
-				if (this->_lastDamage > target.getHealth())
-					this->_lastDamage = target.getHealth();
 				target.takeDamage(this->_lastDamage, false);
-				if (i == 0 && damage.critical)
-					logger("Critical hit!");
 				if (damage.isNotVeryEffective)
 					logger("It's not very effective!");
 				if (damage.isVeryEffective)
@@ -472,12 +464,12 @@ namespace PokemonGen1
 			logger("Hit the enemy " + std::to_string(hits) + " times!");
 		}
 
-		if (!target.getHealth()) {
-			owner.setRecharging(false);
+		if (!target.getHealth() || sub != target.hasSubstitute()) {
 			if (this->_hitCallback)
 				return this->_hitCallback(owner, target, this->_lastDamage, this->isFinished(), logger);
 			return true;
 		}
+		owner.setRecharging(this->_needRecharge);
 
 		bool addedStatus = false;
 
@@ -629,7 +621,7 @@ namespace PokemonGen1
 		Move{0x10, "Gust"        , TYPE_NORMAL  , PHYSICAL,  40, 100, 35},
 		Move{0x11, "Wing Attack" , TYPE_FLYING  , PHYSICAL,  35, 100, 35},
 		Move{0x12, "Whirlwind"   , TYPE_NORMAL  , STATUS  ,   0, 100, 20},
-		Move{0x13, "Fly"         , TYPE_FLYING  , PHYSICAL,  90,  95, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("flew up high!"), true},
+		Move{0x13, "Fly"         , TYPE_FLYING  , PHYSICAL,  70,  95, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("flew up high!"), true},
 		Move{0x14, "Bind"        , TYPE_NORMAL  , PHYSICAL,  15,  75, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, WRAP_TARGET, GLITCH_HYPER_BEAM},
 		Move{0x15, "Slam"        , TYPE_NORMAL  , PHYSICAL,  80,  75, 20},
 		Move{0x16, "Vine Whip"   , TYPE_GRASS   , SPECIAL ,  35, 100, 25},

@@ -652,13 +652,14 @@ namespace PokemonGen1
 		// Check if using rage
 		if (this->_forcedAttack > 0) {
 			move = &this->_moveSet[this->_forcedAttack - 1];
-			if (this->useMove(*move, target))
+			if (this->useMove(*move, target) && move->getID() != Struggle)
 				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
 		} else if (moveSlot >= 4) {
+			this->_log(" has no moves left!");
 			this->useMove(availableMoves[Struggle], target);
 		} else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
 			move = &this->_moveSet[moveSlot];
-			if (this->useMove(*move, target))
+			if (this->useMove(*move, target) && move->getID() != Struggle)
 				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
 		}
 		if (!this->_lastUsedMove.isFinished())
@@ -721,11 +722,11 @@ namespace PokemonGen1
 
 		statName = statToString(stat);
 		if ((stats[stat] >= 6 && nb > 0) || (stats[stat] <= -6 && nb < 0)) {
-			(*this->_battleLogger)("Nothing happened");
+			(*this->_battleLogger)("Nothing happened!");
 			return false;
 		}
-		if ((stat == STATS_EVD || stat == STATS_ACC) && cStats[stat] == 999) {
-			(*this->_battleLogger)("Nothing happened");
+		if (stat != STATS_EVD && stat != STATS_ACC && cStats[stat] == 999 && nb > 0) {
+			(*this->_battleLogger)("Nothing happened!");
 			return false;
 		}
 
@@ -735,8 +736,11 @@ namespace PokemonGen1
 		else if (stats[stat] < -6)
 			stats[stat] = -6;
 
-		if (stat != STATS_EVD && stat != STATS_ACC)
-			cStats[stat] = fmin(999, this->_getUpgradedStat(bStats[stat], stats[stat]));
+		if (stat != STATS_EVD && stat != STATS_ACC) {
+			cStats[stat] = this->_getUpgradedStat(bStats[stat], stats[stat]);
+			if (nb > 0) // Don't forget to not cap when going down!
+				cStats[stat] = fmin(999, cStats[stat]);
+		}
 		if (nb < -1)
 			this->_log("'s " + statName + " greatly fell!");
 		else if (nb == -1)
@@ -1108,6 +1112,7 @@ namespace PokemonGen1
 
 	bool Pokemon::canHaveStatus(StatusChange status) const
 	{
+		// FIXME: In Gen 1, if a Pokémon that has just used Hyper Beam and has yet to recharge is targeted with a sleep inducing move, any other status it may already have will be ignored and sleep will be induced regardless.
 		if (status == STATUS_NONE)
 			return false;
 

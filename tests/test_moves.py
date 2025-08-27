@@ -384,10 +384,10 @@ def test_move(emulator_gen1, move, random_state, scenario, min_turns=6):
 	if scenario & 1:
 		pokemon_data[PACK_ATK + 0] = 999 >> 8
 		pokemon_data[PACK_ATK + 1] = 999 & 0xFF
-		pokemon_data[PACK_DEF + 0] = 25  >> 8
-		pokemon_data[PACK_DEF + 1] = 25  & 0xFF
-		pokemon_data[PACK_SPD + 0] = 25  >> 8
-		pokemon_data[PACK_SPD + 1] = 25  & 0xFF
+		pokemon_data[PACK_DEF + 0] = 25 >> 8
+		pokemon_data[PACK_DEF + 1] = 25 & 0xFF
+		pokemon_data[PACK_SPD + 0] = 25 >> 8
+		pokemon_data[PACK_SPD + 1] = 25 & 0xFF
 		pokemon_data[PACK_SPE + 0] = 999 >> 8
 		pokemon_data[PACK_SPE + 1] = 999 & 0xFF
 	else:
@@ -456,7 +456,10 @@ def test_move(emulator_gen1, move, random_state, scenario, min_turns=6):
 			state.me.nextAction = BattleAction.Attack1
 		else:
 			state.me.nextAction = BattleAction.StruggleMove
-		state.op.nextAction = BattleAction.Attack1
+		if state.op.team[state.op.pokemonOnField].getHealth() == 0:
+			state.op.nextAction = BattleAction.Switch2
+		else:
+			state.op.nextAction = BattleAction.Attack1
 		battle.tick()
 		emulator_gen1.step(state)
 		current_turn += 1
