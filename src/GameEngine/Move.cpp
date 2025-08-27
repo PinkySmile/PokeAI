@@ -289,7 +289,7 @@ namespace PokemonGen1
 	bool Move::attack(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)
 	{
 		std::string msg;
-		unsigned hits = 1;
+		unsigned hits;
 		DamageResult damage = {
 			.critical = false,
 			.damage = 0,
@@ -300,7 +300,12 @@ namespace PokemonGen1
 		auto &rng = owner.getRandomGenerator();
 		bool sub = target.hasSubstitute();
 
-		if (sub && this->_category == STATUS && (!this->_foeChange.empty() || this->_statusChange.status)) {
+		if (sub && this->_category == STATUS && (!this->_foeChange.empty() || (
+			this->_statusChange.status &&
+			this->_statusChange.status != STATUS_ASLEEP &&
+			this->_statusChange.status != STATUS_PARALYZED
+		))) {
+			logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
 			logger("But, it failed!");
 			return false;
 		}
@@ -360,7 +365,7 @@ namespace PokemonGen1
 			logger(s);
 			if (this->_missCallback)
 				this->_missCallback(owner, target, this->isFinished(), logger);
-			return true;
+			return false;
 		}
 		if ((this->_category != STATUS || this->_type == TYPE_ELECTRIC) && getAttackDamageMultiplier(this->_type, target.getTypes()) == 0) {
 			if (this->_category != STATUS) {
@@ -370,7 +375,7 @@ namespace PokemonGen1
 			logger("It didn't affect " + target.getName() + "!");
 			if (this->_missCallback)
 				this->_missCallback(owner, target, this->isFinished(), logger);
-			return true;
+			return false;
 		}
 
 		if (this->_power == 255) {
@@ -422,7 +427,7 @@ namespace PokemonGen1
 			logger(messages[this->_statusChange.status]);
 			if (this->_missCallback)
 				this->_missCallback(owner, target, this->isFinished(), logger);
-			return true;
+			return false;
 		}
 
 	skipAccuracyAndDamageCheck:
@@ -476,7 +481,7 @@ namespace PokemonGen1
 
 		bool addedStatus = false;
 
-		if (!sub) {
+		if (!sub || (this->_category == STATUS && (this->_statusChange.status == STATUS_ASLEEP || this->_statusChange.status == STATUS_PARALYZED)))
 			if (
 				!this->_statusChange.cmpVal || (
 					(this->_statusChange.status == STATUS_FLINCHED || (
@@ -488,10 +493,10 @@ namespace PokemonGen1
 			)
 				target.addStatus(this->_statusChange.status);
 
+		if (!sub)
 			for (const auto &val: this->_foeChange)
 				if (!val.cmpVal || rng() < val.cmpVal)
 					addedStatus |= target.changeStat(val.stat, val.nb);
-		}
 		for (const auto &val: this->_ownerChange)
 			if (!val.cmpVal || rng() < val.cmpVal)
 				addedStatus |= owner.changeStat(val.stat, val.nb);
