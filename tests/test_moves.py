@@ -671,7 +671,8 @@ extra_lists = {
 		[229, 8, 157, 51, 158, 233, 42, 83, 10]
 	],
 	AvailableMove.Double_Kick: [
-		[198, 46, 19, 167, 197, 228, 144, 12, 228]
+		[198, 46, 19, 167, 197, 228, 144, 12, 228],
+		[131, 73, 103, 200, 198, 245, 207, 125, 78]
 	],
 	AvailableMove.Doubleslap: [
 		[137, 49, 218, 202, 45, 152, 150, 134, 58]
@@ -818,7 +819,7 @@ for r in sorted(results, key=lambda x: len(x['errors']) != 0):
 		print(f"{r['name']} {r['extra']}: \033[31mFailed\033[0m")
 		print("\n".join(f"\033[31;1m - {f}\033[0m" for f in r['errors']))
 		if fd is not None:
-			fd.write(f"{r['name']}: Failed\n")
+			fd.write(f"{r['name']} {r['extra']}: Failed\n")
 			fd.write("\n".join(f" - {f}" for f in r['errors']) + "\n")
 	failures += 1
 group_failed = 0
