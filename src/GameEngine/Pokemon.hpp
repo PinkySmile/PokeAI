@@ -138,7 +138,7 @@ namespace PokemonGen1
 		PokemonState                          _oldState{};
 		unsigned char                         _id;
 		bool                                  _flinched = false;
-		unsigned char                         _needsRecharge = 0;
+		bool                                  _needsRecharge = 0;
 		bool                                  _invincible = false;
 		bool                                  _enemy;
 		Move                                  _lastUsedMove;
@@ -224,6 +224,7 @@ namespace PokemonGen1
 		[[nodiscard]] unsigned short getStatus() const;
 		[[nodiscard]] unsigned short getNonVolatileStatus() const;
 		[[nodiscard]] bool canGetHit() const;
+		[[nodiscard]] bool isRecharging() const;
 		[[nodiscard]] unsigned char getID() const;
 		[[nodiscard]] unsigned getDamagesStored() const;
 		[[nodiscard]] unsigned getSpeed() const;

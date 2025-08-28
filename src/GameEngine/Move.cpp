@@ -300,6 +300,11 @@ namespace PokemonGen1
 		auto &rng = owner.getRandomGenerator();
 		bool sub = target.hasSubstitute();
 
+		if (this->_category == STATUS && this->_statusChange.status == STATUS_ASLEEP && target.isRecharging()) {
+			logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
+			goto skipAccuracyAndDamageCheck;
+		}
+
 		if (sub && this->_category == STATUS && (!this->_foeChange.empty() || (
 			this->_statusChange.status &&
 			this->_statusChange.status != STATUS_ASLEEP &&
@@ -679,7 +684,7 @@ namespace PokemonGen1
 		Move{0x4A, "Growth"      , TYPE_NORMAL  , STATUS  ,   0, 255, 40, NO_STATUS_CHANGE, {{STATS_SPE, 1, 0}}},
 		Move{0x4B, "Razor Leaf"  , TYPE_GRASS   , SPECIAL ,  55,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},
 		Move{0x4C, "SolarBeam"   , TYPE_GRASS   , SPECIAL , 120, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("took in sunlight!")},
-		Move{0x4D, "PoisonPowder", TYPE_POISON  , STATUS  ,   0,  75, 35, {STATUS_POISONED, 0}},
+		Move{0x4D, "Poisonpowder", TYPE_POISON  , STATUS  ,   0,  75, 35, {STATUS_POISONED, 0}},
 		Move{0x4E, "Stun Spore"  , TYPE_GRASS   , STATUS  ,   0,  75, 30, {STATUS_PARALYZED, 0}},
 		Move{0x4F, "Sleep Powder", TYPE_GRASS   , STATUS  ,   0,  75, 15, {STATUS_ASLEEP, 0}},
 		Move{0x50, "Petal Dance" , TYPE_GRASS   , SPECIAL ,  70, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, "'s thrashing about!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CONFUSE_ON_LAST, CONFUSE_ON_LAST_MISS},

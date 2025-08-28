@@ -875,6 +875,9 @@ cdef class Pokemon:
 	def resetStatsChanges(self):
 		self.__instance.resetStatsChanges()
 
+	def isRecharging(self):
+		return self.__instance.isRecharging()
+
 	def changeStat(self, StatsChange stat, char nb):
 		return self.__instance.changeStat(stat, nb)
 

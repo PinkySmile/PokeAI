@@ -254,7 +254,6 @@ namespace PokemonGen1
 	{
 		unsigned char randomVal = 0;
 
-		//TODO: Add the Sleep + Hyper beam glitch
 		if (status == STATUS_NONE)
 			return true;
 
@@ -278,6 +277,8 @@ namespace PokemonGen1
 		if (!this->canHaveStatus(status))
 			return false;
 
+		if (status & STATUS_ASLEEP)
+			this->_needsRecharge = false;
 		if (status == STATUS_FLINCHED) {
 			this->_flinched = true;
 			return true;
@@ -297,6 +298,8 @@ namespace PokemonGen1
 		this->_log(messages[status]);
 		if (status == STATUS_BADLY_POISONED)
 			this->_badPoisonStage = 1;
+		if (status & STATUS_ANY_NON_VOLATILE_STATUS)
+			this->_currentStatus &= ~STATUS_ANY_NON_VOLATILE_STATUS;
 		this->_currentStatus |= (status * duration);
 		if (status == STATUS_PARALYZED || status == STATUS_BURNED)
 			this->applyStatusDebuff();
@@ -1051,7 +1054,12 @@ namespace PokemonGen1
 
 	void Pokemon::setRecharging(bool recharging)
 	{
-		this->_needsRecharge = recharging * 2;
+		this->_needsRecharge = recharging;
+	}
+
+	bool Pokemon::isRecharging() const
+	{
+		return this->_needsRecharge;
 	}
 
 	const Pokemon::BaseStats &Pokemon::getDvs() const
@@ -1112,9 +1120,12 @@ namespace PokemonGen1
 
 	bool Pokemon::canHaveStatus(StatusChange status) const
 	{
-		// FIXME: In Gen 1, if a Pokémon that has just used Hyper Beam and has yet to recharge is targeted with a sleep inducing move, any other status it may already have will be ignored and sleep will be induced regardless.
 		if (status == STATUS_NONE)
 			return false;
+
+		// In Gen 1, if a Pokémon that has just used Hyper Beam and has yet to recharge is targeted with a sleep inducing move, any other status it may already have will be ignored and sleep will be induced regardless.
+		if ((status & STATUS_ASLEEP) && this->_needsRecharge)
+			return true;
 
 		if (status == STATUS_BURNED && (this->_types.first == TYPE_FIRE || this->_types.second == TYPE_FIRE))
 			return false;
@@ -1149,7 +1160,7 @@ namespace PokemonGen1
 		this->_baseStats.HP = this->_baseStats.maxHP;
 		this->_computedStats = this->_baseStats;
 		this->_flinched = false;
-		this->_needsRecharge = 0;
+		this->_needsRecharge = false;
 		this->_invincible = false;
 		this->_upgradedStats = {0, 0, 0, 0, 0, 0};
 		this->_hasSub = false;
