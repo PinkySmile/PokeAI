@@ -17,7 +17,7 @@ Gust: 80/80
 Wing_Attack: 80/80
 Whirlwind: 80/80
 Fly: 80/80
-Bind: 112/112
+Bind: 80/80
 Slam: 80/80
 Vine_Whip: 80/80
 Stomp: 95/95
@@ -32,7 +32,7 @@ Fury_Attack: 80/80
 Horn_Drill: 80/80
 Tackle: 80/80
 Body_Slam: 80/80
-Wrap: 126/126
+Wrap: 90/90
 Take_Down: 80/80
 Double_Edge: 80/80
 Tail_Whip: 80/80
@@ -43,8 +43,6 @@ Leer: 80/80
 Bite: 80/80
 Growl: 80/80
 Roar: 80/80
-Sing: 80/80
-Supersonic: 80/80
 Sonic_Boom: 80/80
 Acid: 80/80
 Ember: 80/80
@@ -57,7 +55,7 @@ Ice_Beam: 80/80
 Blizzard: 80/80
 Bubble_Beam: 80/80
 Aurora_Beam: 80/80
-Hyper_Beam: 80/80
+Hyper_Beam: 216/216
 Peck: 80/80
 Drill_Peck: 80/80
 Submission: 85/85
@@ -69,23 +67,17 @@ Mega_Drain: 80/80
 Growth: 80/80
 Razor_Leaf: 80/80
 Solar_Beam: 80/80
-Poisonpowder: 80/80
-Stun_Spore: 80/80
-Sleep_Powder: 80/80
 String_Shot: 85/85
 Dragon_Rage: 80/80
-Fire_Spin: 112/112
+Fire_Spin: 80/80
 Thundershock: 80/80
 Thunderbolt: 80/80
-Thunder_Wave: 80/80
 Thunder: 80/80
 Rock_Throw: 80/80
 Earthquake: 80/80
 Fissure: 80/80
 Dig: 80/80
-Toxic: 80/80
 Psychic_M: 80/80
-Hypnosis: 80/80
 Meditate: 80/80
 Agility: 80/80
 Quick_Attack: 80/80
@@ -97,7 +89,7 @@ Recover: 80/80
 Harden: 80/80
 Minimize: 80/80
 Smokescreen: 95/95
-Confuse_Ray: 85/85
+Confuse_Ray: 119/119
 Withdraw: 80/80
 Defense_Curl: 80/80
 Barrier: 80/80
@@ -113,7 +105,7 @@ Sludge: 80/80
 Bone_Club: 80/80
 Fire_Blast: 90/90
 Waterfall: 80/80
-Clamp: 126/126
+Clamp: 90/90
 Swift: 80/80
 Skull_Bash: 80/80
 Spike_Cannon: 80/80
@@ -122,15 +114,12 @@ Amnesia: 80/80
 Kinesis: 80/80
 Softboiled: 80/80
 Hi_Jump_Kick: 80/80
-Glare: 80/80
-Poison_Gas: 80/80
 Barrage: 80/80
 Leech_Life: 80/80
-Lovely_Kiss: 80/80
 Sky_Attack: 80/80
 Bubble: 80/80
 Dizzy_Punch: 80/80
-Spore: 80/80
+Spore: 112/112
 Flash: 80/80
 Psywave: 80/80
 Splash: 80/80
@@ -149,19 +138,30 @@ Super_Fang: 80/80
 Slash: 80/80
 Substitute: 80/80
 Struggle: 80/80
-Metronome: 49/80
+Sing: 111/112
+Sleep_Powder: 111/112
+Hypnosis: 111/112
+Lovely_Kiss: 111/112
+Supersonic: 110/112
+Poisonpowder: 109/112
+Toxic: 109/112
+Poison_Gas: 109/112
+Stun_Spore: 108/112
+Thunder_Wave: 108/112
+Glare: 108/112
 Light_Screen: 48/80
 Reflect: 48/80
-Confusion: 40/80
-Psybeam: 39/80
+Metronome: 47/80
+Psybeam: 42/80
+Confusion: 39/80
+Petal_Dance: 15/80
 Disable: 13/80
+Rage: 13/80
 Thrash: 12/80
-Petal_Dance: 12/80
-Rage: 11/80
-Leech_Seed: 8/80
+Leech_Seed: 12/112
 Counter: 0/80
 Mimic: 0/80
 Dream_Eater: 0/80
 Transform: 0/80
-12601 individual test(s) passed. 840 individual test(s) failed.
-151 test group(s) passed. 14 test group(s) failed.
+13001 individual test(s) passed. 890 individual test(s) failed.
+140 test group(s) passed. 25 test group(s) failed.
