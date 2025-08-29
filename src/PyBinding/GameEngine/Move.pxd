@@ -8,6 +8,7 @@ from libcpp.functional cimport function
 
 from Type cimport Type
 from Pokemon cimport Pokemon
+from State cimport PlayerState
 from StatsChange cimport StatsChange
 from StatusChange cimport StatusChange
 
@@ -93,7 +94,7 @@ cdef extern from "../../GameEngine/Move.hpp" namespace "PokemonGen1":
 		void setHitsLeft(unsigned char nb)
 		void reset()
 
-		bool attack(Pokemon &owner, Pokemon &target, const Pokemon.Logger &logger)
+		bool attack(Pokemon &owner, Pokemon &target, PlayerState &me, PlayerState &op, const Pokemon.Logger &logger)
 
 	extern const ArrayMoves availableMoves
 

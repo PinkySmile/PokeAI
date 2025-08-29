@@ -708,7 +708,10 @@ def hyper_beam_status_move(emulator_gen1, move, random_state, scenario):
 			state.op.nextAction = BattleAction.Attack1
 		else:
 			state.op.nextAction = BattleAction.Attack2
-		state.me.nextAction = BattleAction.Attack1
+		if state.me.team[0].getMoveSet()[0].getPP() != 0:
+			state.me.nextAction = BattleAction.Attack1
+		else:
+			state.me.nextAction = BattleAction.StruggleMove
 		battle.tick()
 		emulator_gen1.step(state)
 		current_turn += 1

@@ -7,6 +7,7 @@
 #include "Move.hpp"
 #include "Exception.hpp"
 #include "Utils.hpp"
+#include "State.hpp"
 
 namespace PokemonGen1
 {
@@ -41,9 +42,9 @@ namespace PokemonGen1
 		const std::string &loadingMsg,
 		bool invulnerableDuringLoading,
 		bool needRecharge,
-		const std::function<bool(Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun, const std::function<void(const std::string &msg)> &logger)> &&hitCallback,
+		const HitCallback &&hitCallback,
 		const std::string &hitCallBackDescription,
-		const std::function<bool(Pokemon &owner, Pokemon &target, bool last, const std::function<void(const std::string &msg)> &logger)> &&missCallback,
+		const MissCallback &&missCallback,
 		const std::string &missCallBackDescription
 	) :
 		_hitCallback(hitCallback),
@@ -286,7 +287,7 @@ namespace PokemonGen1
 		this->_nbHit = 1;
 	}
 
-	bool Move::attack(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)
+	bool Move::attack(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger, PlayerState &me, PlayerState &op)
 	{
 		std::string msg;
 		unsigned hits;
@@ -367,7 +368,7 @@ namespace PokemonGen1
 				s.replace(pos, 8, target.getName());
 			logger(s);
 			if (this->_missCallback)
-				this->_missCallback(owner, target, this->isFinished(), logger);
+				this->_missCallback(owner, target, me, op, this->isFinished(), logger);
 			return false;
 		}
 		if ((this->_category != STATUS || this->_type == TYPE_ELECTRIC) && getAttackDamageMultiplier(this->_type, target.getTypes()) == 0) {
@@ -377,7 +378,7 @@ namespace PokemonGen1
 			}
 			logger("It didn't affect " + target.getName() + "!");
 			if (this->_missCallback)
-				this->_missCallback(owner, target, this->isFinished(), logger);
+				this->_missCallback(owner, target, me, op, this->isFinished(), logger);
 			return false;
 		}
 
@@ -387,7 +388,7 @@ namespace PokemonGen1
 				logger(target.getName() + " is unaffected!");
 				return false;
 			}
-			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, false, true, false);
+			damage = owner.calcDamage(target, me, op, this->_power, this->_type, this->_category, false, true, false, false);
 			damage.affect = true;
 			damage.critical = false;
 			damage.isVeryEffective = false;
@@ -399,7 +400,7 @@ namespace PokemonGen1
 			unsigned char spd = std::min<unsigned int>(pokemonList.at(owner.getID()).SPD / 2 * this->_critChance, 255);
 
 			r = (r << 3U) | ((r & 0b11100000U) >> 5U);
-			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, (r < spd), true, this->getID() == Explosion || this->getID() == Self_Destruct);
+			damage = owner.calcDamage(target, me, op, this->_power, this->_type, this->_category, (r < spd), true, this->getID() == Explosion || this->getID() == Self_Destruct, false);
 			this->_lastDamage = damage.damage;
 		}
 
@@ -413,7 +414,7 @@ namespace PokemonGen1
 				if (this->_power != 0)
 					logger(owner.getName() + "'s attack missed!");
 				if (this->_missCallback)
-					this->_missCallback(owner, target, this->isFinished(), logger);
+					this->_missCallback(owner, target, me, op, this->isFinished(), logger);
 				else if (!this->_power)
 					logger("But, it failed!");
 				return false;
@@ -427,7 +428,7 @@ namespace PokemonGen1
 		) {
 			logger(messages[this->_statusChange.status]);
 			if (this->_missCallback)
-				this->_missCallback(owner, target, this->isFinished(), logger);
+				this->_missCallback(owner, target, me, op, this->isFinished(), logger);
 			return false;
 		}
 
@@ -435,7 +436,7 @@ namespace PokemonGen1
 		if (this->_power) {
 			if (!target.hasSubstitute() && this->_lastDamage > target.getHealth())
 				this->_lastDamage = target.getHealth();
-			target.takeDamage(this->_lastDamage, false);
+			target.takeDamage(owner, this->_lastDamage, false, false);
 			if (damage.critical)
 				logger("Critical hit!");
 			if (damage.isNotVeryEffective)
@@ -460,7 +461,7 @@ namespace PokemonGen1
 
 		if (this->_power && hits > 1) {
 			for (size_t i = 1; i < hits; i++) {
-				target.takeDamage(this->_lastDamage, false);
+				target.takeDamage(owner, this->_lastDamage, false, false);
 				if (damage.isNotVeryEffective)
 					logger("It's not very effective!");
 				if (damage.isVeryEffective)
@@ -471,7 +472,7 @@ namespace PokemonGen1
 
 		if (!target.getHealth() || sub != target.hasSubstitute()) {
 			if (this->_hitCallback)
-				return this->_hitCallback(owner, target, this->_lastDamage, this->isFinished(), logger);
+				return this->_hitCallback(owner, target, me, op, this->_lastDamage, this->isFinished(), logger);
 			return true;
 		}
 		owner.setRecharging(this->_needRecharge);
@@ -501,7 +502,7 @@ namespace PokemonGen1
 			target.applyStatusDebuff();
 
 		if (this->_hitCallback)
-			return this->_hitCallback(owner, target, this->_lastDamage, this->isFinished(), logger);
+			return this->_hitCallback(owner, target, me, op, this->_lastDamage, this->isFinished(), logger);
 		return true;
 	}
 
@@ -720,9 +721,9 @@ namespace PokemonGen1
 		Move{0x6E, "Withdraw"    , TYPE_WATER   , STATUS  ,   0, 255, 40, NO_STATUS_CHANGE, {{STATS_DEF, 1, 0}}},
 		Move{0x6F, "Defense Curl", TYPE_NORMAL  , STATUS  ,   0, 255, 40, NO_STATUS_CHANGE, {{STATS_DEF, 1, 0}}},
 		Move{0x70, "Barrier"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, {{STATS_DEF, 2, 0}}},
-		Move{0x71, "Light Screen", TYPE_PSYCHIC , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code the move
+		Move{0x71, "Light Screen", TYPE_PSYCHIC , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, LIGHT_SCREEN},
 		Move{0x72, "Haze"        , TYPE_ICE     , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CANCEL_STATS_CHANGE},
-		Move{0x73, "Reflect"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code the move
+		Move{0x73, "Reflect"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, REFLECT},
 		Move{0x74, "Focus Energy", TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SET_USER_CRIT_RATIO_TO_1_QUARTER},
 		Move{0x75, "Bide"        , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, "", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, STORE_DAMAGES},
 		Move{0x76, "Metronome"   , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, USE_RANDOM_MOVE},

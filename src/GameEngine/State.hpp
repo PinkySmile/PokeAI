@@ -42,6 +42,8 @@ namespace PokemonGen1
 		unsigned char pokemonOnField = 0;
 		std::vector<Pokemon> team;
 		std::array<PkmnDiscovered, 6> discovered;
+		bool lightScreenOn = false;
+		bool reflectOn = false;
 
 		nlohmann::json serialize();
 		void deserialize(const nlohmann::json &json, RandomGenerator &rng, const BattleLogger &logger);

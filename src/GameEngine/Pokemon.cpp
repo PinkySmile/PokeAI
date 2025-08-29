@@ -497,7 +497,7 @@ namespace PokemonGen1
 		return (move ? move->getPriority() : 0) * 262140 + static_cast<int>(this->getSpeed());
 	}
 
-	bool Pokemon::useMove(const Move &move, Pokemon &target)
+	bool Pokemon::useMove(const Move &move, Pokemon &target, PlayerState &me, PlayerState &op)
 	{
 		bool moveStarted = false;
 
@@ -505,7 +505,7 @@ namespace PokemonGen1
 			this->_lastUsedMove = move;
 			moveStarted = true;
 		}
-		if (!this->_lastUsedMove.attack(*this, target, *this->_battleLogger))
+		if (!this->_lastUsedMove.attack(*this, target, *this->_battleLogger, me, op))
 			return true;
 		if (this->_lastUsedMove.needsLoading())
 			return this->_lastUsedMove.isFinished();
@@ -588,7 +588,7 @@ namespace PokemonGen1
 		this->_hasSub = true;
 	}
 
-	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
+	void Pokemon::attack(unsigned char moveSlot, Pokemon &target, PlayerState &me, PlayerState &op)
 	{
 		Move *move;
 
@@ -625,11 +625,7 @@ namespace PokemonGen1
 				if ((*this->_random)() >= 0x80) {
 					this->setRecharging(false);
 					(*this->_battleLogger)("It hurt itself in its confusion!");
-					if (this->_hasSub) {
-						target.setSubstitute();
-						target.takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false).damage, false);
-					} else
-						this->takeDamage(this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false).damage, false);
+					this->takeDamage(target, this->calcDamage(*this, me, op, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false, true).damage, false, true);
 					// clear bide, thrashing about, charging up, and multi-turn moves such as warp
 					// but NOT rage!
 					if (this->_lastUsedMove.getID() != AvailableMove::Rage)
@@ -655,14 +651,14 @@ namespace PokemonGen1
 		// Check if using rage
 		if (this->_forcedAttack > 0) {
 			move = &this->_moveSet[this->_forcedAttack - 1];
-			if (this->useMove(*move, target) && move->getID() != Struggle)
+			if (this->useMove(*move, target, me, op) && move->getID() != Struggle)
 				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
 		} else if (moveSlot >= 4) {
 			this->_log(" has no moves left!");
-			this->useMove(availableMoves[Struggle], target);
+			this->useMove(availableMoves[Struggle], target, me, op);
 		} else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
 			move = &this->_moveSet[moveSlot];
-			if (this->useMove(*move, target) && move->getID() != Struggle)
+			if (this->useMove(*move, target, me, op) && move->getID() != Struggle)
 				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
 		}
 		if (!this->_lastUsedMove.isFinished())
@@ -675,20 +671,20 @@ namespace PokemonGen1
 
 		if (this->_currentStatus & STATUS_BURNED) {
 			this->_log("'s hurt by the burn!");
-			this->takeDamage(this->getMaxHealth() / 16, true);
+			this->takeDamage(target, this->getMaxHealth() / 16, true, false);
 		} else if (this->_currentStatus & STATUS_POISONED) {
 			this->_log("'s hurt by the poison!");
 			damage = this->getMaxHealth() / 16;
 			if (this->_currentStatus & STATUS_BAD_POISON)
 				damage *= this->_badPoisonStage++;
-			this->takeDamage(damage, true);
+			this->takeDamage(target, damage, true, false);
 		}
 		if (this->_currentStatus & STATUS_LEECHED) {
 			(*this->_battleLogger)("LEECH SEED saps " + this->getName() + "!");
 			damage = this->getMaxHealth() / 16;
 			if (this->_currentStatus & STATUS_BAD_POISON)
 				damage *= this->_badPoisonStage++;
-			this->takeDamage(damage, true);
+			this->takeDamage(target, damage, true, false);
 			target.heal(damage);
 		}
 	}
@@ -787,7 +783,7 @@ namespace PokemonGen1
 			this->_computedStats.HP += health;
 	}
 
-	void Pokemon::takeDamage(unsigned short damage, bool skipSubstitute)
+	void Pokemon::takeDamage(Pokemon &target, unsigned short damage, bool skipSubstitute, bool swapSide)
 	{
 		if (!this->_computedStats.HP)
 			return;
@@ -799,13 +795,15 @@ namespace PokemonGen1
 			this->_damageStored += damage;
 
 		if (!skipSubstitute && this->_hasSub) {
-			(*this->_battleLogger)("The SUBSTITUTE took damage for " + this->getName() + "!");
-			if (this->_subHealth < damage) {
-				this->_subHealth = 0;
-				this->_hasSub = false;
-				this->_log("'s SUBSTITUTE broke!");
+			auto &subTarget = swapSide ? target : *this;
+
+			(*this->_battleLogger)("The SUBSTITUTE took damage for " + subTarget.getName() + "!");
+			if (subTarget._subHealth < damage) {
+				subTarget._subHealth = 0;
+				subTarget._hasSub = false;
+				subTarget._log("'s SUBSTITUTE broke!");
 			} else
-				this->_subHealth -= damage;
+				subTarget._subHealth -= damage;
 			return;
 		}
 
@@ -856,21 +854,25 @@ namespace PokemonGen1
 		return this->_baseStats.SPD;
 	}
 
-	DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense) const
+	DamageResult Pokemon::calcDamage(Pokemon &target, PlayerState &me, PlayerState &op, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense, bool swapTurn) const
 	{
 		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
 		unsigned defense;
 		unsigned attack;
 		unsigned level = this->_level * (1 + critical);
 		unsigned int damage = 65535;
+		PlayerState &state = swapTurn ? op : me;
+		bool hasScreen;
 
 		if (power != 255) {
 			switch (category) {
 			case SPECIAL:
+				hasScreen = state.lightScreenOn;
 				attack = critical ? this->getRawSpecial() : this->getSpecial();
 				defense = critical ? target.getRawSpecial() : target.getSpecial();
 				break;
 			case PHYSICAL:
+				hasScreen = state.reflectOn;
 				attack = critical ? this->getRawAttack() : this->getAttack();
 				defense = critical ? target.getRawDefense() : target.getDefense();
 				break;
@@ -886,6 +888,9 @@ namespace PokemonGen1
 
 			if (halfDefense)
 				defense /= 2;
+			if (hasScreen)
+				defense *= 2;
+			defense %= 1024;
 			if (attack > 255 || defense > 255) {
 				attack = attack / 4 % 256;
 				defense = defense / 4 % 256;

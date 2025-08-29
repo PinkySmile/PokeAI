@@ -71,21 +71,21 @@ namespace PokemonGen1
 		if (p1Attack && p1Start) {
 			if (this->_state.me.nextAction != StruggleMove)
 				this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
-			p1.attack(this->_state.me.nextAction - Attack1, p2);
+			p1.attack(this->_state.me.nextAction - Attack1, p2, this->_state.me, this->_state.op);
 		}
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
 		if (p2Attack) {
 			if (this->_state.op.nextAction != StruggleMove)
 				this->_state.me.discovered[this->_state.op.pokemonOnField].second[this->_state.op.nextAction - Attack1] = true;
-			p2.attack(this->_state.op.nextAction - Attack1, p1);
+			p2.attack(this->_state.op.nextAction - Attack1, p1, this->_state.op, this->_state.me);
 		}
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
 		if (p1Attack && !p1Start) {
 			if (this->_state.me.nextAction != StruggleMove)
 				this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
-			p1.attack(this->_state.me.nextAction - Attack1, p2);
+			p1.attack(this->_state.me.nextAction - Attack1, p2, this->_state.me, this->_state.op);
 		}
 	}
 

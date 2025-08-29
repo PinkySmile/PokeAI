@@ -43,6 +43,8 @@ Leer: 80/80
 Bite: 80/80
 Growl: 80/80
 Roar: 80/80
+Sing: 112/112
+Supersonic: 112/112
 Sonic_Boom: 80/80
 Acid: 80/80
 Ember: 80/80
@@ -67,17 +69,23 @@ Mega_Drain: 80/80
 Growth: 80/80
 Razor_Leaf: 80/80
 Solar_Beam: 80/80
+Poisonpowder: 112/112
+Stun_Spore: 112/112
+Sleep_Powder: 112/112
 String_Shot: 85/85
 Dragon_Rage: 80/80
 Fire_Spin: 80/80
 Thundershock: 80/80
 Thunderbolt: 80/80
+Thunder_Wave: 112/112
 Thunder: 80/80
 Rock_Throw: 80/80
 Earthquake: 80/80
 Fissure: 80/80
 Dig: 80/80
+Toxic: 112/112
 Psychic_M: 80/80
+Hypnosis: 112/112
 Meditate: 80/80
 Agility: 80/80
 Quick_Attack: 80/80
@@ -114,8 +122,11 @@ Amnesia: 80/80
 Kinesis: 80/80
 Softboiled: 80/80
 Hi_Jump_Kick: 80/80
+Glare: 112/112
+Poison_Gas: 112/112
 Barrage: 80/80
 Leech_Life: 80/80
+Lovely_Kiss: 112/112
 Sky_Attack: 80/80
 Bubble: 80/80
 Dizzy_Punch: 80/80
@@ -138,30 +149,19 @@ Super_Fang: 80/80
 Slash: 80/80
 Substitute: 80/80
 Struggle: 80/80
-Sing: 111/112
-Sleep_Powder: 111/112
-Hypnosis: 111/112
-Lovely_Kiss: 111/112
-Supersonic: 110/112
-Poisonpowder: 109/112
-Toxic: 109/112
-Poison_Gas: 109/112
-Stun_Spore: 108/112
-Thunder_Wave: 108/112
-Glare: 108/112
 Light_Screen: 48/80
 Reflect: 48/80
-Metronome: 47/80
-Psybeam: 42/80
-Confusion: 39/80
-Petal_Dance: 15/80
+Metronome: 48/80
+Psybeam: 44/80
+Confusion: 37/80
+Rage: 14/80
 Disable: 13/80
-Rage: 13/80
+Petal_Dance: 13/80
 Thrash: 12/80
-Leech_Seed: 12/112
+Leech_Seed: 16/112
 Counter: 0/80
 Mimic: 0/80
 Dream_Eater: 0/80
 Transform: 0/80
-13001 individual test(s) passed. 890 individual test(s) failed.
-140 test group(s) passed. 25 test group(s) failed.
+13032 individual test(s) passed. 859 individual test(s) failed.
+151 test group(s) passed. 14 test group(s) failed.

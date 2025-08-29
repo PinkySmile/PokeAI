@@ -192,13 +192,13 @@ namespace PokemonGen1
 		bool addStatus(StatusChange status, unsigned duration);
 		void resetStatsChanges();
 		bool changeStat(enum StatsChange stat, char nb);
-		bool useMove(const Move &move, Pokemon &target);
+		bool useMove(const Move &move, Pokemon &target, struct PlayerState &myState, struct PlayerState &opState);
 		void storeDamages(bool active);
 		bool hasStatus(StatusChange status) const;
 		void heal(unsigned short health);
-		void takeDamage(unsigned short damage, bool skipSubstitute);
-		void attack(unsigned char moveSlot, Pokemon &target);
-		DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense) const;
+		void takeDamage(Pokemon &target, unsigned short damage, bool skipSubstitute, bool swapSide);
+		void attack(unsigned char moveSlot, Pokemon &target, struct PlayerState &myState, struct PlayerState &opState);
+		DamageResult calcDamage(Pokemon &target, struct PlayerState &myState, struct PlayerState &opState, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense, bool swapTurn) const;
 		void endTurn();
 		void switched();
 		void opponentSwitched();
