@@ -861,7 +861,7 @@ namespace PokemonGen1
 		unsigned attack;
 		unsigned level = this->_level * (1 + critical);
 		unsigned int damage = 65535;
-		PlayerState &state = swapTurn ? op : me;
+		PlayerState &state = swapTurn ? me : op;
 		bool hasScreen;
 
 		if (power != 255) {
@@ -888,7 +888,7 @@ namespace PokemonGen1
 
 			if (halfDefense)
 				defense /= 2;
-			if (hasScreen)
+			if (hasScreen && !critical)
 				defense *= 2;
 			defense %= 1024;
 			if (attack > 255 || defense > 255) {
