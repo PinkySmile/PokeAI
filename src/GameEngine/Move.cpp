@@ -408,8 +408,11 @@ namespace PokemonGen1
 			auto &atk = availableMoves[target.getMyState().lastAttack];
 			auto type = atk.getType();
 
-			if (type != TYPE_NORMAL && type != TYPE_FIGHTING) {
-				logger("But, it failed!");
+			if (
+				(type != TYPE_NORMAL && type != TYPE_FIGHTING) ||
+				owner.getBattleState().lastDamage == 0
+			) {
+				logger(owner.getName() + "'s attack missed!");
 				return false;
 			}
 		}
@@ -427,6 +430,7 @@ namespace PokemonGen1
 					this->_missCallback(owner, target, this->isFinished(), logger);
 				else if (!this->_power)
 					logger("But, it failed!");
+				owner.getBattleState().lastDamage = 0;
 				return false;
 			}
 		}
@@ -686,7 +690,7 @@ namespace PokemonGen1
 		Move{0x41, "Drill Peck"  , TYPE_FLYING  , PHYSICAL,  80, 100, 20},
 		Move{0x42, "Submission"  , TYPE_FIGHTING, PHYSICAL,  80,  80, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, TAKE_QUARTER_MOVE_DAMAGE},
 		Move{0x43, "Low Kick"    , TYPE_FIGHTING, PHYSICAL,  50,  90, 20, {STATUS_FLINCHED, 0x4D}},
-		Move{0x44, "Counter"     , TYPE_FIGHTING, PHYSICAL,   1,  80, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, -5, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, COUNTER},
+		Move{0x44, "Counter"     , TYPE_FIGHTING, PHYSICAL,   1, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, -5, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, COUNTER},
 		Move{0x45, "Seismic Toss", TYPE_FIGHTING, STATUS,     0, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_LVL_AS_DAMAGE},
 		Move{0x46, "Strength"    , TYPE_NORMAL  , PHYSICAL,  80, 100, 15},
 		Move{0x47, "Absorb"      , TYPE_GRASS   , SPECIAL ,  20, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ABSORB_HALF_DAMAGE},
