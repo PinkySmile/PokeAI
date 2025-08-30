@@ -2,6 +2,7 @@ from pyboy import PyBoy
 from GameEngine import BattleAction, AvailableMove, convertString
 
 
+hWhoseTurn = 0xFFF3
 wEnemyMonNick = 0xCFD9
 wEnemyMon = 0xCFE4
 wEnemyMonSpecies = 0xCFE4
@@ -63,6 +64,7 @@ wPartyMons = 0xD16A
 wPartyCount = 0xD162
 wPlayerName = 0xD157
 wPartyMonNicks = 0xD2B4
+wRivalName = 0xD349
 
 wEnemyMons = 0xD8A3
 wEnemyPartyCount = 0xD89B
@@ -76,13 +78,355 @@ t_bring_out_which = [0x81, 0xB1, 0xA8, 0xAD, 0xA6, 0x7F, 0xAE, 0xB4, 0xB3, 0x7F,
 
 ROM_PATH='pokeyellow.gbc'
 
+CHAR_START = 0
+CHAR_RAM = 1
+CHAR_START_ASM = 8
+CHAR_FAR = 0x17
+CHAR_END = 0x50
+CHAR_PLAYER = 0x52
+CHAR_RIVAL = 0x53
+CHAR_TARGET = 0x59
+CHAR_USER = 0x5A
+CHAR_LINE = 0x4F
+CHAR_DONE = 0x57
+CHAR_PROMPT = 0x58
+
+CHAR_INVALID = "?"
+CHAR_E_ACCENT = "é"
+CHAR_AP_D = "'d"
+CHAR_AP_L = "'l"
+CHAR_AP_S = "'s"
+CHAR_AP_T = "'t"
+CHAR_AP_V = "'v"
+CHAR_AP_R = "'r"
+CHAR_AP_M = "'m"
+CHAR_ARR_WHI = "→"
+CHAR_ARR_BLA = "►"
+CHAR_ARR_DOW = "▼"
+CHAR_PK_NUM = "Pₖ"
+CHAR_MN_NUM = "mₙ"
+CHAR_MAL_NUM = "♂"
+CHAR_FEM_NUM = "♀"
+
+Pkmn1CharToASCIIConversionTable = [
+	"<CMD 0>",    # 0x00
+	"<CMD 1>",    # 0x01
+	"<CMD 2>",    # 0x02
+	"<CMD 3>",    # 0x03
+	"<CMD 4>",    # 0x04
+	"<CMD 5>",    # 0x05
+	"<CMD 6>",    # 0x06
+	"<CMD 7>",    # 0x07
+	"<CMD 8>",    # 0x08
+	"<CMD 9>",    # 0x09
+	"<CMD A>",    # 0x0A
+	"<CMD B>",    # 0x0B
+	"<CMD C>",    # 0x0C
+	"<CMD D>",    # 0x0D
+	"<CMD E>",    # 0x0E
+	CHAR_INVALID, # 0x0F
+	CHAR_INVALID, # 0x10
+	CHAR_INVALID, # 0x11
+	CHAR_INVALID, # 0x12
+	CHAR_INVALID, # 0x13
+	CHAR_INVALID, # 0x14
+	CHAR_INVALID, # 0x15
+	CHAR_INVALID, # 0x16
+	CHAR_INVALID, # 0x17
+	CHAR_INVALID, # 0x18
+	CHAR_INVALID, # 0x19
+	CHAR_INVALID, # 0x1A
+	CHAR_INVALID, # 0x1B
+	CHAR_INVALID, # 0x1C
+	CHAR_INVALID, # 0x1D
+	CHAR_INVALID, # 0x1E
+	CHAR_INVALID, # 0x1F
+	CHAR_INVALID, # 0x20
+	CHAR_INVALID, # 0x21
+	CHAR_INVALID, # 0x22
+	CHAR_INVALID, # 0x23
+	CHAR_INVALID, # 0x24
+	CHAR_INVALID, # 0x25
+	CHAR_INVALID, # 0x26
+	CHAR_INVALID, # 0x27
+	CHAR_INVALID, # 0x28
+	CHAR_INVALID, # 0x29
+	CHAR_INVALID, # 0x2A
+	CHAR_INVALID, # 0x2B
+	CHAR_INVALID, # 0x2C
+	CHAR_INVALID, # 0x2D
+	CHAR_INVALID, # 0x2E
+	CHAR_INVALID, # 0x2F
+	CHAR_INVALID, # 0x30
+	CHAR_INVALID, # 0x31
+	CHAR_INVALID, # 0x32
+	CHAR_INVALID, # 0x33
+	CHAR_INVALID, # 0x34
+	CHAR_INVALID, # 0x35
+	CHAR_INVALID, # 0x36
+	CHAR_INVALID, # 0x37
+	CHAR_INVALID, # 0x38
+	CHAR_INVALID, # 0x39
+	CHAR_INVALID, # 0x3A
+	CHAR_INVALID, # 0x3B
+	CHAR_INVALID, # 0x3C
+	CHAR_INVALID, # 0x3D
+	CHAR_INVALID, # 0x3E
+	CHAR_INVALID, # 0x3F
+	CHAR_INVALID, # 0x40
+	CHAR_INVALID, # 0x41
+	CHAR_INVALID, # 0x42
+	CHAR_INVALID, # 0x43
+	CHAR_INVALID, # 0x44
+	CHAR_INVALID, # 0x45
+	CHAR_INVALID, # 0x46
+	CHAR_INVALID, # 0x47
+	CHAR_INVALID, # 0x48
+	CHAR_INVALID, # 0x49
+	CHAR_INVALID, # 0x4A
+	CHAR_INVALID, # 0x4B
+	CHAR_INVALID, # 0x4C
+	CHAR_INVALID, # 0x4D
+	CHAR_INVALID, # 0x4E
+	CHAR_INVALID, # 0x4F
+	CHAR_INVALID, # 0x50 / CHAR_END
+	CHAR_INVALID, # 0x51
+	CHAR_INVALID, # 0x52 / CHAR_PLAYER
+	CHAR_INVALID, # 0x53 / CHAR_RIVAL
+	CHAR_INVALID, # 0x54
+	CHAR_INVALID, # 0x55
+	CHAR_INVALID, # 0x56
+	CHAR_INVALID, # 0x57
+	CHAR_INVALID, # 0x58
+	CHAR_INVALID, # 0x59 / CHAR_TARGET
+	CHAR_INVALID, # 0x5A / CHAR_USER
+	"PC",         # 0x5B
+	"TM",         # 0x5C
+	"TRAINER",    # 0x5D
+	"ROCKET",     # 0x5E
+	CHAR_INVALID, # 0x5F
+	CHAR_INVALID, # 0x60
+	CHAR_INVALID, # 0x61
+	CHAR_INVALID, # 0x62
+	CHAR_INVALID, # 0x63
+	CHAR_INVALID, # 0x64
+	CHAR_INVALID, # 0x65
+	CHAR_INVALID, # 0x66
+	CHAR_INVALID, # 0x67
+	CHAR_INVALID, # 0x68
+	CHAR_INVALID, # 0x69
+	CHAR_INVALID, # 0x6A
+	CHAR_INVALID, # 0x6B
+	CHAR_INVALID, # 0x6C
+	CHAR_INVALID, # 0x6D
+	CHAR_INVALID, # 0x6E
+	CHAR_INVALID, # 0x6F
+	CHAR_INVALID, # 0x70
+	CHAR_INVALID, # 0x71
+	CHAR_INVALID, # 0x72
+	CHAR_INVALID, # 0x73
+	CHAR_INVALID, # 0x74
+	CHAR_INVALID, # 0x75
+	CHAR_INVALID, # 0x76
+	CHAR_INVALID, # 0x77
+	CHAR_INVALID, # 0x78
+	CHAR_INVALID, # 0x79
+	CHAR_INVALID, # 0x7A
+	CHAR_INVALID, # 0x7B
+	CHAR_INVALID, # 0x7C
+	CHAR_INVALID, # 0x7D
+	CHAR_INVALID, # 0x7E
+	' ',          # 0x7F
+	'A',          # 0x80
+	'B',          # 0x81
+	'C',          # 0x82
+	'D',          # 0x83
+	'E',          # 0x84
+	'F',          # 0x85
+	'G',          # 0x86
+	'H',          # 0x87
+	'I',          # 0x88
+	'J',          # 0x89
+	'K',          # 0x8A
+	'L',          # 0x8B
+	'M',          # 0x8C
+	'N',          # 0x8D
+	'O',          # 0x8E
+	'P',          # 0x8F
+	'Q',          # 0x90
+	'R',          # 0x91
+	'S',          # 0x92
+	'T',          # 0x93
+	'U',          # 0x94
+	'V',          # 0x95
+	'W',          # 0x96
+	'X',          # 0x97
+	'Y',          # 0x98
+	'Z',          # 0x99
+	'(',          # 0x9A
+	')',          # 0x9B
+	':',          # 0x9C
+	';',          # 0x9D
+	'[',          # 0x9E
+	']',          # 0x9F
+	'a',          # 0xA0
+	'b',          # 0xA1
+	'c',          # 0xA2
+	'd',          # 0xA3
+	'e',          # 0xA4
+	'f',          # 0xA5
+	'g',          # 0xA6
+	'h',          # 0xA7
+	'i',          # 0xA8
+	'j',          # 0xA9
+	'k',          # 0xAA
+	'l',          # 0xAB
+	'm',          # 0xAC
+	'n',          # 0xAD
+	'o',          # 0xAE
+	'p',          # 0xAF
+	'q',          # 0xB0
+	'r',          # 0xB1
+	's',          # 0xB2
+	't',          # 0xB3
+	'u',          # 0xB4
+	'v',          # 0xB5
+	'w',          # 0xB6
+	'x',          # 0xB7
+	'y',          # 0xB8
+	'z',          # 0xB9
+	CHAR_E_ACCENT,# 0xBA
+	CHAR_AP_D,    # 0xBB
+	CHAR_AP_L,    # 0xBC
+	CHAR_AP_S,    # 0xBD
+	CHAR_AP_T,    # 0xBE
+	CHAR_AP_V,    # 0xBF
+	CHAR_INVALID, # 0xC0
+	CHAR_INVALID, # 0xC1
+	CHAR_INVALID, # 0xC2
+	CHAR_INVALID, # 0xC3
+	CHAR_INVALID, # 0xC4
+	CHAR_INVALID, # 0xC5
+	CHAR_INVALID, # 0xC6
+	CHAR_INVALID, # 0xC7
+	CHAR_INVALID, # 0xC8
+	CHAR_INVALID, # 0xC9
+	CHAR_INVALID, # 0xCA
+	CHAR_INVALID, # 0xCB
+	CHAR_INVALID, # 0xCC
+	CHAR_INVALID, # 0xCD
+	CHAR_INVALID, # 0xCE
+	CHAR_INVALID, # 0xCF
+	CHAR_INVALID, # 0xD0
+	CHAR_INVALID, # 0xD1
+	CHAR_INVALID, # 0xD2
+	CHAR_INVALID, # 0xD3
+	CHAR_INVALID, # 0xD4
+	CHAR_INVALID, # 0xD5
+	CHAR_INVALID, # 0xD6
+	CHAR_INVALID, # 0xD7
+	CHAR_INVALID, # 0xD8
+	CHAR_INVALID, # 0xD9
+	CHAR_INVALID, # 0xDA
+	CHAR_INVALID, # 0xDB
+	CHAR_INVALID, # 0xDC
+	CHAR_INVALID, # 0xDD
+	CHAR_INVALID, # 0xDE
+	CHAR_INVALID, # 0xDF
+	'\'',         # 0xE0
+	CHAR_PK_NUM,  # 0xE1
+	CHAR_MN_NUM,  # 0xE2
+	'-',          # 0xE3
+	CHAR_AP_R,    # 0xE4
+	CHAR_AP_M,    # 0xE5
+	'?',          # 0xE6
+	'!',          # 0xE7
+	'.',          # 0xE8
+	CHAR_INVALID, # 0xE9
+	CHAR_INVALID, # 0xEA
+	CHAR_INVALID, # 0xEB
+	CHAR_ARR_WHI, # 0xEC
+	CHAR_ARR_BLA, # 0xED
+	CHAR_ARR_DOW, # 0xEE
+	CHAR_MAL_NUM, # 0xEF
+	'$',          # 0xF0
+	'x',          # 0xF1
+	'.',          # 0xF2
+	'/',          # 0xF3
+	',',          # 0xF4
+	CHAR_FEM_NUM, # 0xF5
+	'0',          # 0xF6
+	'1',          # 0xF7
+	'2',          # 0xF8
+	'3',          # 0xF9
+	'4',          # 0xFA
+	'5',          # 0xFB
+	'6',          # 0xFC
+	'7',          # 0xFD
+	'8',          # 0xFE
+	'9'           # 0xFF
+]
+
+
+def call_text_hook(self):
+	if self.on_text_displayed:
+		if self.emulator.register_file.HL < 0xc4b9:
+			return
+		text_address = self.emulator.register_file.D << 8 | self.emulator.register_file.E
+		end, txt = self.translate_text_at(text_address)
+		if self.waiting_text:
+			if self.emulator.register_file.HL == 0xc4b9:
+				self.text_buffer = txt
+			else:
+				self.text_buffer += txt
+			if end:
+				if self.text_buffer != "!":
+					self.on_text_displayed(self.text_buffer)
+				self.text_buffer = ""
+		else:
+			self.text_buffer = ""
+
 
 class Emulator:
 	def __init__(self, has_interface=True, sound_volume=25, save_frames=False, debug=False):
 		self.has_interface = has_interface
 		self.save_frames = save_frames
 		self.last_frames = []
+		self.text_buffer = ""
+		self.waiting_text = False
+		self.on_text_displayed = None
 		self.emulator = PyBoy(ROM_PATH, sound_volume=sound_volume, window='SDL2' if has_interface else 'null', debug=debug)
+		self.emulator.hook_register(0x00, 0x1723, call_text_hook, self) # 0x3C36
+
+
+	def translate_text_at(self, address, bank=None):
+		s = ""
+		end = False
+		byte = self.emulator.memory[address] if bank is None else self.emulator.memory[bank, address]
+		while byte != CHAR_END:
+			if byte == CHAR_LINE:
+				s += " "
+			elif byte == CHAR_PLAYER:
+				end, v = self.translate_text_at(wPlayerName)
+				s += v
+			elif byte == CHAR_RIVAL:
+				end, v = self.translate_text_at(wRivalName)
+				s += v
+			elif byte == CHAR_TARGET:
+				turn = self.emulator.memory[hWhoseTurn]
+				end, v = self.translate_text_at(wBattleMonNick if turn else wEnemyMonNick)
+				s += v
+			elif byte == CHAR_USER:
+				turn = self.emulator.memory[hWhoseTurn]
+				end, v = self.translate_text_at(wEnemyMonNick if turn else wBattleMonNick)
+				s += v
+			else:
+				s += Pkmn1CharToASCIIConversionTable[byte]
+			address += 1
+			byte = self.emulator.memory[address] if bank is None else self.emulator.memory[bank, address]
+			if byte == CHAR_PROMPT or byte == CHAR_DONE:
+				return True, s
+		return end, s
 
 
 	def copy_battle_data_to_emulator(self, state, team_base_address, name_address, species_array, name_list_address):
@@ -270,7 +614,10 @@ class Emulator:
 			self.tick()
 		while self.emulator.memory[0x9D64:0x9D6F] == t_waiting or self.emulator.memory[0x9D6A:0x9D74] != t_health_holder:
 			self.tick()
+		self.waiting_text = True
 		self.wait_for_start_turn()
+		self.waiting_text = False
+		self.text_buffer = ""
 
 
 	def init_battle(self, save_state_fd, state, sync_data=False):
@@ -285,7 +632,10 @@ class Emulator:
 		self.copy_battle_data_to_emulator(state.op, wEnemyMons, wTrainerName, wEnemyPartyCount, wEnemyMonNicks)
 		if sync_data:
 			self.sync_battle_state(state)
-		return self.wait_for_start_turn()
+		self.waiting_text = True
+		self.wait_for_start_turn()
+		self.waiting_text = False
+		self.text_buffer = ""
 
 
 	def get_last_frames(self):

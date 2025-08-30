@@ -354,7 +354,8 @@ def test_move(emulator_gen1, move, random_state, scenario, min_turns=6):
 	else:
 		state.rng.makeRandomList(9)
 	if debug:
-		state.battleLogger = print
+		state.battleLogger = lambda x: print(f'Simulator: {x}')
+		emulator_gen1.on_text_displayed = lambda x: print(f'Emulator: {x}')
 	state.desync = DesyncPolicy.Ignore
 
 	pokemon_data = [0] * 44
@@ -488,7 +489,8 @@ def test_bind_switch(emulator_gen1, move, random_state, scenario):
 	else:
 		state.rng.makeRandomList(9)
 	if debug:
-		state.battleLogger = print
+		state.battleLogger = lambda x: print(f'Simulator: {x}')
+		emulator_gen1.on_text_displayed = lambda x: print(f'Emulator: {x}')
 	state.desync = DesyncPolicy.Ignore
 
 	pokemon_data = [0] * 44
@@ -623,7 +625,8 @@ def hyper_beam_status_move(emulator_gen1, move, random_state, scenario):
 	else:
 		state.rng.makeRandomList(9)
 	if debug:
-		state.battleLogger = print
+		state.battleLogger = lambda x: print(f'Simulator: {x}')
+		emulator_gen1.on_text_displayed = lambda x: print(f'Emulator: {x}')
 	state.desync = DesyncPolicy.Ignore
 
 	pokemon_data = [0] * 44
