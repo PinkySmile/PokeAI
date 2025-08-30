@@ -871,8 +871,16 @@ namespace PokemonGen1
 		unsigned level = this->_level * (1 + critical);
 		unsigned int damage = 65535;
 		const Pokemon &pkmn = swapTurn ? *this : target;
-		bool hasScreen;
+		bool hasScreen = false;
 
+		if (power == 1)
+			return {
+				.critical = false,
+				.damage = static_cast<unsigned int>(target.getBattleState().lastDamage * 2),
+				.affect = target.getBattleState().lastDamage != 0,
+				.isVeryEffective = false,
+				.isNotVeryEffective = false,
+			};
 		if (power != 255) {
 			switch (category) {
 			case SPECIAL:

@@ -46,6 +46,7 @@ namespace PokemonGen1
 		std::string name;
 		BattleAction lastAction = NoAction;
 		BattleAction nextAction = NoAction;
+		AvailableMove lastAttack = None;
 		unsigned char pokemonOnField = 0;
 		std::vector<Pokemon> team;
 		std::array<PkmnDiscovered, 6> discovered;

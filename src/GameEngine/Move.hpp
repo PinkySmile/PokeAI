@@ -98,18 +98,21 @@
 #define DEAL_20_DAMAGE_DESC "Deal 20 damage"
 #define DEAL_20_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
 	target.takeDamage(owner, 20, false, false);\
+	target.getBattleState().lastDamage = 20;\
 	return true;\
 }, DEAL_20_DAMAGE_DESC
 
 #define DEAL_40_DAMAGE_DESC "Deal 40 damage"
 #define DEAL_40_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
 	target.takeDamage(owner, 40, false, false);\
+	target.getBattleState().lastDamage = 40;\
 	return true;\
 }, DEAL_40_DAMAGE_DESC
 
 #define DEAL_LVL_AS_DAMAGE_DESC "Deal the user's level as raw damage"
 #define DEAL_LVL_AS_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
 	target.takeDamage(owner, owner.getLevel(), false, false);\
+	target.getBattleState().lastDamage = owner.getLevel();\
 	return true;\
 }, DEAL_LVL_AS_DAMAGE_DESC
 
@@ -157,6 +160,7 @@
                 } while ((owner.isEnemy() && !r) || r >= multipliedLevel);\
         }\
 \
+	target.getBattleState().lastDamage = r;\
 	target.takeDamage(owner, r, false, false);\
 	return true;\
 }, DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_DESC
@@ -262,6 +266,7 @@
 
 #define DEAL_HALF_HP_DAMAGE_DESC "Deal half foe's HP"
 #define DEAL_HALF_HP_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+	target.getBattleState().lastDamage = target.getHealth() / 2;\
 	target.takeDamage(owner, target.getHealth() / 2, false, false); /* TODO: Check how it interacts with SUBSTITUTE */\
 	return true;\
 }, DEAL_HALF_HP_DAMAGE_DESC
@@ -304,6 +309,9 @@
 	owner.setLightScreenUp(true);\
 	return true;\
 }, LIGHT_SCREEN_DESC
+
+#define COUNTER_DESC "Deal double the last damage dealt"
+#define COUNTER nullptr, COUNTER_DESC
 
 namespace PokemonGen1
 {
