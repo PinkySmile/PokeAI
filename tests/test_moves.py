@@ -1,5 +1,5 @@
 from pyboy import PyBoy
-from GameEngine import RandomGenerator, PokemonBase, Pokemon, PokemonSpecies, Move, AvailableMove, Type, BattleHandler, BattleAction, StatusChange, MoveCategory, getAttackDamageMultiplier, typeToStringShort, typeToString, statusToString
+from GameEngine import DesyncPolicy, RandomGenerator, PokemonBase, Pokemon, PokemonSpecies, Move, AvailableMove, Type, BattleHandler, BattleAction, StatusChange, MoveCategory, getAttackDamageMultiplier, typeToStringShort, typeToString, statusToString
 from argparse import ArgumentParser
 import sys
 import time
@@ -355,6 +355,7 @@ def test_move(emulator_gen1, move, random_state, scenario, min_turns=6):
 		state.rng.makeRandomList(9)
 	if debug:
 		state.battleLogger = print
+	state.desync = DesyncPolicy.Ignore
 
 	pokemon_data = [0] * 44
 	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
@@ -400,7 +401,7 @@ def test_move(emulator_gen1, move, random_state, scenario, min_turns=6):
 		pokemon_data[PACK_SPE + 0] = 999 >> 8
 		pokemon_data[PACK_SPE + 1] = 999 & 0xFF
 	state.op.name = "Player 2"
-	state.op.team = [Pokemon(state, "", pokemon_data)]
+	state.op.team = [Pokemon(state, "", pokemon_data, True)]
 
 	pokemon_data = [0] * 44
 	pokemon_data[PACK_SPECIES] = PokemonSpecies.Pikachu
@@ -430,7 +431,7 @@ def test_move(emulator_gen1, move, random_state, scenario, min_turns=6):
 	pokemon_data[PACK_SPE + 0] = 300 >> 8
 	pokemon_data[PACK_SPE + 1] = 300 & 0xFF
 	state.me.name = "Player 1"
-	state.me.team = [Pokemon(state, "", pokemon_data, True)]
+	state.me.team = [Pokemon(state, "", pokemon_data, False)]
 
 	with open("pokeyellow_replay.state", "rb") as fd:
 		emulator_gen1.init_battle(fd, state)
@@ -488,6 +489,7 @@ def test_bind_switch(emulator_gen1, move, random_state, scenario):
 		state.rng.makeRandomList(9)
 	if debug:
 		state.battleLogger = print
+	state.desync = DesyncPolicy.Ignore
 
 	pokemon_data = [0] * 44
 	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
@@ -521,7 +523,7 @@ def test_bind_switch(emulator_gen1, move, random_state, scenario):
 	pokemon_data[PACK_SPE + 0] = 999 >> 8
 	pokemon_data[PACK_SPE + 1] = 999 & 0xFF
 	state.op.name = "Player 2"
-	state.op.team = [Pokemon(state, "", pokemon_data), Pokemon(state, "", pokemon_data)]
+	state.op.team = [Pokemon(state, "", pokemon_data, True), Pokemon(state, "", pokemon_data, True)]
 
 	pokemon_data = [0] * 44
 	pokemon_data[PACK_SPECIES] = PokemonSpecies.Pikachu
@@ -551,7 +553,7 @@ def test_bind_switch(emulator_gen1, move, random_state, scenario):
 	pokemon_data[PACK_SPE + 0] = 300 >> 8
 	pokemon_data[PACK_SPE + 1] = 300 & 0xFF
 	state.me.name = "Player 1"
-	state.me.team = [Pokemon(state, "", pokemon_data, True)]
+	state.me.team = [Pokemon(state, "", pokemon_data, False)]
 
 	with open("pokeyellow_replay.state", "rb") as fd:
 		emulator_gen1.init_battle(fd, state)
@@ -622,6 +624,7 @@ def hyper_beam_status_move(emulator_gen1, move, random_state, scenario):
 		state.rng.makeRandomList(9)
 	if debug:
 		state.battleLogger = print
+	state.desync = DesyncPolicy.Ignore
 
 	pokemon_data = [0] * 44
 	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
@@ -652,7 +655,7 @@ def hyper_beam_status_move(emulator_gen1, move, random_state, scenario):
 	pokemon_data[PACK_SPE + 0] = 999 >> 8
 	pokemon_data[PACK_SPE + 1] = 999 & 0xFF
 	state.op.name = "Player 2"
-	state.op.team = [Pokemon(state, "", pokemon_data)]
+	state.op.team = [Pokemon(state, "", pokemon_data, True)]
 
 	pokemon_data = [0] * 44
 	pokemon_data[PACK_SPECIES] = PokemonSpecies.Pikachu
@@ -682,7 +685,7 @@ def hyper_beam_status_move(emulator_gen1, move, random_state, scenario):
 	pokemon_data[PACK_SPE + 0] = 300 >> 8
 	pokemon_data[PACK_SPE + 1] = 300 & 0xFF
 	state.me.name = "Player 1"
-	state.me.team = [Pokemon(state, "", pokemon_data, True)]
+	state.me.team = [Pokemon(state, "", pokemon_data, False)]
 
 	with open("pokeyellow_replay.state", "rb") as fd:
 		emulator_gen1.init_battle(fd, state)

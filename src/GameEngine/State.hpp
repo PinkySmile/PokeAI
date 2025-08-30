@@ -35,7 +35,7 @@ namespace PokemonGen1
 	typedef std::pair<bool, MovesDiscovered> PkmnDiscovered;
 	typedef std::function<void (const std::string &message)> BattleLogger;
 
-	enum DesyncStrategy {
+	enum DesyncPolicy {
 		DESYNC_MISS,  // Make moves miss when they would desync
 		DESYNC_THROW, // Throw an exception when a move would desync
 		DESYNC_INVERT,// Invert calculations to replicate the opponent's PoV and stay in sync
@@ -58,7 +58,7 @@ namespace PokemonGen1
 		PlayerState me;
 		PlayerState op;
 		RandomGenerator rng;
-		DesyncStrategy desync = DESYNC_INVERT;
+		DesyncPolicy desync = DESYNC_INVERT;
 		unsigned short lastDamage = 0;
 		BattleLogger battleLogger = [](const std::string &){};
 		std::function<bool ()> onTurnStart;

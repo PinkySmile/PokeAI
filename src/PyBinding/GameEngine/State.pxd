@@ -25,6 +25,12 @@ cdef extern from "../../GameEngine/State.hpp" namespace "PokemonGen1":
 		StruggleMove,
 		Run
 
+	ctypedef enum DesyncPolicy:
+		DESYNC_MISS,
+		DESYNC_THROW,
+		DESYNC_INVERT,
+		DESYNC_IGNORE
+
 	cdef string BattleActionToString(BattleAction action)
 
 	ctypedef bool MovesDiscovered[4]
@@ -42,6 +48,7 @@ cdef extern from "../../GameEngine/State.hpp" namespace "PokemonGen1":
 		PlayerState me
 		PlayerState op
 		RandomGenerator rng
+		DesyncPolicy desync
 		function[void(const string &)] battleLogger
 		function[unsigned char ()] onTurnStart
 		function[void ()] onBattleEnd

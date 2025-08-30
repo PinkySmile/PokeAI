@@ -114,7 +114,7 @@
 }, DEAL_LVL_AS_DAMAGE_DESC
 
 #define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_DESC "Deal between 1 damage and 1.5 times the user's level as damage"
-#define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
 	unsigned char multipliedLevel = owner.getLevel() * 1.5;\
 \
 	if (!multipliedLevel)\
@@ -122,14 +122,41 @@
 	if (multipliedLevel == 1 && owner.isEnemy())\
 		throw OpponentCrashedException(owner.getName() + " used PSY_WAVE, but (level * 1.5 % 256) is 1 causing opponent games to go in an infinite loop.");\
 \
-	unsigned char r = owner.getRandomGenerator()();\
+	auto &rng = owner.getRandomGenerator();\
+	unsigned char r;\
+	auto desyncPolicy = owner.getBattleState().desync;\
 \
-	/* Check on which side we are to account for bug causing desyncs. */\
-	/* The move can deal 0 damage if we are not on the user side,     */\
-	/* so we reverse it to stay synced with the other game            */\
-	while ((owner.isEnemy() && !r) || r >= multipliedLevel)\
-		r = owner.getRandomGenerator()();\
-	\
+	/* In the base game, Psywave can deal: */\
+	/*  - [0, 1.5*lvl) damage when used on the player (by the opponent). */\
+	/*  - [1, 1.5*lvl) damage when used on the opponent (by the player). */\
+	/* In link battle, rolling a 0 in the loop will desync, because on one end the loop */\
+	/* will continue rolling RNG, and the other won't and make the move deal 0 damage. */\
+	/* Adjust what we do based on the desync policy: */\
+	/*  - DESYNC_IGNORE -> Just run the calculation as if done by the base game, and let ourselves be desynced if in link battle. */\
+	/*  - DESYNC_INVERT -> Invert the calculation logic, to match the link battle opponent's one and stay in sync (default). */\
+	/*  - DESYNC_THROW  -> Throw a DesyncException when 0 is rolled. */\
+	/*  - DESYNC_MISS   -> Make the move miss if a 0 is rolled. This is to mimic the Desync Cause in Pokémon Showdown. */\
+	if (desyncPolicy == DESYNC_INVERT || desyncPolicy == DESYNC_IGNORE) {\
+		bool allowZero = desyncPolicy == DESYNC_IGNORE ? !target.isEnemy() : target.isEnemy();\
+\
+		do {\
+                        r = rng();\
+                } while ((!allowZero && r == 0) || r >= multipliedLevel);\
+        } else if (desyncPolicy == DESYNC_THROW) {\
+		do {\
+                        r = rng();\
+			if (r == 0) throw DesyncException("Psywave rolled 0");\
+                } while (r >= multipliedLevel);\
+        } else if (desyncPolicy == DESYNC_MISS) {\
+		do {\
+                        r = rng();\
+			if (r == 0) {\
+				logger("But, it failed!");\
+				return false;\
+			}\
+                } while ((owner.isEnemy() && !r) || r >= multipliedLevel);\
+        }\
+\
 	target.takeDamage(owner, r, false, false);\
 	return true;\
 }, DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_DESC
