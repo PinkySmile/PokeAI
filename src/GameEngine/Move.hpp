@@ -258,7 +258,7 @@
 	return true;\
 }, CREATE_SUBSTITUTE_DESC
 
-#define REFLECT_DESC "Permanently doubles team physical defense"
+#define REFLECT_DESC "Doubles active pokemon physical defense"
 #define REFLECT [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){ \
         if (owner.hasReflectUp())\
 		logger("But, it failed!");\
@@ -268,7 +268,7 @@
 	return true;\
 }, REFLECT_DESC
 
-#define LIGHT_SCREEN_DESC "Permanently doubles team special defense"
+#define LIGHT_SCREEN_DESC "Doubles active pokemon special defense"
 #define LIGHT_SCREEN [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){ \
         if (owner.hasReflectUp())\
 		logger("But, it failed!");\
