@@ -71,21 +71,21 @@ namespace PokemonGen1
 		if (p1Attack && p1Start) {
 			if (this->_state.me.nextAction != StruggleMove)
 				this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
-			p1.attack(this->_state.me.nextAction - Attack1, p2, this->_state.me, this->_state.op);
+			p1.attack(this->_state.me.nextAction - Attack1, p2);
 		}
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
 		if (p2Attack) {
 			if (this->_state.op.nextAction != StruggleMove)
 				this->_state.me.discovered[this->_state.op.pokemonOnField].second[this->_state.op.nextAction - Attack1] = true;
-			p2.attack(this->_state.op.nextAction - Attack1, p1, this->_state.op, this->_state.me);
+			p2.attack(this->_state.op.nextAction - Attack1, p1);
 		}
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
 		if (p1Attack && !p1Start) {
 			if (this->_state.me.nextAction != StruggleMove)
 				this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
-			p1.attack(this->_state.me.nextAction - Attack1, p2, this->_state.me, this->_state.op);
+			p1.attack(this->_state.me.nextAction - Attack1, p2);
 		}
 	}
 
@@ -328,14 +328,14 @@ namespace PokemonGen1
 		stream.read(reinterpret_cast<char *>(buffer.data()), TRAINER_DATA_SIZE);
 		if (stream.fail())
 			throw std::runtime_error("Reached EOF early");
-		tmp = loadTrainer(buffer, this->_state.rng, this->_state.battleLogger);
+		tmp = loadTrainer(buffer, this->_state);
 		data.nameP1 = tmp.first;
 		data.teamP1 = tmp.second;
 
 		stream.read(reinterpret_cast<char *>(buffer.data()), TRAINER_DATA_SIZE);
 		if (stream.fail())
 			throw std::runtime_error("Reached EOF early");
-		tmp = loadTrainer(buffer, this->_state.rng, this->_state.battleLogger);
+		tmp = loadTrainer(buffer, this->_state);
 		data.nameP2 = tmp.first;
 		data.teamP2 = tmp.second;
 
@@ -438,10 +438,10 @@ namespace PokemonGen1
 		this->_replayData.nameP2 = state["replayInfo"]["p2"]["name"];
 		this->_replayData.teamP1.clear();
 		for (auto &j : state["replayInfo"]["p1"]["team"])
-			this->_replayData.teamP1.emplace_back(this->_state.rng, this->_state.battleLogger, j);
+			this->_replayData.teamP1.emplace_back(this->_state, j);
 		this->_replayData.teamP2.clear();
 		for (auto &j : state["replayInfo"]["p2"]["team"])
-			this->_replayData.teamP2.emplace_back(this->_state.rng, this->_state.battleLogger, j);
+			this->_replayData.teamP2.emplace_back(this->_state, j);
 		this->_replayData.rngList = state["replayInfo"]["rng"].get<std::vector<unsigned char>>();
 		this->_replayData.input.clear();
 		for (auto &j : state["replayInfo"]["inputs"])

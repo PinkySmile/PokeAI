@@ -287,7 +287,7 @@ namespace PokemonGen1
 		this->_nbHit = 1;
 	}
 
-	bool Move::attack(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger, PlayerState &me, PlayerState &op)
+	bool Move::attack(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger)
 	{
 		std::string msg;
 		unsigned hits;
@@ -368,7 +368,7 @@ namespace PokemonGen1
 				s.replace(pos, 8, target.getName());
 			logger(s);
 			if (this->_missCallback)
-				this->_missCallback(owner, target, me, op, this->isFinished(), logger);
+				this->_missCallback(owner, target, this->isFinished(), logger);
 			return false;
 		}
 		if ((this->_category != STATUS || this->_type == TYPE_ELECTRIC) && getAttackDamageMultiplier(this->_type, target.getTypes()) == 0) {
@@ -378,7 +378,7 @@ namespace PokemonGen1
 			}
 			logger("It didn't affect " + target.getName() + "!");
 			if (this->_missCallback)
-				this->_missCallback(owner, target, me, op, this->isFinished(), logger);
+				this->_missCallback(owner, target, this->isFinished(), logger);
 			return false;
 		}
 
@@ -388,20 +388,20 @@ namespace PokemonGen1
 				logger(target.getName() + " is unaffected!");
 				return false;
 			}
-			damage = owner.calcDamage(target, me, op, this->_power, this->_type, this->_category, false, true, false, false);
+			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, false, true, false, false);
 			damage.affect = true;
 			damage.critical = false;
 			damage.isVeryEffective = false;
 			damage.isNotVeryEffective = false;
-			this->_lastDamage = damage.damage;
+			owner.getBattleState().lastDamage = damage.damage;
 			logger("One-hit KO!");
 		} else if (this->_power) {
 			unsigned char r = rng();
 			unsigned char spd = std::min<unsigned int>(pokemonList.at(owner.getID()).SPD / 2 * this->_critChance, 255);
 
 			r = (r << 3U) | ((r & 0b11100000U) >> 5U);
-			damage = owner.calcDamage(target, me, op, this->_power, this->_type, this->_category, (r < spd), true, this->getID() == Explosion || this->getID() == Self_Destruct, false);
-			this->_lastDamage = damage.damage;
+			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, (r < spd), true, this->getID() == Explosion || this->getID() == Self_Destruct, false);
+			owner.getBattleState().lastDamage = damage.damage;
 		}
 
 		if (!this->_skipAccuracyCheck) {
@@ -414,7 +414,7 @@ namespace PokemonGen1
 				if (this->_power != 0)
 					logger(owner.getName() + "'s attack missed!");
 				if (this->_missCallback)
-					this->_missCallback(owner, target, me, op, this->isFinished(), logger);
+					this->_missCallback(owner, target, this->isFinished(), logger);
 				else if (!this->_power)
 					logger("But, it failed!");
 				return false;
@@ -428,15 +428,15 @@ namespace PokemonGen1
 		) {
 			logger(messages[this->_statusChange.status]);
 			if (this->_missCallback)
-				this->_missCallback(owner, target, me, op, this->isFinished(), logger);
+				this->_missCallback(owner, target, this->isFinished(), logger);
 			return false;
 		}
 
 	skipAccuracyAndDamageCheck:
 		if (this->_power) {
-			if (!target.hasSubstitute() && this->_lastDamage > target.getHealth())
-				this->_lastDamage = target.getHealth();
-			target.takeDamage(owner, this->_lastDamage, false, false);
+			if (!target.hasSubstitute() && owner.getBattleState().lastDamage > target.getHealth())
+				owner.getBattleState().lastDamage = target.getHealth();
+			target.takeDamage(owner, owner.getBattleState().lastDamage, false, false);
 			if (damage.critical)
 				logger("Critical hit!");
 			if (damage.isNotVeryEffective)
@@ -461,7 +461,7 @@ namespace PokemonGen1
 
 		if (this->_power && hits > 1) {
 			for (size_t i = 1; i < hits; i++) {
-				target.takeDamage(owner, this->_lastDamage, false, false);
+				target.takeDamage(owner, owner.getBattleState().lastDamage, false, false);
 				if (damage.isNotVeryEffective)
 					logger("It's not very effective!");
 				if (damage.isVeryEffective)
@@ -472,7 +472,7 @@ namespace PokemonGen1
 
 		if (!target.getHealth() || sub != target.hasSubstitute()) {
 			if (this->_hitCallback)
-				return this->_hitCallback(owner, target, me, op, this->_lastDamage, this->isFinished(), logger);
+				return this->_hitCallback(owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger);
 			return true;
 		}
 		owner.setRecharging(this->_needRecharge);
@@ -502,7 +502,7 @@ namespace PokemonGen1
 			target.applyStatusDebuff();
 
 		if (this->_hitCallback)
-			return this->_hitCallback(owner, target, me, op, this->_lastDamage, this->isFinished(), logger);
+			return this->_hitCallback(owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger);
 		return true;
 	}
 
@@ -668,7 +668,7 @@ namespace PokemonGen1
 		Move{0x39, "Surf"        , TYPE_WATER   , SPECIAL ,  95, 100, 15},
 		Move{0x3A, "Ice Beam"    , TYPE_ICE     , SPECIAL ,  95, 100, 10, {STATUS_FROZEN, 0x1A}},
 		Move{0x3B, "Blizzard"    , TYPE_ICE     , SPECIAL , 120,  90,  5, {STATUS_FROZEN, 0x1A}},
-		Move{0x3C, "Psybeam"     , TYPE_PSYCHIC , SPECIAL ,  65, 100, 20, {STATUS_CONFUSED, 0x19}},
+		Move{0x3C, "Psybeam"     , TYPE_PSYCHIC , SPECIAL ,  65, 100, 20, {STATUS_CONFUSED, 0x1A}}, // FIXME: Confusion side effect works differently
 		Move{0x3D, "Bubblebeam"  , TYPE_WATER   , SPECIAL ,  65, 100, 20, NO_STATUS_CHANGE, {}, {{STATS_SPD, -1, 0x55}}},
 		Move{0x3E, "Aurora Beam" , TYPE_ICE     , SPECIAL ,  65, 100, 20, NO_STATUS_CHANGE, {}, {{STATS_ATK, -1, 0x55}}},
 		Move{0x3F, "Hyper Beam"  , TYPE_NORMAL  , PHYSICAL, 150,  90,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, true},
@@ -701,7 +701,7 @@ namespace PokemonGen1
 		Move{0x5A, "Fissure"     , TYPE_GROUND  , PHYSICAL, 255,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ONE_HIT_KO_HANDLE},
 		Move{0x5B, "Dig"         , TYPE_GROUND  , PHYSICAL, 100, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("dug a hole!"), true},
 		Move{0x5C, "Toxic"       , TYPE_POISON  , STATUS  ,   0,  85, 10, {STATUS_BADLY_POISONED, 0}},
-		Move{0x5D, "Confusion"   , TYPE_PSYCHIC , SPECIAL ,  50, 100, 25, {STATUS_CONFUSED, 0x19}},
+		Move{0x5D, "Confusion"   , TYPE_PSYCHIC , SPECIAL ,  50, 100, 25, {STATUS_CONFUSED, 0x1A}}, // FIXME: Confusion side effect works differently
 		Move{0x5E, "Psychic"     , TYPE_PSYCHIC , SPECIAL ,  90, 100, 10, NO_STATUS_CHANGE, {}, {{STATS_SPE, -1, 0x55}}},
 		Move{0x5F, "Hypnosis"    , TYPE_PSYCHIC , STATUS  ,   0,  60, 20, {STATUS_ASLEEP, 0}},
 		Move{0x60, "Meditate"    , TYPE_PSYCHIC , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {{STATS_ATK, 1, 0}}},

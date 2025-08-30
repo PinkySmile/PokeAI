@@ -10,7 +10,7 @@ from libcpp.set cimport set
 
 from Damage cimport DamageResult
 from Type cimport Type
-from State cimport PlayerState
+from State cimport PlayerState, BattleState
 from Move cimport Move, AvailableMove, MoveCategory
 from StatsChange cimport StatsChange
 from StatusChange cimport StatusChange
@@ -79,9 +79,9 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 			unsigned char get(StatsChange stat)
 
 		Pokemon(const Pokemon &)
-		Pokemon(RandomGenerator &random, const Pokemon.Logger &battleLogger, const string &nickname, unsigned char level, const Pokemon.Base &base, const vector[Move] &moveSet, bool enemy) except +
-		Pokemon(RandomGenerator &random, const Logger &battleLogger, const string &nickname, const DataArray &data, bool enemy)
-		#Pokemon(RandomGenerator &random, const Logger &battleLogger, const nlohmann::json &json)
+		Pokemon(BattleState &state, const string &nickname, unsigned char level, const Pokemon.Base &base, const vector[Move] &moveSet, bool enemy) except +
+		Pokemon(BattleState &state, const string &nickname, const DataArray &data, bool enemy)
+		#Pokemon(BattleState &state, const nlohmann::json &json)
 
 		void setGlobalCritRatio(double ratio)
 		void setStatus(StatusChange status)
@@ -90,13 +90,13 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 		bool addStatus(StatusChange status, unsigned duration)
 		void resetStatsChanges()
 		bool changeStat(StatsChange stat, char nb)
-		void useMove(const Move &move, Pokemon &target, PlayerState &me, PlayerState &op)
+		void useMove(const Move &move, Pokemon &target)
 		void storeDamages(bool active)
 		bool hasStatus(StatusChange status) const
 		void heal(int health)
 		void takeDamage(Pokemon &target, int damage, bool ignoreSubstitute, bool swapSide)
-		void attack(unsigned char moveSlot, Pokemon &target, PlayerState &me, PlayerState &op)
-		Pokemon.DamageResult calcDamage(Pokemon &target, PlayerState &me, PlayerState &op, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense, bool swapSide)
+		void attack(unsigned char moveSlot, Pokemon &target)
+		Pokemon.DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense, bool swapSide)
 		void endTurn()
 		void switched()
 		int getPriorityFactor(unsigned char moveSlot)
@@ -116,6 +116,9 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 		void reset()
 		void applyStatusDebuff()
 
+		BattleState &getBattleState()
+		PlayerState &getMyState()
+		PlayerState &getOpState()
 		RandomGenerator &getRandomGenerator()
 		bool canHaveStatus(StatusChange status)
 		unsigned short getStatus()

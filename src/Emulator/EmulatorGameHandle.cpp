@@ -408,7 +408,7 @@ namespace PokemonGen1
 		this->_state.op.team.clear();
 		this->_state.op.team.reserve(nbPkmns);
 		for (int i = 0; i < nbPkmns; i++) {
-			this->_state.op.team.emplace_back(this->_state.rng, this->_state.battleLogger, this->convertString(this->_receiveBuffer), pkmnData[i], true);
+			this->_state.op.team.emplace_back(this->_state, this->convertString(this->_receiveBuffer), pkmnData[i], true);
 			this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 11);
 		}
 		for (const Pokemon &pkmn : this->_state.op.team)

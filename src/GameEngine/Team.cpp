@@ -8,7 +8,7 @@
 
 namespace PokemonGen1
 {
-	Trainer loadTrainer(const std::vector<unsigned char> &data, RandomGenerator &rng, const Pokemon::Logger &logger)
+	Trainer loadTrainer(const std::vector<unsigned char> &data, BattleState &state)
 	{
 		Trainer result;
 		auto it = data.begin();
@@ -38,7 +38,7 @@ namespace PokemonGen1
 			std::copy(it, it + Pokemon::ENCODED_SIZE, arr.begin());
 			tmp.resize(strlen(tmp.c_str()));
 			it += Pokemon::ENCODED_SIZE;
-			result.second.emplace_back(rng, logger, tmp, arr, false);
+			result.second.emplace_back(state, tmp, arr, false);
 			names += 11;
 		}
 		return result;

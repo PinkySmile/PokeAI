@@ -30,7 +30,7 @@ def convertString(data):
 
 
 def loadTrainer(data, BattleState state):
-	trainer = __loadTrainer(data, state.__instance.rng, state.__instance.battleLogger)
+	trainer = __loadTrainer(data, dereference(state.__instance))
 	result = []
 	for index in range(trainer.second.size()):
 		p = Pokemon()
@@ -507,10 +507,10 @@ cdef class Move:
 			raise TypeError("Instance is read only")
 		self.__instance.reset()
 
-	#def attack(self, Pokemon owner, Pokemon target, logger):
-	#	if self.__instance == NULL:
-	#		raise TypeError("Instance is read only")
-	#	self.__instance.attack(dereference(owner.__instance), dereference(target.__instance), pythonLoggerLambda(<void *>logger, &evalLogger))
+	def attack(self, Pokemon owner, Pokemon target, logger):
+		if self.__instance == NULL:
+			raise TypeError("Instance is read only")
+		self.__instance.attack(dereference(owner.__instance), dereference(target.__instance), pythonLoggerLambda(<void *>logger, &evalLogger))
 
 
 cpdef enum PokemonSpecies:
@@ -820,8 +820,7 @@ cdef class Pokemon:
 				data[i] = args[2][i]
 			enemy: bool = False if len(args) == 3 else args[3]
 			self.__instance = new __Pokemon(
-				state.__instance.rng,
-				state.__instance.battleLogger,
+				dereference(state.__instance),
 				nickname,
 				data,
 				enemy
@@ -842,8 +841,7 @@ cdef class Pokemon:
 					raise TypeError("Moveset must contains Moves only")
 				moveSet.push_back(dereference((<Move>move).__instance))
 			self.__instance = new __Pokemon(
-				state.__instance.rng,
-				state.__instance.battleLogger,
+				dereference(state.__instance),
 				nickname,
 				level,
 				dereference((<PokemonBase>base).__instance),
@@ -881,8 +879,8 @@ cdef class Pokemon:
 	def changeStat(self, StatsChange stat, char nb):
 		return self.__instance.changeStat(stat, nb)
 
-	#def useMove(self, Move move, Pokemon target):
-	#	self.__instance.useMove(dereference(move.__instance), dereference(target.__instance))
+	def useMove(self, Move move, Pokemon target):
+		self.__instance.useMove(dereference(move.__instance), dereference(target.__instance))
 
 	def storeDamages(self, bool active):
 		return self.__instance.storeDamages(active)
@@ -893,30 +891,31 @@ cdef class Pokemon:
 	def heal(self, unsigned short health):
 		self.__instance.heal(health)
 
-	#def takeDamage(self, unsigned short damage, bool ignoreSubstitute):
-	#	self.__instance.takeDamage(damage, ignoreSubstitute)
+	def takeDamage(self, Pokemon target, unsigned short damage, bool ignoreSubstitute, bool swapSide):
+		self.__instance.takeDamage(dereference(target.__instance), damage, ignoreSubstitute, swapSide)
 
-	#def attack(self, unsigned char moveSlot, Pokemon target):
-	#	self.__instance.attack(moveSlot, dereference(target.__instance))
+	def attack(self, unsigned char moveSlot, Pokemon target):
+		self.__instance.attack(moveSlot, dereference(target.__instance))
 
-	#def calcDamage(self, Pokemon target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense):
-	#	cdef __Pokemon.DamageResult result = self.__instance.calcDamage(
-	#		dereference(target.__instance),
-	#		power,
-	#		cast(__Type, damageType),
-	#		cast(__Move.MoveCategory, category),
-	#		critical,
-	#		randomized,
-	#		halfDefense
-	#	)
+	def calcDamage(self, Pokemon target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense, bool swapSide):
+		cdef __Pokemon.DamageResult result = self.__instance.calcDamage(
+			dereference(target.__instance),
+			power,
+			cast(__Type, damageType),
+			cast(__Move.MoveCategory, category),
+			critical,
+			randomized,
+			halfDefense,
+			swapSide
+		)
 
-	#	return {
-	#		'critical': result.critical,
-	#		'damage': result.damage,
-	#		'affect': result.affect,
-	#		'isVeryEffective': result.isVeryEffective,
-	#		'isNotVeryEffective': result.isNotVeryEffective
-	#	}
+		return {
+			'critical': result.critical,
+			'damage': result.damage,
+			'affect': result.affect,
+			'isVeryEffective': result.isVeryEffective,
+			'isNotVeryEffective': result.isNotVeryEffective
+		}
 
 	def endTurn(self):
 		self.__instance.endTurn()

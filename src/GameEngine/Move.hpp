@@ -28,24 +28,24 @@
 #define NOT_IMPLEMENTED nullptr, "Not implemented"
 
 //Miss callbacks
-#define GLITCH_HYPER_BEAM [](Pokemon &, Pokemon &target, PlayerState &, PlayerState &, bool, const std::function<void(const std::string &msg)> &){\
+#define GLITCH_HYPER_BEAM [](Pokemon &, Pokemon &target, bool, const std::function<void(const std::string &msg)> &){\
 	target.setRecharging(false);\
 	return true;\
 }, "Removes the opponent recharge state and will make the target use it's move once more"
 
-#define SUICIDE_MISS [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, bool, const std::function<void(const std::string &msg)> &){\
+#define SUICIDE_MISS [](Pokemon &owner, Pokemon &target, bool, const std::function<void(const std::string &msg)> &){\
 	owner.takeDamage(target, owner.getHealth(), true, false);\
 	return true;\
 }, "Kills user"
 
-#define TAKE_1DAMAGE [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, bool, const std::function<void(const std::string &msg)> &logger){\
+#define TAKE_1DAMAGE [](Pokemon &owner, Pokemon &target, bool, const std::function<void(const std::string &msg)> &logger){\
 	logger(owner.getName() + " kept going and crashes!");\
 	owner.takeDamage(target, 1, false, false);\
 	return true;\
 }, "Take 1 damage"
 
 #define CONFUSE_ON_LAST_DESC "Confuse the user on last run"
-#define CONFUSE_ON_LAST_MISS [](Pokemon &owner, Pokemon &, PlayerState &, PlayerState &, bool last, const std::function<void(const std::string &msg)> &){\
+#define CONFUSE_ON_LAST_MISS [](Pokemon &owner, Pokemon &, bool last, const std::function<void(const std::string &msg)> &){\
 	if (last)\
 		owner.addStatus(STATUS_CONFUSED);\
 	return true;\
@@ -57,7 +57,7 @@
 #define ONE_HIT_KO_HANDLE nullptr, OHKO_DESC
 
 #define QU_RECOIL_DESC "Take a quarter of the damage dealt as recoil"
-#define TAKE_QUARTER_MOVE_DAMAGE [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned damage, bool, const std::function<void(const std::string &msg)> &logger){\
+#define TAKE_QUARTER_MOVE_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned damage, bool, const std::function<void(const std::string &msg)> &logger){\
 	if (damage <= 3)\
 		owner.takeDamage(target, 1, true, false);\
 	else\
@@ -67,14 +67,14 @@
 }, QU_RECOIL_DESC
 
 #define TRANSFORM_DESC "Transform the user into the foe, copying stats, types and sprite"
-#define TRANSFORM [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+#define TRANSFORM [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
 	owner.transform(target);\
 	logger(owner.getName() + " transformed into " + target.getSpeciesName() + "!");\
 	return true;\
 }, TRANSFORM_DESC
 
 #define TAKE_HALF_MOVE_DAMAGE_DESC "Take half dealt damage as recoil"
-#define TAKE_HALF_MOVE_DAMAGE [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned damage, bool, const std::function<void(const std::string &msg)> &logger){ \
+#define TAKE_HALF_MOVE_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned damage, bool, const std::function<void(const std::string &msg)> &logger){ \
 	if (damage == 1)\
 		owner.takeDamage(target, 1, true, false);\
 	else\
@@ -84,37 +84,37 @@
 }, TAKE_HALF_MOVE_DAMAGE_DESC
 
 #define WRAP_TARGET_DESC "Set the foe in the wrapped state for all the move duration"
-#define WRAP_TARGET [](Pokemon &, Pokemon &target, PlayerState &, PlayerState &, unsigned, bool last, const std::function<void(const std::string &msg)> &){\
+#define WRAP_TARGET [](Pokemon &, Pokemon &target, unsigned, bool last, const std::function<void(const std::string &msg)> &){\
 	target.setWrapped(!last);\
 	return true;\
 }, WRAP_TARGET_DESC
 
-#define CONFUSE_ON_LAST [](Pokemon &owner, Pokemon &, PlayerState &, PlayerState &, unsigned, bool last, const std::function<void(const std::string &msg)> &){\
+#define CONFUSE_ON_LAST [](Pokemon &owner, Pokemon &, unsigned, bool last, const std::function<void(const std::string &msg)> &){\
 	if (last)\
 		owner.addStatus(STATUS_CONFUSED);\
 	return true;\
 }, CONFUSE_ON_LAST_DESC
 
 #define DEAL_20_DAMAGE_DESC "Deal 20 damage"
-#define DEAL_20_DAMAGE [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define DEAL_20_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
 	target.takeDamage(owner, 20, false, false);\
 	return true;\
 }, DEAL_20_DAMAGE_DESC
 
 #define DEAL_40_DAMAGE_DESC "Deal 40 damage"
-#define DEAL_40_DAMAGE [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define DEAL_40_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
 	target.takeDamage(owner, 40, false, false);\
 	return true;\
 }, DEAL_40_DAMAGE_DESC
 
 #define DEAL_LVL_AS_DAMAGE_DESC "Deal the user's level as raw damage"
-#define DEAL_LVL_AS_DAMAGE [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define DEAL_LVL_AS_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
 	target.takeDamage(owner, owner.getLevel(), false, false);\
 	return true;\
 }, DEAL_LVL_AS_DAMAGE_DESC
 
 #define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_DESC "Deal between 1 damage and 1.5 times the user's level as damage"
-#define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
 	unsigned char multipliedLevel = owner.getLevel() * 1.5;\
 \
 	if (!multipliedLevel)\
@@ -135,7 +135,7 @@
 }, DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_DESC
 
 #define ABSORB_HALF_DAMAGE_DESC "Absorb half dealt damage"
-#define ABSORB_HALF_DAMAGE [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned damage, bool, const std::function<void(const std::string &msg)> &logger){\
+#define ABSORB_HALF_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned damage, bool, const std::function<void(const std::string &msg)> &logger){\
 	if (damage == 1)\
 		owner.heal(1);\
 	else\
@@ -145,7 +145,7 @@
 }, ABSORB_HALF_DAMAGE_DESC
 
 #define HEAL_HALF_HEALTH_DESC "Heal half max HP"
-#define HEAL_HALF_HEALTH [](Pokemon &owner, Pokemon &, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+#define HEAL_HALF_HEALTH [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
         unsigned h = owner.getHealth();\
         unsigned m = owner.getMaxHealth();\
         if ((h & 0xFF) - (m & 0xFF) - ((h >> 8) < (m >> 8)) == 0)\
@@ -156,7 +156,7 @@
 }, HEAL_HALF_HEALTH_DESC
 
 #define HEAL_ALL_HEALTH_AND_SLEEP_DESC "Heal all lost HP and sleep for 2 turns"
-#define HEAL_ALL_HEALTH_AND_SLEEP [](Pokemon &owner, Pokemon &, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+#define HEAL_ALL_HEALTH_AND_SLEEP [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
         unsigned h = owner.getHealth();\
         unsigned m = owner.getMaxHealth();\
         if ((h & 0xFF) - (m & 0xFF) - ((h >> 8) < (m >> 8)) == 0)\
@@ -168,26 +168,30 @@
 	return true;\
 }, HEAL_ALL_HEALTH_AND_SLEEP_DESC
 
-#define CANCEL_STATS_CHANGE_DESC "Resets all stats, status and crit chance multiplier changes"
-#define CANCEL_STATS_CHANGE [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+#define CANCEL_STATS_CHANGE_DESC "Resets all stats, status, crit chance multiplier and special effects"
+#define CANCEL_STATS_CHANGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
 	owner.resetStatsChanges();\
 	owner.setStatus(STATUS_NONE);\
 	owner.setGlobalCritRatio(1);\
+	owner.setReflectUp(false);\
+	owner.setLightScreenUp(false);\
 	target.resetStatsChanges();\
 	target.setStatus(STATUS_NONE);\
 	target.setGlobalCritRatio(1);\
+	target.setReflectUp(false);\
+	target.setLightScreenUp(false);\
 	logger("All STATUS changes are eliminated!");\
 	return true;\
 }, CANCEL_STATS_CHANGE_DESC
 
 #define SET_USER_CRIT_RATIO_TO_1_QUARTER_DESC "User has 4 times less chance to crit"
-#define SET_USER_CRIT_RATIO_TO_1_QUARTER [](Pokemon &owner, Pokemon &, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define SET_USER_CRIT_RATIO_TO_1_QUARTER [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
 	owner.setGlobalCritRatio(0.25);\
 	return true;\
 }, SET_USER_CRIT_RATIO_TO_1_QUARTER_DESC
 
 #define STORE_DAMAGES_DESC "Store damage"
-#define STORE_DAMAGES [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned, bool last, const std::function<void(const std::string &msg)> &logger){\
+#define STORE_DAMAGES [](Pokemon &owner, Pokemon &target, unsigned, bool last, const std::function<void(const std::string &msg)> &logger){\
 	if (last) {\
 		target.takeDamage(owner, owner.getDamagesStored() * 2, false, false);\
 		logger(owner.getName() + " unleashes energy!");\
@@ -197,52 +201,52 @@
 }, STORE_DAMAGES_DESC
 
 #define USE_RANDOM_MOVE_DESC "Use a randomly chosen move"
-#define USE_RANDOM_MOVE [](Pokemon &owner, Pokemon &target, PlayerState &me, PlayerState &op, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define USE_RANDOM_MOVE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
 	unsigned index;\
 \
 	do {\
 		index = owner.getRandomGenerator()();\
 	} while (!index || index >= 0xA5);\
-	owner.useMove(availableMoves[index], target, me, op);\
+	owner.useMove(availableMoves[index], target);\
 	return true;\
 }, USE_RANDOM_MOVE_DESC
 
 #define USE_LAST_FOE_MOVE_DESC "Use last foe's used move"
-#define USE_LAST_FOE_MOVE [](Pokemon &owner, Pokemon &target, PlayerState &me, PlayerState &op, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+#define USE_LAST_FOE_MOVE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
 	auto &move = target.getLastUsedMove();\
 	if (move.getID() == 0)\
 		logger("But it failed!");\
 	else\
-		owner.useMove(availableMoves[move.getID()], target, me, op);\
+		owner.useMove(availableMoves[move.getID()], target);\
 	return true;\
 }, USE_LAST_FOE_MOVE_DESC
 
 #define SUICIDE_DESC "Kill user"
-#define SUICIDE [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define SUICIDE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
 	owner.takeDamage(target, owner.getHealth(), true, false);\
 	return true;\
 }, SUICIDE_DESC
 
 #define CONVERSION_DESC "Copy foe's types"
-#define CONVERSION [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define CONVERSION [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
 	owner.setTypes(target.getTypes());\
 	return true;\
 }, CONVERSION_DESC
 
 #define DEAL_HALF_HP_DAMAGE_DESC "Deal half foe's HP"
-#define DEAL_HALF_HP_DAMAGE [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define DEAL_HALF_HP_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
 	target.takeDamage(owner, target.getHealth() / 2, false, false); /* TODO: Check how it interacts with SUBSTITUTE */\
 	return true;\
 }, DEAL_HALF_HP_DAMAGE_DESC
 
 #define DO_NOTHING_DESC "No effect"
-#define DO_NOTHING [](Pokemon &, Pokemon &, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+#define DO_NOTHING [](Pokemon &, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
 	logger("No effect!");\
 	return true;\
 }, DO_NOTHING_DESC
 
 #define CREATE_SUBSTITUTE_DESC "Creates a substitute"
-#define CREATE_SUBSTITUTE [](Pokemon &owner, Pokemon &target, PlayerState &, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){ \
+#define CREATE_SUBSTITUTE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){ \
 	if (owner.hasSubstitute())\
 		return logger(owner.getName() + " has a SUBSTITUTE!"), true;\
 	unsigned hp = owner.getMaxHealth() / 4;\
@@ -255,22 +259,22 @@
 }, CREATE_SUBSTITUTE_DESC
 
 #define REFLECT_DESC "Permanently doubles team physical defense"
-#define REFLECT [](Pokemon &owner, Pokemon &, PlayerState &me, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){ \
-        if (me.reflectOn)\
+#define REFLECT [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){ \
+        if (owner.hasReflectUp())\
 		logger("But, it failed!");\
 	else\
 		logger(owner.getName() + " gained armor!");\
-	me.reflectOn = true;\
+	owner.setReflectUp(true);\
 	return true;\
 }, REFLECT_DESC
 
 #define LIGHT_SCREEN_DESC "Permanently doubles team special defense"
-#define LIGHT_SCREEN [](Pokemon &owner, Pokemon &, PlayerState &me, PlayerState &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){ \
-        if (me.reflectOn)\
+#define LIGHT_SCREEN [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){ \
+        if (owner.hasReflectUp())\
 		logger("But, it failed!");\
 	else\
 		logger(owner.getName() + "'s protected against special attacks!");\
-	me.lightScreenOn = true;\
+	owner.setLightScreenUp(true);\
 	return true;\
 }, LIGHT_SCREEN_DESC
 
@@ -296,8 +300,8 @@ namespace PokemonGen1
 			unsigned char cmpVal;
 		};
 
-		typedef std::function<bool (Pokemon &owner, Pokemon &target, struct PlayerState &myState, struct PlayerState &opState, unsigned damage, bool lastRun, const std::function<void(const std::string &msg)> &logger)> HitCallback;
-		typedef std::function<bool (Pokemon &owner, Pokemon &target, struct PlayerState &myState, struct PlayerState &opState,                  bool lastRun, const std::function<void(const std::string &msg)> &logger)> MissCallback;
+		typedef std::function<bool (Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun, const std::function<void(const std::string &msg)> &logger)> HitCallback;
+		typedef std::function<bool (Pokemon &owner, Pokemon &target,                  bool lastRun, const std::function<void(const std::string &msg)> &logger)> MissCallback;
 
 	private:
 		HitCallback _hitCallback;
@@ -315,7 +319,6 @@ namespace PokemonGen1
 		unsigned char _maxpp;
 		unsigned char _nbHit;
 		unsigned char _accuracy;
-		unsigned int _lastDamage;
 		std::pair<unsigned, unsigned> _nbRuns;
 		std::pair<unsigned, unsigned> _nbHits;
 		StatusChangeProb _statusChange;
@@ -392,7 +395,7 @@ namespace PokemonGen1
 		void setHitsLeft(unsigned char nb);
 		void reset();
 
-		bool attack(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger, struct PlayerState &myState, struct PlayerState &opState);
+		bool attack(Pokemon &owner, Pokemon &target, const std::function<void(const std::string &msg)> &logger);
 	};
 
 	extern const std::array<Move, 256> availableMoves;

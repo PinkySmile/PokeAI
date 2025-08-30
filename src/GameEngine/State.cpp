@@ -23,8 +23,8 @@ namespace PokemonGen1
 	{
 		this->rng.setList(json["rng"]);
 		this->rng.setIndex(json["rngIndex"]);
-		this->me.deserialize(json["p1"], this->rng, this->battleLogger);
-		this->op.deserialize(json["p2"], this->rng, this->battleLogger);
+		this->me.deserialize(json["p1"], *this);
+		this->op.deserialize(json["p2"], *this);
 	}
 
 	nlohmann::json PlayerState::serialize()
@@ -43,7 +43,7 @@ namespace PokemonGen1
 		return json;
 	}
 
-	void PlayerState::deserialize(const nlohmann::json &json, RandomGenerator &rng, const BattleLogger &logger)
+	void PlayerState::deserialize(const nlohmann::json &json, BattleState &state)
 	{
 		this->name = json["name"];
 		this->lastAction = json["lastAction"];
@@ -52,7 +52,7 @@ namespace PokemonGen1
 		this->discovered = json["discovered"];
 		this->team.clear();
 		for (const auto &pkmn : json["team"])
-			this->team.emplace_back(rng, logger, pkmn);
+			this->team.emplace_back(state, pkmn);
 	}
 
 	std::string BattleActionToString(BattleAction action)

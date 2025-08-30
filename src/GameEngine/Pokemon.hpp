@@ -135,37 +135,38 @@ namespace PokemonGen1
 			std::pair<Type, Type> types;
 		};
 
-		PokemonState                          _oldState{};
-		unsigned char                         _id;
-		bool                                  _flinched = false;
-		bool                                  _needsRecharge = 0;
-		bool                                  _invincible = false;
-		bool                                  _enemy;
-		Move                                  _lastUsedMove;
-		RandomGenerator	              *_random;
-		std::string                           _nickname;
-		std::string                           _name;
-		BaseStats                             _dvs;
-		BaseStats                             _statExps;
-		BaseStats                             _baseStats;
-		BaseStats                             _computedStats;
-		UpgradableStats                       _upgradedStats;
-		std::vector<Move>                     _moveSet;
+		PokemonState _oldState{};
+		unsigned char _id;
+		bool _flinched = false;
+		bool _needsRecharge = false;
+		bool _invincible = false;
+		bool _enemy;
+		Move _lastUsedMove;
+		std::string _nickname;
+		std::string _name;
+		BaseStats _dvs;
+		BaseStats _statExps;
+		BaseStats _baseStats;
+		BaseStats _computedStats;
+		UpgradableStats _upgradedStats;
+		std::vector<Move> _moveSet;
 		std::pair<Type, Type> _types;
-		unsigned char                         _level;
-		unsigned char                         _catchRate;
-		bool                                  _transformed = false;
-		bool                                  _wrapped = false;
-		bool                                  _stopWrapped = false;
-		bool                                  _storingDamages;
-		unsigned int                          _damageStored;
-		unsigned char                         _badPoisonStage = 0;
-		unsigned short                        _currentStatus;
-		double                                _globalCritRatio;
+		unsigned char _level;
+		unsigned char _catchRate;
+		bool _transformed = false;
+		bool _wrapped = false;
+		bool _stopWrapped = false;
+		bool _storingDamages = false;
+		unsigned int _damageStored = 0;
+		unsigned char _badPoisonStage = 0;
+		unsigned short _currentStatus = 0;
+		double _globalCritRatio = 1;
 		unsigned short _subHealth = 0;
 		unsigned char _forcedAttack = 0;
 		bool _hasSub = false;
-		const Logger *_battleLogger;
+		bool _reflect = false;
+		bool _lightScreen = false;
+		struct BattleState *_battleState;
 
 		static const std::pair<unsigned char, unsigned char> _ratios[13];
 
@@ -177,9 +178,9 @@ namespace PokemonGen1
 		static constexpr unsigned NICK_SIZE = 10;
 		static constexpr unsigned ENCODED_SIZE = PACK_SIZE;
 
-		Pokemon(RandomGenerator &random, const Logger &battleLogger, const std::string &nickname, unsigned char level, const Base &base, const std::vector<Move> &moveSet, bool enemy = false);
-		Pokemon(RandomGenerator &random, const Logger &battleLogger, const std::string &nickname, const std::array<byte, ENCODED_SIZE> &data, bool enemy = false);
-		Pokemon(RandomGenerator &random, const Logger &battleLogger, const nlohmann::json &json);
+		Pokemon(struct BattleState &battleState, const std::string &nickname, unsigned char level, const Base &base, const std::vector<Move> &moveSet, bool enemy = false);
+		Pokemon(struct BattleState &battleState, const std::string &nickname, const std::array<byte, ENCODED_SIZE> &data, bool enemy = false);
+		Pokemon(struct BattleState &battleState, const nlohmann::json &json);
 
 		unsigned short getSubstituteHealth() const;
 		bool hasSubstitute() const;
@@ -192,13 +193,13 @@ namespace PokemonGen1
 		bool addStatus(StatusChange status, unsigned duration);
 		void resetStatsChanges();
 		bool changeStat(enum StatsChange stat, char nb);
-		bool useMove(const Move &move, Pokemon &target, struct PlayerState &myState, struct PlayerState &opState);
+		bool useMove(const Move &move, Pokemon &target);
 		void storeDamages(bool active);
 		bool hasStatus(StatusChange status) const;
 		void heal(unsigned short health);
 		void takeDamage(Pokemon &target, unsigned short damage, bool skipSubstitute, bool swapSide);
-		void attack(unsigned char moveSlot, Pokemon &target, struct PlayerState &myState, struct PlayerState &opState);
-		DamageResult calcDamage(Pokemon &target, struct PlayerState &myState, struct PlayerState &opState, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense, bool swapTurn) const;
+		void attack(unsigned char moveSlot, Pokemon &target);
+		DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense, bool swapTurn) const;
 		void endTurn();
 		void switched();
 		void opponentSwitched();
@@ -207,6 +208,7 @@ namespace PokemonGen1
 		void setRecharging(bool recharging = true);
 		void transform(const Pokemon &target);
 		const std::set<AvailableMove> &getLearnableMoveSet() const;
+
 		[[nodiscard]] std::array<unsigned char, ENCODED_SIZE> encode() const;
 		[[nodiscard]] std::string dump() const;
 		[[nodiscard]] nlohmann::json serialize() const;
@@ -218,7 +220,14 @@ namespace PokemonGen1
 		void setMove(unsigned char index, const Move &move);
 		void reset();
 		void applyStatusDebuff();
+		void setReflectUp(bool value);
+		void setLightScreenUp(bool value);
 
+		[[nodiscard]] struct BattleState &getBattleState();
+		[[nodiscard]] struct PlayerState &getMyState();
+		[[nodiscard]] struct PlayerState &getOpState();
+		[[nodiscard]] bool hasReflectUp() const;
+		[[nodiscard]] bool hasLightScreenUp() const;
 		[[nodiscard]] RandomGenerator &getRandomGenerator();
 		[[nodiscard]] bool canHaveStatus(StatusChange status) const;
 		[[nodiscard]] unsigned short getStatus() const;

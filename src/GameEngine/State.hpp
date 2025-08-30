@@ -35,6 +35,13 @@ namespace PokemonGen1
 	typedef std::pair<bool, MovesDiscovered> PkmnDiscovered;
 	typedef std::function<void (const std::string &message)> BattleLogger;
 
+	enum DesyncStrategy {
+		DESYNC_MISS,  // Make moves miss when they would desync
+		DESYNC_THROW, // Throw an exception when a move would desync
+		DESYNC_INVERT,// Invert calculations to replicate the opponent's PoV and stay in sync
+		DESYNC_IGNORE // Apply normal calculations even when it would result in a desync
+	};
+
 	struct PlayerState {
 		std::string name;
 		BattleAction lastAction = NoAction;
@@ -42,17 +49,17 @@ namespace PokemonGen1
 		unsigned char pokemonOnField = 0;
 		std::vector<Pokemon> team;
 		std::array<PkmnDiscovered, 6> discovered;
-		bool lightScreenOn = false;
-		bool reflectOn = false;
 
 		nlohmann::json serialize();
-		void deserialize(const nlohmann::json &json, RandomGenerator &rng, const BattleLogger &logger);
+		void deserialize(const nlohmann::json &json, BattleState &state);
 	};
 
 	struct BattleState {
 		PlayerState me;
 		PlayerState op;
 		RandomGenerator rng;
+		DesyncStrategy desync = DESYNC_INVERT;
+		unsigned short lastDamage = 0;
 		BattleLogger battleLogger = [](const std::string &){};
 		std::function<bool ()> onTurnStart;
 		std::function<void ()> onBattleEnd;

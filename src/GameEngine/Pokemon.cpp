@@ -30,11 +30,10 @@ namespace PokemonGen1
 		{ 4, 1},   // 4.00
 	};
 
-	Pokemon::Pokemon(RandomGenerator &random, const Logger &battleLogger, const std::string &nickname, unsigned char level, const Base &base, const std::vector<Move> &moveSet, bool enemy) :
+	Pokemon::Pokemon(BattleState &state, const std::string &nickname, unsigned char level, const Base &base, const std::vector<Move> &moveSet, bool enemy) :
 		_id(base.id),
 		_enemy(enemy),
 		_lastUsedMove(availableMoves[0x00]),
-		_random{&random},
 		_nickname{nickname},
 		_name{base.name},
 		_dvs{0xF, 0xF, 0xF, 0xF, 0xF, 0xF},
@@ -49,7 +48,7 @@ namespace PokemonGen1
 		_damageStored(0),
 		_currentStatus(STATUS_NONE),
 		_globalCritRatio(-1),
-		_battleLogger(&battleLogger)
+		_battleState(&state)
 	{
 		if (this->_nickname.size() > 10) {
 			this->_log("Warning : nickname is too big");
@@ -60,11 +59,10 @@ namespace PokemonGen1
 		this->_computedStats = this->_baseStats;
 	}
 
-	Pokemon::Pokemon(RandomGenerator &random, const Logger &battleLogger, const std::string &nickname, const std::array<byte, ENCODED_SIZE> &data, bool enemy) :
+	Pokemon::Pokemon(BattleState &state, const std::string &nickname, const std::array<byte, ENCODED_SIZE> &data, bool enemy) :
 		_id(data[PACK_SPECIES]),
 		_enemy(enemy),
 		_lastUsedMove(availableMoves[0x00]),
-		_random{&random},
 		_nickname{nickname},
 		_name{pokemonList.at(data[0]).name},
 		_dvs{
@@ -102,7 +100,7 @@ namespace PokemonGen1
 		_damageStored(0),
 		_currentStatus{data[PACK_STATUS]},
 		_globalCritRatio(-1),
-		_battleLogger(&battleLogger)
+		_battleState(&state)
 	{
 		this->_dvs.maxHP = this->_dvs.HP =
 			((this->_dvs.ATK & 0x1U) << 3U) |
@@ -119,7 +117,7 @@ namespace PokemonGen1
 		this->_computedStats = this->_baseStats;
 	}
 
-	Pokemon::Pokemon(RandomGenerator &random, const Pokemon::Logger &battleLogger, const nlohmann::json &json) :
+	Pokemon::Pokemon(BattleState &state, const nlohmann::json &json) :
 		_oldState{
 			.stats = {
 				.HP   = json["oldState"]["stats"]["HP"],
@@ -136,7 +134,6 @@ namespace PokemonGen1
 		_id(json["id"]),
 		_enemy(json["enemy"]),
 		_lastUsedMove(availableMoves[json["lastUsedMove"]["id"]]),
-		_random{&random},
 		_nickname{json["nickname"]},
 		_name{json["name"]},
 		_dvs{
@@ -178,7 +175,7 @@ namespace PokemonGen1
 		_damageStored(json["damageStored"]),
 		_currentStatus{json["currentStatus"]},
 		_globalCritRatio(json["globalCritRatio"]),
-		_battleLogger(&battleLogger)
+		_battleState(&state)
 	{
 		this->_moveSet.reserve(4);
 		for (auto &move : json["moveSet"]) {
@@ -263,10 +260,10 @@ namespace PokemonGen1
 		switch (status) {
 		case STATUS_ASLEEP:
 			while (!randomVal)
-				randomVal = (*this->_random)() & 7;
+				randomVal = this->_battleState->rng() & 7;
 			return this->addStatus(STATUS_ASLEEP_FOR_1_TURN, randomVal);
 		case STATUS_CONFUSED:
-			return this->addStatus(STATUS_CONFUSED_FOR_1_TURN, ((*this->_random)() & 3) + 2);
+			return this->addStatus(STATUS_CONFUSED_FOR_1_TURN, (this->_battleState->rng() & 3) + 2);
 		default:
 			return this->addStatus(status, 1);
 		}
@@ -463,6 +460,8 @@ namespace PokemonGen1
 		this->_wrapped = false;
 		this->_subHealth = 0;
 		this->_hasSub = false;
+		this->_reflect = false;
+		this->_lightScreen = false;
 		if (this->_transformed) {
 			this->_id = this->_oldState.id;
 			this->_moveSet = this->_oldState.moves;
@@ -497,7 +496,7 @@ namespace PokemonGen1
 		return (move ? move->getPriority() : 0) * 262140 + static_cast<int>(this->getSpeed());
 	}
 
-	bool Pokemon::useMove(const Move &move, Pokemon &target, PlayerState &me, PlayerState &op)
+	bool Pokemon::useMove(const Move &move, Pokemon &target)
 	{
 		bool moveStarted = false;
 
@@ -505,7 +504,7 @@ namespace PokemonGen1
 			this->_lastUsedMove = move;
 			moveStarted = true;
 		}
-		if (!this->_lastUsedMove.attack(*this, target, *this->_battleLogger, me, op))
+		if (!this->_lastUsedMove.attack(*this, target, this->_battleState->battleLogger))
 			return true;
 		if (this->_lastUsedMove.needsLoading())
 			return this->_lastUsedMove.isFinished();
@@ -528,7 +527,7 @@ namespace PokemonGen1
 
 	RandomGenerator &Pokemon::getRandomGenerator()
 	{
-		return *this->_random;
+		return this->_battleState->rng;
 	}
 
 	unsigned Pokemon::getDamagesStored() const
@@ -580,7 +579,7 @@ namespace PokemonGen1
 
 	void Pokemon::_log(const std::string &msg) const
 	{
-		(*this->_battleLogger)(this->getName() + msg);
+		this->_battleState->battleLogger(this->getName() + msg);
 	}
 
 	void Pokemon::setSubstitute()
@@ -588,7 +587,7 @@ namespace PokemonGen1
 		this->_hasSub = true;
 	}
 
-	void Pokemon::attack(unsigned char moveSlot, Pokemon &target, PlayerState &me, PlayerState &op)
+	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
 	{
 		Move *move;
 
@@ -622,10 +621,10 @@ namespace PokemonGen1
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if ((this->_currentStatus & STATUS_CONFUSED)) {
 				this->_log(" is confused!");
-				if ((*this->_random)() >= 0x80) {
+				if (this->_battleState->rng() >= 0x80) {
 					this->setRecharging(false);
-					(*this->_battleLogger)("It hurt itself in its confusion!");
-					this->takeDamage(target, this->calcDamage(*this, me, op, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false, true).damage, false, true);
+					this->_battleState->battleLogger("It hurt itself in its confusion!");
+					this->takeDamage(target, this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false, true).damage, false, true);
 					// clear bide, thrashing about, charging up, and multi-turn moves such as warp
 					// but NOT rage!
 					if (this->_lastUsedMove.getID() != AvailableMove::Rage)
@@ -636,7 +635,7 @@ namespace PokemonGen1
 				this->_log(" is confused no more!");
 		}
 		// TODO: Check disabled move
-		if ((this->_currentStatus & STATUS_PARALYZED) && (*this->_random)() < 0x3F) {
+		if ((this->_currentStatus & STATUS_PARALYZED) && this->_battleState->rng() < 0x3F) {
 			this->_log("'s fully paralyzed!");
 			// clear bide, thrashing about, charging up, and multi-turn moves such as warp
 			// but NOT rage!
@@ -651,14 +650,14 @@ namespace PokemonGen1
 		// Check if using rage
 		if (this->_forcedAttack > 0) {
 			move = &this->_moveSet[this->_forcedAttack - 1];
-			if (this->useMove(*move, target, me, op) && move->getID() != Struggle)
+			if (this->useMove(*move, target) && move->getID() != Struggle)
 				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
 		} else if (moveSlot >= 4) {
 			this->_log(" has no moves left!");
-			this->useMove(availableMoves[Struggle], target, me, op);
+			this->useMove(availableMoves[Struggle], target);
 		} else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
 			move = &this->_moveSet[moveSlot];
-			if (this->useMove(*move, target, me, op) && move->getID() != Struggle)
+			if (this->useMove(*move, target) && move->getID() != Struggle)
 				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
 		}
 		if (!this->_lastUsedMove.isFinished())
@@ -680,7 +679,7 @@ namespace PokemonGen1
 			this->takeDamage(target, damage, true, false);
 		}
 		if (this->_currentStatus & STATUS_LEECHED) {
-			(*this->_battleLogger)("LEECH SEED saps " + this->getName() + "!");
+			this->_battleState->battleLogger("LEECH SEED saps " + this->getName() + "!");
 			damage = this->getMaxHealth() / 16;
 			if (this->_currentStatus & STATUS_BAD_POISON)
 				damage *= this->_badPoisonStage++;
@@ -721,11 +720,11 @@ namespace PokemonGen1
 
 		statName = statToString(stat);
 		if ((stats[stat] >= 6 && nb > 0) || (stats[stat] <= -6 && nb < 0)) {
-			(*this->_battleLogger)("Nothing happened!");
+			this->_battleState->battleLogger("Nothing happened!");
 			return false;
 		}
 		if (stat != STATS_EVD && stat != STATS_ACC && cStats[stat] == 999 && nb > 0) {
-			(*this->_battleLogger)("Nothing happened!");
+			this->_battleState->battleLogger("Nothing happened!");
 			return false;
 		}
 
@@ -797,7 +796,7 @@ namespace PokemonGen1
 		if (!skipSubstitute && this->_hasSub) {
 			auto &subTarget = swapSide ? target : *this;
 
-			(*this->_battleLogger)("The SUBSTITUTE took damage for " + subTarget.getName() + "!");
+			this->_battleState->battleLogger("The SUBSTITUTE took damage for " + subTarget.getName() + "!");
 			if (subTarget._subHealth < damage) {
 				subTarget._subHealth = 0;
 				subTarget._hasSub = false;
@@ -854,25 +853,35 @@ namespace PokemonGen1
 		return this->_baseStats.SPD;
 	}
 
-	DamageResult Pokemon::calcDamage(Pokemon &target, PlayerState &me, PlayerState &op, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense, bool swapTurn) const
+	bool Pokemon::hasReflectUp() const
+	{
+		return this->_reflect;
+	}
+
+	bool Pokemon::hasLightScreenUp() const
+	{
+		return this->_lightScreen;
+	}
+
+	DamageResult Pokemon::calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense, bool swapTurn) const
 	{
 		double effectiveness = getAttackDamageMultiplier(damageType, target.getTypes());
 		unsigned defense;
 		unsigned attack;
 		unsigned level = this->_level * (1 + critical);
 		unsigned int damage = 65535;
-		PlayerState &state = swapTurn ? me : op;
+		const Pokemon &pkmn = swapTurn ? *this : target;
 		bool hasScreen;
 
 		if (power != 255) {
 			switch (category) {
 			case SPECIAL:
-				hasScreen = state.lightScreenOn;
+				hasScreen = pkmn.hasLightScreenUp();
 				attack = critical ? this->getRawSpecial() : this->getSpecial();
 				defense = critical ? target.getRawSpecial() : target.getSpecial();
 				break;
 			case PHYSICAL:
-				hasScreen = state.reflectOn;
+				hasScreen = pkmn.hasReflectUp();
 				attack = critical ? this->getRawAttack() : this->getAttack();
 				defense = critical ? target.getRawDefense() : target.getDefense();
 				break;
@@ -916,7 +925,7 @@ namespace PokemonGen1
 			unsigned char r;
 
 			do {
-				r = (*this->_random)();
+				r = this->_battleState->rng();
 				r = (r >> 1U) | ((r & 0x01U) << 7U);
 			} while (r < 217);
 			damage *= r;
@@ -929,6 +938,31 @@ namespace PokemonGen1
 			.isVeryEffective = effectiveness > 1,
 			.isNotVeryEffective = effectiveness < 1,
 		};
+	}
+
+	BattleState &Pokemon::getBattleState()
+	{
+		return *this->_battleState;
+	}
+
+	PlayerState &Pokemon::getMyState()
+	{
+		return this->_enemy ? this->_battleState->op : this->_battleState->me;
+	}
+
+	PlayerState &Pokemon::getOpState()
+	{
+		return this->_enemy ? this->_battleState->me : this->_battleState->op;
+	}
+
+	void Pokemon::setReflectUp(bool value)
+	{
+		this->_reflect = value;
+	}
+
+	void Pokemon::setLightScreenUp(bool value)
+	{
+		this->_lightScreen = value;
 	}
 
 	std::string Pokemon::getName(bool hasEnemy) const

@@ -522,7 +522,7 @@ void openChangePkmnBox(
 		sprite->onClick.connect([&emulator, &state, &aisSelected, &side, &window, &resources, &gui, index, &pkmn, &game, &base, &ready](std::weak_ptr<tgui::Panel> pkmnPan, std::weak_ptr<tgui::Panel> bigPan){
 			auto &s = (side ? state.op : state.me);
 
-			s.team.at(index) = Pokemon(state.rng, state.battleLogger, pkmn.getNickname(), pkmn.getLevel(), base, pkmn.getMoveSet());
+			s.team.at(index) = Pokemon(state, pkmn.getNickname(), pkmn.getLevel(), base, pkmn.getMoveSet());
 			gui.remove(bigPan.lock());
 			populatePokemonPanel(window, gui, emulator, game, resources, pkmnPan.lock(), index, s.team, aisSelected, side, ready);
 		}, std::weak_ptr(pkmnPan), std::weak_ptr(bigPan));
@@ -738,7 +738,7 @@ void makeMainMenuGUI(
 		stream.seekg(0, std::ifstream::beg);
 		stream.read(reinterpret_cast<char *>(buffer.data()), length);
 		try {
-			auto t = loadTrainer(buffer, state.rng, state.battleLogger);
+			auto t = loadTrainer(buffer, state);
 
 			player.name = t.first;
 			player.team = t.second;
@@ -853,7 +853,7 @@ void makeMainMenuGUI(
 		but->setSize({"&.w - 20", "&.h - 20"});
 		but->onClick.connect([&player, &emulator, &state, &window, &gui, &game, &resources, &aisSelected, &side, &ready]{
 			player.team.emplace_back(
-				state.rng, state.battleLogger, "", 100,
+				state, "", 100,
 				pokemonList.at(Rhydon),
 				std::vector<Move>{
 					availableMoves[Tackle],
@@ -1030,7 +1030,7 @@ void gui(const std::string &trainerName)
 	};
 	loadResources(resources);
 	state.me.team.resize(6, {
-		state.rng, state.battleLogger, "", 100,
+		state, "", 100,
 		pokemonList.at(Rhydon),
 		std::vector<Move>{
 			availableMoves[Tackle],
@@ -1038,7 +1038,7 @@ void gui(const std::string &trainerName)
 		}
 	});
 	state.op.team.resize(6, {
-		state.rng, state.battleLogger, "", 100,
+		state, "", 100,
 		pokemonList.at(Rhydon),
 		std::vector<Move>{
 			availableMoves[Tackle],
