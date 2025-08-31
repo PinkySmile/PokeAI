@@ -495,7 +495,7 @@ namespace PokemonGen1
 	bool Pokemon::useMove(const Move &move, Pokemon &target)
 	{
 		bool moveStarted = false;
-		auto thrashOrPetalDance = this->_lastUsedMove.getID() == Thrash || this->_lastUsedMove.getID() == Petal_Dance;
+		auto thrashOrPetalDance = this->_lastUsedMove.getID() == Thrash || this->_lastUsedMove.getID() == Petal_Dance || this->_lastUsedMove.getID() == Rage;
 
 		if (this->_lastUsedMove.isFinished() || this->_lastUsedMove.getID() == 0) {
 			this->_lastUsedMove = move;

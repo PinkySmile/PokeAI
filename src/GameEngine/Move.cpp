@@ -298,6 +298,7 @@ namespace PokemonGen1
 			.isVeryEffective = false,
 			.isNotVeryEffective = false,
 		};
+		bool first = false;
 		auto &rng = owner.getRandomGenerator();
 		bool sub = target.hasSubstitute();
 
@@ -322,6 +323,7 @@ namespace PokemonGen1
 		}
 
 		if (!this->_nbHit) {
+			first = true;
 			if (this->_nbRuns.second == this->_nbRuns.first)
 				this->_nbHit = this->_nbRuns.first;
 			else if (this->_nbRuns.second - 1 == this->_nbRuns.first)
@@ -346,7 +348,7 @@ namespace PokemonGen1
 				logger(owner.getName() + this->_keepGoingMsg);
 			goto skipAccuracyAndDamageCheck;
 		} else {
-			if (this->_needLoading)
+			if (this->_needLoading || this->getID() == Rage)
 				logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
 			if (!this->_keepGoingMsg.empty())
 				logger(owner.getName() + this->_keepGoingMsg);
@@ -426,7 +428,7 @@ namespace PokemonGen1
 			if (accuracyByte > 0xFF)
 				accuracyByte = 0xFF;
 			if (!target.canGetHit() || (this->getID() == Dream_Eater && !target.hasStatus(STATUS_ASLEEP)) || rng() >= accuracyByte) {
-				if (this->getID() != Petal_Dance && this->getID() != Thrash)
+				if (this->getID() != Petal_Dance && this->getID() != Thrash && (this->getID() != Rage || first))
 					this->_nbHit = 0;
 				if (this->_power != 0)
 					logger(owner.getName() + "'s attack missed!");
@@ -461,6 +463,10 @@ namespace PokemonGen1
 				logger("It's not very effective!");
 			if (damage.isVeryEffective)
 				logger("It's super effective!");
+			if (target.getHealth() && target.getLastUsedMove().getID() == Rage && !target.getLastUsedMove().isFinished()) {
+				logger(target.getName() + "'s RAGE is building!");
+				target.changeStat(STATS_ATK, 1);
+			}
 			if (sub != target.hasSubstitute())
 				return true;
 		}
