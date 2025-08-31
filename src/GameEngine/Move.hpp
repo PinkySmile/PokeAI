@@ -45,11 +45,7 @@
 }, "Take 1 damage"
 
 #define CONFUSE_ON_LAST_DESC "Confuse the user on last run"
-#define CONFUSE_ON_LAST_MISS [](Pokemon &owner, Pokemon &, bool last, const std::function<void(const std::string &msg)> &){\
-	if (last)\
-		owner.addStatus(STATUS_CONFUSED);\
-	return true;\
-}, CONFUSE_ON_LAST_DESC
+#define CONFUSE_ON_LAST_MISS nullptr, CONFUSE_ON_LAST_DESC
 
 
 //Hit callbacks
@@ -89,11 +85,7 @@
 	return true;\
 }, WRAP_TARGET_DESC
 
-#define CONFUSE_ON_LAST [](Pokemon &owner, Pokemon &, unsigned, bool last, const std::function<void(const std::string &msg)> &){\
-	if (last)\
-		owner.addStatus(STATUS_CONFUSED);\
-	return true;\
-}, CONFUSE_ON_LAST_DESC
+#define CONFUSE_ON_LAST nullptr, CONFUSE_ON_LAST_DESC
 
 #define DEAL_20_DAMAGE_DESC "Deal 20 damage"
 #define DEAL_20_DAMAGE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
@@ -312,6 +304,12 @@
 
 #define COUNTER_DESC "Deal double the last damage dealt"
 #define COUNTER nullptr, COUNTER_DESC
+
+#define PAY_DAY_DESC "Gain extra money at the end of the match"
+#define PAY_DAY [](Pokemon &, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){ \
+	logger("Coins scattered everywhere!");\
+	return true;\
+}, PAY_DAY_DESC
 
 namespace PokemonGen1
 {

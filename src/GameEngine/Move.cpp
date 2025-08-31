@@ -382,6 +382,8 @@ namespace PokemonGen1
 			return false;
 		}
 
+		if (this->isFinished() && (this->getID() == Petal_Dance || this->getID() == Thrash))
+			owner.addStatus(STATUS_CONFUSED);
 		if (this->_power == 255) {
 			rng(); // Crit-check, but result doesn't matter
 			if (owner.getSpeed() < target.getSpeed()) {
@@ -410,6 +412,7 @@ namespace PokemonGen1
 
 			if (
 				(type != TYPE_NORMAL && type != TYPE_FIGHTING) ||
+				atk.getCategory() == STATUS ||
 				owner.getBattleState().lastDamage == 0
 			) {
 				logger(owner.getName() + "'s attack missed!");
@@ -423,7 +426,8 @@ namespace PokemonGen1
 			if (accuracyByte > 0xFF)
 				accuracyByte = 0xFF;
 			if (!target.canGetHit() || (this->getID() == Dream_Eater && !target.hasStatus(STATUS_ASLEEP)) || rng() >= accuracyByte) {
-				this->_nbHit = 0;
+				if (this->getID() != Petal_Dance && this->getID() != Thrash)
+					this->_nbHit = 0;
 				if (this->_power != 0)
 					logger(owner.getName() + "'s attack missed!");
 				if (this->_missCallback)
@@ -628,7 +632,7 @@ namespace PokemonGen1
 		Move{0x03, "Doubleslap"  , TYPE_NORMAL  , PHYSICAL,  15,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x04, "Comet Punch" , TYPE_NORMAL  , PHYSICAL,  18,  85, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x05, "Mega Punch"  , TYPE_NORMAL  , PHYSICAL,  80,  85, 20},
-		Move{0x06, "Pay Day"     , TYPE_NORMAL  , PHYSICAL,  40, 100, 20},
+		Move{0x06, "Pay Day"     , TYPE_NORMAL  , PHYSICAL,  40, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, PAY_DAY},
 		Move{0x07, "Fire Punch"  , TYPE_FIRE    , SPECIAL,   75, 100, 15, {STATUS_BURNED, 0x1A}},
 		Move{0x08, "Ice Punch"   , TYPE_ICE     , SPECIAL,   75, 100, 15, {STATUS_FROZEN, 0x1A}},
 		Move{0x09, "ThunderPunch", TYPE_ELECTRIC, SPECIAL,   75, 100, 15, {STATUS_PARALYZED, 0x1A}},

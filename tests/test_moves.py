@@ -806,6 +806,9 @@ extra_lists = {
 	],
 	AvailableMove.Confuse_Ray: [
 		[93, 179, 138, 177, 116, 218, 202, 3, 108]
+	],
+	AvailableMove.Thrash: [
+		[142, 172, 241, 22, 11, 130, 32, 83, 116]
 	]
 }
 binding_moves = [

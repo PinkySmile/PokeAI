@@ -254,9 +254,6 @@ namespace PokemonGen1
 		if (status == STATUS_NONE)
 			return true;
 
-		if (!this->canHaveStatus(status))
-			return false;
-
 		switch (status) {
 		case STATUS_ASLEEP:
 			while (!randomVal)
@@ -271,9 +268,6 @@ namespace PokemonGen1
 
 	bool Pokemon::addStatus(StatusChange status, unsigned duration)
 	{
-		if (!this->canHaveStatus(status))
-			return false;
-
 		if (status & STATUS_ASLEEP)
 			this->_needsRecharge = false;
 		if (status == STATUS_FLINCHED) {
@@ -297,6 +291,8 @@ namespace PokemonGen1
 			this->_badPoisonStage = 1;
 		if (status & STATUS_ANY_NON_VOLATILE_STATUS)
 			this->_currentStatus &= ~STATUS_ANY_NON_VOLATILE_STATUS;
+		if (status & STATUS_CONFUSED)
+			this->_currentStatus &= ~STATUS_CONFUSED;
 		this->_currentStatus |= (status * duration);
 		if (status == STATUS_PARALYZED || status == STATUS_BURNED)
 			this->applyStatusDebuff();
@@ -499,12 +495,13 @@ namespace PokemonGen1
 	bool Pokemon::useMove(const Move &move, Pokemon &target)
 	{
 		bool moveStarted = false;
+		auto thrashOrPetalDance = this->_lastUsedMove.getID() == Thrash || this->_lastUsedMove.getID() == Petal_Dance;
 
 		if (this->_lastUsedMove.isFinished() || this->_lastUsedMove.getID() == 0) {
 			this->_lastUsedMove = move;
 			moveStarted = true;
 		}
-		if (!this->_lastUsedMove.attack(*this, target, this->_battleState->battleLogger))
+		if (!this->_lastUsedMove.attack(*this, target, this->_battleState->battleLogger) && !thrashOrPetalDance)
 			return true;
 		if (this->_lastUsedMove.needsLoading())
 			return this->_lastUsedMove.isFinished();
