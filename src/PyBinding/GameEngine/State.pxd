@@ -11,7 +11,7 @@ from RandomGenerator cimport RandomGenerator
 
 cdef extern from "../../GameEngine/State.hpp" namespace "PokemonGen1":
 	ctypedef enum BattleAction:
-		NoAction,
+		EmptyAction,
 		Attack1,
 		Attack2,
 		Attack3,
@@ -22,6 +22,7 @@ cdef extern from "../../GameEngine/State.hpp" namespace "PokemonGen1":
 		Switch4,
 		Switch5,
 		Switch6,
+		NoAction,
 		StruggleMove,
 		Run
 

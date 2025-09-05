@@ -6,37 +6,19 @@ from Emulator import Emulator
 from GameEngine import Type, BattleHandler, BattleState, BattleAction, StatusChange, MoveCategory, PokemonSpecies, AvailableMove, convertString, typeToStringShort, getAttackDamageMultiplier, statusToString, Pokemon, PokemonBase, Move, loadTrainer as __loadTrainer
 
 banned_moves = [ # These moves aren't implemented properly in the engine
-	# Invul turn 1
-	AvailableMove.Dig,
-	AvailableMove.Fly,
+	# Can roll other moves from the list that aren't implemented
+	AvailableMove.Metronome,
 
-	# Repeat moves
-	AvailableMove.Rage,
-	AvailableMove.Thrash,
-	AvailableMove.Petal_Dance,
-
-	# Some attacking moves
-	AvailableMove.Hyper_Beam,
-	AvailableMove.Submission,
-	AvailableMove.Psybeam,
-	AvailableMove.Mega_Kick,
-	AvailableMove.Hydro_Pump,
-	AvailableMove.Blizzard,
-	AvailableMove.Fire_Blast,
+	# Confusion side effect
 	AvailableMove.Confusion,
-
-	# Screens
-	AvailableMove.Light_Screen,
-	AvailableMove.Reflect,
+	AvailableMove.Psybeam,
 
 	# Misc
-	AvailableMove.Counter,
-	AvailableMove.Transform,
-	AvailableMove.Dream_Eater,
-	AvailableMove.Mimic,
+	AvailableMove.Leech_Seed,
 	AvailableMove.Disable,
-	AvailableMove.Agility,
-	AvailableMove.Metronome,
+	AvailableMove.Mimic,
+	AvailableMove.Dream_Eater,
+	AvailableMove.Transform,
 ]
 
 
@@ -220,7 +202,7 @@ class Examples:
 				"name": "STARMIE",
 				"level": 21,
 				"species": PokemonSpecies.Starmie,
-				"moves": [AvailableMove.Bubble_Beam, AvailableMove.Harden, AvailableMove.Water_Gun, AvailableMove.Tackle]
+				"moves": [AvailableMove.Bubblebeam, AvailableMove.Harden, AvailableMove.Water_Gun, AvailableMove.Tackle]
 			}
 		]
 	}

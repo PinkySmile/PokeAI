@@ -46,7 +46,7 @@ enum PokemonGen1_BattleAction getAction(const char *val)
 		if (strcmp(actions[i].name, val) == 0)
 			return actions[i].action;
 	printf("Invalid action %s\n", val);
-	return PokemonGen1_NoAction;
+	return PokemonGen1_EmptyAction;
 }
 
 PokemonGen1_Pokemon *getPkmnFromStdin(PokemonGen1_RandomGenerator *rng, const PokemonGen1_BattleLogger *logger, bool enemy)

@@ -577,7 +577,7 @@ def test_bind_switch(emulator_gen1, move, random_state, scenario):
 	while True:
 		if debug:
 			print(f' ---------- TURN {current_turn + 1} ----------')
-		if state.op.team[state.op.pokemonOnField]:
+		if state.op.team[state.op.pokemonOnField].getHealth() == 0:
 			state.me.nextAction = BattleAction.Attack1
 			if state.op.team[1].getHealth() != 0:
 				state.op.nextAction = BattleAction.Switch2
@@ -595,6 +595,136 @@ def test_bind_switch(emulator_gen1, move, random_state, scenario):
 					state.op.nextAction = BattleAction.Switch1
 				else:
 					state.op.nextAction = BattleAction.Attack2
+		else:
+			state.me.nextAction = BattleAction.Attack1
+			state.op.nextAction = BattleAction.Attack1
+		battle.tick()
+		emulator_gen1.step(state)
+		current_turn += 1
+		emulator_state = get_emulator_basic_state(emulator)
+		if debug:
+			print(dump_basic_state(emulator_state[0]))
+			print(dump_basic_state(emulator_state[1]))
+			print(state.me.team[0].dump())
+			print(state.op.team[0].dump())
+			print(state.rng.getIndex(), emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', emulator_state[3])))
+		f = compare_basic_states(battle.state, emulator_state)
+		if not f[0] or battle.isFinished() or (current_turn > min_turns and emulator.memory[0x9D64:0x9D6F] != t_waiting):
+			state.rng.reset()
+			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.getList()]
+
+
+def test_bind_switch_inverted(emulator_gen1, move, random_state, scenario):
+	min_turns = 6
+	battle = BattleHandler(False, debug)
+	state = battle.state
+	emulator = emulator_gen1.emulator
+	if random_state is not None:
+		assert len(random_state) == 9
+		state.rng.setList(random_state)
+	else:
+		state.rng.makeRandomList(9)
+	if debug:
+		state.battleLogger = lambda x: print(f'Simulator: {x}')
+		emulator_gen1.on_text_displayed = lambda x: print(f'Emulator: {x}')
+	state.desync = DesyncPolicy.Ignore
+
+	pokemon_data = [0] * 44
+	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
+	pokemon_data[PACK_CURR_LEVEL] = 5
+	pokemon_data[PACK_STATUS] = StatusChange.OK
+	pokemon_data[PACK_TYPEA] = Type.Normal
+	pokemon_data[PACK_TYPEB] = Type.Normal
+	if scenario & 1:
+		pokemon_data[PACK_MOVE1] = AvailableMove.Substitute
+	else:
+		pokemon_data[PACK_MOVE1] = AvailableMove.Constrict
+	pokemon_data[PACK_MOVE2] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
+	pokemon_data[PACK_PPS_MOVE1] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 10
+	pokemon_data[PACK_PPS_MOVE3] = 10
+	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
+	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
+	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
+	pokemon_data[PACK_MAX_HP + 0] = 999 >> 8
+	pokemon_data[PACK_MAX_HP + 1] = 999 & 0xFF
+
+	pokemon_data[PACK_ATK + 0] = 999 >> 8
+	pokemon_data[PACK_ATK + 1] = 999 & 0xFF
+	pokemon_data[PACK_DEF + 0] = 25  >> 8
+	pokemon_data[PACK_DEF + 1] = 25  & 0xFF
+	pokemon_data[PACK_SPD + 0] = 25  >> 8
+	pokemon_data[PACK_SPD + 1] = 25  & 0xFF
+	pokemon_data[PACK_SPE + 0] = 999 >> 8
+	pokemon_data[PACK_SPE + 1] = 999 & 0xFF
+	state.op.name = "Player 2"
+	state.op.team = [Pokemon(state, "", pokemon_data, True)]
+
+	pokemon_data = [0] * 44
+	pokemon_data[PACK_SPECIES] = PokemonSpecies.Pikachu
+	pokemon_data[PACK_CURR_LEVEL] = 5
+	pokemon_data[PACK_STATUS] = StatusChange.OK
+	pokemon_data[PACK_TYPEA] = Type.Electric
+	pokemon_data[PACK_TYPEB] = Type.Electric
+	pokemon_data[PACK_MOVE1] = move
+	pokemon_data[PACK_MOVE2] = AvailableMove.Fire_Blast
+	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
+	pokemon_data[PACK_PPS_MOVE1] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 10
+	pokemon_data[PACK_PPS_MOVE3] = 10
+	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
+	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
+	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
+	pokemon_data[PACK_MAX_HP + 0] = 999 >> 8
+	pokemon_data[PACK_MAX_HP + 1] = 999 & 0xFF
+	pokemon_data[PACK_ATK + 0] = 300 >> 8
+	pokemon_data[PACK_ATK + 1] = 300 & 0xFF
+	pokemon_data[PACK_DEF + 0] = 100 >> 8
+	pokemon_data[PACK_DEF + 1] = 100 & 0xFF
+	pokemon_data[PACK_SPD + 0] = 300 >> 8
+	pokemon_data[PACK_SPD + 1] = 300 & 0xFF
+	pokemon_data[PACK_SPE + 0] = 300 >> 8
+	pokemon_data[PACK_SPE + 1] = 300 & 0xFF
+	state.me.name = "Player 1"
+	state.me.team = [Pokemon(state, "", pokemon_data, False), Pokemon(state, "", pokemon_data, False)]
+
+	with open("pokeyellow_replay.state", "rb") as fd:
+		emulator_gen1.init_battle(fd, state)
+	#with open("pokeyellow_test_move.state", "rb") as fd:
+	#	emulator_gen1.init_battle(fd, state, sync_data=True)
+
+	current_turn = 0
+	emulator_state = get_emulator_basic_state(emulator)
+	if debug:
+		print(dump_basic_state(emulator_state[0]))
+		print(dump_basic_state(emulator_state[1]))
+		print(state.me.team[0].dump())
+		print(state.op.team[0].dump())
+		print(state.rng.getIndex(), emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.getList())), list(map(lambda x: f'{x:02X}', emulator_state[3])))
+	f = compare_basic_states(battle.state, emulator_state)
+	if not f[0]:
+		state.rng.reset()
+		return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.getList()]
+	while True:
+		if debug:
+			print(f' ---------- TURN {current_turn + 1} ----------')
+		if state.me.team[state.me.pokemonOnField].getHealth() == 0:
+			state.op.nextAction = BattleAction.Attack1
+			if state.me.team[1].getHealth() != 0:
+				state.me.nextAction = BattleAction.Switch2
+			else:
+				state.me.nextAction = BattleAction.Switch1
+		elif current_turn % 2 == 1:
+			if current_turn % 4 == 3:
+				state.me.nextAction = BattleAction.Switch1
+			else:
+				state.me.nextAction = BattleAction.Switch2
+			state.op.nextAction = BattleAction.NoAction
 		else:
 			state.me.nextAction = BattleAction.Attack1
 			state.op.nextAction = BattleAction.Attack1
@@ -877,13 +1007,25 @@ for move_index in binding_moves:
 			'name': f'{name}&Switch[{i}](Atk)',
 			'cb': test_bind_switch,
 			'args': [int(move_index), rand, 0],
-			'group': 'Hyper_Beam'
+			'group': name
 		})
 		tests.append({
 			'name': f'{name}&Switch[{i}](Sub)',
 			'cb': test_bind_switch,
 			'args': [int(move_index), rand, 1],
-			'group': 'Hyper_Beam'
+			'group': name
+		})
+		tests.append({
+			'name': f'{name}&Switch[{i}](SAtk)',
+			'cb': test_bind_switch_inverted,
+			'args': [int(move_index), rand, 2],
+			'group': name
+		})
+		tests.append({
+			'name': f'{name}&Switch[{i}](SSub)',
+			'cb': test_bind_switch_inverted,
+			'args': [int(move_index), rand, 3],
+			'group': name
 		})
 for move_index in status_moves:
 	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):
@@ -892,13 +1034,13 @@ for move_index in status_moves:
 			'name': f'Hyper_Beam&{name}[{i}](Par->Move)',
 			'cb': hyper_beam_status_move,
 			'args': [int(move_index), rand, 1],
-			'group': name
+			'group': 'Hyper_Beam'
 		})
 		tests.append({
 			'name': f'Hyper_Beam&{name}[{i}](Move->Par)',
 			'cb': hyper_beam_status_move,
 			'args': [int(move_index), rand, 0],
-			'group': name
+			'group': 'Hyper_Beam'
 		})
 
 results = []

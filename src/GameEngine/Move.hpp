@@ -39,7 +39,7 @@
 }, "Kills user"
 
 #define TAKE_1DAMAGE [](Pokemon &owner, Pokemon &target, bool, const std::function<void(const std::string &msg)> &logger){\
-	logger(owner.getName() + " kept going and crashes!");\
+	logger(owner.getName() + " kept going and crashed!");\
 	owner.takeDamage(target, 1, false, false);\
 	return true;\
 }, "Take 1 damage"
@@ -251,7 +251,8 @@
 }, SUICIDE_DESC
 
 #define CONVERSION_DESC "Copy foe's types"
-#define CONVERSION [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define CONVERSION [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+	logger("Converted type to " + target.getName() + "'s!");\
 	owner.setTypes(target.getTypes());\
 	return true;\
 }, CONVERSION_DESC
@@ -501,7 +502,7 @@ namespace PokemonGen1
 		Ice_Beam = 0x3A,
 		Blizzard = 0x3B,
 		Psybeam = 0x3C,
-		Bubble_Beam = 0x3D,
+		Bubblebeam = 0x3D,
 		Aurora_Beam = 0x3E,
 		Hyper_Beam = 0x3F,
 		Peck = 0x40,
@@ -516,7 +517,7 @@ namespace PokemonGen1
 		Leech_Seed = 0x49,
 		Growth = 0x4A,
 		Razor_Leaf = 0x4B,
-		Solar_Beam = 0x4C,
+		Solarbeam = 0x4C,
 		Poisonpowder = 0x4D,
 		Stun_Spore = 0x4E,
 		Sleep_Powder = 0x4F,

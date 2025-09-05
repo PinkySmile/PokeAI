@@ -207,6 +207,7 @@ namespace PokemonGen1
 		void setWrapped(bool isWrapped);
 		void setRecharging(bool recharging = true);
 		void transform(const Pokemon &target);
+		void stepEnds(Pokemon &target);
 		const std::set<AvailableMove> &getLearnableMoveSet() const;
 
 		[[nodiscard]] std::array<unsigned char, ENCODED_SIZE> encode() const;

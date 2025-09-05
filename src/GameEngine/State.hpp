@@ -14,7 +14,7 @@
 namespace PokemonGen1
 {
 	enum BattleAction : unsigned char {
-		NoAction,
+		EmptyAction,
 		Attack1 = 0x60,
 		Attack2,
 		Attack3,
@@ -25,7 +25,8 @@ namespace PokemonGen1
 		Switch4,
 		Switch5,
 		Switch6,
-		StruggleMove = 0x6E,
+		NoAction = 0x6D,
+		StruggleMove,
 		Run,
 	};
 
@@ -44,8 +45,8 @@ namespace PokemonGen1
 
 	struct PlayerState {
 		std::string name;
-		BattleAction lastAction = NoAction;
-		BattleAction nextAction = NoAction;
+		BattleAction lastAction = EmptyAction;
+		BattleAction nextAction = EmptyAction;
 		AvailableMove lastAttack = None;
 		unsigned char pokemonOnField = 0;
 		std::vector<Pokemon> team;

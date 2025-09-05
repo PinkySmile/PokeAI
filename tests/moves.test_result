@@ -1,853 +1,833 @@
 Disable[0](Sub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 1: RNG index b.1 vs e.3
-Disable[0](HP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 5: RNG index b.1 vs e.2
- - On turn 5: RNG list b.[99, 122, 122, 122, 122, 122, 122, 122, 122] vs e.[240, 99, 99, 99, 99, 99, 99, 99, 99]
-Disable[0](HS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 5: RNG index b.1 vs e.2
- - On turn 5: RNG list b.[99, 122, 122, 122, 122, 122, 122, 122, 122] vs e.[240, 99, 99, 99, 99, 99, 99, 99, 99]
-Disable[7](HP) [[130, 125, 124, 40, 75, 106, 165, 216, 83]]: Failed
- - On turn 1: RNG index b.7 vs e.1
- - On turn 1: RNG list b.[139, 114, 109, 201, 120, 19, 58, 57, 160] vs e.[184, 59, 34, 238, 89, 96, 35, 30, 33]
-Disable[3](Sub) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 1: RNG index b.1 vs e.3
-Disable[7](LP) [[154, 223, 108, 21, 150, 73, 220, 10, 148]]: Failed
+Disable[7](LS) [[158, 79, 10, 141, 248, 111, 11, 224, 13]]: Failed
  - On turn 2: RNG index b.4 vs e.2
- - On turn 2: P1 Health b.976 vs e.987
- - On turn 2: P1 Speed b.150 vs e.198
-Disable[6](HS) [[16, 183, 54, 165, 124, 207, 192, 84, 129]]: Failed
- - On turn 1: RNG index b.5 vs e.8
-Disable[2](Sub) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 2: RNG index b.2 vs e.5
-Disable[10](LS) [[101, 204, 136, 178, 95, 143, 220, 172, 151]]: Failed
- - On turn 3: RNG index b.8 vs e.2
- - On turn 3: RNG list b.[227, 242, 78, 104, 77, 253, 130, 210, 197] vs e.[112, 187, 135, 9, 130, 242, 139, 27, 218]
- - On turn 3: P1 Health b.981 vs e.987
-Disable[9](Sub) [[21, 18, 154, 150, 204, 140, 103, 166, 125]]: Failed
- - On turn 1: RNG index b.1 vs e.6
- - On turn 1: P2 Health b.750 vs e.999
- - On turn 1: P2 Has substitute b.True vs e.False
-Disable[6](LP) [[240, 198, 184, 10, 164, 214, 198, 206, 5]]: Failed
- - On turn 2: RNG index b.0 vs e.3
- - On turn 2: P1 Health b.975 vs e.987
- - On turn 2: P1 Speed b.150 vs e.198
-Disable[10](HP) [[91, 184, 6, 193, 112, 63, 185, 218, 61]]: Failed
- - On turn 3: RNG index b.3 vs e.5
-Disable[13](LP) [[39, 174, 7, 9, 23, 2, 217, 131, 202]]: Failed
- - On turn 1: RNG index b.0 vs e.2
- - On turn 1: P1 Health b.987 vs e.999
-Disable[13](HS) [[61, 220, 125, 13, 150, 244, 40, 150, 86]]: Failed
- - On turn 2: RNG index b.4 vs e.6
-Disable[9](HP) [[109, 17, 63, 169, 204, 212, 23, 189, 115]]: Failed
- - On turn 1: RNG index b.2 vs e.4
-Disable[13](LS) [[139, 92, 73, 30, 100, 10, 240, 7, 118]]: Failed
- - On turn 1: RNG index b.4 vs e.3
- - On turn 1: RNG list b.[184, 205, 110, 151, 245, 51, 177, 36, 79] vs e.[139, 92, 73, 30, 100, 10, 240, 7, 118]
- - On turn 1: P1 Health b.993 vs e.999
-Disable[7](LS) [[25, 73, 177, 179, 71, 21, 126, 135, 23]]: Failed
- - On turn 1: RNG index b.6 vs e.5
- - On turn 1: RNG list b.[25, 73, 177, 179, 71, 21, 126, 135, 23] vs e.[126, 110, 118, 128, 100, 106, 119, 164, 116]
- - On turn 1: P1 Health b.994 vs e.999
- - On turn 1: P1 Speed b.198 vs e.300
-Disable[2](LS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 2: RNG index b.2 vs e.0
- - On turn 2: P1 Health b.983 vs e.990
- - On turn 2: P1 Speed b.198 vs e.300
-Disable[7](HS) [[72, 185, 23, 103, 101, 198, 64, 213, 207]]: Failed
- - On turn 1: RNG index b.5 vs e.8
-Disable[12](LS) [[133, 129, 81, 202, 218, 68, 243, 157, 76]]: Failed
- - On turn 1: RNG index b.0 vs e.7
- - On turn 1: RNG list b.[154, 134, 150, 243, 67, 85, 192, 18, 125] vs e.[133, 129, 81, 202, 218, 68, 243, 157, 76]
- - On turn 1: P1 Health b.991 vs e.999
- - On turn 1: P1 Speed b.198 vs e.300
+ - On turn 2: P1 Health b.986 vs e.993
 Disable[0](LP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 6: RNG index b.3 vs e.2
  - On turn 6: RNG list b.[189, 140, 140, 140, 140, 140, 140, 140, 140] vs e.[240, 99, 99, 99, 99, 99, 99, 99, 99]
  - On turn 6: P1 Health b.926 vs e.937
+Disable[2](LS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 2: RNG index b.2 vs e.0
+ - On turn 2: P1 Health b.983 vs e.990
+ - On turn 2: P1 Speed b.198 vs e.300
+Disable[0](HP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 5: RNG index b.1 vs e.2
+ - On turn 5: RNG list b.[99, 122, 122, 122, 122, 122, 122, 122, 122] vs e.[240, 99, 99, 99, 99, 99, 99, 99, 99]
+Disable[10](HS) [[90, 83, 51, 32, 4, 82, 14, 227, 104]]: Failed
+ - On turn 3: RNG index b.3 vs e.5
+Disable[7](Sub) [[102, 242, 60, 99, 120, 185, 151, 198, 185]]: Failed
+ - On turn 1: RNG index b.1 vs e.4
+ - On turn 1: P2 Health b.750 vs e.999
+ - On turn 1: P2 Has substitute b.True vs e.False
+Disable[13](Sub) [[93, 125, 212, 75, 20, 129, 161, 104, 40]]: Failed
+ - On turn 1: RNG index b.1 vs e.4
+ - On turn 1: P2 Health b.750 vs e.999
+ - On turn 1: P2 Has substitute b.True vs e.False
+Disable[7](HP) [[22, 142, 216, 175, 194, 115, 20, 71, 194]]: Failed
+ - On turn 2: RNG index b.3 vs e.6
+Disable[5](HS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 2: RNG index b.3 vs e.5
+Disable[11](LP) [[192, 24, 61, 126, 35, 169, 247, 30, 206]]: Failed
+ - On turn 3: RNG index b.3 vs e.0
+ - On turn 3: P1 Health b.963 vs e.975
+Disable[10](LS) [[64, 244, 166, 103, 214, 30, 189, 186, 247]]: Failed
+ - On turn 1: RNG index b.0 vs e.3
+ - On turn 1: RNG list b.[65, 197, 63, 4, 47, 151, 178, 163, 212] vs e.[64, 244, 166, 103, 214, 30, 189, 186, 247]
+ - On turn 1: P1 Health b.993 vs e.999
+Disable[8](Sub) [[28, 22, 132, 214, 138, 172, 236, 236, 124]]: Failed
+ - On turn 1: RNG index b.1 vs e.4
+ - On turn 1: P2 Health b.750 vs e.999
+ - On turn 1: P2 Has substitute b.True vs e.False
+Disable[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 2: RNG index b.2 vs e.4
+Disable[13](HS) [[145, 155, 17, 193, 198, 66, 13, 193, 158]]: Failed
+ - On turn 1: RNG index b.7 vs e.3
+ - On turn 1: RNG list b.[145, 155, 17, 193, 198, 66, 13, 193, 158] vs e.[214, 8, 86, 198, 223, 75, 66, 198, 23]
+Disable[6](LS) [[6, 1, 128, 249, 56, 248, 68, 252, 63]]: Failed
+ - On turn 1: RNG index b.6 vs e.4
+ - On turn 1: P1 Health b.991 vs e.999
+Disable[14](HP) [[106, 147, 210, 29, 104, 130, 26, 130, 20]]: Failed
+ - On turn 2: RNG index b.4 vs e.6
+ - On turn 2: RNG list b.[225, 230, 169, 72, 231, 153, 209, 153, 227] vs e.[102, 127, 78, 105, 132, 254, 22, 254, 112]
+Disable[12](LP) [[175, 249, 232, 234, 11, 178, 138, 7, 17]]: Failed
+ - On turn 2: RNG index b.1 vs e.5
+ - On turn 2: RNG list b.[146, 180, 103, 97, 126, 9, 129, 138, 108] vs e.[29, 87, 174, 224, 25, 104, 128, 181, 175]
+ - On turn 2: P1 Health b.977 vs e.988
+Disable[0](HS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 5: RNG index b.1 vs e.2
+ - On turn 5: RNG list b.[99, 122, 122, 122, 122, 122, 122, 122, 122] vs e.[240, 99, 99, 99, 99, 99, 99, 99, 99]
+Disable[6](HS) [[198, 99, 21, 35, 139, 165, 57, 20, 82]]: Failed
+ - On turn 2: RNG index b.4 vs e.7
+Disable[3](Sub) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 1: RNG index b.1 vs e.3
+Disable[15](HP) [[2, 220, 50, 145, 76, 178, 72, 29, 197]]: Failed
+ - On turn 2: RNG index b.2 vs e.5
+Disable[2](Sub) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 2: RNG index b.2 vs e.5
+Disable[9](Sub) [[90, 28, 177, 88, 206, 121, 71, 99, 202]]: Failed
+ - On turn 1: RNG index b.1 vs e.3
+ - On turn 1: P2 Health b.750 vs e.999
+ - On turn 1: P2 Has substitute b.True vs e.False
+Disable[8](LP) [[143, 157, 64, 185, 246, 186, 229, 138, 54]]: Failed
+ - On turn 5: P1 Health b.941 vs e.953
+ - On turn 5: P1 Speed b.150 vs e.198
+Disable[7](LP) [[71, 178, 178, 91, 156, 217, 121, 238, 12]]: Failed
+ - On turn 1: RNG index b.8 vs e.6
+ - On turn 1: P1 Health b.987 vs e.999
+Disable[9](HS) [[197, 210, 213, 70, 35, 193, 211, 65, 30]]: Failed
+ - On turn 5: RNG index b.6 vs e.1
+ - On turn 5: RNG list b.[47, 164, 191, 184, 125, 11, 173, 139, 80] vs e.[236, 53, 188, 153, 114, 56, 98, 184, 145]
+Disable[6](HP) [[207, 227, 154, 217, 16, 171, 178, 242, 203]]: Failed
+ - On turn 1: RNG index b.5 vs e.2
+ - On turn 1: RNG list b.[207, 227, 154, 217, 16, 171, 178, 242, 203] vs e.[12, 112, 3, 62, 81, 88, 123, 187, 248]
+Disable[13](LP) [[73, 220, 233, 97, 179, 133, 169, 205, 94]]: Failed
+ - On turn 1: RNG index b.5 vs e.3
+ - On turn 1: P1 Health b.987 vs e.999
+Disable[11](HP) [[123, 245, 76, 132, 64, 146, 119, 34, 232]]: Failed
+ - On turn 1: RNG index b.5 vs e.1
+ - On turn 1: RNG list b.[123, 245, 76, 132, 64, 146, 119, 34, 232] vs e.[104, 202, 125, 149, 65, 219, 84, 171, 137]
+Disable[12](Sub) [[86, 220, 124, 87, 23, 38, 230, 53, 132]]: Failed
+ - On turn 1: RNG index b.1 vs e.3
+ - On turn 1: P2 Health b.750 vs e.999
+ - On turn 1: P2 Has substitute b.True vs e.False
 Disable[2](HS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 1: RNG index b.6 vs e.0
  - On turn 1: RNG list b.[255, 0, 255, 0, 255, 0, 255, 0, 255] vs e.[252, 1, 252, 1, 252, 1, 252, 1, 252]
-Disable[10](HS) [[44, 89, 107, 234, 65, 38, 146, 223, 154]]: Failed
- - On turn 2: RNG index b.0 vs e.5
-Disable[10](Sub) [[112, 194, 82, 21, 107, 196, 74, 124, 237]]: Failed
- - On turn 1: RNG index b.1 vs e.7
- - On turn 1: P2 Health b.750 vs e.999
- - On turn 1: P2 Has substitute b.True vs e.False
-Disable[6](HP) [[176, 68, 84, 192, 209, 4, 222, 149, 129]]: Failed
- - On turn 2: RNG index b.7 vs e.8
- - On turn 2: RNG list b.[113, 85, 165, 193, 22, 21, 87, 234, 134] vs e.[54, 170, 58, 198, 111, 106, 180, 147, 159]
-Disable[5](HS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 2: RNG index b.3 vs e.5
-Disable[15](HS) [[197, 60, 207, 1, 101, 221, 26, 137, 162]]: Failed
- - On turn 2: RNG index b.8 vs e.1
- - On turn 2: RNG list b.[67, 226, 61, 31, 227, 155, 144, 103, 216] vs e.[80, 107, 50, 156, 112, 8, 209, 4, 57]
+Disable[6](LP) [[198, 235, 64, 93, 30, 92, 118, 172, 218]]: Failed
+ - On turn 3: RNG index b.4 vs e.2
+ - On turn 3: P1 Health b.964 vs e.976
+ - On turn 3: P1 Speed b.150 vs e.198
+Disable[9](HP) [[164, 185, 192, 196, 87, 81, 222, 172, 183]]: Failed
+ - On turn 1: RNG index b.5 vs e.0
+ - On turn 1: RNG list b.[164, 185, 192, 196, 87, 81, 222, 172, 183] vs e.[53, 158, 193, 213, 180, 150, 87, 93, 148]
+Disable[14](LS) [[9, 127, 124, 152, 40, 72, 149, 69, 244]]: Failed
+ - On turn 3: RNG index b.1 vs e.2
+ - On turn 3: P1 Health b.981 vs e.987
 Disable[5](Sub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 2: RNG index b.2 vs e.4
-Disable[8](Sub) [[85, 57, 159, 38, 231, 25, 28, 213, 160]]: Failed
- - On turn 1: RNG index b.1 vs e.8
- - On turn 1: P2 Health b.750 vs e.999
- - On turn 1: P2 Has substitute b.True vs e.False
-Disable[14](LP) [[177, 162, 251, 36, 59, 76, 7, 92, 209]]: Failed
- - On turn 2: RNG index b.2 vs e.0
- - On turn 2: P1 Health b.970 vs e.981
- - On turn 2: P1 Speed b.150 vs e.198
-Disable[13](Sub) [[187, 219, 8, 211, 53, 148, 115, 30, 181]]: Failed
- - On turn 3: RNG index b.3 vs e.7
-Disable[0](LS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 6: RNG index b.3 vs e.2
- - On turn 6: RNG list b.[189, 140, 140, 140, 140, 140, 140, 140, 140] vs e.[240, 99, 99, 99, 99, 99, 99, 99, 99]
- - On turn 6: P1 Health b.962 vs e.968
-Disable[9](LS) [[237, 113, 101, 127, 9, 77, 241, 209, 172]]: Failed
- - On turn 3: RNG index b.0 vs e.2
- - On turn 3: RNG list b.[30, 114, 246, 88, 234, 254, 242, 82, 169] vs e.[216, 76, 112, 34, 132, 184, 204, 44, 27]
- - On turn 3: P1 Health b.981 vs e.987
+Disable[10](HP) [[50, 135, 46, 35, 7, 164, 192, 182, 60]]: Failed
+ - On turn 6: RNG index b.1 vs e.4
+Disable[9](LS) [[159, 226, 25, 82, 212, 182, 188, 95, 182]]: Failed
+ - On turn 5: RNG index b.1 vs e.6
+ - On turn 5: RNG list b.[20, 131, 54, 179, 253, 39, 133, 212, 39] vs e.[55, 26, 113, 138, 204, 110, 180, 247, 110]
+ - On turn 5: P1 Health b.968 vs e.974
+ - On turn 5: P1 Speed b.120 vs e.150
+Disable[12](LS) [[115, 58, 25, 78, 183, 235, 7, 114, 251]]: Failed
+ - On turn 1: RNG index b.7 vs e.2
+ - On turn 1: RNG list b.[115, 58, 25, 78, 183, 235, 7, 114, 251] vs e.[64, 35, 126, 135, 148, 152, 36, 59, 232]
+ - On turn 1: P1 Health b.993 vs e.999
+ - On turn 1: P1 Speed b.198 vs e.300
+Disable[9](LP) [[59, 59, 237, 22, 195, 189, 120, 208, 164]]: Failed
+ - On turn 1: RNG index b.5 vs e.3
+ - On turn 1: RNG list b.[59, 59, 237, 22, 195, 189, 120, 208, 164] vs e.[201, 201, 43, 44, 17, 123, 190, 86, 10]
+ - On turn 1: P1 Health b.987 vs e.988
+ - On turn 1: P1 Speed b.300 vs e.198
+Disable[13](LS) [[195, 91, 1, 143, 53, 80, 155, 6, 73]]: Failed
+ - On turn 2: RNG index b.4 vs e.0
+ - On turn 2: RNG list b.[175, 199, 13, 187, 1, 236, 7, 66, 213] vs e.[86, 142, 156, 242, 0, 47, 206, 13, 196]
+ - On turn 2: P1 Health b.987 vs e.993
+Disable[15](HS) [[60, 246, 9, 28, 62, 41, 32, 66, 143]]: Failed
+ - On turn 1: RNG index b.5 vs e.1
+ - On turn 1: RNG list b.[45, 207, 46, 141, 55, 206, 161, 75, 204] vs e.[226, 12, 231, 194, 20, 7, 38, 120, 253]
+Disable[12](HS) [[80, 68, 18, 93, 89, 159, 200, 55, 41]]: Failed
+ - On turn 2: RNG index b.8 vs e.5
+ - On turn 2: RNG list b.[214, 170, 200, 27, 183, 141, 142, 101, 7] vs e.[47, 83, 233, 136, 148, 194, 199, 250, 36]
+Disable[12](HP) [[234, 188, 216, 46, 206, 50, 121, 187, 195]]: Failed
+ - On turn 2: RNG index b.7 vs e.0
+ - On turn 2: RNG list b.[147, 173, 57, 231, 7, 251, 94, 168, 208] vs e.[224, 98, 30, 132, 36, 232, 215, 73, 17]
+Disable[15](Sub) [[214, 33, 145, 229, 54, 158, 181, 166, 252]]: Failed
+ - On turn 2: RNG index b.2 vs e.1
+ - On turn 2: RNG list b.[214, 33, 145, 229, 54, 158, 181, 166, 252] vs e.[47, 166, 214, 122, 15, 23, 138, 63, 237]
 Disable[2](HP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 1: RNG index b.6 vs e.0
  - On turn 1: RNG list b.[255, 0, 255, 0, 255, 0, 255, 0, 255] vs e.[252, 1, 252, 1, 252, 1, 252, 1, 252]
-Disable[12](LP) [[117, 179, 132, 186, 135, 45, 24, 155, 220]]: Failed
- - On turn 1: RNG index b.6 vs e.4
- - On turn 1: RNG list b.[64, 134, 147, 241, 10, 24, 215, 206, 139] vs e.[117, 179, 132, 186, 135, 45, 24, 155, 220]
- - On turn 1: P1 Health b.987 vs e.999
+Disable[15](LS) [[4, 2, 247, 235, 53, 184, 12, 115, 35]]: Failed
+ - On turn 1: RNG index b.5 vs e.7
+ - On turn 1: P1 Health b.991 vs e.999
  - On turn 1: P1 Speed b.198 vs e.300
-Disable[9](LP) [[196, 117, 217, 133, 210, 122, 65, 31, 192]]: Failed
- - On turn 2: RNG index b.3 vs e.1
- - On turn 2: P1 Health b.970 vs e.987
- - On turn 2: P1 Speed b.198 vs e.300
-Disable[12](HS) [[90, 58, 138, 0, 226, 106, 46, 246, 167]]: Failed
- - On turn 1: RNG index b.4 vs e.1
- - On turn 1: RNG list b.[195, 35, 179, 1, 107, 19, 231, 207, 68] vs e.[208, 176, 128, 6, 24, 96, 132, 12, 85]
-Disable[15](HP) [[31, 236, 21, 217, 47, 174, 66, 211, 152]]: Failed
- - On turn 1: RNG index b.7 vs e.1
- - On turn 1: RNG list b.[31, 236, 21, 217, 47, 174, 66, 211, 152] vs e.[156, 157, 106, 62, 236, 103, 75, 32, 249]
-Disable[12](HP) [[170, 207, 145, 121, 27, 35, 30, 121, 60]]: Failed
- - On turn 1: RNG index b.5 vs e.1
- - On turn 1: RNG list b.[170, 207, 145, 121, 27, 35, 30, 121, 60] vs e.[83, 12, 214, 94, 136, 176, 151, 94, 45]
-Disable[6](LS) [[163, 252, 200, 75, 178, 116, 215, 119, 21]]: Failed
- - On turn 2: P1 Health b.987 vs e.993
+Disable[7](HS) [[1, 244, 103, 89, 169, 139, 236, 200, 177]]: Failed
+ - On turn 1: RNG index b.5 vs e.7
+Disable[10](Sub) [[63, 55, 99, 14, 6, 159, 231, 202, 171]]: Failed
+ - On turn 1: RNG index b.1 vs e.2
+ - On turn 1: RNG list b.[63, 55, 99, 14, 6, 159, 231, 202, 171] vs e.[60, 20, 240, 71, 31, 28, 132, 243, 88]
+ - On turn 1: P2 Health b.750 vs e.999
+ - On turn 1: P2 Has substitute b.True vs e.False
 Disable[5](LS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 3: RNG index b.3 vs e.5
  - On turn 3: RNG list b.[237, 6, 6, 237, 6, 6, 237, 6, 237] vs e.[252, 1, 1, 252, 1, 1, 252, 1, 252]
  - On turn 3: P1 Health b.975 vs e.981
  - On turn 3: P1 Speed b.120 vs e.150
-Disable[15](LS) [[7, 128, 138, 193, 72, 151, 203, 217, 105]]: Failed
- - On turn 1: RNG index b.6 vs e.3
- - On turn 1: P1 Health b.992 vs e.999
-Disable[9](HS) [[55, 27, 129, 98, 38, 176, 185, 21, 223]]: Failed
- - On turn 1: RNG index b.1 vs e.3
-Disable[2](LP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 2: RNG index b.2 vs e.0
- - On turn 2: P1 Health b.967 vs e.980
- - On turn 2: P1 Speed b.198 vs e.300
-Disable[8](HS) [[189, 228, 196, 197, 145, 139, 165, 102, 114]]: Failed
- - On turn 3: RNG index b.2 vs e.0
- - On turn 3: RNG list b.[123, 74, 42, 67, 47, 153, 35, 252, 40] vs e.[104, 115, 211, 80, 236, 254, 176, 237, 201]
-Disable[6](Sub) [[30, 31, 128, 67, 214, 238, 204, 129, 55]]: Failed
- - On turn 1: RNG index b.1 vs e.4
- - On turn 1: P2 Health b.750 vs e.999
- - On turn 1: P2 Has substitute b.True vs e.False
-Disable[12](Sub) [[86, 22, 98, 162, 83, 120, 182, 230, 24]]: Failed
- - On turn 1: RNG index b.1 vs e.7
- - On turn 1: P2 Health b.750 vs e.999
- - On turn 1: P2 Has substitute b.True vs e.False
-Disable[11](Sub) [[78, 98, 2, 215, 117, 249, 107, 72, 131]]: Failed
- - On turn 1: RNG index b.1 vs e.0
- - On turn 1: RNG list b.[78, 98, 2, 215, 117, 249, 107, 72, 131] vs e.[135, 235, 11, 52, 74, 222, 24, 105, 144]
- - On turn 1: P2 Health b.750 vs e.999
- - On turn 1: P2 Has substitute b.True vs e.False
-Disable[5](HP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 2: RNG index b.3 vs e.5
-Disable[10](LP) [[146, 114, 2, 39, 233, 246, 61, 61, 12]]: Failed
- - On turn 2: RNG index b.3 vs e.1
- - On turn 2: P1 Health b.975 vs e.987
- - On turn 2: P1 Speed b.150 vs e.198
-Disable[15](LP) [[43, 64, 225, 231, 200, 199, 125, 127, 146]]: Failed
- - On turn 1: RNG index b.5 vs e.3
- - On turn 1: P1 Health b.982 vs e.999
-Disable[13](HP) [[250, 62, 197, 122, 147, 203, 209, 177, 156]]: Failed
- - On turn 2: RNG index b.4 vs e.6
-Disable[8](LS) [[143, 56, 177, 11, 152, 70, 127, 94, 33]]: Failed
- - On turn 3: RNG index b.3 vs e.7
- - On turn 3: RNG list b.[187, 84, 189, 119, 180, 130, 171, 26, 45] vs e.[253, 126, 79, 25, 222, 220, 109, 52, 63]
- - On turn 3: P1 Health b.981 vs e.987
-Disable[11](HS) [[237, 134, 58, 167, 45, 86, 145, 109, 213]]: Failed
- - On turn 1: RNG index b.3 vs e.5
-Disable[14](Sub) [[46, 113, 109, 196, 80, 87, 68, 148, 17]]: Failed
+Disable[14](LP) [[61, 38, 103, 164, 137, 118, 56, 197, 237]]: Failed
  - On turn 1: RNG index b.1 vs e.5
+ - On turn 1: RNG list b.[50, 191, 4, 53, 174, 79, 25, 218, 162] vs e.[61, 38, 103, 164, 137, 118, 56, 197, 237]
+ - On turn 1: P1 Health b.988 vs e.999
+ - On turn 1: P1 Speed b.198 vs e.300
+Disable[8](HS) [[184, 94, 92, 81, 55, 60, 206, 46, 97]]: Failed
+ - On turn 1: RNG index b.5 vs e.3
+ - On turn 1: RNG list b.[153, 215, 205, 150, 20, 45, 7, 231, 230] vs e.[254, 52, 2, 239, 101, 226, 36, 132, 127]
+Disable[11](Sub) [[160, 182, 221, 185, 28, 60, 49, 115, 126]]: Failed
+ - On turn 5: RNG index b.5 vs e.7
+Disable[0](LS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 6: RNG index b.3 vs e.2
+ - On turn 6: RNG list b.[189, 140, 140, 140, 140, 140, 140, 140, 140] vs e.[240, 99, 99, 99, 99, 99, 99, 99, 99]
+ - On turn 6: P1 Health b.962 vs e.968
+Disable[15](LP) [[159, 192, 194, 113, 213, 150, 134, 164, 42]]: Failed
+ - On turn 3: RNG index b.2 vs e.4
+ - On turn 3: P1 Health b.960 vs e.971
+Disable[6](Sub) [[62, 180, 6, 215, 172, 36, 236, 40, 4]]: Failed
+ - On turn 1: RNG index b.1 vs e.3
+ - On turn 1: P2 Health b.750 vs e.999
+ - On turn 1: P2 Has substitute b.True vs e.False
+Disable[10](LP) [[10, 48, 207, 11, 200, 76, 182, 60, 80]]: Failed
+ - On turn 1: RNG index b.5 vs e.3
+ - On turn 1: P1 Health b.988 vs e.999
+Disable[13](HP) [[65, 128, 45, 172, 134, 183, 62, 236, 247]]: Failed
+ - On turn 2: RNG index b.0 vs e.2
 Disable[5](LP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 3: RNG index b.3 vs e.5
  - On turn 3: RNG list b.[237, 6, 6, 237, 6, 6, 237, 6, 237] vs e.[252, 1, 1, 252, 1, 1, 252, 1, 252]
  - On turn 3: P1 Health b.949 vs e.961
  - On turn 3: P1 Speed b.120 vs e.150
-Disable[8](HP) [[123, 129, 52, 126, 10, 28, 46, 231, 155]]: Failed
- - On turn 1: RNG index b.2 vs e.0
- - On turn 1: RNG list b.[104, 134, 5, 119, 51, 141, 231, 132, 8] vs e.[9, 159, 26, 84, 0, 194, 132, 149, 41]
-Disable[11](LS) [[41, 211, 34, 83, 167, 17, 211, 234, 119]]: Failed
- - On turn 1: RNG index b.0 vs e.3
- - On turn 1: P1 Health b.993 vs e.999
-Disable[7](Sub) [[140, 35, 197, 229, 218, 51, 43, 2, 43]]: Failed
- - On turn 2: RNG index b.2 vs e.3
- - On turn 2: RNG list b.[140, 35, 197, 229, 218, 51, 43, 2, 43] vs e.[189, 176, 218, 122, 67, 0, 216, 11, 216]
-Disable[11](LP) [[207, 144, 246, 245, 162, 91, 238, 206, 105]]: Failed
- - On turn 3: RNG index b.6 vs e.7
- - On turn 3: RNG list b.[61, 22, 12, 243, 216, 233, 68, 36, 71] vs e.[12, 209, 207, 202, 43, 200, 167, 7, 14]
- - On turn 3: P1 Health b.964 vs e.976
-Disable[14](HS) [[246, 55, 130, 47, 141, 35, 251, 182, 115]]: Failed
- - On turn 6: RNG index b.2 vs e.4
-Disable[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 2: RNG index b.2 vs e.4
-Disable[14](HP) [[23, 8, 70, 102, 226, 75, 0, 135, 134]]: Failed
- - On turn 1: RNG index b.7 vs e.0
- - On turn 1: RNG list b.[116, 41, 95, 255, 107, 120, 1, 164, 159] vs e.[69, 206, 220, 252, 24, 89, 6, 53, 28]
-Disable[8](LP) [[229, 137, 98, 10, 243, 102, 43, 168, 89]]: Failed
- - On turn 4: RNG index b.5 vs e.2
- - On turn 4: P1 Health b.952 vs e.964
-Disable[11](HP) [[70, 74, 70, 249, 250, 97, 167, 87, 228]]: Failed
- - On turn 3: RNG index b.8 vs e.2
- - On turn 3: RNG list b.[139, 95, 139, 154, 207, 34, 160, 16, 65] vs e.[184, 220, 184, 3, 12, 171, 33, 81, 70]
-Disable[14](LS) [[127, 0, 14, 156, 66, 44, 215, 96, 73]]: Failed
- - On turn 1: RNG index b.0 vs e.3
- - On turn 1: RNG list b.[124, 1, 71, 13, 75, 221, 52, 225, 110] vs e.[127, 0, 14, 156, 66, 44, 215, 96, 73]
+Disable[2](LP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 2: RNG index b.2 vs e.0
+ - On turn 2: P1 Health b.967 vs e.980
+ - On turn 2: P1 Speed b.198 vs e.300
+Disable[8](HP) [[43, 80, 138, 237, 199, 231, 212, 222, 145]]: Failed
+ - On turn 2: RNG index b.6 vs e.4
+ - On turn 2: RNG list b.[216, 145, 179, 162, 228, 132, 37, 87, 214] vs e.[57, 214, 128, 43, 117, 149, 186, 180, 47]
+Disable[5](HP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 2: RNG index b.3 vs e.5
+Disable[11](LS) [[6, 162, 213, 250, 206, 66, 93, 32, 220]]: Failed
+ - On turn 1: RNG index b.5 vs e.0
+ - On turn 1: RNG list b.[6, 162, 213, 250, 206, 66, 93, 32, 220] vs e.[31, 43, 42, 227, 7, 75, 210, 161, 77]
  - On turn 1: P1 Health b.991 vs e.999
- - On turn 1: P1 Speed b.198 vs e.300
+Disable[14](HS) [[15, 223, 142, 150, 137, 171, 222, 193, 37]]: Failed
+ - On turn 1: RNG index b.5 vs e.2
+ - On turn 1: RNG list b.[15, 223, 142, 150, 137, 171, 222, 193, 37] vs e.[76, 92, 199, 239, 174, 88, 87, 198, 186]
+Disable[8](LS) [[157, 189, 248, 28, 210, 199, 125, 104, 233]]: Failed
+ - On turn 4: RNG index b.1 vs e.8
+ - On turn 4: RNG list b.[233, 9, 20, 248, 78, 115, 201, 132, 117] vs e.[200, 104, 55, 203, 169, 74, 40, 231, 228]
+ - On turn 4: P1 Health b.975 vs e.981
+Disable[11](HS) [[101, 219, 120, 15, 241, 166, 127, 183, 242]]: Failed
+ - On turn 2: RNG index b.2 vs e.5
+Disable[14](Sub) [[164, 134, 31, 6, 68, 29, 153, 231, 96]]: Failed
+ - On turn 2: RNG index b.2 vs e.6
 Psybeam[0](Sub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 2: RNG index b.3 vs e.4
+Psybeam[7](LS) [[118, 249, 109, 252, 37, 44, 166, 13, 134]]: Failed
+ - On turn 5: RNG index b.8 vs e.4
+ - On turn 5: P1 Health b.970 vs e.975
+ - On turn 5: P2 Health b.989 vs e.855
+Psybeam[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 2: RNG index b.6 vs e.7
+Psybeam[7](Sub) [[247, 79, 153, 220, 174, 123, 6, 147, 31]]: Failed
+ - On turn 2: RNG index b.7 vs e.8
+Psybeam[5](HS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 2: RNG index b.2 vs e.3
+Psybeam[13](Sub) [[95, 100, 96, 34, 23, 112, 67, 142, 107]]: Failed
+ - On turn 2: RNG index b.0 vs e.1
+Psybeam[8](Sub) [[237, 84, 40, 180, 206, 219, 100, 188, 31]]: Failed
+ - On turn 2: RNG index b.4 vs e.7
 Psybeam[2](Sub) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 2: RNG index b.8 vs e.0
  - On turn 2: RNG list b.[255, 0, 255, 0, 255, 0, 255, 0, 255] vs e.[252, 1, 252, 1, 252, 1, 252, 1, 252]
 Psybeam[3](Sub) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 2: RNG index b.6 vs e.7
-Psybeam[7](LS) [[179, 146, 132, 185, 35, 46, 124, 2, 204]]: Failed
- - On turn 3: RNG index b.0 vs e.3
- - On turn 3: RNG list b.[141, 100, 230, 195, 125, 224, 158, 84, 110] vs e.[159, 14, 224, 69, 15, 234, 88, 126, 168]
- - On turn 3: P1 Health b.986 vs e.993
- - On turn 3: P1 Speed b.198 vs e.300
- - On turn 3: P2 Health b.859 vs e.725
-Psybeam[7](HP) [[164, 211, 130, 171, 90, 170, 128, 211, 79]]: Failed
- - On turn 4: RNG index b.0 vs e.1
-Psybeam[9](Sub) [[236, 162, 24, 38, 130, 148, 42, 111, 210]]: Failed
- - On turn 2: RNG index b.0 vs e.1
-Psybeam[7](LP) [[79, 79, 209, 67, 53, 134, 210, 157, 225]]: Failed
- - On turn 4: RNG index b.8 vs e.0
- - On turn 4: RNG list b.[104, 104, 82, 236, 6, 203, 135, 142, 162] vs e.[9, 9, 155, 157, 31, 248, 164, 199, 43]
-Psybeam[6](LP) [[209, 216, 252, 54, 245, 210, 161, 44, 114]]: Failed
- - On turn 7: RNG index b.1 vs e.2
-Psybeam[5](HS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 2: RNG index b.2 vs e.3
-Psybeam[10](HP) [[114, 112, 89, 16, 118, 75, 19, 119, 96]]: Failed
- - On turn 4: RNG index b.7 vs e.8
-Psybeam[13](LP) [[83, 21, 140, 177, 208, 141, 209, 137, 210]]: Failed
- - On turn 4: RNG index b.5 vs e.4
- - On turn 4: RNG list b.[226, 252, 231, 104, 219, 20, 8, 96, 53] vs e.[107, 237, 132, 9, 72, 101, 41, 225, 10]
- - On turn 4: P1 Health b.958 vs e.946
- - On turn 4: P1 Speed b.198 vs e.150
- - On turn 4: P2 Health b.856 vs e.990
-Psybeam[8](Sub) [[22, 92, 105, 87, 181, 65, 230, 25, 67]]: Failed
- - On turn 2: RNG index b.3 vs e.4
-Psybeam[7](HS) [[2, 77, 24, 227, 16, 127, 68, 37, 195]]: Failed
- - On turn 5: RNG index b.4 vs e.5
-Psybeam[5](Sub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 2: RNG index b.3 vs e.4
-Psybeam[13](Sub) [[164, 121, 188, 121, 118, 237, 224, 204, 19]]: Failed
- - On turn 2: RNG index b.0 vs e.3
-Psybeam[10](Sub) [[41, 71, 231, 139, 187, 177, 8, 119, 94]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Psybeam[13](LS) [[201, 186, 122, 52, 227, 233, 184, 252, 92]]: Failed
- - On turn 4: RNG index b.7 vs e.8
-Psybeam[9](LP) [[48, 127, 66, 174, 3, 86, 35, 92, 109]]: Failed
- - On turn 3: RNG index b.8 vs e.4
- - On turn 3: RNG list b.[253, 88, 183, 19, 172, 219, 76, 25, 158] vs e.[242, 185, 148, 96, 93, 72, 125, 126, 23]
- - On turn 3: P1 Health b.976 vs e.977
- - On turn 3: P1 Speed b.198 vs e.300
-Psybeam[13](HS) [[115, 37, 82, 12, 27, 111, 215, 232, 51]]: Failed
- - On turn 4: RNG index b.4 vs e.5
-Psybeam[14](LP) [[79, 14, 219, 215, 249, 251, 145, 81, 143]]: Failed
- - On turn 4: RNG index b.3 vs e.0
- - On turn 4: RNG list b.[231, 198, 243, 111, 81, 19, 233, 169, 39] vs e.[132, 223, 192, 44, 150, 96, 142, 78, 196]
- - On turn 4: P1 Health b.966 vs e.954
- - On turn 4: P1 Speed b.198 vs e.150
- - On turn 4: P2 Health b.855 vs e.989
 Psybeam[3](HP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 7: RNG index b.6 vs e.7
+Psybeam[11](LP) [[27, 145, 15, 252, 143, 140, 207, 238, 223]]: Failed
+ - On turn 7: RNG index b.7 vs e.1
+ - On turn 7: RNG list b.[75, 65, 63, 236, 191, 124, 255, 94, 15] vs e.[89, 95, 45, 18, 173, 34, 237, 52, 125]
+ - On turn 7: P1 Health b.930 vs e.919
+ - On turn 7: P2 Health b.850 vs e.984
+Psybeam[6](LS) [[23, 153, 2, 48, 45, 103, 84, 25, 55]]: Failed
+ - On turn 2: RNG index b.2 vs e.4
+ - On turn 2: RNG list b.[208, 186, 119, 253, 94, 96, 113, 58, 112] vs e.[195, 37, 126, 204, 121, 19, 176, 165, 227]
+ - On turn 2: P1 Health b.987 vs e.993
+ - On turn 2: P2 Health b.995 vs e.861
+Psybeam[14](HP) [[13, 44, 180, 248, 115, 103, 157, 142, 205]]: Failed
+ - On turn 2: RNG index b.8 vs e.0
+ - On turn 2: RNG list b.[89, 8, 16, 20, 95, 19, 233, 74, 25] vs e.[190, 41, 81, 101, 220, 96, 142, 115, 126]
+Psybeam[6](LP) [[236, 222, 168, 5, 236, 74, 242, 122, 243]]: Failed
+ - On turn 4: RNG index b.7 vs e.8
+Psybeam[9](Sub) [[23, 205, 27, 143, 14, 107, 187, 108, 109]]: Failed
+ - On turn 2: RNG index b.8 vs e.0
+ - On turn 2: RNG list b.[23, 205, 27, 143, 14, 107, 187, 108, 109] vs e.[116, 2, 136, 204, 71, 24, 168, 29, 34]
+Psybeam[5](Sub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 2: RNG index b.3 vs e.4
+Psybeam[6](HP) [[126, 17, 99, 14, 201, 180, 77, 13, 22]]: Failed
+ - On turn 2: RNG index b.3 vs e.4
+Psybeam[14](LS) [[247, 96, 122, 224, 158, 114, 52, 138, 142]]: Failed
+ - On turn 5: RNG list b.[253, 30, 104, 158, 108, 160, 82, 248, 220] vs e.[187, 244, 46, 116, 146, 166, 8, 62, 130]
+ - On turn 5: P1 Health b.976 vs e.970
+ - On turn 5: P2 Health b.854 vs e.988
+Psybeam[10](HP) [[68, 83, 57, 196, 210, 140, 184, 22, 187]]: Failed
+ - On turn 5: RNG index b.8 vs e.0
+ - On turn 5: RNG list b.[45, 24, 214, 173, 51, 149, 241, 7, 32] vs e.[226, 121, 47, 98, 0, 234, 182, 36, 161]
+Psybeam[10](Sub) [[63, 87, 149, 230, 238, 187, 107, 74, 244]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Psybeam[12](Sub) [[70, 180, 52, 42, 80, 216, 141, 208, 28]]: Failed
+ - On turn 2: RNG index b.8 vs e.0
+ - On turn 2: RNG list b.[220, 154, 26, 32, 214, 30, 203, 86, 194] vs e.[77, 3, 131, 161, 47, 151, 248, 175, 203]
+Psybeam[13](LS) [[76, 213, 105, 135, 2, 103, 29, 246, 224]]: Failed
+ - On turn 7: P1 Health b.950 vs e.952
 Psybeam[5](LS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 2: RNG index b.0 vs e.1
+Psybeam[15](Sub) [[151, 247, 64, 131, 96, 110, 74, 144, 99]]: Failed
+ - On turn 2: RNG index b.6 vs e.7
 Psybeam[3](HS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 7: RNG index b.6 vs e.7
-Psybeam[5](HP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 2: RNG index b.2 vs e.3
-Psybeam[9](LS) [[242, 24, 78, 78, 13, 169, 187, 123, 207]]: Failed
- - On turn 4: RNG index b.7 vs e.8
-Psybeam[6](Sub) [[98, 77, 35, 249, 199, 219, 143, 51, 82]]: Failed
- - On turn 2: RNG index b.2 vs e.3
-Psybeam[11](Sub) [[57, 80, 162, 252, 89, 154, 42, 231, 117]]: Failed
- - On turn 2: RNG index b.5 vs e.8
+Psybeam[6](Sub) [[89, 120, 123, 151, 239, 214, 198, 227, 17]]: Failed
+ - On turn 2: RNG index b.8 vs e.0
+ - On turn 2: RNG list b.[190, 89, 104, 244, 172, 47, 223, 112, 86] vs e.[183, 190, 9, 197, 93, 236, 92, 49, 175]
+Psybeam[11](Sub) [[190, 84, 101, 212, 48, 38, 242, 197, 122]]: Failed
+ - On turn 2: RNG index b.6 vs e.7
 Psybeam[1](Sub) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
  - On turn 4: RNG index b.2 vs e.3
-Psybeam[15](Sub) [[171, 19, 29, 193, 240, 248, 174, 38, 150]]: Failed
- - On turn 2: RNG index b.7 vs e.8
-Psybeam[11](HS) [[195, 140, 65, 159, 7, 206, 128, 251, 215]]: Failed
- - On turn 5: RNG index b.8 vs e.0
- - On turn 5: RNG list b.[72, 149, 254, 20, 28, 159, 217, 96, 44] vs e.[105, 234, 247, 101, 141, 28, 62, 225, 221]
 Psybeam[5](LP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 2: RNG index b.0 vs e.1
-Psybeam[12](Sub) [[5, 5, 176, 13, 215, 242, 229, 160, 72]]: Failed
- - On turn 2: RNG index b.7 vs e.8
-Psybeam[15](LP) [[145, 125, 112, 100, 144, 88, 15, 151, 108]]: Failed
- - On turn 6: P1 Health b.941 vs e.935
-Psybeam[14](Sub) [[8, 146, 116, 142, 58, 174, 103, 123, 140]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Psybeam[13](HP) [[45, 106, 235, 48, 179, 179, 100, 136, 1]]: Failed
- - On turn 7: RNG index b.2 vs e.3
-Psybeam[8](HP) [[134, 198, 74, 193, 120, 38, 238, 96, 193]]: Failed
- - On turn 5: RNG index b.2 vs e.3
-Psybeam[11](LS) [[28, 229, 40, 12, 230, 6, 204, 246, 193]]: Failed
- - On turn 2: RNG index b.0 vs e.1
-Psybeam[7](Sub) [[215, 59, 15, 97, 27, 93, 112, 67, 39]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Psybeam[14](HS) [[110, 91, 70, 172, 240, 135, 79, 172, 26]]: Failed
- - On turn 5: RNG index b.6 vs e.7
-Psybeam[11](LP) [[171, 126, 72, 233, 166, 192, 2, 107, 8]]: Failed
- - On turn 3: RNG index b.5 vs e.8
- - On turn 3: P1 Health b.953 vs e.960
- - On turn 3: P1 Speed b.198 vs e.150
-Psybeam[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+Psybeam[5](HP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 2: RNG index b.2 vs e.3
+Psybeam[11](HS) [[101, 121, 144, 1, 144, 158, 35, 105, 250]]: Failed
+ - On turn 4: RNG index b.3 vs e.4
+Psybeam[14](Sub) [[85, 3, 115, 188, 81, 175, 82, 216, 27]]: Failed
  - On turn 2: RNG index b.6 vs e.7
-Psybeam[14](HP) [[197, 137, 136, 188, 106, 143, 235, 145, 117]]: Failed
- - On turn 5: RNG index b.7 vs e.8
-Leech_Seed[1](Sub) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
- - On turn 2: RNG index b.1 vs e.2
+ - On turn 2: P2 Health b.726 vs e.611
+ - On turn 2: P2 Has substitute b.False vs e.True
 Leech_Seed[2](HP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 2: RNG index b.2 vs e.3
-Leech_Seed[4](HS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 3: RNG index b.3 vs e.4
-Leech_Seed[0](Sub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[2](LS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 4: RNG index b.7 vs e.0
- - On turn 4: RNG list b.[237, 6, 237, 6, 237, 6, 237, 6, 237] vs e.[162, 31, 162, 31, 162, 31, 162, 31, 162]
-Leech_Seed[0](LS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 3: RNG index b.8 vs e.0
- - On turn 3: RNG list b.[148, 183, 183, 183, 183, 183, 183, 183, 183] vs e.[229, 148, 148, 148, 148, 148, 148, 148, 148]
-Leech_Seed[0](HS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 2: RNG index b.4 vs e.5
-Leech_Seed[2](LP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 4: RNG index b.7 vs e.0
- - On turn 4: RNG list b.[237, 6, 237, 6, 237, 6, 237, 6, 237] vs e.[162, 31, 162, 31, 162, 31, 162, 31, 162]
-Leech_Seed[5](LS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 7: RNG index b.4 vs e.5
-Leech_Seed[7](Sub) [[218, 169, 35, 104, 18, 135, 69, 105, 48]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[5](LP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 7: RNG index b.4 vs e.5
-Leech_Seed[4](LP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 2: RNG index b.7 vs e.8
-Leech_Seed[3](HS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 2: RNG index b.8 vs e.0
- - On turn 2: RNG list b.[203, 203, 203, 203, 203, 203, 203, 203, 203] vs e.[248, 248, 248, 248, 248, 248, 248, 248, 248]
-Leech_Seed[5](HS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 3: RNG index b.3 vs e.4
-Leech_Seed[3](Sub) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[8](HS) [[220, 109, 223, 117, 195, 151, 75, 236, 196]]: Failed
- - On turn 2: RNG index b.2 vs e.3
-Leech_Seed[8](HP) [[66, 6, 159, 219, 160, 146, 55, 144, 201]]: Failed
- - On turn 2: RNG index b.2 vs e.3
-Leech_Seed[7](HP) [[101, 229, 226, 218, 91, 106, 175, 143, 5]]: Failed
- - On turn 2: RNG index b.3 vs e.4
-Leech_Seed[5](HP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 3: RNG index b.3 vs e.4
-Leech_Seed[6](Sub) [[86, 9, 184, 176, 121, 228, 45, 28, 97]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[8](Sub) [[177, 190, 48, 217, 222, 0, 230, 0, 188]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[11](Sub) [[6, 241, 15, 114, 92, 220, 158, 162, 198]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[10](LS) [[156, 18, 75, 113, 35, 30, 111, 69, 168]]: Failed
- - On turn 2: RNG index b.4 vs e.8
- - On turn 2: P1 Speed b.198 vs e.300
-Leech_Seed[11](LP) [[135, 95, 99, 136, 135, 144, 219, 237, 136]]: Failed
- - On turn 5: RNG index b.0 vs e.4
- - On turn 5: RNG list b.[6, 254, 178, 51, 6, 155, 202, 244, 51] vs e.[31, 247, 123, 0, 31, 8, 243, 197, 0]
-Leech_Seed[11](LS) [[211, 93, 8, 117, 178, 200, 19, 8, 119]]: Failed
- - On turn 4: RNG index b.3 vs e.0
- - On turn 4: RNG list b.[191, 169, 36, 65, 46, 228, 255, 36, 35] vs e.[188, 78, 181, 70, 231, 117, 252, 181, 176]
-Leech_Seed[4](HP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 3: RNG index b.3 vs e.4
-Leech_Seed[14](HP) [[147, 15, 66, 131, 169, 108, 227, 197, 203]]: Failed
- - On turn 2: RNG index b.6 vs e.7
-Leech_Seed[13](HS) [[91, 133, 210, 251, 66, 240, 236, 116, 53]]: Failed
- - On turn 3: RNG index b.1 vs e.2
-Leech_Seed[0](LP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 3: RNG index b.8 vs e.0
- - On turn 3: RNG list b.[148, 183, 183, 183, 183, 183, 183, 183, 183] vs e.[229, 148, 148, 148, 148, 148, 148, 148, 148]
-Leech_Seed[10](LP) [[241, 137, 217, 82, 90, 86, 125, 80, 87]]: Failed
- - On turn 6: RNG index b.3 vs e.5
-Leech_Seed[14](HS) [[47, 229, 205, 107, 20, 225, 122, 199, 52]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[0](HP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 2: RNG index b.4 vs e.5
-Leech_Seed[3](HP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 2: RNG index b.8 vs e.0
- - On turn 2: RNG list b.[203, 203, 203, 203, 203, 203, 203, 203, 203] vs e.[248, 248, 248, 248, 248, 248, 248, 248, 248]
-Leech_Seed[13](HP) [[239, 90, 124, 43, 202, 113, 51, 155, 213]]: Failed
- - On turn 2: RNG index b.7 vs e.8
-Leech_Seed[7](LS) [[97, 231, 192, 124, 21, 230, 25, 1, 37]]: Failed
- - On turn 4: RNG index b.2 vs e.5
-Leech_Seed[10](HP) [[238, 9, 195, 20, 29, 40, 77, 79, 115]]: Failed
- - On turn 2: RNG index b.8 vs e.0
- - On turn 2: RNG list b.[167, 46, 208, 101, 146, 201, 130, 140, 64] vs e.[68, 231, 17, 250, 219, 238, 139, 189, 65]
-Leech_Seed[3](LS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 2: RNG index b.7 vs e.8
-Leech_Seed[11](HS) [[153, 33, 158, 171, 23, 107, 209, 188, 12]]: Failed
- - On turn 3: RNG index b.1 vs e.2
-Leech_Seed[15](HP) [[172, 18, 238, 34, 248, 34, 8, 196, 61]]: Failed
- - On turn 2: RNG index b.2 vs e.3
-Leech_Seed[10](HS) [[215, 169, 110, 89, 191, 132, 56, 11, 51]]: Failed
- - On turn 2: RNG index b.6 vs e.7
-Leech_Seed[6](HS) [[1, 216, 14, 202, 239, 142, 211, 162, 58]]: Failed
- - On turn 2: RNG index b.6 vs e.7
-Leech_Seed[14](Sub) [[123, 17, 89, 168, 240, 145, 203, 119, 7]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[13](Sub) [[193, 14, 216, 227, 24, 94, 231, 78, 185]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[1](HP) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
- - On turn 6: RNG index b.8 vs e.0
- - On turn 6: RNG list b.[197, 197, 197, 197, 197, 197, 197, 197, 197] vs e.[218, 218, 218, 218, 218, 218, 218, 218, 218]
-Leech_Seed[9](Sub) [[228, 235, 26, 126, 217, 217, 157, 60, 179]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[4](LS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 2: RNG index b.7 vs e.8
-Leech_Seed[9](HS) [[33, 142, 200, 30, 71, 67, 12, 72, 131]]: Failed
- - On turn 2: RNG index b.7 vs e.8
-Leech_Seed[1](HS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
- - On turn 6: RNG index b.8 vs e.0
- - On turn 6: RNG list b.[197, 197, 197, 197, 197, 197, 197, 197, 197] vs e.[218, 218, 218, 218, 218, 218, 218, 218, 218]
-Leech_Seed[7](HS) [[199, 251, 100, 214, 54, 31, 242, 211, 162]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[13](LP) [[245, 251, 86, 15, 188, 103, 39, 177, 194]]: Failed
- - On turn 4: RNG index b.2 vs e.3
-Leech_Seed[12](Sub) [[60, 111, 0, 126, 46, 79, 12, 193, 70]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[10](Sub) [[28, 199, 203, 184, 0, 176, 161, 8, 86]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[3](LP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 2: RNG index b.7 vs e.8
-Leech_Seed[8](LP) [[106, 213, 32, 15, 244, 123, 153, 241, 161]]: Failed
- - On turn 7: RNG index b.3 vs e.4
- - On turn 7: RNG list b.[255, 38, 173, 40, 145, 132, 186, 242, 98] vs e.[252, 191, 98, 201, 214, 149, 163, 187, 235]
-Leech_Seed[6](HP) [[242, 70, 211, 161, 48, 230, 205, 65, 95]]: Failed
- - On turn 3: RNG index b.6 vs e.7
-Leech_Seed[11](HP) [[114, 162, 231, 204, 228, 34, 213, 170, 5]]: Failed
- - On turn 2: RNG index b.6 vs e.7
 Leech_Seed[2](HS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 2: RNG index b.2 vs e.3
 Leech_Seed[5](Sub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 2: RNG index b.1 vs e.2
  - On turn 2: P2 Health b.750 vs e.688
-Leech_Seed[12](HS) [[87, 29, 95, 179, 189, 194, 43, 195, 10]]: Failed
+Leech_Seed[5](LS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 7: RNG index b.4 vs e.5
+Leech_Seed[0](LS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 3: RNG index b.8 vs e.0
+ - On turn 3: RNG list b.[148, 183, 183, 183, 183, 183, 183, 183, 183] vs e.[229, 148, 148, 148, 148, 148, 148, 148, 148]
+Leech_Seed[2](LP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 4: RNG index b.7 vs e.0
+ - On turn 4: RNG list b.[237, 6, 237, 6, 237, 6, 237, 6, 237] vs e.[162, 31, 162, 31, 162, 31, 162, 31, 162]
+Leech_Seed[8](HS) [[18, 8, 27, 99, 212, 138, 207, 72, 75]]: Failed
  - On turn 2: RNG index b.8 vs e.0
- - On turn 2: RNG list b.[180, 146, 220, 128, 178, 203, 216, 208, 51] vs e.[133, 219, 77, 129, 123, 248, 57, 17, 0]
-Leech_Seed[15](Sub) [[63, 205, 137, 62, 223, 92, 174, 142, 63]]: Failed
+ - On turn 2: RNG list b.[91, 41, 136, 240, 37, 179, 12, 105, 120] vs e.[200, 206, 169, 177, 186, 128, 61, 14, 89]
+Leech_Seed[3](HS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 2: RNG index b.8 vs e.0
+ - On turn 2: RNG list b.[203, 203, 203, 203, 203, 203, 203, 203, 203] vs e.[248, 248, 248, 248, 248, 248, 248, 248, 248]
+Leech_Seed[5](HP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 3: RNG index b.3 vs e.4
+Leech_Seed[11](Sub) [[1, 11, 39, 129, 1, 55, 198, 84, 194]]: Failed
  - On turn 2: RNG index b.1 vs e.2
-Leech_Seed[12](HP) [[4, 32, 155, 79, 7, 242, 94, 228, 25]]: Failed
- - On turn 2: RNG index b.6 vs e.7
+Leech_Seed[6](Sub) [[176, 183, 157, 224, 69, 62, 101, 71, 250]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
 Leech_Seed[2](Sub) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 2: RNG index b.1 vs e.2
  - On turn 2: P2 Health b.750 vs e.688
-Leech_Seed[9](HP) [[78, 229, 177, 95, 180, 109, 51, 89, 88]]: Failed
+Leech_Seed[12](HP) [[17, 72, 201, 76, 12, 137, 73, 64, 217]]: Failed
  - On turn 2: RNG index b.2 vs e.3
-Leech_Seed[12](LS) [[199, 194, 175, 204, 231, 68, 229, 114, 223]]: Failed
- - On turn 2: RNG index b.2 vs e.4
-Leech_Seed[15](HS) [[154, 178, 241, 111, 8, 140, 53, 65, 66]]: Failed
- - On turn 2: RNG index b.8 vs e.0
- - On turn 2: RNG list b.[3, 123, 182, 44, 41, 189, 10, 70, 75] vs e.[16, 104, 143, 221, 206, 178, 51, 95, 120]
-Confusion[3](HS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 7: RNG index b.6 vs e.7
-Confusion[6](Sub) [[98, 39, 154, 43, 177, 124, 213, 249, 35]]: Failed
+Leech_Seed[15](LP) [[98, 169, 228, 30, 98, 217, 22, 148, 25]]: Failed
+ - On turn 2: RNG index b.3 vs e.7
+Leech_Seed[10](LP) [[153, 158, 181, 237, 195, 9, 235, 215, 219]]: Failed
+ - On turn 2: RNG index b.0 vs e.1
+Leech_Seed[1](HP) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 6: RNG index b.8 vs e.0
+ - On turn 6: RNG list b.[197, 197, 197, 197, 197, 197, 197, 197, 197] vs e.[218, 218, 218, 218, 218, 218, 218, 218, 218]
+Leech_Seed[4](HS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 3: RNG index b.3 vs e.4
+Leech_Seed[2](LS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 4: RNG index b.7 vs e.0
+ - On turn 4: RNG list b.[237, 6, 237, 6, 237, 6, 237, 6, 237] vs e.[162, 31, 162, 31, 162, 31, 162, 31, 162]
+Leech_Seed[13](HP) [[77, 213, 172, 55, 45, 217, 119, 228, 217]]: Failed
+ - On turn 2: RNG index b.2 vs e.3
+Leech_Seed[0](Sub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[1](Sub) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[4](LS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 2: RNG index b.7 vs e.8
+Leech_Seed[7](Sub) [[129, 183, 215, 47, 25, 159, 210, 33, 71]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[5](HS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 3: RNG index b.3 vs e.4
+Leech_Seed[4](LP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 2: RNG index b.7 vs e.8
+Leech_Seed[11](HS) [[198, 15, 166, 168, 39, 122, 142, 35, 83]]: Failed
+ - On turn 2: RNG index b.0 vs e.1
+Leech_Seed[7](HS) [[53, 157, 75, 15, 147, 78, 229, 124, 128]]: Failed
+ - On turn 2: RNG index b.4 vs e.5
+Leech_Seed[11](LP) [[37, 189, 39, 24, 213, 4, 218, 45, 205]]: Failed
+ - On turn 2: RNG index b.2 vs e.5
+ - On turn 2: RNG list b.[186, 178, 196, 121, 42, 21, 67, 226, 2] vs e.[163, 123, 213, 94, 211, 106, 80, 107, 11]
+Leech_Seed[0](HS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 2: RNG index b.4 vs e.5
+Leech_Seed[7](HP) [[148, 156, 221, 164, 98, 121, 90, 200, 122]]: Failed
  - On turn 2: RNG index b.3 vs e.4
+Leech_Seed[9](HP) [[221, 220, 98, 181, 160, 177, 20, 11, 221]]: Failed
+ - On turn 2: RNG index b.2 vs e.3
+Leech_Seed[8](Sub) [[30, 43, 51, 136, 218, 133, 244, 45, 167]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[14](Sub) [[78, 178, 174, 178, 136, 77, 95, 44, 205]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[10](Sub) [[137, 177, 134, 232, 218, 33, 237, 70, 156]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[14](HP) [[41, 131, 129, 112, 240, 4, 199, 5, 239]]: Failed
+ - On turn 2: RNG index b.4 vs e.5
+Leech_Seed[3](Sub) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[5](LP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 7: RNG index b.4 vs e.5
+Leech_Seed[4](HP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 3: RNG index b.3 vs e.4
+Leech_Seed[14](LP) [[157, 205, 81, 26, 39, 162, 61, 221, 137]]: Failed
+ - On turn 3: RNG index b.0 vs e.6
+ - On turn 3: P1 Speed b.198 vs e.150
+Leech_Seed[7](LP) [[230, 49, 225, 4, 12, 121, 13, 140, 19]]: Failed
+ - On turn 3: RNG index b.5 vs e.8
+ - On turn 3: P1 Speed b.150 vs e.198
+Leech_Seed[8](HP) [[115, 235, 112, 78, 23, 207, 3, 197, 90]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[10](LS) [[224, 189, 83, 128, 166, 22, 102, 218, 214]]: Failed
+ - On turn 7: RNG index b.7 vs e.2
+ - On turn 7: RNG list b.[185, 234, 24, 217, 215, 7, 151, 91, 199] vs e.[158, 147, 121, 62, 52, 36, 244, 200, 228]
+Leech_Seed[10](HP) [[198, 89, 74, 53, 82, 127, 134, 182, 42]]: Failed
+ - On turn 2: RNG index b.2 vs e.3
+Leech_Seed[0](HP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 2: RNG index b.4 vs e.5
+Leech_Seed[11](LS) [[193, 54, 189, 49, 223, 178, 162, 52, 169]]: Failed
+ - On turn 3: RNG index b.7 vs e.3
+ - On turn 3: RNG list b.[223, 76, 123, 207, 205, 104, 216, 26, 135] vs e.[205, 114, 9, 61, 11, 46, 30, 144, 53]
+ - On turn 3: P1 Speed b.300 vs e.198
+Leech_Seed[15](HS) [[127, 162, 50, 98, 87, 113, 39, 71, 180]]: Failed
+ - On turn 2: RNG index b.0 vs e.1
+Leech_Seed[13](HS) [[108, 96, 16, 188, 224, 71, 108, 76, 25]]: Failed
+ - On turn 2: RNG index b.8 vs e.0
+ - On turn 2: RNG list b.[146, 102, 150, 98, 230, 245, 146, 114, 119] vs e.[219, 255, 239, 235, 127, 202, 219, 59, 84]
+Leech_Seed[15](HP) [[43, 50, 86, 208, 102, 249, 241, 23, 15]]: Failed
+ - On turn 2: RNG index b.4 vs e.5
+Leech_Seed[14](HS) [[235, 107, 225, 111, 195, 5, 103, 84, 86]]: Failed
+ - On turn 2: RNG index b.3 vs e.4
+Leech_Seed[3](LS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 2: RNG index b.7 vs e.8
+Leech_Seed[6](HS) [[112, 195, 185, 169, 136, 167, 154, 209, 235]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[10](HS) [[88, 27, 143, 131, 35, 102, 116, 90, 86]]: Failed
+ - On turn 2: RNG index b.8 vs e.0
+ - On turn 2: RNG list b.[185, 136, 204, 144, 176, 255, 69, 195, 175] vs e.[158, 169, 253, 209, 113, 252, 90, 208, 108]
+Leech_Seed[9](Sub) [[72, 12, 146, 70, 73, 147, 81, 172, 212]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[13](Sub) [[91, 148, 26, 41, 98, 96, 112, 239, 228]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[1](HS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 6: RNG index b.8 vs e.0
+ - On turn 6: RNG list b.[197, 197, 197, 197, 197, 197, 197, 197, 197] vs e.[218, 218, 218, 218, 218, 218, 218, 218, 218]
+Leech_Seed[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[8](LP) [[1, 136, 122, 247, 71, 129, 218, 238, 240]]: Failed
+ - On turn 5: RNG index b.6 vs e.7
+Leech_Seed[11](HP) [[202, 36, 56, 145, 247, 171, 20, 38, 210]]: Failed
+ - On turn 2: RNG index b.3 vs e.4
+Leech_Seed[3](LP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 2: RNG index b.7 vs e.8
+Leech_Seed[6](HP) [[180, 84, 104, 120, 81, 17, 117, 18, 62]]: Failed
+ - On turn 2: RNG index b.5 vs e.6
+Leech_Seed[0](LP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 3: RNG index b.8 vs e.0
+ - On turn 3: RNG list b.[148, 183, 183, 183, 183, 183, 183, 183, 183] vs e.[229, 148, 148, 148, 148, 148, 148, 148, 148]
+Leech_Seed[9](LS) [[10, 163, 14, 62, 140, 238, 97, 38, 244]]: Failed
+ - On turn 2: RNG index b.2 vs e.4
+ - On turn 2: P1 Speed b.300 vs e.198
+Leech_Seed[3](HP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 2: RNG index b.8 vs e.0
+ - On turn 2: RNG list b.[203, 203, 203, 203, 203, 203, 203, 203, 203] vs e.[248, 248, 248, 248, 248, 248, 248, 248, 248]
+Leech_Seed[12](HS) [[230, 206, 9, 183, 105, 71, 34, 204, 228]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[6](LS) [[118, 147, 207, 18, 13, 158, 231, 248, 130]]: Failed
+ - On turn 2: RNG index b.0 vs e.1
+ - On turn 2: RNG list b.[79, 224, 12, 91, 66, 23, 132, 217, 139] vs e.[140, 97, 61, 200, 75, 116, 149, 62, 184]
+Leech_Seed[15](Sub) [[63, 169, 199, 184, 7, 236, 107, 209, 214]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Leech_Seed[9](HS) [[121, 147, 144, 239, 163, 211, 131, 46, 67]]: Failed
+ - On turn 2: RNG index b.5 vs e.6
+Leech_Seed[12](Sub) [[100, 111, 124, 198, 73, 72, 110, 166, 125]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
 Confusion[5](Sub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 2: RNG index b.3 vs e.4
-Confusion[10](LP) [[54, 170, 218, 67, 167, 213, 190, 61, 100]]: Failed
- - On turn 6: P1 Health b.941 vs e.935
-Confusion[0](Sub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 2: RNG index b.3 vs e.4
-Confusion[6](HP) [[23, 36, 2, 91, 16, 205, 18, 192, 107]]: Failed
- - On turn 3: RNG index b.3 vs e.4
-Confusion[3](HP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+Confusion[9](LP) [[104, 165, 191, 48, 61, 124, 156, 69, 76]]: Failed
+ - On turn 5: RNG index b.0 vs e.7
+ - On turn 5: RNG list b.[230, 59, 133, 110, 19, 90, 122, 219, 170] vs e.[147, 76, 222, 187, 4, 23, 183, 108, 167]
+ - On turn 5: P1 Health b.951 vs e.963
+ - On turn 5: P2 Health b.855 vs e.721
+Confusion[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 2: RNG index b.6 vs e.7
+Confusion[3](HS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 7: RNG index b.6 vs e.7
+Confusion[6](Sub) [[42, 99, 191, 155, 162, 28, 234, 190, 243]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Confusion[12](HP) [[54, 225, 176, 205, 52, 10, 115, 23, 245]]: Failed
+ - On turn 6: RNG index b.1 vs e.0
+Confusion[10](Sub) [[161, 153, 159, 128, 230, 29, 33, 69, 239]]: Failed
+ - On turn 2: RNG index b.2 vs e.3
+Confusion[1](Sub) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 4: RNG index b.2 vs e.3
 Confusion[2](Sub) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 2: RNG index b.8 vs e.0
  - On turn 2: RNG list b.[255, 0, 255, 0, 255, 0, 255, 0, 255] vs e.[252, 1, 252, 1, 252, 1, 252, 1, 252]
-Confusion[6](LP) [[150, 154, 77, 234, 159, 75, 194, 168, 6]]: Failed
- - On turn 3: RNG index b.4 vs e.8
- - On turn 3: RNG list b.[27, 239, 254, 127, 248, 148, 55, 213, 75] vs e.[210, 150, 153, 230, 203, 183, 62, 196, 66]
- - On turn 3: P1 Health b.976 vs e.988
- - On turn 3: P2 Health b.859 vs e.725
-Confusion[15](LS) [[123, 14, 228, 159, 6, 161, 110, 51, 236]]: Failed
- - On turn 2: RNG index b.6 vs e.4
- - On turn 2: RNG list b.[231, 202, 64, 203, 66, 173, 42, 31, 200] vs e.[132, 243, 65, 248, 75, 98, 211, 156, 233]
- - On turn 2: P1 Health b.993 vs e.987
- - On turn 2: P2 Health b.861 vs e.995
-Confusion[7](Sub) [[14, 51, 230, 96, 17, 231, 178, 95, 176]]: Failed
- - On turn 2: RNG index b.5 vs e.6
-Confusion[10](Sub) [[68, 85, 235, 69, 206, 24, 22, 72, 90]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Confusion[9](HP) [[206, 104, 169, 78, 124, 149, 26, 183, 29]]: Failed
- - On turn 3: RNG index b.8 vs e.0
- - On turn 3: RNG list b.[129, 147, 0, 1, 23, 124, 221, 118, 100] vs e.[134, 224, 1, 6, 116, 109, 82, 79, 245]
-Confusion[15](Sub) [[194, 52, 74, 192, 94, 109, 212, 36, 71]]: Failed
- - On turn 2: RNG index b.6 vs e.7
-Confusion[14](LP) [[190, 167, 134, 23, 169, 169, 175, 113, 200]]: Failed
- - On turn 5: RNG index b.3 vs e.6
- - On turn 5: RNG list b.[189, 226, 101, 146, 156, 156, 202, 68, 95] vs e.[178, 107, 250, 219, 13, 13, 243, 85, 220]
- - On turn 5: P1 Health b.943 vs e.942
- - On turn 5: P1 Speed b.120 vs e.99
-Confusion[7](LS) [[65, 228, 29, 245, 103, 233, 26, 187, 222]]: Failed
- - On turn 3: RNG index b.0 vs e.6
- - On turn 3: P1 Health b.993 vs e.986
- - On turn 3: P2 Health b.725 vs e.859
-Confusion[12](Sub) [[133, 13, 111, 170, 51, 87, 111, 67, 109]]: Failed
- - On turn 2: RNG index b.2 vs e.3
- - On turn 2: P2 Health b.727 vs e.612
- - On turn 2: P2 Has substitute b.False vs e.True
-Confusion[13](HS) [[210, 154, 138, 208, 244, 113, 41, 98, 51]]: Failed
- - On turn 4: RNG index b.7 vs e.8
-Confusion[5](LS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 2: RNG index b.0 vs e.1
-Confusion[15](HS) [[36, 68, 206, 163, 194, 111, 62, 191, 0]]: Failed
- - On turn 5: RNG index b.5 vs e.6
-Confusion[5](HS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 2: RNG index b.2 vs e.3
-Confusion[13](Sub) [[16, 81, 83, 115, 32, 138, 96, 80, 159]]: Failed
- - On turn 2: RNG index b.3 vs e.4
-Confusion[8](Sub) [[122, 26, 27, 245, 226, 154, 112, 95, 251]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Confusion[8](HS) [[94, 195, 69, 95, 211, 173, 187, 248, 147]]: Failed
- - On turn 6: RNG index b.0 vs e.1
-Confusion[11](Sub) [[207, 211, 94, 54, 186, 124, 36, 238, 211]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Confusion[12](LP) [[96, 199, 18, 109, 188, 224, 50, 84, 154]]: Failed
- - On turn 3: RNG index b.7 vs e.6
- - On turn 3: RNG list b.[255, 74, 233, 88, 235, 127, 137, 35, 81] vs e.[252, 115, 142, 185, 152, 124, 174, 176, 150]
- - On turn 3: P1 Health b.974 vs e.963
- - On turn 3: P2 Health b.859 vs e.993
-Confusion[3](Sub) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 2: RNG index b.6 vs e.7
-Confusion[6](HS) [[28, 133, 33, 14, 245, 68, 102, 235, 25]]: Failed
- - On turn 7: RNG index b.2 vs e.3
-Confusion[9](Sub) [[57, 135, 219, 179, 85, 151, 40, 36, 183]]: Failed
- - On turn 2: RNG index b.1 vs e.2
-Confusion[13](LS) [[230, 85, 203, 4, 78, 218, 129, 138, 93]]: Failed
- - On turn 5: RNG index b.1 vs e.8
- - On turn 5: RNG list b.[116, 107, 49, 162, 156, 200, 55, 248, 51] vs e.[69, 24, 246, 43, 13, 233, 20, 217, 0]
-Confusion[5](HP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 2: RNG index b.2 vs e.3
-Confusion[11](HS) [[213, 54, 39, 233, 206, 134, 94, 194, 124]]: Failed
- - On turn 3: RNG index b.4 vs e.5
-Confusion[14](Sub) [[93, 150, 161, 66, 181, 248, 191, 218, 88]]: Failed
- - On turn 2: RNG index b.3 vs e.4
-Confusion[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 2: RNG index b.6 vs e.7
-Confusion[1](Sub) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
- - On turn 4: RNG index b.2 vs e.3
+Confusion[10](LP) [[165, 16, 252, 172, 54, 251, 165, 251, 91]]: Failed
+ - On turn 7: RNG list b.[226, 89, 117, 229, 215, 80, 226, 80, 48] vs e.[60, 75, 199, 183, 121, 218, 60, 218, 186]
+ - On turn 7: P1 Health b.914 vs e.926
+ - On turn 7: P1 Speed b.120 vs e.150
+ - On turn 7: P2 Health b.984 vs e.850
 Confusion[5](LP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 2: RNG index b.0 vs e.1
-Confusion[8](HP) [[66, 114, 223, 195, 219, 244, 101, 240, 226]]: Failed
+Confusion[0](Sub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 2: RNG index b.3 vs e.4
+Confusion[6](LP) [[95, 54, 183, 228, 16, 70, 159, 53, 35]]: Failed
+ - On turn 2: RNG index b.5 vs e.6
+Confusion[13](HP) [[62, 239, 219, 10, 223, 241, 97, 205, 107]]: Failed
+ - On turn 2: RNG index b.0 vs e.8
+ - On turn 2: RNG list b.[227, 136, 100, 31, 56, 242, 34, 126, 52] vs e.[250, 27, 71, 6, 11, 253, 109, 25, 215]
+Confusion[7](LS) [[51, 54, 167, 35, 224, 174, 56, 59, 131]]: Failed
+ - On turn 2: RNG index b.2 vs e.3
+Confusion[8](HP) [[237, 251, 173, 155, 246, 167, 151, 65, 55]]: Failed
+ - On turn 4: RNG index b.2 vs e.3
+Confusion[10](HS) [[23, 63, 213, 190, 136, 158, 100, 88, 123]]: Failed
+ - On turn 2: RNG index b.4 vs e.5
+Confusion[9](HP) [[26, 172, 208, 214, 176, 224, 105, 95, 168]]: Failed
+ - On turn 6: RNG index b.4 vs e.5
+Confusion[9](Sub) [[24, 243, 113, 44, 8, 112, 5, 210, 221]]: Failed
+ - On turn 2: RNG index b.1 vs e.2
+Confusion[13](Sub) [[85, 163, 148, 0, 210, 199, 6, 13, 190]]: Failed
+ - On turn 2: RNG index b.5 vs e.6
+ - On turn 2: P2 Health b.612 vs e.727
+ - On turn 2: P2 Has substitute b.True vs e.False
+Confusion[7](HP) [[218, 131, 68, 196, 153, 198, 67, 251, 10]]: Failed
+ - On turn 3: RNG index b.7 vs e.6
+Confusion[12](LS) [[63, 57, 41, 90, 142, 251, 12, 148, 130]]: Failed
+ - On turn 6: RNG index b.8 vs e.2
+ - On turn 6: RNG list b.[5, 47, 159, 72, 220, 225, 106, 178, 48] vs e.[131, 157, 141, 14, 130, 255, 96, 104, 182]
+ - On turn 6: P1 Health b.974 vs e.968
+ - On turn 6: P2 Health b.719 vs e.853
+Confusion[7](Sub) [[240, 31, 192, 43, 233, 195, 80, 4, 27]]: Failed
+ - On turn 2: RNG index b.4 vs e.5
+Confusion[6](HP) [[226, 169, 231, 216, 26, 242, 232, 221, 77]]: Failed
+ - On turn 4: RNG index b.0 vs e.1
+Confusion[3](HP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 7: RNG index b.6 vs e.7
+Confusion[15](HS) [[173, 150, 241, 251, 121, 66, 86, 110, 60]]: Failed
+ - On turn 4: RNG index b.7 vs e.8
+Confusion[9](LS) [[117, 22, 108, 67, 184, 147, 205, 224, 163]]: Failed
+ - On turn 4: RNG index b.1 vs e.6
+ - On turn 4: P1 Health b.987 vs e.981
+ - On turn 4: P2 Health b.723 vs e.857
+Confusion[11](LP) [[247, 118, 46, 142, 113, 183, 8, 208, 17]]: Failed
+ - On turn 7: RNG index b.2 vs e.4
+ - On turn 7: RNG list b.[168, 147, 171, 139, 170, 104, 141, 245, 202] vs e.[187, 234, 34, 130, 85, 123, 28, 100, 245]
+ - On turn 7: P1 Health b.923 vs e.941
+ - On turn 7: P2 Health b.851 vs e.717
+Confusion[12](HS) [[27, 97, 59, 60, 82, 49, 72, 91, 192]]: Failed
+ - On turn 7: RNG index b.5 vs e.6
+Confusion[5](HS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 2: RNG index b.2 vs e.3
+Confusion[15](Sub) [[3, 188, 202, 249, 76, 18, 156, 2, 159]]: Failed
+ - On turn 2: RNG index b.4 vs e.5
+Confusion[8](Sub) [[222, 165, 252, 222, 67, 121, 82, 114, 123]]: Failed
+ - On turn 2: RNG index b.7 vs e.8
+Confusion[12](Sub) [[68, 200, 184, 197, 230, 156, 140, 43, 141]]: Failed
+ - On turn 2: RNG index b.3 vs e.4
+Confusion[12](LP) [[113, 89, 92, 133, 4, 250, 114, 191, 166]]: Failed
+ - On turn 3: P1 Health b.959 vs e.965
+Confusion[3](Sub) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 2: RNG index b.6 vs e.7
+Confusion[15](HP) [[174, 188, 145, 109, 33, 171, 197, 237, 172]]: Failed
  - On turn 3: RNG index b.2 vs e.3
-Confusion[14](HS) [[250, 162, 37, 62, 16, 203, 241, 252, 203]]: Failed
- - On turn 5: RNG index b.3 vs e.4
-Mimic[0](LS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 2: RNG index b.4 vs e.8
- - On turn 2: P2 Health b.999 vs e.998
-Mimic[3](HS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 1: RNG index b.3 vs e.1
- - On turn 1: RNG list b.[203, 203, 203, 203, 203, 203, 203, 203, 203] vs e.[248, 248, 248, 248, 248, 248, 248, 248, 248]
-Mimic[6](Sub) [[238, 20, 24, 209, 120, 129, 111, 29, 251]]: Failed
- - On turn 1: RNG index b.0 vs e.2
-Mimic[10](LP) [[114, 130, 225, 51, 210, 113, 134, 103, 117]]: Failed
- - On turn 1: RNG list b.[114, 130, 225, 51, 210, 113, 134, 103, 117] vs e.[40, 184, 255, 1, 136, 15, 28, 21, 115]
- - On turn 1: P1 Health b.987 vs e.986
-Mimic[13](HP) [[102, 33, 43, 22, 40, 38, 86, 229, 54]]: Failed
- - On turn 1: RNG index b.1 vs e.3
-Mimic[3](LP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 2: RNG index b.7 vs e.2
- - On turn 2: RNG list b.[203, 203, 203, 203, 203, 203, 203, 203, 203] vs e.[248, 248, 248, 248, 248, 248, 248, 248, 248]
- - On turn 2: P2 Health b.999 vs e.989
-Mimic[2](HS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 1: RNG index b.5 vs e.8
-Mimic[6](HP) [[11, 164, 88, 9, 86, 56, 101, 37, 133]]: Failed
- - On turn 1: RNG list b.[56, 53, 185, 46, 175, 25, 250, 186, 154] vs e.[25, 10, 158, 231, 108, 126, 227, 163, 3]
+Confusion[7](LP) [[117, 10, 97, 203, 142, 32, 244, 84, 171]]: Failed
+ - On turn 7: RNG index b.1 vs e.2
+Confusion[10](HP) [[142, 31, 161, 201, 46, 230, 172, 243, 114]]: Failed
+ - On turn 6: RNG index b.3 vs e.4
+Confusion[5](HP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 2: RNG index b.2 vs e.3
+Confusion[14](Sub) [[105, 3, 249, 5, 160, 224, 198, 145, 29]]: Failed
+ - On turn 2: RNG index b.8 vs e.0
+ - On turn 2: RNG list b.[14, 16, 222, 26, 33, 97, 223, 214, 146] vs e.[71, 81, 87, 131, 166, 230, 92, 47, 219]
+Confusion[5](LS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 2: RNG index b.0 vs e.1
+Confusion[11](Sub) [[239, 57, 120, 73, 9, 107, 23, 249, 66]]: Failed
+ - On turn 2: RNG index b.6 vs e.7
+Confusion[15](LP) [[125, 150, 249, 86, 84, 219, 15, 236, 58]]: Failed
+ - On turn 7: RNG index b.6 vs e.0
+ - On turn 7: P1 Health b.921 vs e.933
+ - On turn 7: P2 Health b.851 vs e.717
 Mimic[1](HP) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
  - On turn 1: RNG index b.3 vs e.4
-Mimic[5](Sub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 1: RNG index b.0 vs e.1
-Mimic[9](LS) [[70, 237, 134, 6, 122, 234, 72, 100, 138]]: Failed
- - On turn 1: RNG index b.4 vs e.1
- - On turn 1: RNG list b.[70, 237, 134, 6, 122, 234, 72, 100, 138] vs e.[220, 43, 28, 156, 240, 224, 14, 202, 128]
- - On turn 1: P1 Speed b.198 vs e.300
 Mimic[4](LS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 2: RNG index b.7 vs e.2
  - On turn 2: RNG list b.[215, 247, 215, 247, 215, 247, 215, 247, 215] vs e.[52, 212, 52, 212, 52, 212, 52, 212, 52]
  - On turn 2: P2 Health b.999 vs e.998
-Mimic[9](LP) [[148, 201, 74, 163, 131, 58, 66, 104, 155]]: Failed
- - On turn 1: RNG index b.4 vs e.3
- - On turn 1: RNG list b.[148, 201, 74, 163, 131, 58, 66, 104, 155] vs e.[229, 238, 115, 48, 144, 35, 75, 9, 8]
+Mimic[2](HS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 1: RNG index b.5 vs e.8
+Mimic[7](HS) [[110, 132, 217, 155, 94, 215, 66, 34, 143]]: Failed
+ - On turn 1: RNG index b.5 vs e.4
+ - On turn 1: RNG list b.[110, 132, 217, 155, 94, 215, 66, 34, 143] vs e.[39, 149, 62, 8, 215, 52, 75, 171, 204]
+Mimic[5](Sub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 1: RNG index b.0 vs e.1
+Mimic[10](Sub) [[61, 168, 69, 216, 149, 22, 36, 29, 217]]: Failed
+ - On turn 1: RNG index b.0 vs e.2
+Mimic[9](LP) [[18, 181, 215, 179, 150, 135, 248, 107, 144]]: Failed
+ - On turn 1: RNG index b.4 vs e.7
+ - On turn 1: RNG list b.[18, 181, 215, 179, 150, 135, 248, 107, 144] vs e.[91, 138, 52, 128, 239, 164, 217, 24, 209]
  - On turn 1: P1 Health b.988 vs e.987
-Mimic[12](HS) [[19, 122, 21, 41, 113, 54, 80, 228, 148]]: Failed
- - On turn 1: RNG index b.2 vs e.6
-Mimic[0](LP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 2: RNG index b.4 vs e.8
- - On turn 2: P2 Health b.999 vs e.989
-Mimic[7](HS) [[81, 85, 18, 164, 71, 18, 148, 217, 166]]: Failed
- - On turn 1: RNG index b.1 vs e.5
-Mimic[12](HP) [[4, 174, 114, 27, 103, 74, 29, 182, 56]]: Failed
- - On turn 1: RNG index b.0 vs e.7
-Mimic[1](LS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
- - On turn 1: RNG index b.3 vs e.4
-Mimic[3](HP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 1: RNG index b.3 vs e.1
- - On turn 1: RNG list b.[203, 203, 203, 203, 203, 203, 203, 203, 203] vs e.[248, 248, 248, 248, 248, 248, 248, 248, 248]
-Mimic[15](Sub) [[79, 63, 48, 168, 111, 24, 28, 162, 209]]: Failed
- - On turn 1: RNG index b.0 vs e.3
-Mimic[10](Sub) [[158, 64, 216, 202, 164, 222, 24, 36, 130]]: Failed
- - On turn 1: RNG index b.0 vs e.2
-Mimic[4](HS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 1: RNG index b.3 vs e.1
- - On turn 1: RNG list b.[215, 247, 215, 247, 215, 247, 215, 247, 215] vs e.[52, 212, 52, 212, 52, 212, 52, 212, 52]
-Mimic[0](Sub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 1: RNG index b.0 vs e.2
-Mimic[6](LS) [[165, 55, 201, 177, 16, 222, 73, 146, 182]]: Failed
- - On turn 1: RNG index b.5 vs e.1
- - On turn 1: RNG list b.[165, 55, 201, 177, 16, 222, 73, 146, 182] vs e.[35, 101, 167, 79, 150, 180, 39, 72, 204]
 Mimic[1](LP) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
  - On turn 1: RNG index b.3 vs e.4
-Mimic[15](LS) [[201, 116, 26, 125, 114, 209, 38, 28, 45]]: Failed
- - On turn 2: RNG index b.0 vs e.4
- - On turn 2: RNG list b.[167, 90, 144, 59, 40, 111, 188, 194, 107] vs e.[68, 195, 209, 40, 201, 44, 173, 203, 24]
- - On turn 2: P1 Speed b.198 vs e.150
+Mimic[14](LP) [[224, 81, 6, 175, 247, 153, 167, 185, 68]]: Failed
+ - On turn 1: RNG index b.7 vs e.4
+ - On turn 1: RNG list b.[224, 81, 6, 175, 247, 153, 167, 185, 68] vs e.[230, 239, 156, 29, 37, 247, 85, 23, 170]
+ - On turn 1: P1 Speed b.300 vs e.198
+Mimic[0](LS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 2: RNG index b.4 vs e.8
  - On turn 2: P2 Health b.999 vs e.998
-Mimic[7](Sub) [[180, 210, 230, 251, 2, 48, 126, 90, 97]]: Failed
- - On turn 1: RNG index b.0 vs e.6
-Mimic[9](HS) [[19, 2, 246, 109, 100, 138, 45, 212, 59]]: Failed
- - On turn 1: RNG index b.5 vs e.0
- - On turn 1: RNG list b.[96, 11, 207, 34, 245, 179, 226, 37, 40] vs e.[225, 56, 12, 171, 202, 128, 107, 186, 201]
+Mimic[12](HP) [[113, 146, 175, 87, 125, 120, 252, 119, 201]]: Failed
+ - On turn 1: RNG index b.2 vs e.4
 Mimic[4](HP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 1: RNG index b.3 vs e.1
  - On turn 1: RNG list b.[215, 247, 215, 247, 215, 247, 215, 247, 215] vs e.[52, 212, 52, 212, 52, 212, 52, 212, 52]
-Mimic[14](LP) [[247, 64, 87, 33, 38, 9, 80, 74, 16]]: Failed
- - On turn 2: RNG index b.8 vs e.2
- - On turn 2: RNG list b.[37, 70, 133, 63, 188, 231, 214, 64, 150] vs e.[163, 220, 3, 45, 98, 149, 236, 70, 172]
- - On turn 2: P1 Speed b.198 vs e.300
- - On turn 2: P2 Health b.999 vs e.988
+Mimic[15](LS) [[128, 127, 110, 143, 235, 71, 157, 144, 122]]: Failed
+ - On turn 1: RNG index b.7 vs e.1
+ - On turn 1: RNG list b.[128, 127, 110, 143, 235, 71, 157, 144, 122] vs e.[134, 109, 196, 253, 249, 245, 91, 22, 240]
+ - On turn 1: P1 Health b.991 vs e.993
+Mimic[3](HS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 1: RNG index b.3 vs e.1
+ - On turn 1: RNG list b.[203, 203, 203, 203, 203, 203, 203, 203, 203] vs e.[248, 248, 248, 248, 248, 248, 248, 248, 248]
+Mimic[1](HS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 1: RNG index b.3 vs e.4
+Mimic[7](LS) [[185, 220, 113, 170, 76, 137, 158, 23, 213]]: Failed
+ - On turn 2: RNG index b.2 vs e.1
+ - On turn 2: RNG list b.[116, 139, 76, 33, 59, 4, 69, 90, 32] vs e.[90, 153, 114, 63, 201, 106, 195, 208, 38]
+ - On turn 2: P2 Health b.999 vs e.998
+Mimic[6](Sub) [[155, 178, 1, 95, 35, 87, 92, 77, 205]]: Failed
+ - On turn 1: RNG index b.0 vs e.7
+Mimic[0](HP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 1: RNG index b.3 vs e.1
+ - On turn 1: RNG list b.[183, 190, 190, 190, 190, 190, 190, 190, 190] vs e.[148, 183, 183, 183, 183, 183, 183, 183, 183]
+Mimic[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 1: RNG index b.0 vs e.2
+Mimic[10](HS) [[132, 60, 142, 40, 94, 14, 147, 171, 150]]: Failed
+ - On turn 1: RNG index b.5 vs e.7
+Mimic[10](LP) [[231, 37, 110, 154, 26, 146, 128, 119, 160]]: Failed
+ - On turn 2: RNG index b.5 vs e.4
+ - On turn 2: RNG list b.[234, 48, 213, 81, 209, 105, 159, 58, 63] vs e.[147, 241, 42, 150, 22, 14, 28, 35, 60]
+ - On turn 2: P1 Health b.970 vs e.975
+ - On turn 2: P2 Health b.999 vs e.984
+Mimic[3](LS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 2: RNG index b.7 vs e.2
+ - On turn 2: RNG list b.[203, 203, 203, 203, 203, 203, 203, 203, 203] vs e.[248, 248, 248, 248, 248, 248, 248, 248, 248]
+ - On turn 2: P2 Health b.999 vs e.998
+Mimic[13](Sub) [[49, 63, 189, 211, 32, 53, 165, 154, 200]]: Failed
+ - On turn 1: RNG index b.0 vs e.5
+Mimic[8](LP) [[80, 88, 47, 129, 131, 90, 113, 13, 240]]: Failed
+ - On turn 2: RNG index b.8 vs e.7
+ - On turn 2: RNG list b.[145, 185, 236, 134, 144, 195, 54, 66, 177] vs e.[214, 158, 157, 159, 209, 208, 15, 75, 118]
+ - On turn 2: P2 Health b.999 vs e.989
+ - On turn 2: P2 Speed b.25 vs e.16
+Mimic[13](HP) [[232, 49, 204, 72, 133, 44, 109, 2, 147]]: Failed
+ - On turn 1: RNG index b.5 vs e.0
+ - On turn 1: RNG list b.[137, 246, 253, 105, 154, 221, 34, 11, 224] vs e.[174, 207, 242, 14, 3, 82, 171, 56, 97]
+Mimic[6](HS) [[44, 100, 194, 235, 242, 34, 93, 144, 127]]: Failed
+ - On turn 1: RNG index b.6 vs e.8
+Mimic[11](HP) [[103, 31, 243, 145, 155, 67, 107, 108, 116]]: Failed
+ - On turn 1: RNG index b.5 vs e.8
+Mimic[9](Sub) [[28, 149, 70, 213, 207, 126, 82, 232, 43]]: Failed
+ - On turn 1: RNG index b.0 vs e.8
+Mimic[2](Sub) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 1: RNG index b.0 vs e.1
+Mimic[14](LS) [[56, 132, 43, 178, 65, 206, 147, 56, 26]]: Failed
+ - On turn 2: RNG index b.6 vs e.5
+ - On turn 2: RNG list b.[165, 97, 244, 231, 130, 179, 124, 165, 111] vs e.[58, 230, 197, 132, 139, 128, 109, 58, 44]
+ - On turn 2: P2 Health b.999 vs e.998
+Mimic[13](LP) [[132, 133, 243, 177, 224, 168, 5, 141, 101]]: Failed
+ - On turn 1: RNG list b.[132, 133, 243, 177, 224, 168, 5, 141, 101] vs e.[234, 3, 193, 79, 230, 110, 131, 203, 227]
+ - On turn 1: P1 Health b.987 vs e.988
+Mimic[0](Sub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 1: RNG index b.0 vs e.2
+Mimic[6](LP) [[43, 224, 178, 171, 160, 177, 175, 202, 163]]: Failed
+ - On turn 2: RNG index b.6 vs e.2
+ - On turn 2: RNG list b.[57, 230, 104, 185, 166, 79, 29, 192, 241] vs e.[30, 127, 9, 158, 63, 140, 146, 193, 182]
+ - On turn 2: P1 Health b.976 vs e.975
+ - On turn 2: P1 Speed b.150 vs e.198
+ - On turn 2: P2 Health b.999 vs e.989
  - On turn 2: P2 Speed b.25 vs e.16
 Mimic[4](LP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 2: RNG index b.7 vs e.2
  - On turn 2: RNG list b.[215, 247, 215, 247, 215, 247, 215, 247, 215] vs e.[52, 212, 52, 212, 52, 212, 52, 212, 52]
  - On turn 2: P2 Health b.999 vs e.988
-Mimic[11](LP) [[189, 56, 185, 235, 61, 15, 119, 24, 39]]: Failed
- - On turn 1: RNG index b.5 vs e.6
- - On turn 1: P1 Health b.988 vs e.987
-Mimic[12](Sub) [[122, 87, 128, 153, 84, 7, 174, 179, 222]]: Failed
- - On turn 1: RNG index b.0 vs e.3
-Mimic[7](LS) [[212, 244, 185, 217, 147, 144, 42, 66, 41]]: Failed
- - On turn 1: RNG index b.5 vs e.6
-Mimic[7](HP) [[181, 60, 33, 134, 68, 51, 148, 158, 30]]: Failed
- - On turn 1: RNG index b.0 vs e.4
-Mimic[14](HP) [[46, 59, 29, 144, 197, 35, 127, 211, 133]]: Failed
- - On turn 1: RNG index b.7 vs e.2
- - On turn 1: RNG list b.[46, 59, 29, 144, 197, 35, 127, 211, 133] vs e.[231, 40, 146, 209, 218, 176, 124, 32, 154]
-Mimic[10](HS) [[142, 233, 57, 196, 236, 109, 118, 26, 37]]: Failed
- - On turn 1: RNG index b.4 vs e.1
- - On turn 1: RNG list b.[142, 233, 57, 196, 236, 109, 118, 26, 37] vs e.[228, 199, 151, 42, 18, 171, 140, 144, 163]
-Mimic[2](Sub) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 1: RNG index b.0 vs e.1
-Mimic[10](LS) [[37, 139, 233, 192, 21, 122, 96, 95, 94]]: Failed
- - On turn 1: RNG index b.5 vs e.6
- - On turn 1: RNG list b.[37, 139, 233, 192, 21, 122, 96, 95, 94] vs e.[186, 184, 142, 193, 106, 99, 225, 220, 215]
- - On turn 1: P1 Speed b.198 vs e.300
-Mimic[13](Sub) [[25, 107, 97, 235, 236, 30, 214, 39, 149]]: Failed
- - On turn 1: RNG index b.0 vs e.5
-Mimic[13](HS) [[20, 18, 109, 99, 132, 135, 49, 190, 35]]: Failed
- - On turn 1: RNG index b.1 vs e.8
-Mimic[6](LP) [[186, 60, 174, 22, 150, 99, 67, 61, 75]]: Failed
- - On turn 2: RNG index b.1 vs e.6
- - On turn 2: P2 Health b.999 vs e.988
-Mimic[9](HP) [[117, 68, 74, 66, 73, 192, 233, 81, 167]]: Failed
- - On turn 1: RNG list b.[74, 85, 115, 75, 110, 193, 142, 150, 68] vs e.[115, 170, 64, 120, 39, 198, 199, 239, 85]
-Mimic[2](HP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 1: RNG index b.5 vs e.8
-Mimic[12](LS) [[156, 46, 5, 224, 164, 3, 198, 188, 251]]: Failed
- - On turn 2: RNG list b.[66, 132, 131, 230, 10, 81, 92, 98, 137] vs e.[120, 234, 209, 124, 0, 239, 2, 152, 103]
- - On turn 2: P1 Health b.987 vs e.985
+Mimic[9](HP) [[236, 61, 4, 178, 178, 48, 162, 52, 216]]: Failed
+ - On turn 1: RNG index b.8 vs e.4
+ - On turn 1: RNG list b.[157, 50, 21, 123, 123, 241, 43, 5, 57] vs e.[18, 251, 106, 104, 104, 182, 216, 26, 30]
+Mimic[7](HP) [[16, 211, 7, 97, 173, 140, 225, 231, 246]]: Failed
+ - On turn 1: RNG index b.4 vs e.6
+Mimic[12](LS) [[199, 66, 192, 9, 77, 25, 82, 104, 206]]: Failed
+ - On turn 2: RNG index b.6 vs e.5
+ - On turn 2: RNG list b.[117, 120, 198, 231, 139, 119, 8, 46, 36] vs e.[74, 89, 223, 132, 184, 84, 41, 231, 181]
  - On turn 2: P2 Health b.999 vs e.998
-Mimic[5](LS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 1: P1 Health b.992 vs e.990
-Mimic[15](HS) [[218, 33, 208, 30, 199, 40, 132, 23, 111]]: Failed
- - On turn 1: RNG index b.7 vs e.5
- - On turn 1: RNG list b.[218, 33, 208, 30, 199, 40, 132, 23, 111] vs e.[67, 166, 17, 151, 228, 201, 149, 116, 44]
-Mimic[8](HS) [[205, 54, 196, 76, 233, 247, 40, 199, 241]]: Failed
- - On turn 1: RNG index b.7 vs e.6
- - On turn 1: RNG list b.[205, 54, 196, 76, 233, 247, 40, 199, 241] vs e.[2, 15, 213, 125, 142, 212, 201, 228, 182]
-Mimic[11](Sub) [[22, 192, 219, 214, 170, 43, 79, 46, 146]]: Failed
- - On turn 1: RNG index b.0 vs e.2
-Mimic[2](LS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 1: P1 Health b.992 vs e.990
-Mimic[15](LP) [[245, 213, 99, 52, 158, 198, 192, 176, 22]]: Failed
- - On turn 1: RNG index b.4 vs e.8
- - On turn 1: RNG list b.[245, 213, 99, 52, 158, 198, 192, 176, 22] vs e.[202, 42, 240, 5, 23, 223, 193, 113, 111]
- - On turn 1: P1 Health b.988 vs e.987
- - On turn 1: P1 Speed b.198 vs e.300
-Mimic[5](HS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 1: RNG index b.6 vs e.7
-Mimic[8](Sub) [[89, 75, 85, 3, 208, 128, 108, 12, 178]]: Failed
- - On turn 1: RNG index b.0 vs e.5
-Mimic[0](HP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+Mimic[1](Sub) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 1: RNG index b.0 vs e.1
+Mimic[10](LS) [[225, 198, 25, 111, 85, 247, 7, 163, 120]]: Failed
+ - On turn 1: RNG index b.8 vs e.4
+ - On turn 1: RNG list b.[225, 198, 25, 111, 85, 247, 7, 163, 120] vs e.[102, 223, 126, 44, 170, 212, 36, 48, 89]
+ - On turn 1: P1 Health b.991 vs e.993
+ - On turn 1: P1 Speed b.300 vs e.198
+Mimic[1](LS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 1: RNG index b.3 vs e.4
+Mimic[15](HS) [[67, 55, 122, 99, 161, 220, 106, 81, 204]]: Failed
+ - On turn 1: RNG index b.2 vs e.7
+Mimic[5](LP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 1: P1 Health b.986 vs e.980
+Mimic[13](HS) [[209, 84, 14, 162, 6, 228, 140, 113, 119]]: Failed
+ - On turn 1: RNG index b.0 vs e.3
+Mimic[4](HS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 1: RNG index b.3 vs e.1
- - On turn 1: RNG list b.[183, 190, 190, 190, 190, 190, 190, 190, 190] vs e.[148, 183, 183, 183, 183, 183, 183, 183, 183]
-Mimic[12](LP) [[251, 152, 90, 101, 234, 248, 15, 92, 111]]: Failed
- - On turn 2: RNG index b.8 vs e.6
- - On turn 2: RNG list b.[232, 249, 195, 250, 147, 217, 76, 205, 44] vs e.[137, 222, 208, 227, 224, 62, 125, 2, 221]
- - On turn 2: P1 Speed b.300 vs e.198
- - On turn 2: P2 Health b.999 vs e.988
-Mimic[15](HP) [[9, 117, 54, 186, 241, 176, 230, 66, 242]]: Failed
- - On turn 1: RNG index b.7 vs e.3
- - On turn 1: RNG list b.[9, 117, 54, 186, 241, 176, 230, 66, 242] vs e.[231, 115, 76, 48, 143, 54, 124, 120, 168]
-Mimic[3](LS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 1: RNG list b.[215, 247, 215, 247, 215, 247, 215, 247, 215] vs e.[52, 212, 52, 212, 52, 212, 52, 212, 52]
+Mimic[3](LP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 2: RNG index b.7 vs e.2
  - On turn 2: RNG list b.[203, 203, 203, 203, 203, 203, 203, 203, 203] vs e.[248, 248, 248, 248, 248, 248, 248, 248, 248]
+ - On turn 2: P2 Health b.999 vs e.989
+Mimic[8](HP) [[198, 102, 65, 244, 196, 190, 214, 171, 5]]: Failed
+ - On turn 1: RNG index b.2 vs e.8
+Mimic[7](Sub) [[252, 128, 200, 101, 113, 32, 55, 34, 241]]: Failed
+ - On turn 1: RNG index b.0 vs e.2
+Mimic[6](HP) [[169, 208, 150, 154, 222, 194, 11, 228, 175]]: Failed
+ - On turn 1: RNG index b.5 vs e.7
+Mimic[11](LS) [[240, 72, 123, 209, 166, 92, 125, 171, 194]]: Failed
+ - On turn 2: RNG index b.8 vs e.1
+ - On turn 2: RNG list b.[177, 105, 104, 22, 63, 205, 114, 88, 203] vs e.[79, 71, 46, 44, 45, 11, 40, 158, 217]
+ - On turn 2: P1 Speed b.300 vs e.198
  - On turn 2: P2 Health b.999 vs e.998
-Mimic[6](HS) [[47, 28, 176, 113, 243, 114, 29, 173, 3]]: Failed
- - On turn 1: RNG index b.7 vs e.1
- - On turn 1: RNG list b.[47, 28, 176, 113, 243, 114, 29, 173, 3] vs e.[236, 141, 113, 54, 192, 59, 146, 98, 16]
-Mimic[9](Sub) [[1, 107, 86, 148, 27, 85, 98, 208, 229]]: Failed
+Mimic[9](LS) [[31, 40, 179, 108, 221, 103, 204, 161, 102]]: Failed
+ - On turn 1: RNG index b.5 vs e.7
+ - On turn 1: P1 Health b.994 vs e.993
+Mimic[11](LP) [[108, 204, 227, 46, 101, 110, 125, 68, 204]]: Failed
+ - On turn 1: RNG index b.5 vs e.4
+ - On turn 1: RNG list b.[108, 204, 227, 46, 101, 110, 125, 68, 204] vs e.[29, 253, 112, 231, 250, 39, 114, 85, 253]
+Mimic[14](HS) [[204, 92, 159, 250, 3, 9, 104, 200, 129]]: Failed
+ - On turn 1: RNG index b.3 vs e.5
+Mimic[12](HS) [[206, 5, 200, 38, 94, 104, 49, 243, 88]]: Failed
+ - On turn 1: RNG index b.1 vs e.8
+Mimic[14](HP) [[208, 193, 6, 202, 53, 39, 145, 148, 155]]: Failed
+ - On turn 1: RNG index b.4 vs e.8
+Mimic[0](LP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 2: RNG index b.4 vs e.8
+ - On turn 2: P2 Health b.999 vs e.989
+Mimic[15](Sub) [[19, 217, 0, 103, 76, 233, 209, 247, 19]]: Failed
+ - On turn 1: RNG index b.0 vs e.3
+Mimic[3](HP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 1: RNG index b.3 vs e.1
+ - On turn 1: RNG list b.[203, 203, 203, 203, 203, 203, 203, 203, 203] vs e.[248, 248, 248, 248, 248, 248, 248, 248, 248]
+Mimic[6](LS) [[142, 247, 182, 178, 18, 3, 199, 0, 246]]: Failed
+ - On turn 1: RNG index b.4 vs e.3
+ - On turn 1: RNG list b.[142, 247, 182, 178, 18, 3, 199, 0, 246] vs e.[199, 212, 143, 123, 91, 16, 228, 1, 207]
+Mimic[9](HS) [[159, 27, 94, 11, 176, 38, 128, 106, 241]]: Failed
+ - On turn 1: RNG index b.2 vs e.4
+Mimic[2](LS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 1: P1 Health b.992 vs e.990
+Mimic[12](Sub) [[173, 106, 195, 120, 119, 14, 53, 59, 1]]: Failed
  - On turn 1: RNG index b.0 vs e.4
-Mimic[13](LP) [[119, 217, 7, 44, 17, 50, 25, 105, 187]]: Failed
- - On turn 1: RNG index b.4 vs e.2
- - On turn 1: RNG list b.[119, 217, 7, 44, 17, 50, 25, 105, 187] vs e.[84, 62, 36, 221, 86, 251, 126, 14, 168]
- - On turn 1: P1 Health b.987 vs e.988
+Mimic[5](HS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 1: RNG index b.6 vs e.7
+Mimic[8](Sub) [[9, 90, 161, 75, 42, 76, 70, 104, 16]]: Failed
+ - On turn 1: RNG index b.0 vs e.6
+Mimic[12](LP) [[116, 60, 96, 214, 52, 26, 53, 177, 148]]: Failed
+ - On turn 1: P1 Health b.987 vs e.982
+Mimic[15](HP) [[13, 157, 47, 120, 241, 209, 69, 136, 247]]: Failed
+ - On turn 1: RNG index b.7 vs e.3
+ - On turn 1: RNG list b.[13, 157, 47, 120, 241, 209, 69, 136, 247] vs e.[66, 18, 236, 89, 182, 22, 90, 169, 212]
 Mimic[0](HS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 1: RNG index b.3 vs e.1
  - On turn 1: RNG list b.[183, 190, 190, 190, 190, 190, 190, 190, 190] vs e.[148, 183, 183, 183, 183, 183, 183, 183, 183]
 Mimic[3](Sub) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 1: RNG index b.0 vs e.2
-Mimic[7](LP) [[156, 14, 134, 139, 181, 185, 173, 232, 250]]: Failed
- - On turn 1: RNG index b.7 vs e.2
- - On turn 1: RNG list b.[156, 14, 134, 139, 181, 185, 173, 232, 250] vs e.[66, 100, 28, 153, 179, 23, 235, 174, 112]
- - On turn 1: P1 Health b.988 vs e.987
-Mimic[10](HP) [[70, 140, 232, 104, 120, 66, 102, 185, 88]]: Failed
- - On turn 1: RNG list b.[95, 189, 137, 9, 89, 75, 255, 158, 185] vs e.[220, 178, 174, 46, 190, 120, 252, 23, 158]
-Mimic[13](LS) [[105, 37, 128, 211, 101, 154, 150, 234, 69]]: Failed
- - On turn 1: RNG index b.6 vs e.0
- - On turn 1: RNG list b.[105, 37, 128, 211, 101, 154, 150, 234, 69] vs e.[71, 163, 134, 161, 227, 16, 172, 224, 195]
+Mimic[7](LP) [[94, 76, 180, 49, 62, 171, 152, 252, 68]]: Failed
+ - On turn 2: RNG index b.0 vs e.6
+ - On turn 2: P1 Health b.976 vs e.977
+ - On turn 2: P2 Health b.999 vs e.988
+Mimic[10](HP) [[200, 212, 208, 71, 160, 67, 15, 243, 248]]: Failed
+ - On turn 1: RNG index b.1 vs e.4
+Mimic[13](LS) [[146, 53, 191, 173, 249, 232, 152, 186, 221]]: Failed
+ - On turn 1: RNG index b.5 vs e.2
+ - On turn 1: RNG list b.[146, 53, 191, 173, 249, 232, 152, 186, 221] vs e.[219, 10, 188, 98, 222, 137, 249, 163, 82]
+ - On turn 1: P1 Speed b.300 vs e.198
 Mimic[2](LP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 1: P1 Health b.986 vs e.980
 Mimic[5](HP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 1: RNG index b.6 vs e.7
-Mimic[8](LS) [[47, 128, 52, 169, 32, 150, 165, 171, 162]]: Failed
- - On turn 2: RNG index b.1 vs e.7
- - On turn 2: P1 Speed b.198 vs e.300
- - On turn 2: P2 Health b.999 vs e.998
- - On turn 2: P2 Speed b.25 vs e.16
-Mimic[11](HS) [[123, 242, 26, 59, 138, 239, 198, 224, 131]]: Failed
- - On turn 1: RNG index b.8 vs e.1
- - On turn 1: RNG list b.[123, 242, 26, 59, 138, 239, 198, 224, 131] vs e.[104, 187, 131, 40, 179, 172, 223, 97, 144]
-Mimic[14](Sub) [[70, 146, 232, 132, 236, 5, 48, 120, 45]]: Failed
+Mimic[8](LS) [[50, 241, 38, 222, 120, 101, 222, 163, 178]]: Failed
+ - On turn 1: RNG index b.4 vs e.3
+ - On turn 1: RNG list b.[50, 241, 38, 222, 120, 101, 222, 163, 178] vs e.[251, 182, 191, 87, 89, 250, 87, 48, 123]
+Mimic[11](HS) [[11, 214, 192, 28, 248, 252, 91, 30, 214]]: Failed
+ - On turn 1: RNG index b.5 vs e.7
+Mimic[14](Sub) [[133, 234, 241, 192, 216, 95, 169, 99, 5]]: Failed
+ - On turn 1: RNG index b.0 vs e.4
+Mimic[2](HP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 1: RNG index b.5 vs e.8
+Mimic[5](LS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 1: P1 Health b.992 vs e.990
+Mimic[8](HS) [[148, 152, 185, 63, 178, 29, 30, 8, 28]]: Failed
+ - On turn 1: RNG index b.5 vs e.8
+Mimic[11](Sub) [[33, 21, 20, 25, 221, 47, 70, 61, 49]]: Failed
  - On turn 1: RNG index b.0 vs e.3
-Mimic[1](HS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
- - On turn 1: RNG index b.3 vs e.4
-Mimic[1](Sub) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
- - On turn 1: RNG index b.0 vs e.1
-Mimic[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 1: RNG index b.0 vs e.2
-Mimic[5](LP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 1: P1 Health b.986 vs e.980
-Mimic[8](LP) [[185, 122, 105, 18, 197, 44, 169, 92, 85]]: Failed
- - On turn 1: RNG index b.7 vs e.8
- - On turn 1: RNG list b.[185, 122, 105, 18, 197, 44, 169, 92, 85] vs e.[158, 99, 14, 91, 218, 221, 78, 205, 170]
- - On turn 1: P1 Health b.988 vs e.987
-Mimic[8](HP) [[182, 153, 11, 23, 34, 210, 241, 150, 171]]: Failed
- - On turn 1: RNG index b.0 vs e.3
-Mimic[11](HP) [[166, 154, 103, 126, 251, 63, 179, 13, 227]]: Failed
- - On turn 1: RNG index b.7 vs e.3
- - On turn 1: RNG list b.[166, 154, 103, 126, 251, 63, 179, 13, 227] vs e.[63, 3, 4, 119, 232, 60, 128, 66, 112]
-Mimic[11](LS) [[110, 171, 114, 138, 73, 187, 134, 230, 86]]: Failed
- - On turn 1: RNG index b.8 vs e.6
- - On turn 1: RNG list b.[110, 171, 114, 138, 73, 187, 134, 230, 86] vs e.[39, 88, 59, 179, 110, 168, 159, 127, 175]
- - On turn 1: P1 Health b.993 vs e.994
-Mimic[14](LS) [[230, 167, 67, 185, 190, 127, 208, 215, 80]]: Failed
- - On turn 1: RNG index b.6 vs e.7
- - On turn 1: RNG list b.[230, 167, 67, 185, 190, 127, 208, 215, 80] vs e.[127, 68, 80, 158, 183, 124, 17, 52, 145]
- - On turn 1: P1 Speed b.300 vs e.198
-Mimic[14](HS) [[252, 161, 104, 116, 151, 4, 25, 44, 141]]: Failed
- - On turn 1: RNG index b.3 vs e.5
-Metronome[15](HS) [[30, 107, 164, 142, 54, 178, 24, 47, 210]]: Failed
- - On turn 5: P1 Attack b.300 vs e.999
- - On turn 5: P1 Defense b.100 vs e.999
- - On turn 5: P1 Special b.450 vs e.999
- - On turn 5: P1 Speed b.198 vs e.999
- - On turn 5: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Metronome[11](Sub) [[74, 208, 0, 5, 252, 59, 248, 12, 129]]: Failed
- - On turn 7: P2 Health b.501 vs e.750
- - On turn 7: P2 Has substitute b.True vs e.False
-Metronome[4](HS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 5: RNG list b.[138, 42, 138, 42, 138, 42, 138, 42, 138] vs e.[179, 211, 179, 211, 179, 211, 179, 211, 179]
-Metronome[8](LS) [[121, 130, 180, 243, 112, 176, 32, 106, 94]]: Failed
- - On turn 3: RNG index b.4 vs e.1
- - On turn 3: RNG list b.[26, 247, 81, 92, 61, 125, 173, 255, 131] vs e.[131, 212, 150, 205, 50, 114, 98, 252, 144]
- - On turn 3: P1 Health b.981 vs e.980
+Mimic[15](LP) [[158, 103, 150, 8, 123, 4, 89, 234, 111]]: Failed
+ - On turn 2: RNG index b.0 vs e.7
+ - On turn 2: RNG list b.[69, 106, 93, 7, 46, 19, 148, 97, 82] vs e.[90, 19, 210, 36, 231, 96, 229, 230, 155]
+ - On turn 2: P1 Health b.976 vs e.975
+ - On turn 2: P2 Health b.999 vs e.989
+Metronome[4](LP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 6: RNG index b.3 vs e.5
+Metronome[8](LS) [[102, 121, 43, 58, 173, 77, 20, 250, 110]]: Failed
+ - On turn 2: RNG index b.0 vs e.7
+ - On turn 2: P1 Health b.992 vs e.986
+ - On turn 2: P2 Health b.977 vs e.998
 Metronome[3](HS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 6: RNG index b.2 vs e.3
  - On turn 6: RNG list b.[255, 255, 255, 255, 255, 255, 255, 255, 255] vs e.[237, 237, 237, 237, 237, 237, 237, 237, 237]
  - On turn 6: P1 Health b.967 vs e.961
-Metronome[15](HP) [[88, 175, 76, 51, 144, 158, 198, 69, 26]]: Failed
- - On turn 4: RNG index b.5 vs e.4
- - On turn 4: P2 Health b.971 vs e.995
-Metronome[11](LP) [[155, 91, 92, 2, 223, 28, 217, 60, 127]]: Failed
- - On turn 6: RNG index b.1 vs e.3
- - On turn 6: P1 Speed b.198 vs e.150
+Metronome[4](HP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 5: RNG list b.[138, 42, 138, 42, 138, 42, 138, 42, 138] vs e.[179, 211, 179, 211, 179, 211, 179, 211, 179]
+Metronome[13](HS) [[1, 93, 71, 126, 174, 10, 26, 199, 119]]: Failed
+ - On turn 2: P1 Attack b.300 vs e.999
+ - On turn 2: P1 Defense b.100 vs e.999
+ - On turn 2: P1 Special b.300 vs e.999
+ - On turn 2: P1 Speed b.150 vs e.999
+ - On turn 2: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Metronome[10](HS) [[104, 12, 41, 149, 76, 125, 27, 150, 180]]: Failed
+ - On turn 1: RNG index b.3 vs e.0
+ - On turn 1: RNG list b.[46, 50, 7, 147, 114, 59, 169, 172, 154] vs e.[231, 251, 36, 224, 59, 40, 78, 93, 3]
+Metronome[14](Sub) [[218, 75, 3, 65, 61, 129, 112, 196, 60]]: Failed
+ - On turn 7: RNG index b.8 vs e.5
+ - On turn 7: RNG list b.[236, 229, 93, 139, 103, 203, 50, 38, 94] vs e.[157, 122, 210, 184, 4, 248, 251, 191, 215]
+Metronome[10](LP) [[23, 155, 183, 30, 126, 54, 145, 49, 53]]: Failed
+ - On turn 5: RNG index b.8 vs e.4
+ - On turn 5: RNG list b.[86, 138, 118, 145, 113, 201, 200, 232, 156] vs e.[175, 179, 79, 214, 54, 238, 233, 137, 13]
 Metronome[3](HP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 6: RNG index b.2 vs e.3
  - On turn 6: RNG list b.[255, 255, 255, 255, 255, 255, 255, 255, 255] vs e.[237, 237, 237, 237, 237, 237, 237, 237, 237]
  - On turn 6: P1 Health b.952 vs e.946
-Metronome[6](LS) [[212, 185, 21, 47, 204, 35, 95, 74, 73]]: Failed
- - On turn 4: RNG index b.2 vs e.5
- - On turn 4: RNG list b.[143, 208, 252, 142, 39, 114, 254, 77, 32] vs e.[204, 17, 237, 199, 196, 59, 247, 130, 161]
- - On turn 4: P1 Defense b.150 vs e.100
- - On turn 4: P2 Health b.804 vs e.803
-Metronome[9](LP) [[167, 171, 203, 24, 190, 0, 169, 18, 176]]: Failed
- - On turn 5: P1 Health b.966 vs e.930
- - On turn 5: P1 Attack b.300 vs e.999
- - On turn 5: P1 Defense b.100 vs e.25
- - On turn 5: P1 Special b.300 vs e.999
- - On turn 5: P1 Speed b.198 vs e.25
- - On turn 5: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Metronome[11](HP) [[98, 37, 193, 109, 82, 185, 109, 251, 104]]: Failed
+ - On turn 7: RNG list b.[154, 253, 25, 69, 138, 17, 69, 19, 224] vs e.[3, 242, 126, 90, 179, 86, 90, 96, 97]
 Metronome[3](LP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 6: RNG index b.2 vs e.3
  - On turn 6: RNG list b.[255, 255, 255, 255, 255, 255, 255, 255, 255] vs e.[237, 237, 237, 237, 237, 237, 237, 237, 237]
  - On turn 6: P1 Health b.958 vs e.952
-Metronome[12](Sub) [[200, 169, 9, 67, 247, 172, 113, 215, 212]]: Failed
- - On turn 3: RNG index b.5 vs e.6
 Metronome[4](LS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 6: RNG index b.3 vs e.5
-Metronome[10](Sub) [[181, 91, 5, 113, 37, 46, 159, 241, 51]]: Failed
- - On turn 3: RNG index b.1 vs e.6
-Metronome[15](Sub) [[252, 10, 216, 161, 4, 231, 218, 60, 113]]: Failed
- - On turn 2: RNG index b.2 vs e.3
-Metronome[4](LP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 6: RNG index b.3 vs e.5
-Metronome[4](HP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+Metronome[10](Sub) [[234, 124, 167, 148, 91, 161, 239, 133, 84]]: Failed
+ - On turn 6: RNG index b.6 vs e.7
+Metronome[14](LP) [[212, 175, 48, 118, 144, 83, 201, 1, 12]]: Failed
+ - On turn 3: P2 Health b.977 vs e.999
+Metronome[4](HS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 5: RNG list b.[138, 42, 138, 42, 138, 42, 138, 42, 138] vs e.[179, 211, 179, 211, 179, 211, 179, 211, 179]
-Metronome[7](HP) [[60, 132, 17, 205, 213, 227, 144, 237, 72]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Metronome[0](HS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 258: RNG index b.2 vs e.0
- - On turn 258: P1 PPs b.[6, 0, 0, 0] vs e.[7, 0, 0, 0]
- - On turn 258: P2 Health b.590 vs e.589
+Metronome[7](Sub) [[66, 70, 99, 3, 123, 11, 217, 199, 147]]: Failed
+ - On turn 4: P1 Health b.713 vs e.962
+ - On turn 4: P1 Has substitute b.True vs e.False
 Metronome[0](HP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 258: RNG index b.2 vs e.0
  - On turn 258: P1 PPs b.[6, 0, 0, 0] vs e.[7, 0, 0, 0]
@@ -856,313 +836,245 @@ Metronome[3](LS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 6: RNG index b.2 vs e.3
  - On turn 6: RNG list b.[255, 255, 255, 255, 255, 255, 255, 255, 255] vs e.[237, 237, 237, 237, 237, 237, 237, 237, 237]
  - On turn 6: P1 Health b.969 vs e.963
-Dream_Eater[2](LP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 1: RNG index b.5 vs e.7
- - On turn 1: P1 Health b.986 vs e.980
-Dream_Eater[5](HP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 1: RNG index b.6 vs e.0
- - On turn 1: RNG list b.[255, 0, 0, 255, 0, 0, 255, 0, 255] vs e.[252, 1, 1, 252, 1, 1, 252, 1, 252]
-Dream_Eater[8](LS) [[218, 8, 54, 203, 158, 157, 108, 88, 46]]: Failed
- - On turn 1: RNG index b.6 vs e.1
- - On turn 1: RNG list b.[218, 8, 54, 203, 158, 157, 108, 88, 46] vs e.[80, 206, 76, 217, 116, 91, 146, 158, 132]
- - On turn 1: P1 Speed b.300 vs e.198
-Dream_Eater[11](HS) [[102, 114, 157, 230, 141, 161, 214, 97, 153]]: Failed
+Metronome[0](HS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 258: RNG index b.2 vs e.0
+ - On turn 258: P1 PPs b.[6, 0, 0, 0] vs e.[7, 0, 0, 0]
+ - On turn 258: P2 Health b.590 vs e.589
+Metronome[13](LP) [[207, 206, 247, 8, 14, 140, 208, 20, 203]]: Failed
+ - On turn 5: RNG index b.0 vs e.4
+ - On turn 5: RNG list b.[251, 138, 163, 36, 202, 104, 108, 112, 55] vs e.[232, 179, 48, 181, 243, 9, 29, 49, 20]
+ - On turn 5: P1 Health b.999 vs e.988
+ - On turn 5: P2 Status b.32 (Frozen) vs e.0 (OK)
+Dream_Eater[0](LP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 1: RNG index b.3 vs e.4
+ - On turn 1: RNG list b.[183, 190, 190, 190, 190, 190, 190, 190, 190] vs e.[148, 183, 183, 183, 183, 183, 183, 183, 183]
+ - On turn 1: P1 Health b.983 vs e.988
+Dream_Eater[3](HP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 1: RNG index b.3 vs e.5
- - On turn 1: RNG list b.[255, 59, 18, 127, 194, 38, 47, 230, 254] vs e.[252, 40, 91, 124, 203, 191, 236, 127, 247]
+Dream_Eater[6](LS) [[191, 121, 197, 68, 24, 120, 9, 206, 145]]: Failed
+ - On turn 1: RNG index b.5 vs e.4
+ - On turn 1: RNG list b.[191, 121, 197, 68, 24, 120, 9, 206, 145] vs e.[173, 215, 67, 170, 94, 190, 231, 36, 47]
+ - On turn 1: P1 Speed b.198 vs e.300
+Dream_Eater[9](HS) [[143, 68, 192, 107, 17, 196, 115, 99, 157]]: Failed
+ - On turn 1: RNG index b.5 vs e.1
+ - On turn 1: RNG list b.[204, 85, 193, 24, 86, 213, 64, 240, 18] vs e.[253, 170, 198, 121, 175, 42, 65, 177, 91]
+Dream_Eater[12](Sub) [[216, 54, 23, 170, 110, 131, 243, 204, 235]]: Failed
+ - On turn 1: RNG index b.0 vs e.7
 Dream_Eater[1](LP) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
  - On turn 1: RNG index b.3 vs e.5
-Dream_Eater[1](LS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
- - On turn 1: RNG index b.3 vs e.5
-Dream_Eater[14](Sub) [[112, 69, 196, 77, 136, 161, 33, 227, 227]]: Failed
- - On turn 1: RNG index b.0 vs e.8
 Dream_Eater[4](HP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 1: RNG index b.3 vs e.5
-Dream_Eater[4](HS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 1: RNG index b.3 vs e.5
-Dream_Eater[7](LS) [[9, 200, 19, 64, 6, 25, 108, 152, 189]]: Failed
- - On turn 1: RNG index b.2 vs e.4
- - On turn 1: P1 Speed b.300 vs e.198
-Dream_Eater[7](Sub) [[126, 66, 198, 199, 135, 91, 138, 80, 2]]: Failed
- - On turn 1: RNG index b.0 vs e.4
-Dream_Eater[10](HS) [[205, 15, 165, 191, 56, 8, 144, 7, 55]]: Failed
- - On turn 1: RNG index b.6 vs e.7
- - On turn 1: RNG list b.[205, 15, 165, 191, 56, 8, 144, 7, 55] vs e.[2, 76, 58, 188, 25, 41, 209, 36, 20]
-Dream_Eater[11](LP) [[231, 10, 27, 81, 77, 78, 73, 25, 186]]: Failed
- - On turn 1: RNG index b.6 vs e.2
- - On turn 1: RNG list b.[149, 0, 169, 239, 139, 164, 39, 119, 48] vs e.[147, 6, 135, 93, 153, 10, 213, 165, 182]
- - On turn 1: P1 Speed b.300 vs e.198
-Dream_Eater[13](Sub) [[13, 65, 126, 148, 50, 215, 245, 218, 163]]: Failed
- - On turn 1: RNG index b.0 vs e.6
-Dream_Eater[14](HP) [[98, 159, 212, 15, 224, 129, 147, 104, 163]]: Failed
- - On turn 1: RNG index b.3 vs e.0
- - On turn 1: RNG list b.[235, 28, 37, 76, 97, 134, 224, 9, 48] vs e.[249, 194, 163, 114, 127, 28, 230, 231, 182]
+Dream_Eater[7](LS) [[19, 13, 82, 67, 138, 206, 179, 73, 38]]: Failed
+ - On turn 1: RNG index b.0 vs e.7
+ - On turn 1: P1 Speed b.198 vs e.300
 Dream_Eater[1](HP) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
  - On turn 1: RNG index b.3 vs e.5
+Dream_Eater[10](HS) [[66, 3, 67, 167, 59, 12, 20, 70, 195]]: Failed
+ - On turn 1: RNG index b.2 vs e.5
+ - On turn 1: RNG list b.[75, 16, 80, 68, 40, 61, 101, 95, 208] vs e.[120, 81, 145, 85, 201, 50, 250, 220, 17]
 Dream_Eater[4](LS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 1: RNG index b.3 vs e.5
  - On turn 1: P1 Health b.991 vs e.993
-Dream_Eater[7](HS) [[5, 127, 247, 251, 212, 56, 168, 116, 115]]: Failed
- - On turn 1: RNG index b.5 vs e.8
- - On turn 1: RNG list b.[5, 127, 247, 251, 212, 56, 168, 116, 115] vs e.[144, 34, 186, 174, 163, 119, 39, 195, 70]
-Dream_Eater[1](HS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
- - On turn 1: RNG index b.3 vs e.5
-Dream_Eater[10](Sub) [[26, 34, 87, 228, 6, 118, 64, 3, 137]]: Failed
- - On turn 1: RNG index b.0 vs e.1
- - On turn 1: RNG list b.[26, 34, 87, 228, 6, 118, 64, 3, 137] vs e.[209, 185, 154, 115, 13, 189, 95, 150, 4]
-Dream_Eater[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 1: RNG index b.0 vs e.1
- - On turn 1: RNG list b.[160, 64, 160, 64, 160, 64, 160, 64, 160] vs e.[215, 247, 215, 247, 215, 247, 215, 247, 215]
-Dream_Eater[0](HS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+Dream_Eater[13](Sub) [[27, 41, 235, 223, 61, 126, 61, 87, 6]]: Failed
+ - On turn 1: RNG index b.0 vs e.3
+Dream_Eater[7](HS) [[217, 71, 19, 204, 18, 41, 66, 225, 85]]: Failed
+ - On turn 1: RNG index b.1 vs e.4
+Dream_Eater[0](HP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 1: RNG index b.3 vs e.2
  - On turn 1: RNG list b.[183, 190, 190, 190, 190, 190, 190, 190, 190] vs e.[148, 183, 183, 183, 183, 183, 183, 183, 183]
-Dream_Eater[14](LP) [[82, 45, 111, 228, 46, 33, 163, 243, 12]]: Failed
- - On turn 1: RNG index b.1 vs e.7
- - On turn 1: P1 Speed b.300 vs e.198
-Dream_Eater[8](LP) [[231, 215, 223, 16, 46, 110, 244, 128, 226]]: Failed
- - On turn 1: RNG index b.4 vs e.7
- - On turn 1: RNG list b.[231, 215, 223, 16, 46, 110, 244, 128, 226] vs e.[132, 52, 92, 81, 231, 39, 197, 129, 107]
- - On turn 1: P1 Health b.988 vs e.987
- - On turn 1: P1 Speed b.198 vs e.300
-Dream_Eater[3](Sub) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 1: RNG index b.0 vs e.1
- - On turn 1: RNG list b.[128, 128, 128, 128, 128, 128, 128, 128, 128] vs e.[203, 203, 203, 203, 203, 203, 203, 203, 203]
-Dream_Eater[11](HP) [[228, 18, 175, 5, 184, 148, 96, 71, 96]]: Failed
- - On turn 1: RNG list b.[117, 91, 108, 26, 153, 229, 225, 100, 225] vs e.[74, 200, 29, 131, 254, 122, 102, 245, 102]
-Dream_Eater[7](LP) [[64, 134, 181, 178, 42, 215, 22, 244, 158]]: Failed
- - On turn 1: RNG index b.5 vs e.8
- - On turn 1: P1 Health b.983 vs e.988
- - On turn 1: P1 Speed b.198 vs e.300
-Dream_Eater[14](LS) [[141, 227, 160, 21, 31, 148, 4, 151, 194]]: Failed
- - On turn 1: RNG index b.4 vs e.8
- - On turn 1: RNG list b.[141, 227, 160, 21, 31, 148, 4, 151, 194] vs e.[194, 112, 33, 106, 156, 229, 21, 244, 203]
- - On turn 1: P1 Health b.993 vs e.991
- - On turn 1: P1 Speed b.198 vs e.300
-Dream_Eater[10](HP) [[209, 195, 124, 211, 84, 200, 40, 165, 187]]: Failed
- - On turn 1: RNG index b.4 vs e.0
- - On turn 1: RNG list b.[209, 195, 124, 211, 84, 200, 40, 165, 187] vs e.[22, 208, 109, 32, 165, 233, 201, 58, 168]
-Dream_Eater[13](LS) [[135, 100, 13, 38, 196, 161, 60, 186, 153]]: Failed
- - On turn 1: RNG index b.4 vs e.6
- - On turn 1: P1 Health b.993 vs e.992
- - On turn 1: P1 Speed b.300 vs e.198
-Dream_Eater[2](LS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+Dream_Eater[3](LS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 1: RNG index b.3 vs e.5
+ - On turn 1: P1 Health b.991 vs e.993
+Dream_Eater[10](Sub) [[112, 242, 38, 64, 0, 51, 140, 44, 6]]: Failed
+ - On turn 1: RNG index b.0 vs e.2
+ - On turn 1: RNG list b.[112, 242, 38, 64, 0, 51, 140, 44, 6] vs e.[49, 187, 191, 65, 1, 0, 189, 221, 31]
+Dream_Eater[2](LP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 1: RNG index b.5 vs e.7
- - On turn 1: P1 Health b.992 vs e.990
-Dream_Eater[5](HS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 1: P1 Health b.986 vs e.980
+Dream_Eater[6](HS) [[120, 15, 19, 104, 82, 244, 69, 85, 31]]: Failed
+ - On turn 1: RNG index b.8 vs e.3
+ - On turn 1: RNG list b.[89, 76, 96, 9, 155, 197, 90, 170, 156] vs e.[190, 125, 225, 46, 8, 218, 195, 83, 13]
+Dream_Eater[14](LP) [[9, 140, 114, 62, 234, 69, 228, 208, 222]]: Failed
+ - On turn 1: RNG index b.4 vs e.3
+ - On turn 1: RNG list b.[46, 189, 59, 55, 147, 90, 117, 17, 87] vs e.[231, 178, 40, 20, 224, 195, 74, 86, 180]
+ - On turn 1: P1 Health b.988 vs e.987
+Dream_Eater[5](HP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 1: RNG index b.6 vs e.0
  - On turn 1: RNG list b.[255, 0, 0, 255, 0, 0, 255, 0, 255] vs e.[252, 1, 1, 252, 1, 1, 252, 1, 252]
-Dream_Eater[8](Sub) [[123, 31, 167, 132, 210, 126, 177, 247, 97]]: Failed
- - On turn 1: RNG index b.0 vs e.8
-Dream_Eater[12](LP) [[230, 59, 78, 86, 198, 22, 116, 117, 14]]: Failed
- - On turn 1: RNG index b.7 vs e.4
- - On turn 1: RNG list b.[127, 40, 135, 175, 223, 111, 69, 74, 71] vs e.[124, 201, 164, 108, 92, 44, 90, 115, 100]
+Dream_Eater[9](Sub) [[81, 222, 142, 42, 181, 215, 57, 155, 64]]: Failed
+ - On turn 1: RNG index b.0 vs e.5
+Dream_Eater[8](LS) [[134, 242, 168, 73, 83, 237, 125, 127, 92]]: Failed
+ - On turn 1: RNG index b.8 vs e.4
+ - On turn 1: RNG list b.[134, 242, 168, 73, 83, 237, 125, 127, 92] vs e.[159, 187, 73, 110, 160, 162, 114, 124, 205]
+Dream_Eater[13](LP) [[1, 75, 58, 105, 49, 230, 146, 203, 56]]: Failed
+ - On turn 1: RNG index b.1 vs e.0
+ - On turn 1: RNG list b.[6, 120, 35, 14, 246, 127, 219, 248, 25] vs e.[31, 89, 176, 71, 207, 124, 72, 217, 126]
+ - On turn 1: P1 Health b.982 vs e.987
+Dream_Eater[11](HS) [[240, 78, 197, 228, 26, 51, 161, 149, 99]]: Failed
+ - On turn 1: RNG index b.5 vs e.7
+ - On turn 1: RNG list b.[240, 78, 197, 228, 26, 51, 161, 149, 99] vs e.[118, 164, 67, 74, 144, 1, 191, 147, 177]
+Dream_Eater[1](LS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 1: RNG index b.3 vs e.5
+Dream_Eater[14](Sub) [[131, 44, 10, 242, 1, 210, 186, 73, 176]]: Failed
+ - On turn 1: RNG index b.0 vs e.2
+ - On turn 1: RNG list b.[131, 44, 10, 242, 1, 210, 186, 73, 176] vs e.[144, 221, 51, 187, 6, 27, 163, 110, 113]
+Dream_Eater[4](HS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 1: RNG index b.3 vs e.5
+Dream_Eater[2](Sub) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 1: RNG index b.0 vs e.3
+Dream_Eater[7](Sub) [[133, 87, 243, 182, 168, 38, 28, 67, 178]]: Failed
+ - On turn 1: RNG index b.0 vs e.3
+Dream_Eater[6](LP) [[212, 89, 118, 72, 219, 17, 109, 56, 36]]: Failed
+ - On turn 1: RNG index b.7 vs e.2
+ - On turn 1: RNG list b.[212, 89, 118, 72, 219, 17, 109, 56, 36] vs e.[186, 183, 140, 14, 105, 175, 171, 126, 138]
  - On turn 1: P1 Health b.987 vs e.988
+Dream_Eater[11](LP) [[227, 179, 65, 90, 192, 114, 226, 155, 238]]: Failed
+ - On turn 1: RNG index b.4 vs e.6
+ - On turn 1: RNG list b.[227, 179, 65, 90, 192, 114, 226, 155, 238] vs e.[112, 128, 70, 195, 193, 59, 107, 8, 167]
+ - On turn 1: P1 Health b.988 vs e.983
+ - On turn 1: P1 Speed b.300 vs e.198
+Dream_Eater[1](Sub) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 1: RNG index b.0 vs e.2
+Dream_Eater[9](HP) [[157, 113, 18, 186, 2, 191, 78, 213, 80]]: Failed
+ - On turn 1: RNG list b.[157, 113, 18, 186, 2, 191, 78, 213, 80] vs e.[91, 15, 200, 48, 56, 173, 164, 211, 214]
+Dream_Eater[14](HP) [[101, 100, 189, 248, 203, 169, 245, 239, 232]]: Failed
+ - On turn 1: RNG index b.5 vs e.7
+Dream_Eater[5](LP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 1: RNG index b.6 vs e.0
+ - On turn 1: RNG list b.[255, 0, 0, 255, 0, 0, 255, 0, 255] vs e.[252, 1, 1, 252, 1, 1, 252, 1, 252]
+ - On turn 1: P1 Health b.986 vs e.980
  - On turn 1: P1 Speed b.198 vs e.300
-Dream_Eater[15](HP) [[189, 6, 181, 243, 158, 249, 167, 246, 49]]: Failed
- - On turn 1: RNG index b.5 vs e.8
- - On turn 1: RNG list b.[189, 6, 181, 243, 158, 249, 167, 246, 49] vs e.[178, 31, 138, 192, 23, 222, 68, 207, 246]
+Dream_Eater[12](LS) [[134, 234, 169, 246, 88, 186, 252, 173, 209]]: Failed
+ - On turn 1: RNG index b.2 vs e.6
+Dream_Eater[8](HP) [[9, 75, 207, 252, 195, 224, 232, 14, 234]]: Failed
+ - On turn 1: RNG index b.5 vs e.4
+ - On turn 1: RNG list b.[9, 75, 207, 252, 195, 224, 232, 14, 234] vs e.[46, 120, 12, 237, 208, 97, 137, 71, 147]
+Dream_Eater[15](HS) [[121, 149, 161, 151, 247, 99, 214, 215, 155]]: Failed
+ - On turn 1: RNG index b.7 vs e.1
+ - On turn 1: RNG list b.[121, 149, 161, 151, 247, 99, 214, 215, 155] vs e.[215, 147, 191, 197, 37, 177, 236, 5, 41]
+Dream_Eater[11](LS) [[109, 181, 105, 205, 9, 188, 17, 224, 117]]: Failed
+ - On turn 1: RNG index b.4 vs e.6
+ - On turn 1: P1 Health b.994 vs e.993
+Dream_Eater[14](HS) [[193, 33, 99, 202, 209, 130, 76, 246, 84]]: Failed
+ - On turn 1: RNG index b.7 vs e.4
+ - On turn 1: RNG list b.[193, 33, 99, 202, 209, 130, 76, 246, 84] vs e.[198, 166, 240, 243, 22, 139, 125, 207, 165]
 Dream_Eater[0](Sub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 1: RNG index b.0 vs e.1
  - On turn 1: RNG list b.[1, 0, 0, 0, 0, 0, 0, 0, 0] vs e.[183, 190, 190, 190, 190, 190, 190, 190, 190]
 Dream_Eater[4](LP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 1: RNG index b.3 vs e.5
  - On turn 1: P1 Health b.982 vs e.988
-Dream_Eater[7](HP) [[125, 252, 157, 67, 80, 125, 66, 17, 210]]: Failed
- - On turn 1: RNG index b.4 vs e.1
- - On turn 1: RNG list b.[114, 237, 18, 80, 145, 114, 75, 86, 27] vs e.[201, 216, 233, 47, 236, 201, 190, 29, 78]
-Dream_Eater[1](Sub) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
- - On turn 1: RNG index b.0 vs e.2
-Dream_Eater[10](LS) [[30, 115, 104, 210, 19, 140, 14, 64, 175]]: Failed
- - On turn 1: RNG index b.8 vs e.7
- - On turn 1: RNG list b.[151, 64, 9, 27, 96, 189, 71, 65, 108] vs e.[244, 65, 46, 136, 225, 178, 100, 70, 29]
- - On turn 1: P1 Speed b.198 vs e.300
-Dream_Eater[5](LP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 1: RNG index b.6 vs e.0
- - On turn 1: RNG list b.[255, 0, 0, 255, 0, 0, 255, 0, 255] vs e.[252, 1, 1, 252, 1, 1, 252, 1, 252]
- - On turn 1: P1 Health b.986 vs e.980
- - On turn 1: P1 Speed b.198 vs e.300
-Dream_Eater[13](HS) [[25, 161, 121, 18, 15, 144, 209, 228, 28]]: Failed
- - On turn 1: RNG index b.0 vs e.6
-Dream_Eater[8](HP) [[92, 191, 138, 83, 171, 60, 40, 144, 176]]: Failed
- - On turn 1: RNG index b.4 vs e.1
- - On turn 1: RNG list b.[92, 191, 138, 83, 171, 60, 40, 144, 176] vs e.[205, 188, 179, 160, 88, 45, 201, 209, 113]
-Dream_Eater[11](LS) [[214, 145, 35, 188, 56, 93, 82, 25, 15]]: Failed
- - On turn 1: RNG list b.[157, 236, 54, 235, 119, 136, 41, 84, 114] vs e.[91, 18, 76, 249, 165, 78, 7, 58, 40]
- - On turn 1: P1 Speed b.300 vs e.198
-Dream_Eater[14](HS) [[45, 143, 74, 203, 183, 171, 52, 152, 242]]: Failed
- - On turn 1: RNG index b.6 vs e.8
- - On turn 1: RNG list b.[45, 143, 74, 203, 183, 171, 52, 152, 242] vs e.[226, 204, 115, 248, 148, 88, 5, 249, 187]
-Dream_Eater[2](HP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+Dream_Eater[7](HP) [[236, 135, 61, 44, 204, 58, 237, 143, 70]]: Failed
+ - On turn 1: RNG index b.0 vs e.4
+Dream_Eater[10](LS) [[250, 171, 75, 45, 9, 123, 124, 124, 213]]: Failed
+ - On turn 1: RNG index b.2 vs e.4
+ - On turn 1: RNG list b.[227, 88, 120, 226, 46, 104, 109, 109, 42] vs e.[112, 185, 89, 107, 231, 9, 34, 34, 211]
+Dream_Eater[1](HS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 1: RNG index b.3 vs e.5
+Dream_Eater[13](HS) [[200, 110, 1, 144, 238, 210, 32, 11, 82]]: Failed
+ - On turn 1: RNG index b.3 vs e.1
+ - On turn 1: RNG list b.[233, 39, 6, 209, 167, 27, 161, 56, 155] vs e.[199, 213, 156, 111, 85, 169, 191, 126, 41]
+Dream_Eater[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 1: RNG index b.0 vs e.1
+ - On turn 1: RNG list b.[160, 64, 160, 64, 160, 64, 160, 64, 160] vs e.[215, 247, 215, 247, 215, 247, 215, 247, 215]
+Dream_Eater[8](LP) [[53, 219, 4, 234, 212, 245, 92, 180, 201]]: Failed
+ - On turn 1: RNG index b.4 vs e.8
+Dream_Eater[11](HP) [[133, 61, 23, 187, 201, 248, 69, 120, 163]]: Failed
+ - On turn 1: RNG list b.[133, 61, 23, 187, 201, 248, 69, 120, 163] vs e.[154, 50, 116, 168, 238, 217, 90, 89, 48]
+Dream_Eater[2](LS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 1: RNG index b.5 vs e.7
-Dream_Eater[5](LS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 1: P1 Health b.992 vs e.990
+Dream_Eater[14](LS) [[122, 3, 109, 226, 96, 129, 78, 240, 60]]: Failed
+ - On turn 1: RNG list b.[99, 16, 34, 107, 225, 134, 135, 177, 45] vs e.[177, 150, 88, 121, 255, 28, 53, 79, 107]
+ - On turn 1: P1 Health b.993 vs e.992
+ - On turn 1: P1 Speed b.300 vs e.198
+Dream_Eater[5](HS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 1: RNG index b.6 vs e.0
  - On turn 1: RNG list b.[255, 0, 0, 255, 0, 0, 255, 0, 255] vs e.[252, 1, 1, 252, 1, 1, 252, 1, 252]
- - On turn 1: P1 Health b.992 vs e.990
- - On turn 1: P1 Speed b.198 vs e.300
+Dream_Eater[8](Sub) [[209, 54, 175, 181, 179, 214, 2, 138, 142]]: Failed
+ - On turn 1: RNG index b.0 vs e.4
+Dream_Eater[12](LP) [[161, 39, 151, 24, 45, 58, 50, 114, 48]]: Failed
+ - On turn 1: RNG index b.0 vs e.2
+ - On turn 1: P1 Health b.981 vs e.987
+Dream_Eater[15](HP) [[217, 153, 49, 89, 64, 40, 198, 217, 246]]: Failed
+ - On turn 1: RNG index b.1 vs e.6
 Dream_Eater[0](LS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 1: RNG index b.3 vs e.4
  - On turn 1: RNG list b.[183, 190, 190, 190, 190, 190, 190, 190, 190] vs e.[148, 183, 183, 183, 183, 183, 183, 183, 183]
  - On turn 1: P1 Health b.992 vs e.993
-Dream_Eater[8](HS) [[173, 184, 51, 157, 184, 146, 66, 111, 32]]: Failed
- - On turn 1: RNG index b.8 vs e.1
- - On turn 1: RNG list b.[98, 153, 0, 18, 153, 219, 75, 44, 161] vs e.[235, 254, 1, 91, 254, 72, 120, 221, 38]
 Dream_Eater[3](HS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 1: RNG index b.3 vs e.5
-Dream_Eater[11](Sub) [[238, 50, 13, 162, 43, 162, 134, 18, 51]]: Failed
- - On turn 1: RNG index b.0 vs e.2
- - On turn 1: RNG list b.[238, 50, 13, 162, 43, 162, 134, 18, 51] vs e.[167, 251, 66, 43, 216, 43, 159, 91, 0]
-Dream_Eater[6](Sub) [[169, 179, 225, 201, 213, 214, 68, 34, 118]]: Failed
- - On turn 1: RNG index b.0 vs e.2
-Dream_Eater[15](LP) [[244, 183, 91, 55, 233, 53, 79, 209, 6]]: Failed
- - On turn 1: RNG index b.4 vs e.7
- - On turn 1: P1 Health b.988 vs e.987
-Dream_Eater[10](LP) [[143, 7, 18, 108, 226, 32, 77, 215, 29]]: Failed
- - On turn 1: RNG index b.1 vs e.3
- - On turn 1: RNG list b.[204, 36, 91, 29, 107, 161, 130, 52, 146] vs e.[253, 181, 200, 146, 24, 38, 139, 5, 219]
- - On turn 1: P1 Health b.988 vs e.987
-Dream_Eater[13](HP) [[22, 206, 66, 93, 212, 213, 223, 197, 155]]: Failed
- - On turn 1: RNG index b.8 vs e.6
- - On turn 1: RNG list b.[22, 206, 66, 93, 212, 213, 223, 197, 155] vs e.[44, 36, 120, 27, 186, 211, 205, 67, 41]
-Dream_Eater[2](Sub) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 1: RNG index b.0 vs e.3
-Dream_Eater[6](LP) [[83, 186, 95, 132, 193, 222, 196, 112, 220]]: Failed
- - On turn 1: RNG index b.7 vs e.0
- - On turn 1: RNG list b.[83, 186, 95, 132, 193, 222, 196, 112, 220] vs e.[33, 48, 77, 234, 223, 180, 42, 246, 130]
- - On turn 1: P1 Speed b.300 vs e.198
-Dream_Eater[9](HP) [[120, 80, 217, 249, 23, 33, 133, 184, 57]]: Failed
- - On turn 1: RNG index b.5 vs e.1
- - On turn 1: RNG list b.[120, 80, 217, 249, 23, 33, 133, 184, 57] vs e.[183, 47, 20, 180, 90, 60, 16, 247, 244]
-Dream_Eater[0](LP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 1: RNG index b.3 vs e.4
- - On turn 1: RNG list b.[183, 190, 190, 190, 190, 190, 190, 190, 190] vs e.[148, 183, 183, 183, 183, 183, 183, 183, 183]
- - On turn 1: P1 Health b.983 vs e.988
-Dream_Eater[12](LS) [[147, 51, 59, 250, 94, 127, 210, 224, 218]]: Failed
- - On turn 1: RNG index b.6 vs e.5
- - On turn 1: RNG list b.[224, 0, 40, 227, 215, 124, 27, 97, 67] vs e.[97, 1, 201, 112, 52, 109, 136, 230, 80]
- - On turn 1: P1 Speed b.300 vs e.198
-Dream_Eater[3](HP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 1: RNG index b.3 vs e.5
-Dream_Eater[0](HP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+Dream_Eater[6](Sub) [[244, 112, 18, 45, 229, 190, 46, 55, 218]]: Failed
+ - On turn 1: RNG index b.0 vs e.5
+Dream_Eater[10](LP) [[97, 85, 94, 43, 33, 212, 166, 136, 41]]: Failed
+ - On turn 1: RNG index b.5 vs e.2
+ - On turn 1: RNG list b.[230, 170, 215, 216, 166, 37, 63, 169, 206] vs e.[34, 166, 131, 244, 226, 241, 107, 53, 138]
+ - On turn 1: P1 Health b.982 vs e.988
+Dream_Eater[13](HP) [[25, 192, 50, 96, 57, 59, 37, 88, 204]]: Failed
+ - On turn 1: RNG index b.4 vs e.8
+Dream_Eater[0](HS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 1: RNG index b.3 vs e.2
  - On turn 1: RNG list b.[183, 190, 190, 190, 190, 190, 190, 190, 190] vs e.[148, 183, 183, 183, 183, 183, 183, 183, 183]
-Dream_Eater[15](HS) [[45, 33, 118, 29, 242, 235, 135, 82, 60]]: Failed
- - On turn 1: RNG index b.8 vs e.5
- - On turn 1: RNG list b.[45, 33, 118, 29, 242, 235, 135, 82, 60] vs e.[226, 166, 79, 146, 187, 152, 164, 155, 45]
-Dream_Eater[6](LS) [[22, 195, 213, 76, 53, 155, 96, 167, 161]]: Failed
- - On turn 1: RNG index b.4 vs e.0
- - On turn 1: RNG list b.[22, 195, 213, 76, 53, 155, 96, 167, 161] vs e.[44, 17, 211, 114, 51, 41, 102, 85, 191]
-Dream_Eater[3](LS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 1: RNG index b.3 vs e.5
- - On turn 1: P1 Health b.991 vs e.993
-Dream_Eater[9](HS) [[42, 44, 243, 86, 68, 220, 65, 12, 163]]: Failed
- - On turn 1: RNG index b.5 vs e.1
- - On turn 1: RNG list b.[42, 44, 243, 86, 68, 220, 65, 12, 163] vs e.[211, 221, 192, 175, 85, 77, 70, 61, 48]
-Dream_Eater[6](HS) [[235, 241, 12, 124, 152, 163, 14, 32, 30]]: Failed
+Dream_Eater[3](Sub) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 1: RNG index b.0 vs e.1
+ - On turn 1: RNG list b.[128, 128, 128, 128, 128, 128, 128, 128, 128] vs e.[203, 203, 203, 203, 203, 203, 203, 203, 203]
+Dream_Eater[7](LP) [[93, 113, 163, 117, 38, 103, 184, 251, 28]]: Failed
+ - On turn 1: RNG index b.1 vs e.7
+ - On turn 1: P1 Health b.987 vs e.988
+Dream_Eater[10](HP) [[153, 215, 128, 225, 204, 178, 111, 57, 145]]: Failed
  - On turn 1: RNG index b.4 vs e.5
- - On turn 1: RNG list b.[235, 241, 12, 124, 152, 163, 14, 32, 30] vs e.[152, 182, 61, 109, 249, 48, 71, 161, 151]
-Dream_Eater[12](Sub) [[181, 225, 131, 175, 248, 45, 54, 61, 212]]: Failed
- - On turn 1: RNG index b.0 vs e.2
-Dream_Eater[9](Sub) [[27, 98, 186, 204, 240, 82, 131, 140, 119]]: Failed
- - On turn 1: RNG index b.0 vs e.2
- - On turn 1: RNG list b.[27, 98, 186, 204, 240, 82, 131, 140, 119] vs e.[136, 235, 163, 253, 177, 155, 144, 189, 84]
-Dream_Eater[13](LP) [[71, 238, 9, 193, 63, 241, 145, 161, 33]]: Failed
- - On turn 1: RNG index b.6 vs e.8
- - On turn 1: P1 Health b.988 vs e.987
+ - On turn 1: RNG list b.[153, 215, 128, 225, 204, 178, 111, 57, 145] vs e.[254, 52, 129, 102, 253, 123, 44, 30, 214]
+Dream_Eater[13](LS) [[107, 251, 134, 215, 44, 170, 142, 191, 130]]: Failed
+ - On turn 1: RNG index b.4 vs e.6
 Dream_Eater[2](HS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 1: RNG index b.5 vs e.7
+Dream_Eater[5](Sub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 1: RNG index b.0 vs e.4
+Dream_Eater[9](LP) [[64, 40, 248, 203, 168, 178, 207, 244, 112]]: Failed
+ - On turn 1: RNG index b.6 vs e.0
+ - On turn 1: RNG list b.[64, 40, 248, 203, 168, 178, 207, 244, 112] vs e.[65, 201, 217, 248, 73, 123, 12, 197, 49]
+ - On turn 1: P1 Health b.982 vs e.988
+Dream_Eater[12](HP) [[170, 123, 150, 50, 252, 131, 149, 165, 122]]: Failed
+ - On turn 1: RNG index b.5 vs e.6
+ - On turn 1: RNG list b.[83, 104, 239, 251, 237, 144, 234, 58, 99] vs e.[160, 9, 172, 232, 162, 209, 147, 35, 240]
+Dream_Eater[15](LS) [[67, 170, 73, 187, 227, 240, 56, 15, 187]]: Failed
+ - On turn 1: RNG index b.6 vs e.2
+ - On turn 1: RNG list b.[67, 170, 73, 187, 227, 240, 56, 15, 187] vs e.[80, 83, 110, 168, 112, 177, 25, 76, 168]
+ - On turn 1: P1 Health b.992 vs e.993
+ - On turn 1: P1 Speed b.300 vs e.198
 Dream_Eater[3](LP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 1: RNG index b.3 vs e.5
  - On turn 1: P1 Health b.982 vs e.988
-Dream_Eater[5](Sub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 1: RNG index b.0 vs e.4
-Dream_Eater[6](HP) [[14, 75, 214, 116, 63, 196, 49, 97, 38]]: Failed
- - On turn 1: RNG index b.8 vs e.7
- - On turn 1: RNG list b.[71, 120, 47, 69, 60, 213, 246, 230, 191] vs e.[100, 89, 236, 90, 45, 42, 207, 127, 188]
-Dream_Eater[9](LP) [[170, 179, 246, 251, 182, 111, 50, 5, 81]]: Failed
- - On turn 1: RNG index b.4 vs e.6
- - On turn 1: P1 Health b.988 vs e.987
-Dream_Eater[9](LS) [[124, 57, 72, 176, 103, 58, 144, 133, 142]]: Failed
+Dream_Eater[6](HP) [[16, 23, 133, 211, 72, 7, 175, 222, 68]]: Failed
+ - On turn 1: RNG list b.[16, 23, 133, 211, 72, 7, 175, 222, 68] vs e.[150, 69, 3, 161, 14, 181, 29, 180, 170]
+Dream_Eater[9](LS) [[70, 212, 6, 108, 239, 15, 26, 62, 223]]: Failed
+ - On turn 1: RNG index b.7 vs e.2
+ - On turn 1: RNG list b.[70, 212, 6, 108, 239, 15, 26, 62, 223] vs e.[95, 37, 31, 29, 172, 76, 131, 55, 92]
+Dream_Eater[12](HS) [[87, 97, 156, 134, 88, 33, 204, 191, 59]]: Failed
+ - On turn 1: RNG index b.1 vs e.5
+Dream_Eater[15](Sub) [[114, 235, 111, 22, 14, 94, 100, 11, 200]]: Failed
  - On turn 1: RNG index b.0 vs e.2
-Dream_Eater[12](HP) [[63, 61, 98, 222, 211, 216, 77, 174, 87]]: Failed
- - On turn 1: RNG index b.7 vs e.3
- - On turn 1: RNG list b.[63, 61, 98, 222, 211, 216, 77, 174, 87] vs e.[60, 50, 235, 87, 32, 57, 130, 103, 180]
-Dream_Eater[12](HS) [[68, 13, 194, 251, 23, 189, 251, 23, 118]]: Failed
- - On turn 1: RNG index b.6 vs e.3
- - On turn 1: RNG list b.[68, 13, 194, 251, 23, 189, 251, 23, 118] vs e.[85, 66, 203, 232, 116, 178, 232, 116, 79]
-Dream_Eater[15](LS) [[191, 109, 172, 145, 60, 128, 174, 202, 13]]: Failed
- - On turn 1: RNG list b.[173, 171, 210, 47, 226, 134, 4, 192, 75] vs e.[235, 185, 136, 157, 24, 28, 106, 198, 89]
- - On turn 1: P1 Health b.993 vs e.992
-Dream_Eater[15](Sub) [[134, 7, 3, 201, 240, 180, 181, 83, 22]]: Failed
- - On turn 1: RNG index b.0 vs e.4
-Transform[1](LS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+Transform[0](LP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 1: P1 Health b.934 vs e.983
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[4](HS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+Transform[3](HP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.999
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[2](LP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 1: P1 Health b.986 vs e.947
+Transform[6](LS) [[134, 113, 127, 161, 119, 5, 174, 181, 132]]: Failed
+ - On turn 1: P1 Health b.994 vs e.997
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[1](LP) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[7](Sub) [[172, 164, 119, 20, 113, 1, 66, 123, 88]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[5](HP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.198 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[4](HP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[11](LP) [[177, 166, 152, 220, 113, 109, 216, 245, 176]]: Failed
- - On turn 1: P1 Health b.987 vs e.949
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[8](LS) [[54, 166, 36, 178, 236, 156, 37, 67, 217]]: Failed
- - On turn 1: P1 Health b.993 vs e.997
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[7](LS) [[208, 48, 29, 78, 74, 137, 54, 166, 190]]: Failed
- - On turn 1: P1 Health b.993 vs e.997
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[14](HP) [[174, 139, 230, 139, 40, 36, 88, 176, 251]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[11](HS) [[93, 23, 157, 138, 9, 194, 235, 34, 111]]: Failed
+Transform[9](HS) [[112, 200, 76, 238, 246, 133, 80, 131, 56]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.999
  - On turn 1: P1 Special b.300 vs e.999
@@ -1174,13 +1086,13 @@ Transform[1](HP) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[10](HS) [[9, 211, 1, 202, 42, 144, 185, 18, 10]]: Failed
+Transform[12](Sub) [[240, 174, 129, 69, 68, 66, 221, 133, 25]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[14](Sub) [[4, 251, 92, 43, 220, 227, 198, 35, 122]]: Failed
+Transform[1](LP) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
@@ -1193,17 +1105,234 @@ Transform[4](LS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[13](Sub) [[160, 116, 181, 251, 18, 140, 212, 2, 13]]: Failed
+Transform[4](HP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[7](HS) [[92, 126, 58, 89, 194, 102, 239, 133, 48]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.198 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[7](LS) [[126, 156, 7, 124, 92, 151, 135, 189, 159]]: Failed
+ - On turn 1: P1 Health b.993 vs e.997
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[7](HS) [[210, 213, 177, 94, 85, 242, 168, 38, 76]]: Failed
+Transform[0](HP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.999
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[10](Sub) [[9, 59, 207, 3, 188, 184, 108, 168, 82]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[10](HS) [[222, 220, 191, 220, 95, 146, 218, 211, 3]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[3](LS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 1: P1 Health b.996 vs e.991
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[14](LP) [[210, 100, 110, 24, 231, 21, 125, 221, 176]]: Failed
+ - On turn 1: P1 Health b.987 vs e.950
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[13](Sub) [[177, 105, 3, 222, 20, 231, 121, 136, 99]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[6](HS) [[138, 111, 239, 98, 51, 243, 236, 174, 69]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.198 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[9](Sub) [[69, 0, 112, 248, 180, 13, 120, 200, 111]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[13](LP) [[209, 73, 209, 184, 230, 79, 147, 208, 173]]: Failed
+ - On turn 1: P1 Health b.988 vs e.952
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[1](LS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[2](LP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 1: P1 Health b.986 vs e.947
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[4](HS) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[5](HP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.198 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[7](Sub) [[204, 16, 159, 241, 222, 35, 39, 199, 176]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[8](LS) [[183, 127, 244, 177, 211, 183, 6, 213, 78]]: Failed
+ - On turn 1: P1 Health b.993 vs e.997
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[1](Sub) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[11](LP) [[145, 249, 98, 139, 23, 117, 76, 164, 5]]: Failed
+ - On turn 1: P1 Health b.987 vs e.948
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[11](HS) [[124, 138, 81, 168, 241, 182, 150, 18, 155]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[5](LP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 1: P1 Health b.986 vs e.947
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[14](HP) [[227, 126, 183, 249, 0, 167, 77, 44, 109]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.198 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Dream_Eater[2](HP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 1: RNG index b.5 vs e.7
+Transform[2](Sub) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[14](Sub) [[87, 50, 134, 86, 93, 110, 136, 226, 177]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[8](HP) [[117, 14, 249, 140, 81, 98, 162, 43, 3]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.198 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Dream_Eater[5](LS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 1: RNG index b.6 vs e.0
+ - On turn 1: RNG list b.[255, 0, 0, 255, 0, 0, 255, 0, 255] vs e.[252, 1, 1, 252, 1, 1, 252, 1, 252]
+ - On turn 1: P1 Health b.992 vs e.990
+ - On turn 1: P1 Speed b.198 vs e.300
+Transform[6](LP) [[81, 102, 96, 239, 181, 234, 11, 98, 163]]: Failed
+ - On turn 1: P1 Health b.987 vs e.949
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Dream_Eater[8](HS) [[237, 83, 9, 211, 209, 145, 121, 49, 147]]: Failed
+ - On turn 1: RNG index b.6 vs e.3
+ - On turn 1: RNG list b.[237, 83, 9, 211, 209, 145, 121, 49, 147] vs e.[43, 33, 231, 161, 111, 47, 215, 207, 97]
+Transform[11](LS) [[244, 18, 151, 149, 230, 75, 3, 106, 227]]: Failed
+ - On turn 1: P1 Health b.993 vs e.997
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[9](HP) [[116, 96, 140, 37, 24, 85, 16, 106, 132]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Dream_Eater[11](Sub) [[10, 185, 124, 243, 236, 45, 50, 161, 121]]: Failed
+ - On turn 1: RNG index b.0 vs e.2
+Transform[14](HS) [[25, 27, 228, 160, 81, 102, 148, 148, 165]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[12](LS) [[170, 148, 126, 44, 212, 15, 31, 117, 243]]: Failed
+ - On turn 1: P1 Health b.993 vs e.997
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Dream_Eater[15](LP) [[16, 120, 138, 146, 113, 82, 84, 110, 205]]: Failed
+ - On turn 1: RNG index b.2 vs e.5
+ - On turn 1: P1 Speed b.300 vs e.198
+Transform[15](HS) [[222, 179, 217, 167, 178, 70, 27, 209, 137]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[0](Sub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[4](LP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 1: P1 Health b.929 vs e.982
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
 Transform[1](HS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
@@ -1211,11 +1340,11 @@ Transform[1](HS) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[10](Sub) [[172, 114, 90, 107, 129, 57, 14, 94, 35]]: Failed
+Transform[7](HP) [[87, 151, 215, 25, 131, 42, 57, 68, 84]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Defense b.100 vs e.999
  - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 Speed b.300 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
 Transform[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
@@ -1223,61 +1352,38 @@ Transform[4](Sub) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[14](LP) [[2, 193, 243, 47, 53, 234, 126, 60, 18]]: Failed
- - On turn 1: P1 Health b.933 vs e.983
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[8](LP) [[161, 8, 67, 54, 27, 207, 229, 194, 248]]: Failed
- - On turn 1: P1 Health b.931 vs e.982
+Transform[10](LS) [[64, 135, 156, 178, 39, 218, 77, 134, 30]]: Failed
+ - On turn 1: P1 Health b.996 vs e.991
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[0](HS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+Transform[8](LP) [[83, 184, 238, 69, 88, 212, 251, 111, 238]]: Failed
+ - On turn 1: P1 Health b.987 vs e.948
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[13](HS) [[23, 48, 61, 108, 158, 172, 210, 229, 202]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.999
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[11](HP) [[95, 155, 167, 224, 49, 222, 94, 103, 185]]: Failed
+Transform[11](HP) [[30, 234, 100, 53, 232, 78, 47, 28, 169]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.999
  - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.198 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[3](Sub) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+Transform[14](LS) [[32, 190, 9, 223, 152, 241, 108, 240, 158]]: Failed
+ - On turn 1: P1 Health b.996 vs e.991
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[14](LS) [[68, 85, 17, 196, 114, 162, 222, 72, 107]]: Failed
- - On turn 1: P1 Health b.993 vs e.997
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[7](LP) [[248, 126, 81, 244, 37, 15, 243, 74, 166]]: Failed
- - On turn 1: P1 Health b.987 vs e.949
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[10](HP) [[243, 11, 15, 184, 202, 207, 161, 8, 73]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.198 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[13](LS) [[190, 160, 150, 110, 197, 178, 51, 37, 190]]: Failed
- - On turn 1: P1 Health b.993 vs e.997
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
 Transform[2](LS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 1: P1 Health b.992 vs e.996
@@ -1292,86 +1398,24 @@ Transform[5](HS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.198 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[8](Sub) [[74, 194, 114, 98, 151, 27, 85, 130, 92]]: Failed
+Transform[8](Sub) [[10, 202, 150, 240, 184, 27, 79, 68, 216]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[12](LP) [[240, 30, 95, 31, 49, 69, 223, 235, 235]]: Failed
- - On turn 1: P1 Health b.987 vs e.951
+Transform[12](LP) [[13, 251, 212, 115, 49, 170, 63, 36, 133]]: Failed
+ - On turn 1: P1 Health b.987 vs e.948
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[15](HP) [[104, 153, 187, 43, 17, 102, 11, 225, 116]]: Failed
+Transform[15](HP) [[197, 145, 127, 139, 140, 63, 53, 22, 182]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.999
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.198 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[0](Sub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[1](Sub) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[4](LP) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
- - On turn 1: P1 Health b.929 vs e.982
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[5](LP) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 1: P1 Health b.986 vs e.947
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[7](HP) [[179, 89, 42, 100, 82, 192, 158, 101, 175]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[8](HP) [[147, 59, 149, 243, 185, 106, 126, 36, 189]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[10](LS) [[71, 9, 15, 215, 58, 12, 158, 2, 199]]: Failed
- - On turn 1: P1 Health b.993 vs e.997
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[11](LS) [[213, 4, 92, 183, 18, 227, 200, 128, 1]]: Failed
- - On turn 1: P1 Health b.993 vs e.997
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[13](HS) [[47, 174, 209, 37, 128, 236, 163, 230, 193]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[14](HS) [[87, 145, 73, 150, 147, 138, 108, 183, 186]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
 Transform[0](LS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 1: P1 Health b.996 vs e.992
@@ -1380,150 +1424,57 @@ Transform[0](LS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[2](HP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
 Transform[3](HS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.999
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[5](LS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 1: P1 Health b.992 vs e.996
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[8](HS) [[237, 42, 235, 184, 217, 176, 22, 66, 154]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[6](Sub) [[172, 7, 145, 119, 202, 186, 148, 7, 35]]: Failed
+Transform[6](Sub) [[244, 150, 76, 101, 59, 154, 224, 135, 106]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[10](LP) [[19, 103, 42, 117, 180, 2, 78, 81, 24]]: Failed
- - On turn 1: P1 Health b.988 vs e.952
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[11](Sub) [[113, 41, 123, 102, 50, 167, 245, 188, 187]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[13](HP) [[101, 158, 208, 27, 247, 187, 180, 38, 196]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[15](LP) [[164, 190, 108, 61, 222, 87, 219, 107, 5]]: Failed
- - On turn 1: P1 Health b.987 vs e.951
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[2](Sub) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[6](LP) [[240, 62, 69, 125, 191, 129, 47, 156, 230]]: Failed
+Transform[10](LP) [[241, 100, 27, 191, 142, 59, 190, 62, 113]]: Failed
  - On turn 1: P1 Health b.988 vs e.954
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[9](HP) [[164, 136, 107, 13, 220, 26, 90, 132, 51]]: Failed
+Transform[13](HP) [[162, 127, 39, 238, 98, 133, 36, 230, 225]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.999
  - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.198 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[12](LS) [[204, 63, 233, 150, 162, 178, 24, 74, 54]]: Failed
+Transform[0](HS) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[3](Sub) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[7](LP) [[246, 130, 122, 141, 163, 71, 153, 181, 32]]: Failed
+ - On turn 1: P1 Health b.988 vs e.955
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[10](HP) [[230, 195, 16, 209, 67, 41, 72, 161, 153]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[13](LS) [[210, 249, 203, 141, 90, 160, 103, 24, 192]]: Failed
  - On turn 1: P1 Health b.993 vs e.997
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[0](LP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 1: P1 Health b.934 vs e.983
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[0](HP) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[15](HS) [[218, 62, 237, 83, 143, 34, 41, 107, 48]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[3](HP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[3](LS) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 1: P1 Health b.996 vs e.991
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[6](HS) [[59, 77, 169, 92, 230, 35, 176, 224, 189]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[6](LS) [[1, 225, 44, 35, 220, 0, 19, 244, 164]]: Failed
- - On turn 1: P1 Health b.996 vs e.991
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[9](HS) [[130, 166, 122, 95, 110, 0, 152, 217, 122]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[9](Sub) [[247, 136, 169, 124, 124, 240, 194, 146, 178]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[13](LP) [[135, 171, 41, 175, 117, 240, 174, 209, 235]]: Failed
- - On turn 1: P1 Health b.988 vs e.952
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[12](Sub) [[118, 87, 139, 31, 218, 128, 247, 92, 159]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
@@ -1535,6 +1486,31 @@ Transform[2](HS) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[5](Sub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[9](LP) [[157, 190, 110, 168, 194, 20, 35, 229, 111]]: Failed
+ - On turn 1: P1 Health b.987 vs e.950
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[12](HP) [[138, 71, 10, 120, 242, 206, 210, 125, 239]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[15](LS) [[105, 246, 22, 185, 128, 180, 100, 196, 33]]: Failed
+ - On turn 1: P1 Health b.993 vs e.997
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
 Transform[3](LP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 1: P1 Health b.931 vs e.982
  - On turn 1: P1 Attack b.300 vs e.999
@@ -1542,127 +1518,405 @@ Transform[3](LP) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[5](Sub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[6](HP) [[235, 235, 142, 240, 13, 109, 32, 43, 183]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[9](LP) [[210, 18, 38, 35, 60, 250, 190, 130, 228]]: Failed
- - On turn 1: P1 Health b.988 vs e.954
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[9](LS) [[32, 80, 160, 105, 159, 135, 235, 156, 121]]: Failed
- - On turn 1: P1 Health b.996 vs e.991
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.25
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[12](HP) [[202, 250, 83, 88, 166, 32, 95, 236, 73]]: Failed
- - On turn 1: P1 Attack b.300 vs e.999
- - On turn 1: P1 Defense b.100 vs e.999
- - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.999
- - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[12](HS) [[8, 149, 170, 128, 200, 204, 1, 17, 190]]: Failed
+Transform[6](HP) [[27, 9, 159, 45, 137, 154, 140, 54, 205]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.999
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.198 vs e.999
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[15](LS) [[207, 175, 230, 106, 213, 185, 183, 14, 177]]: Failed
+Transform[9](LS) [[213, 53, 131, 66, 92, 44, 124, 223, 43]]: Failed
  - On turn 1: P1 Health b.993 vs e.997
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
- - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Transform[15](Sub) [[217, 64, 38, 187, 82, 79, 205, 189, 70]]: Failed
+Transform[12](HS) [[120, 131, 47, 141, 237, 0, 18, 48, 194]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.198 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[15](Sub) [[23, 214, 167, 103, 140, 33, 182, 111, 165]]: Failed
  - On turn 1: P1 Attack b.300 vs e.999
  - On turn 1: P1 Defense b.100 vs e.25
  - On turn 1: P1 Special b.300 vs e.999
  - On turn 1: P1 Speed b.300 vs e.25
  - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
-Hyper_Beam&Leech_Seed[8](Par->Move) [[86, 118, 147, 199, 59, 63, 237, 130, 28]]: Failed
- - On turn 4: RNG index b.6 vs e.7
-Hyper_Beam&Leech_Seed[7](Move->Par) [[216, 185, 46, 160, 220, 79, 220, 6, 166]]: Failed
- - On turn 5: RNG index b.2 vs e.0
- - On turn 5: RNG list b.[197, 90, 147, 45, 153, 104, 153, 75, 107] vs e.[151, 116, 149, 63, 139, 178, 139, 13, 45]
- - On turn 5: P1 PPs b.[2, 0, 0, 0] vs e.[3, 0, 0, 0]
- - On turn 5: P2 Health b.899 vs e.999
-Hyper_Beam&Leech_Seed[7](Par->Move) [[49, 72, 77, 151, 107, 191, 152, 209, 217]]: Failed
- - On turn 4: RNG index b.8 vs e.0
- - On turn 4: RNG list b.[246, 105, 130, 244, 24, 188, 249, 22, 62] vs e.[207, 14, 139, 197, 121, 173, 222, 111, 55]
-Hyper_Beam&Leech_Seed[15](Move->Par) [[166, 141, 221, 71, 30, 128, 145, 171, 237]]: Failed
- - On turn 5: P2 Health b.886 vs e.819
-Hyper_Beam&Leech_Seed[6](Move->Par) [[85, 80, 18, 119, 135, 9, 210, 102, 28]]: Failed
- - On turn 7: RNG index b.5 vs e.0
- - On turn 7: RNG list b.[160, 47, 233, 58, 10, 132, 169, 237, 203] vs e.[33, 236, 142, 35, 51, 149, 78, 162, 248]
- - On turn 7: P1 PPs b.[2, 0, 0, 0] vs e.[1, 0, 0, 0]
- - On turn 7: P2 Health b.920 vs e.774
-Hyper_Beam&Leech_Seed[15](Par->Move) [[28, 33, 128, 167, 20, 199, 114, 159, 43]]: Failed
- - On turn 6: RNG index b.2 vs e.3
-Hyper_Beam&Leech_Seed[14](Move->Par) [[243, 4, 199, 250, 228, 30, 165, 150, 175]]: Failed
- - On turn 4: RNG index b.7 vs e.2
- - On turn 4: RNG list b.[192, 21, 228, 227, 117, 151, 58, 239, 108] vs e.[193, 106, 117, 112, 74, 244, 35, 172, 29]
- - On turn 4: P1 PPs b.[3, 0, 0, 0] vs e.[2, 0, 0, 0]
- - On turn 4: P2 Health b.999 vs e.909
-Hyper_Beam&Leech_Seed[9](Par->Move) [[1, 35, 33, 43, 144, 220, 220, 89, 67]]: Failed
- - On turn 7: RNG index b.0 vs e.1
-Hyper_Beam&Leech_Seed[13](Move->Par) [[98, 78, 60, 162, 161, 151, 114, 19, 140]]: Failed
- - On turn 3: RNG index b.4 vs e.5
-Hyper_Beam&Leech_Seed[0](Move->Par) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
- - On turn 5: RNG index b.7 vs e.8
-Hyper_Beam&Leech_Seed[8](Move->Par) [[207, 194, 113, 181, 47, 79, 178, 78, 5]]: Failed
- - On turn 3: P2 Health b.855 vs e.788
-Hyper_Beam&Leech_Seed[6](Par->Move) [[85, 147, 249, 186, 27, 207, 76, 190, 172]]: Failed
- - On turn 4: RNG index b.0 vs e.1
-Hyper_Beam&Leech_Seed[10](Par->Move) [[124, 97, 77, 235, 56, 114, 32, 229, 22]]: Failed
- - On turn 5: RNG index b.5 vs e.6
-Hyper_Beam&Leech_Seed[14](Par->Move) [[249, 220, 219, 159, 140, 41, 61, 203, 9]]: Failed
- - On turn 4: RNG index b.6 vs e.7
-Hyper_Beam&Leech_Seed[5](Par->Move) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
- - On turn 6: RNG index b.2 vs e.3
-Hyper_Beam&Leech_Seed[13](Par->Move) [[96, 230, 78, 216, 13, 132, 110, 189, 91]]: Failed
- - On turn 5: RNG index b.8 vs e.0
- - On turn 5: RNG list b.[255, 109, 53, 151, 120, 147, 213, 104, 142] vs e.[252, 34, 10, 244, 89, 224, 42, 9, 199]
-Hyper_Beam&Leech_Seed[9](Move->Par) [[131, 111, 64, 207, 236, 82, 189, 42, 42]]: Failed
- - On turn 2: RNG index b.8 vs e.0
- - On turn 2: RNG list b.[131, 111, 64, 207, 236, 82, 189, 42, 42] vs e.[209, 221, 70, 61, 18, 8, 123, 32, 32]
- - On turn 2: P2 Health b.929 vs e.923
+Transform[2](HP) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[5](LS) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 1: P1 Health b.992 vs e.996
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[8](HS) [[241, 84, 138, 200, 203, 138, 187, 139, 41]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.999
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.999
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[11](Sub) [[161, 163, 239, 44, 203, 139, 196, 83, 14]]: Failed
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Transform[15](LP) [[240, 189, 212, 106, 215, 17, 171, 140, 162]]: Failed
+ - On turn 1: P1 Health b.988 vs e.954
+ - On turn 1: P1 Attack b.300 vs e.999
+ - On turn 1: P1 Defense b.100 vs e.25
+ - On turn 1: P1 Special b.300 vs e.999
+ - On turn 1: P1 Speed b.300 vs e.25
+ - On turn 1: P1 PPs b.[4, 5, 5, 5] vs e.[5, 0, 0, 0]
+Bind&Switch[1](SAtk) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 7: RNG index b.2 vs e.6
+ - On turn 7: P1 Health b.987 vs e.976
+Bind&Switch[5](SAtk) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 3: RNG index b.1 vs e.3
+ - On turn 3: RNG list b.[252, 1, 1, 252, 1, 1, 252, 1, 252] vs e.[237, 6, 6, 237, 6, 6, 237, 6, 237]
+ - On turn 3: P1 Health b.999 vs e.981
+ - On turn 3: P1 Speed b.300 vs e.198
+Bind&Switch[4](Atk) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 2: P2 Health b.996 vs e.934
+Bind&Switch[9](SAtk) [[112, 197, 218, 25, 7, 192, 21, 86, 43]]: Failed
+ - On turn 3: RNG index b.6 vs e.3
+ - On turn 3: RNG list b.[246, 67, 80, 119, 181, 198, 19, 108, 57] vs e.[207, 80, 145, 84, 138, 223, 96, 29, 30]
+ - On turn 3: P1 Health b.999 vs e.988
+Wrap&Switch[5](SAtk) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 3: RNG index b.1 vs e.3
+ - On turn 3: RNG list b.[252, 1, 1, 252, 1, 1, 252, 1, 252] vs e.[237, 6, 6, 237, 6, 6, 237, 6, 237]
+ - On turn 3: P1 Health b.999 vs e.981
+ - On turn 3: P1 Speed b.300 vs e.198
+Bind&Switch[5](SSub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 3: P2 Health b.975 vs e.726
+ - On turn 3: P2 Has substitute b.False vs e.True
+Wrap&Switch[9](SAtk) [[114, 54, 232, 25, 137, 94, 203, 155, 98]]: Failed
+ - On turn 3: RNG index b.7 vs e.2
+ - On turn 3: RNG list b.[59, 15, 137, 126, 174, 215, 248, 8, 235] vs e.[40, 76, 174, 119, 103, 52, 217, 41, 152]
+ - On turn 3: P1 Health b.999 vs e.987
+ - On turn 3: P1 Speed b.300 vs e.198
+Wrap&Switch[4](Atk) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 2: P2 Health b.996 vs e.934
+Bind&Switch[13](Sub) [[84, 127, 133, 181, 251, 97, 231, 77, 22]]: Failed
+ - On turn 2: P2 Health b.745 vs e.683
+Bind&Switch[9](SSub) [[148, 219, 41, 42, 190, 114, 173, 73, 104]]: Failed
+ - On turn 5: P2 Health b.967 vs e.718
+ - On turn 5: P2 Has substitute b.False vs e.True
+Wrap&Switch[8](Atk) [[199, 13, 248, 228, 75, 105, 224, 250, 227]]: Failed
+ - On turn 4: P2 Health b.991 vs e.929
+Clamp&Switch[3](SAtk) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 7: RNG index b.2 vs e.6
+ - On turn 7: P1 Health b.987 vs e.975
+Wrap&Switch[5](SSub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 3: P2 Health b.975 vs e.726
+ - On turn 3: P2 Has substitute b.False vs e.True
+Bind&Switch[6](SAtk) [[233, 25, 32, 190, 26, 218, 225, 246, 210]]: Failed
+ - On turn 7: RNG index b.4 vs e.0
+ - On turn 7: RNG list b.[228, 84, 191, 229, 209, 145, 252, 61, 169] vs e.[74, 58, 173, 99, 111, 47, 162, 251, 135]
+ - On turn 7: P1 Health b.999 vs e.987
+ - On turn 7: P1 Speed b.300 vs e.198
+Bind&Switch[3](SAtk) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 7: RNG index b.2 vs e.6
+ - On turn 7: P1 Health b.987 vs e.975
+Clamp&Switch[7](SAtk) [[238, 237, 236, 149, 101, 140, 180, 97, 200]]: Failed
+ - On turn 7: RNG index b.4 vs e.7
+ - On turn 7: RNG list b.[83, 30, 233, 230, 246, 9, 81, 34, 117] vs e.[160, 151, 142, 127, 207, 46, 150, 171, 74]
+ - On turn 7: P1 Health b.999 vs e.988
+Bind&Switch[10](SAtk) [[237, 115, 99, 194, 61, 162, 122, 116, 132]]: Failed
+ - On turn 3: RNG list b.[43, 65, 177, 248, 251, 216, 240, 90, 234] vs e.[216, 70, 118, 217, 232, 57, 177, 195, 147]
+ - On turn 3: P1 Health b.999 vs e.987
+ - On turn 3: P1 Speed b.300 vs e.198
+Bind&Switch[7](SAtk) [[153, 150, 176, 168, 151, 196, 200, 67, 247]]: Failed
+ - On turn 5: RNG index b.7 vs e.6
+ - On turn 5: RNG list b.[212, 93, 15, 39, 218, 211, 199, 214, 186] vs e.[186, 27, 125, 213, 80, 161, 117, 236, 48]
+ - On turn 5: P1 Health b.988 vs e.977
+Bind&Switch[6](Atk) [[95, 12, 73, 122, 87, 232, 227, 97, 91]]: Failed
+ - On turn 4: P2 Health b.948 vs e.886
+Clamp&Switch[11](SAtk) [[178, 1, 216, 65, 245, 204, 186, 213, 194]]: Failed
+ - On turn 5: RNG index b.6 vs e.1
+ - On turn 5: RNG list b.[104, 31, 30, 95, 243, 242, 48, 211, 248] vs e.[9, 156, 151, 220, 192, 187, 241, 32, 217]
+ - On turn 5: P1 Health b.988 vs e.977
+ - On turn 5: P1 Speed b.300 vs e.198
+Bind&Switch[14](SAtk) [[202, 147, 244, 94, 94, 208, 7, 185, 91]]: Failed
+ - On turn 3: RNG index b.5 vs e.0
+ - On turn 3: RNG list b.[243, 224, 197, 215, 215, 17, 36, 158, 200] vs e.[193, 230, 67, 5, 5, 175, 138, 116, 142]
+ - On turn 3: P1 Health b.999 vs e.988
+Bind&Switch[11](SAtk) [[70, 59, 233, 139, 91, 88, 170, 114, 194]]: Failed
+ - On turn 3: RNG index b.3 vs e.7
+ - On turn 3: P1 Health b.999 vs e.987
+Wrap&Switch[8](Sub) [[252, 252, 203, 20, 88, 215, 214, 195, 57]]: Failed
+ - On turn 6: P2 Health b.702 vs e.640
+Bind&Switch[10](Atk) [[61, 54, 10, 182, 239, 121, 204, 30, 138]]: Failed
+ - On turn 4: P2 Health b.948 vs e.886
+Clamp&Switch[15](SAtk) [[43, 55, 178, 132, 198, 225, 201, 133, 126]]: Failed
+ - On turn 5: RNG index b.6 vs e.4
+ - On turn 5: RNG list b.[30, 250, 9, 147, 205, 252, 68, 16, 165] vs e.[151, 227, 46, 224, 2, 237, 85, 81, 58]
+ - On turn 5: P1 Health b.987 vs e.975
+Bind&Switch[14](Atk) [[248, 249, 81, 252, 233, 219, 83, 139, 243]]: Failed
+ - On turn 2: P2 Health b.996 vs e.934
+Fire_Spin&Switch[1](SAtk) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 7: RNG index b.2 vs e.6
+ - On turn 7: P1 Health b.987 vs e.976
+Wrap&Switch[3](SAtk) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 5: RNG index b.2 vs e.6
+ - On turn 5: P1 Health b.999 vs e.987
+Fire_Spin&Switch[5](SAtk) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 3: RNG index b.1 vs e.3
+ - On turn 3: RNG list b.[252, 1, 1, 252, 1, 1, 252, 1, 252] vs e.[237, 6, 6, 237, 6, 6, 237, 6, 237]
+ - On turn 3: P1 Health b.999 vs e.981
+ - On turn 3: P1 Speed b.300 vs e.198
+Clamp&Switch[14](Atk) [[172, 75, 216, 185, 146, 68, 234, 241, 52]]: Failed
+ - On turn 6: P2 Health b.990 vs e.928
+Wrap&Switch[10](SAtk) [[199, 140, 95, 60, 135, 73, 166, 229, 227]]: Failed
+ - On turn 7: RNG index b.3 vs e.5
+ - On turn 7: RNG list b.[70, 231, 254, 215, 6, 32, 121, 140, 50] vs e.[95, 132, 247, 52, 31, 161, 94, 189, 251]
+ - On turn 7: P1 Health b.988 vs e.976
+ - On turn 7: P1 Speed b.300 vs e.198
+Fire_Spin&Switch[4](Atk) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 2: P2 Health b.996 vs e.934
+Clamp&Switch[0](SAtk) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 7: RNG index b.3 vs e.7
+ - On turn 7: P1 Health b.999 vs e.987
+Clamp&Switch[1](SAtk) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
+ - On turn 7: RNG index b.2 vs e.6
+ - On turn 7: P1 Health b.987 vs e.976
+Clamp&Switch[4](SAtk) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 7: RNG index b.2 vs e.6
+ - On turn 7: P1 Health b.987 vs e.975
+Clamp&Switch[15](SSub) [[119, 185, 72, 144, 216, 51, 222, 85, 94]]: Failed
+ - On turn 5: P2 Health b.997 vs e.748
+ - On turn 5: P2 Has substitute b.False vs e.True
+Clamp&Switch[15](Sub) [[69, 243, 48, 250, 131, 140, 179, 215, 93]]: Failed
+ - On turn 6: P2 Health b.246 vs e.184
+Clamp&Switch[5](SAtk) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 3: RNG index b.1 vs e.3
+ - On turn 3: RNG list b.[252, 1, 1, 252, 1, 1, 252, 1, 252] vs e.[237, 6, 6, 237, 6, 6, 237, 6, 237]
+ - On turn 3: P1 Health b.999 vs e.981
+ - On turn 3: P1 Speed b.300 vs e.198
+Clamp&Switch[4](Atk) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 2: P2 Health b.996 vs e.934
+Bind&Switch[11](Atk) [[118, 218, 59, 9, 98, 114, 220, 102, 68]]: Failed
+ - On turn 6: P2 Health b.936 vs e.874
+Clamp&Switch[8](Atk) [[215, 159, 211, 53, 44, 50, 175, 48, 238]]: Failed
+ - On turn 2: P2 Health b.996 vs e.934
+Fire_Spin&Switch[5](SSub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 3: P2 Health b.997 vs e.748
+ - On turn 3: P2 Has substitute b.False vs e.True
+Clamp&Switch[16](SAtk) [[185, 140, 44, 9, 213, 131, 159, 100, 113]]: Failed
+ - On turn 3: RNG index b.3 vs e.1
+ - On turn 3: RNG list b.[158, 189, 221, 46, 42, 144, 28, 245, 54] vs e.[23, 178, 82, 231, 211, 209, 141, 202, 15]
+ - On turn 3: P1 Health b.999 vs e.987
+ - On turn 3: P1 Speed b.300 vs e.198
+Fire_Spin&Switch[9](SSub) [[71, 214, 123, 112, 111, 20, 51, 46, 67]]: Failed
+ - On turn 3: P2 Health b.998 vs e.749
+ - On turn 3: P2 Has substitute b.False vs e.True
+Fire_Spin&Switch[6](SAtk) [[227, 98, 190, 195, 146, 178, 28, 197, 98]]: Failed
+ - On turn 3: RNG index b.3 vs e.7
+ - On turn 3: P1 Health b.999 vs e.987
+Fire_Spin&Switch[3](SAtk) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 7: RNG index b.2 vs e.6
+ - On turn 7: P1 Health b.987 vs e.975
 Hyper_Beam&Leech_Seed[3](Par->Move) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 4: RNG index b.7 vs e.8
-Hyper_Beam&Leech_Seed[11](Par->Move) [[69, 129, 49, 125, 126, 9, 251, 84, 250]]: Failed
- - On turn 6: RNG index b.7 vs e.8
+Clamp&Switch[7](Atk) [[215, 7, 142, 114, 236, 132, 219, 98, 4]]: Failed
+ - On turn 4: P2 Health b.993 vs e.931
+Fire_Spin&Switch[7](SAtk) [[200, 247, 160, 202, 71, 176, 223, 110, 208]]: Failed
+ - On turn 7: RNG index b.2 vs e.6
+ - On turn 7: P1 Health b.999 vs e.988
+ - On turn 7: P1 Speed b.300 vs e.198
+Hyper_Beam&Leech_Seed[11](Par->Move) [[90, 115, 139, 57, 131, 100, 215, 89, 29]]: Failed
+ - On turn 4: RNG index b.7 vs e.8
+Fire_Spin&Switch[11](SAtk) [[68, 160, 147, 74, 163, 66, 106, 24, 140]]: Failed
+ - On turn 5: RNG index b.8 vs e.7
+ - On turn 5: RNG list b.[83, 63, 230, 65, 182, 89, 225, 215, 123] vs e.[33, 45, 124, 95, 204, 183, 255, 5, 9]
+Wrap&Switch[15](Atk) [[84, 195, 110, 234, 65, 127, 38, 11, 10]]: Failed
+ - On turn 6: P2 Health b.902 vs e.840
+Fire_Spin&Switch[15](SAtk) [[215, 54, 71, 9, 156, 35, 89, 231, 0]]: Failed
+ - On turn 3: RNG index b.4 vs e.0
+ - On turn 3: RNG list b.[5, 76, 245, 231, 66, 113, 183, 149, 6] vs e.[26, 125, 202, 132, 75, 54, 148, 234, 31]
+ - On turn 3: P1 Health b.999 vs e.983
+ - On turn 3: P1 Speed b.300 vs e.198
+Hyper_Beam&Leech_Seed[8](Par->Move) [[105, 198, 240, 104, 145, 7, 63, 72, 141]]: Failed
+ - On turn 4: RNG index b.7 vs e.8
+Hyper_Beam&Leech_Seed[3](Move->Par) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 3: RNG index b.7 vs e.8
+Hyper_Beam&Leech_Seed[11](Move->Par) [[207, 77, 58, 95, 151, 223, 20, 96, 244]]: Failed
+ - On turn 3: RNG index b.0 vs e.1
+ - On turn 3: RNG list b.[61, 139, 176, 77, 197, 205, 250, 102, 218] vs e.[12, 130, 35, 220, 244, 92, 101, 225, 197]
+ - On turn 3: P1 PPs b.[3, 0, 0, 0] vs e.[4, 0, 0, 0]
+ - On turn 3: P2 Health b.900 vs e.999
+Hyper_Beam&Leech_Seed[2](Move->Par) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 4: P2 Health b.678 vs e.750
+Fire_Spin&Switch[13](Atk) [[208, 1, 32, 229, 227, 59, 41, 144, 194]]: Failed
+ - On turn 2: P2 Health b.996 vs e.934
+Hyper_Beam&Leech_Seed[0](Move->Par) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 5: RNG index b.7 vs e.8
+Hyper_Beam&Leech_Seed[10](Move->Par) [[5, 63, 217, 181, 211, 218, 5, 122, 63]]: Failed
+ - On turn 3: RNG index b.5 vs e.7
+ - On turn 3: RNG list b.[131, 45, 55, 179, 161, 80, 131, 240, 45] vs e.[5, 63, 217, 181, 211, 218, 5, 122, 63]
+ - On turn 3: P1 PPs b.[3, 0, 0, 0] vs e.[4, 0, 0, 0]
+ - On turn 3: P2 Health b.852 vs e.999
+Hyper_Beam&Leech_Seed[5](Par->Move) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 6: RNG index b.2 vs e.3
 Hyper_Beam&Leech_Seed[4](Move->Par) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 2: RNG index b.5 vs e.6
  - On turn 2: P2 Health b.912 vs e.999
-Hyper_Beam&Leech_Seed[12](Move->Par) [[37, 29, 179, 51, 243, 178, 85, 54, 65]]: Failed
- - On turn 5: RNG index b.4 vs e.2
- - On turn 5: RNG list b.[163, 219, 129, 1, 193, 104, 83, 76, 95] vs e.[241, 105, 159, 31, 223, 46, 33, 114, 77]
- - On turn 5: P1 PPs b.[3, 0, 0, 0] vs e.[2, 0, 0, 0]
- - On turn 5: P2 Health b.999 vs e.892
-Hyper_Beam&Leech_Seed[12](Par->Move) [[205, 210, 247, 120, 44, 219, 48, 44, 18]]: Failed
- - On turn 7: RNG index b.6 vs e.7
-Hyper_Beam&Leech_Seed[3](Move->Par) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
- - On turn 3: RNG index b.7 vs e.8
-Hyper_Beam&Leech_Seed[11](Move->Par) [[54, 132, 14, 50, 30, 132, 221, 204, 230]]: Failed
- - On turn 3: RNG index b.1 vs e.5
+Hyper_Beam&Leech_Seed[8](Move->Par) [[21, 182, 67, 206, 241, 145, 60, 41, 146]]: Failed
+ - On turn 3: RNG index b.8 vs e.1
+ - On turn 3: RNG list b.[21, 182, 67, 206, 241, 145, 60, 41, 146] vs e.[19, 204, 145, 36, 143, 47, 226, 7, 72]
  - On turn 3: P1 PPs b.[4, 0, 0, 0] vs e.[3, 0, 0, 0]
- - On turn 3: P2 Health b.974 vs e.824
-Hyper_Beam&Leech_Seed[2](Move->Par) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
- - On turn 4: P2 Health b.678 vs e.750
-Hyper_Beam&Leech_Seed[10](Move->Par) [[35, 90, 184, 108, 4, 77, 197, 121, 86]]: Failed
- - On turn 3: P2 Health b.842 vs e.911
+ - On turn 3: P2 Health b.999 vs e.897
+Hyper_Beam&Leech_Seed[7](Par->Move) [[73, 142, 79, 58, 73, 231, 69, 140, 169]]: Failed
+ - On turn 4: RNG index b.3 vs e.4
+Hyper_Beam&Leech_Seed[13](Par->Move) [[47, 95, 28, 212, 41, 243, 75, 131, 176]]: Failed
+ - On turn 4: RNG index b.7 vs e.8
+Hyper_Beam&Leech_Seed[12](Move->Par) [[234, 201, 25, 5, 115, 36, 19, 176, 52]]: Failed
+ - On turn 5: RNG index b.0 vs e.7
+ - On turn 5: P1 PPs b.[3, 0, 0, 0] vs e.[2, 0, 0, 0]
+ - On turn 5: P2 Health b.913 vs e.720
+Hyper_Beam&Leech_Seed[15](Par->Move) [[72, 247, 39, 94, 71, 110, 211, 221, 73]]: Failed
+ - On turn 4: RNG index b.5 vs e.6
+Bind&Switch[0](SAtk) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 7: RNG index b.3 vs e.7
+ - On turn 7: P1 Health b.999 vs e.987
+Bind&Switch[4](SAtk) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 7: RNG index b.2 vs e.6
+ - On turn 7: P1 Health b.987 vs e.975
+Hyper_Beam&Leech_Seed[12](Par->Move) [[126, 208, 220, 146, 9, 55, 81, 57, 191]]: Failed
+ - On turn 4: RNG index b.6 vs e.7
+Bind&Switch[8](SAtk) [[197, 4, 161, 107, 23, 9, 203, 94, 177]]: Failed
+ - On turn 5: RNG index b.7 vs e.6
+ - On turn 5: RNG list b.[67, 106, 191, 121, 69, 231, 217, 52, 79] vs e.[145, 96, 173, 215, 195, 149, 55, 26, 189]
+ - On turn 5: P1 Health b.999 vs e.988
+Bind&Switch[12](SAtk) [[183, 42, 79, 160, 63, 62, 148, 157, 55]]: Failed
+ - On turn 7: RNG index b.0 vs e.4
+ - On turn 7: P1 Health b.999 vs e.988
+ - On turn 7: P1 Speed b.300 vs e.198
+Wrap&Switch[0](SAtk) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 7: RNG index b.3 vs e.7
+ - On turn 7: P1 Health b.999 vs e.987
+Hyper_Beam&Leech_Seed[10](Par->Move) [[17, 18, 228, 124, 173, 136, 40, 29, 213]]: Failed
+ - On turn 5: RNG index b.8 vs e.0
+ - On turn 5: RNG list b.[86, 91, 117, 109, 98, 169, 201, 146, 42] vs e.[175, 200, 74, 34, 235, 78, 238, 219, 211]
+Wrap&Switch[4](SAtk) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 7: RNG index b.2 vs e.6
+ - On turn 7: P1 Health b.987 vs e.975
+Wrap&Switch[16](SAtk) [[185, 140, 44, 9, 213, 131, 159, 100, 113]]: Failed
+ - On turn 3: RNG index b.3 vs e.1
+ - On turn 3: RNG list b.[158, 189, 221, 46, 42, 144, 28, 245, 54] vs e.[23, 178, 82, 231, 211, 209, 141, 202, 15]
+ - On turn 3: P1 Health b.999 vs e.987
+ - On turn 3: P1 Speed b.300 vs e.198
+Bind&Switch[0](SSub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 7: P2 Health b.951 vs e.702
+ - On turn 7: P2 Has substitute b.False vs e.True
+Hyper_Beam&Leech_Seed[6](Par->Move) [[217, 243, 104, 69, 244, 84, 12, 64, 105]]: Failed
+ - On turn 4: RNG index b.3 vs e.4
+Bind&Switch[7](Sub) [[237, 223, 169, 150, 84, 98, 208, 32, 206]]: Failed
+ - On turn 6: P2 Health b.906 vs e.844
+Clamp&Switch[6](SAtk) [[230, 79, 9, 226, 150, 133, 233, 67, 117]]: Failed
+ - On turn 5: RNG index b.3 vs e.0
+ - On turn 5: RNG list b.[124, 189, 231, 24, 172, 3, 199, 145, 115] vs e.[109, 178, 132, 121, 93, 16, 228, 214, 64]
+ - On turn 5: P1 Health b.999 vs e.988
+Bind&Switch[8](SSub) [[4, 17, 50, 118, 202, 73, 111, 157, 105]]: Failed
+ - On turn 5: P2 Health b.968 vs e.719
+ - On turn 5: P2 Has substitute b.False vs e.True
+Clamp&Switch[10](SAtk) [[73, 22, 205, 247, 211, 48, 144, 179, 31]]: Failed
+ - On turn 7: RNG index b.6 vs e.8
+ - On turn 7: RNG list b.[213, 82, 25, 163, 191, 204, 44, 159, 75] vs e.[42, 155, 126, 48, 188, 253, 221, 28, 120]
+ - On turn 7: P1 Health b.982 vs e.970
+ - On turn 7: P1 Speed b.300 vs e.198
+Hyper_Beam&Leech_Seed[14](Par->Move) [[121, 36, 8, 186, 1, 205, 214, 219, 40]]: Failed
+ - On turn 7: RNG index b.1 vs e.2
+Bind&Switch[12](SSub) [[32, 100, 205, 4, 206, 137, 38, 215, 225]]: Failed
+ - On turn 3: P2 Health b.978 vs e.729
+ - On turn 3: P2 Has substitute b.False vs e.True
+Clamp&Switch[14](SAtk) [[217, 163, 16, 192, 37, 169, 104, 104, 220]]: Failed
+ - On turn 5: RNG index b.4 vs e.0
+ - On turn 5: RNG list b.[20, 182, 239, 223, 48, 164, 231, 231, 139] vs e.[101, 143, 172, 92, 241, 53, 132, 132, 184]
+ - On turn 5: P1 Health b.999 vs e.987
+Bind&Switch[15](SSub) [[25, 205, 165, 213, 103, 154, 119, 27, 83]]: Failed
+ - On turn 7: P2 Health b.953 vs e.704
+ - On turn 7: P2 Has substitute b.False vs e.True
+Wrap&Switch[0](SSub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 7: P2 Health b.951 vs e.702
+ - On turn 7: P2 Has substitute b.False vs e.True
+Wrap&Switch[3](SSub) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
+ - On turn 5: P2 Health b.963 vs e.714
+ - On turn 5: P2 Has substitute b.False vs e.True
+Fire_Spin&Switch[4](SAtk) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
+ - On turn 7: RNG index b.2 vs e.6
+ - On turn 7: P1 Health b.987 vs e.975
+Fire_Spin&Switch[8](SAtk) [[95, 57, 125, 168, 174, 49, 197, 2, 40]]: Failed
+ - On turn 7: RNG index b.3 vs e.6
+ - On turn 7: RNG list b.[139, 197, 201, 196, 106, 61, 145, 126, 68] vs e.[184, 218, 238, 213, 19, 50, 214, 119, 85]
+ - On turn 7: P1 Health b.999 vs e.988
+ - On turn 7: P1 Speed b.300 vs e.198
+Fire_Spin&Switch[12](SAtk) [[107, 91, 154, 179, 97, 81, 41, 59, 159]]: Failed
+ - On turn 7: RNG index b.2 vs e.0
+ - On turn 7: RNG list b.[215, 199, 150, 159, 109, 93, 181, 167, 203] vs e.[52, 228, 239, 28, 34, 210, 138, 68, 248]
+ - On turn 7: P1 Health b.999 vs e.988
+Wrap&Switch[16](SSub) [[185, 140, 44, 9, 213, 131, 159, 100, 113]]: Failed
+ - On turn 3: P2 Health b.984 vs e.735
+ - On turn 3: P2 Has substitute b.False vs e.True
+Clamp&Switch[5](SSub) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
+ - On turn 3: P2 Health b.996 vs e.747
+ - On turn 3: P2 Has substitute b.False vs e.True
+Clamp&Switch[10](SSub) [[187, 40, 199, 112, 205, 113, 129, 160, 23]]: Failed
+ - On turn 3: P2 Health b.998 vs e.749
+ - On turn 3: P2 Has substitute b.False vs e.True
+Clamp&Switch[14](SSub) [[145, 220, 128, 216, 159, 79, 61, 130, 202]]: Failed
+ - On turn 3: P2 Health b.998 vs e.749
+ - On turn 3: P2 Has substitute b.False vs e.True
+Wrap&Switch[10](SSub) [[50, 158, 174, 186, 172, 68, 246, 146, 166]]: Failed
+ - On turn 3: P2 Health b.983 vs e.734
+ - On turn 3: P2 Has substitute b.False vs e.True
+Fire_Spin&Switch[7](SSub) [[72, 237, 219, 169, 93, 79, 32, 97, 105]]: Failed
+ - On turn 7: P2 Health b.996 vs e.747
+ - On turn 7: P2 Has substitute b.False vs e.True
+Fire_Spin&Switch[12](SSub) [[166, 25, 67, 203, 165, 87, 95, 41, 168]]: Failed
+ - On turn 5: P2 Health b.997 vs e.748
+ - On turn 5: P2 Has substitute b.False vs e.True
+Fire_Spin&Switch[11](SSub) [[131, 234, 167, 228, 44, 108, 120, 87, 60]]: Failed
+ - On turn 3: P2 Health b.998 vs e.749
+ - On turn 3: P2 Has substitute b.False vs e.True
+Hyper_Beam&Leech_Seed[9](Par->Move) [[214, 4, 146, 194, 114, 117, 176, 0, 56]]: Failed
+ - On turn 5: RNG index b.5 vs e.6
+Fire_Spin&Switch[15](SSub) [[192, 252, 27, 151, 31, 137, 193, 125, 59]]: Failed
+ - On turn 5: P2 Health b.997 vs e.748
+ - On turn 5: P2 Has substitute b.False vs e.True
+Clamp&Switch[0](SSub) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
+ - On turn 7: P2 Health b.995 vs e.746
+ - On turn 7: P2 Has substitute b.False vs e.True
+Clamp&Switch[12](SSub) [[28, 154, 230, 170, 131, 251, 155, 205, 211]]: Failed
+ - On turn 7: P2 Health b.996 vs e.747
+ - On turn 7: P2 Has substitute b.False vs e.True
+Clamp&Switch[16](SSub) [[185, 140, 44, 9, 213, 131, 159, 100, 113]]: Failed
+ - On turn 3: P2 Health b.998 vs e.749
+ - On turn 3: P2 Has substitute b.False vs e.True
+Hyper_Beam&Leech_Seed[7](Move->Par) [[81, 37, 148, 175, 102, 178, 129, 223, 242]]: Failed
+ - On turn 5: P2 Health b.857 vs e.924
+Hyper_Beam&Leech_Seed[9](Move->Par) [[193, 139, 48, 232, 83, 174, 176, 93, 39]]: Failed
+ - On turn 5: P2 Health b.881 vs e.812
+Hyper_Beam&Leech_Seed[15](Move->Par) [[64, 130, 54, 214, 45, 104, 135, 233, 241]]: Failed
+ - On turn 2: P2 Health b.859 vs e.926
+Hyper_Beam&Leech_Seed[6](Move->Par) [[107, 92, 176, 75, 23, 193, 92, 127, 187]]: Failed
+ - On turn 3: RNG index b.3 vs e.1
+ - On turn 3: P1 PPs b.[3, 0, 0, 0] vs e.[4, 0, 0, 0]
+ - On turn 3: P2 Health b.915 vs e.999
+Hyper_Beam&Leech_Seed[14](Move->Par) [[236, 247, 66, 93, 35, 38, 76, 215, 117]]: Failed
+ - On turn 5: RNG index b.8 vs e.2
+ - On turn 5: RNG list b.[157, 212, 75, 210, 176, 191, 125, 52, 74] vs e.[233, 48, 183, 78, 76, 235, 201, 144, 70]
+ - On turn 5: P1 PPs b.[3, 0, 0, 0] vs e.[2, 0, 0, 0]
+ - On turn 5: P2 Health b.913 vs e.768
+Hyper_Beam&Leech_Seed[13](Move->Par) [[105, 139, 102, 9, 188, 209, 35, 2, 175]]: Failed
+ - On turn 3: RNG index b.4 vs e.1
+ - On turn 3: P1 PPs b.[3, 0, 0, 0] vs e.[4, 0, 0, 0]
+ - On turn 3: P2 Health b.895 vs e.999
 Pound: 85/85
 Karate_Chop: 80/80
 Doubleslap: 85/85
@@ -1682,7 +1936,6 @@ Gust: 80/80
 Wing_Attack: 80/80
 Whirlwind: 80/80
 Fly: 80/80
-Bind: 80/80
 Slam: 80/80
 Vine_Whip: 80/80
 Stomp: 95/95
@@ -1697,7 +1950,6 @@ Fury_Attack: 80/80
 Horn_Drill: 80/80
 Tackle: 80/80
 Body_Slam: 80/80
-Wrap: 90/90
 Take_Down: 80/80
 Thrash: 85/85
 Double_Edge: 80/80
@@ -1709,8 +1961,8 @@ Leer: 80/80
 Bite: 80/80
 Growl: 80/80
 Roar: 80/80
-Sing: 112/112
-Supersonic: 112/112
+Sing: 80/80
+Supersonic: 80/80
 Sonic_Boom: 80/80
 Acid: 80/80
 Ember: 80/80
@@ -1723,7 +1975,6 @@ Ice_Beam: 80/80
 Blizzard: 80/80
 Bubble_Beam: 80/80
 Aurora_Beam: 80/80
-Hyper_Beam: 216/216
 Peck: 80/80
 Drill_Peck: 80/80
 Submission: 85/85
@@ -1735,25 +1986,24 @@ Absorb: 80/80
 Mega_Drain: 80/80
 Growth: 80/80
 Razor_Leaf: 80/80
-Solar_Beam: 80/80
-Poisonpowder: 112/112
-Stun_Spore: 112/112
-Sleep_Powder: 112/112
+Solarbeam: 80/80
+Poisonpowder: 80/80
+Stun_Spore: 80/80
+Sleep_Powder: 80/80
 Petal_Dance: 80/80
 String_Shot: 85/85
 Dragon_Rage: 80/80
-Fire_Spin: 80/80
 Thundershock: 80/80
 Thunderbolt: 80/80
-Thunder_Wave: 112/112
+Thunder_Wave: 80/80
 Thunder: 80/80
 Rock_Throw: 80/80
 Earthquake: 80/80
 Fissure: 80/80
 Dig: 80/80
-Toxic: 112/112
+Toxic: 80/80
 Psychic_M: 80/80
-Hypnosis: 112/112
+Hypnosis: 80/80
 Meditate: 80/80
 Agility: 80/80
 Quick_Attack: 80/80
@@ -1766,7 +2016,7 @@ Recover: 80/80
 Harden: 80/80
 Minimize: 80/80
 Smokescreen: 95/95
-Confuse_Ray: 119/119
+Confuse_Ray: 85/85
 Withdraw: 80/80
 Defense_Curl: 80/80
 Barrier: 80/80
@@ -1784,7 +2034,6 @@ Sludge: 80/80
 Bone_Club: 80/80
 Fire_Blast: 90/90
 Waterfall: 80/80
-Clamp: 90/90
 Swift: 80/80
 Skull_Bash: 80/80
 Spike_Cannon: 80/80
@@ -1793,15 +2042,15 @@ Amnesia: 80/80
 Kinesis: 80/80
 Softboiled: 80/80
 Hi_Jump_Kick: 80/80
-Glare: 112/112
-Poison_Gas: 112/112
+Glare: 80/80
+Poison_Gas: 80/80
 Barrage: 80/80
 Leech_Life: 80/80
-Lovely_Kiss: 112/112
+Lovely_Kiss: 80/80
 Sky_Attack: 80/80
 Bubble: 80/80
 Dizzy_Punch: 80/80
-Spore: 112/112
+Spore: 80/80
 Flash: 80/80
 Psywave: 80/80
 Splash: 80/80
@@ -1820,13 +2069,18 @@ Super_Fang: 80/80
 Slash: 80/80
 Substitute: 80/80
 Struggle: 80/80
-Metronome: 59/80
-Confusion: 42/80
-Psybeam: 38/80
-Leech_Seed: 20/112
-Disable: 14/80
+Hyper_Beam: 504/530
+Wrap: 146/162
+Fire_Spin: 126/144
+Clamp: 138/162
+Bind: 118/144
+Metronome: 60/80
+Psybeam: 48/80
+Confusion: 37/80
+Disable: 13/80
+Leech_Seed: 12/80
 Mimic: 0/80
 Dream_Eater: 0/80
 Transform: 0/80
-13397 individual test(s) passed. 499 individual test(s) failed.
-157 test group(s) passed. 8 test group(s) failed.
+13452 individual test(s) passed. 580 individual test(s) failed.
+152 test group(s) passed. 13 test group(s) failed.
