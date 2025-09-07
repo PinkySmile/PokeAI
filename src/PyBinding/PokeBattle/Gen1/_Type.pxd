@@ -1,11 +1,9 @@
-
-from StatsChange cimport StatsChange
-from StatusChange cimport StatusChange# cython: language_level=3
+# cython: language_level=3
 
 from libcpp.string cimport string
 from libcpp.pair cimport pair
 
-cdef extern from "../../GameEngine/Type.hpp" namespace "PokemonGen1":
+cdef extern from "<GameEngine/Type.hpp>" namespace "PokemonGen1":
 	ctypedef enum Type:
 		TYPE_NORMAL,
 		TYPE_FIGHTING,

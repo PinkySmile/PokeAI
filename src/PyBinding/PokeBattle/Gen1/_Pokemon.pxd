@@ -8,13 +8,13 @@ from libcpp.string cimport string
 from libcpp.functional cimport function
 from libcpp.set cimport set
 
-from Damage cimport DamageResult
-from Type cimport Type
-from State cimport PlayerState, BattleState
-from Move cimport Move, AvailableMove, MoveCategory
-from StatsChange cimport StatsChange
-from StatusChange cimport StatusChange
-from RandomGenerator cimport RandomGenerator
+from ._Damage cimport DamageResult
+from ._Type cimport Type
+from ._State cimport PlayerState, BattleState
+from ._Move cimport Move, AvailableMove, MoveCategory
+from ._StatsChange cimport StatsChange
+from ._StatusChange cimport StatusChange
+from ._RandomGenerator cimport RandomGenerator
 
 
 cdef extern from "<array>" namespace "std" nogil:
@@ -23,22 +23,7 @@ cdef extern from "<array>" namespace "std" nogil:
 		unsigned char &operator[](size_t)
 
 
-cdef extern from "../../Emulator/EmulatorGameHandle.hpp" namespace "PokemonGen1":
-	cdef cppclass EmulatorGameHandle:
-		void setReady(bool ready)
-		#Gen1ConnectionStage getStage()
-		#void setStage(Gen1ConnectionStage stage)
-		bool isConnected()
-		bool isReady()
-		#std::pair<unsigned, unsigned> getBattleSendingProgress()
-
-		@staticmethod
-		vector[unsigned char] convertString(const string &str)
-		@staticmethod
-		string convertString(const vector[unsigned char] &str)
-
-
-cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
+cdef extern from "<GameEngine/Pokemon.hpp>" namespace "PokemonGen1":
 	cdef cppclass Pokemon:
 		ctypedef function[void (const string &)] Logger
 
@@ -109,7 +94,7 @@ cdef extern from "../../GameEngine/Pokemon.hpp" namespace "PokemonGen1":
 		#nlohmann::json serialize()
 
 		void setInvincible(bool invincible)
-		void setId(unsigned char id, bool recomputeStats)
+		void setID(unsigned char id, bool recomputeStats)
 		void setNickname(const string &nickname)
 		void setLevel(unsigned char level)
 		void setMove(unsigned char index, const Move &move)

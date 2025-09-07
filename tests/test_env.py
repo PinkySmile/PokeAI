@@ -1,5 +1,4 @@
-from GameEngine import PokemonSpecies, AvailableMove
-from Env import PokemonYellowBattle, Examples
+from PokeBattle.Gen1.Env import Examples
 import gymnasium as gym
 
 

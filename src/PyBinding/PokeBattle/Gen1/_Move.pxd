@@ -6,10 +6,10 @@ from libcpp.pair cimport pair
 from libcpp.string cimport string
 from libcpp.functional cimport function
 
-from Type cimport Type
-from Pokemon cimport Pokemon
-from StatsChange cimport StatsChange
-from StatusChange cimport StatusChange
+from ._Type cimport Type
+from ._Pokemon cimport Pokemon
+from ._StatsChange cimport StatsChange
+from ._StatusChange cimport StatusChange
 
 
 cdef extern from "<array>" namespace "std" nogil:
@@ -17,7 +17,7 @@ cdef extern from "<array>" namespace "std" nogil:
 		ArrayMoves() except+
 		Move &operator[](size_t)
 
-cdef extern from "../../GameEngine/Move.hpp" namespace "PokemonGen1":
+cdef extern from "<GameEngine/Move.hpp>" namespace "PokemonGen1":
 	ctypedef enum MoveCategory:
 		PHYSICAL,
 		SPECIAL,
@@ -93,7 +93,7 @@ cdef extern from "../../GameEngine/Move.hpp" namespace "PokemonGen1":
 		void setHitsLeft(unsigned char nb)
 		void reset()
 
-		bool attack(Pokemon &owner, Pokemon &target, const Pokemon.Logger &logger)
+		bool attack(Pokemon &owner, Pokemon &target, const function[void (const string &)] &logger)
 
 	extern const ArrayMoves availableMoves
 

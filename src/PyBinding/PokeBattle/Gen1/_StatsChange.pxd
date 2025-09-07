@@ -2,7 +2,7 @@
 
 from libcpp.string cimport string
 
-cdef extern from "../../GameEngine/StatsChange.hpp" namespace "PokemonGen1":
+cdef extern from "<GameEngine/StatsChange.hpp>" namespace "PokemonGen1":
 	cpdef enum StatsChange:
 		STATS_ATK,
 		STATS_DEF,

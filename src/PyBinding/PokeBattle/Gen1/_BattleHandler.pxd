@@ -2,9 +2,9 @@
 
 from libcpp cimport bool
 from libcpp.string cimport string
-from State cimport BattleState
+from ._State cimport BattleState
 
-cdef extern from "../../GameEngine/BattleHandler.hpp" namespace "PokemonGen1":
+cdef extern from "<GameEngine/BattleHandler.hpp>" namespace "PokemonGen1":
 	cdef cppclass BattleHandler:
 		BattleHandler(bool viewSwapped, bool logMessages);
 

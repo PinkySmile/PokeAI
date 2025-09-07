@@ -1,9 +1,21 @@
 import os
+from collections.abc import Callable
+
+from PokeBattle.Gen1 import RandomGenerator
 from gymnasium import Env, register
 from gymnasium.spaces import Discrete, Box
 from numpy import array, int16, float32, int8
-from Emulator import Emulator
-from GameEngine import Type, BattleHandler, BattleState, BattleAction, StatusChange, MoveCategory, PokemonSpecies, AvailableMove, convertString, typeToStringShort, getAttackDamageMultiplier, statusToString, Pokemon, PokemonBase, Move, loadTrainer as __loadTrainer
+from numpy.random import Generator
+from torch.fx.experimental.migrate_gradual_types.operation import op_eq
+
+from .PyBoyEmulator import PyBoyEmulator
+from .BattleHandler import BattleHandler
+from .Move import AvailableMove, MoveCategory, Move
+from .State import BattleAction, BattleState, PlayerState
+from .StatusChange import StatusChange, status_to_string
+from .Pokemon import PokemonSpecies, Pokemon, PokemonBase
+from .Team import load_trainer as _load_trainer
+from .Type import Type, type_to_string_short, get_attack_damage_multiplier
 
 banned_moves = [ # These moves aren't implemented properly in the engine
 	# Can roll other moves from the list that aren't implemented
@@ -22,18 +34,18 @@ banned_moves = [ # These moves aren't implemented properly in the engine
 ]
 
 
-def gen1AI(me, op, categories, random):
-	mepkmn = me.team[me.pokemonOnField]
-	if mepkmn.getHealth() == 0:
-		return BattleAction(BattleAction.Switch1 + next(i for i in range(len(me.team)) if me.team[i].getHealth()))
-	moves = mepkmn.getMoveSet()
+def gen1AI(me: PlayerState, op: PlayerState, categories: list[int], random: Generator):
+	me_pkmn = me.pokemon_on_field
+	if me_pkmn.health == 0:
+		return BattleAction(BattleAction.Switch1 + next(i for i in range(len(me.team)) if me.team[i].health))
+	moves = me_pkmn.move_set
 	scores = [1000 for _ in moves]
-	oppkmn = op.team[op.pokemonOnField]
-	if 1 in categories and oppkmn.hasStatus(StatusChange.Any_non_volatile_status):
+	op_pkmn = op.pokemon_on_field
+	if 1 in categories and op_pkmn.has_status(StatusChange.Any_non_volatile_status):
 		for i in range(len(scores)):
-			if (moves[i].getStatusChange()['status'] & StatusChange.Any_non_volatile_status) and moves[i].getCategory() == MoveCategory.Status:
+			if (moves[i].status_change['status'] & StatusChange.Any_non_volatile_status) and moves[i].category == MoveCategory.Status:
 				scores[i] /= 8
-	if 2 in categories and me.lastAction in [BattleAction.Switch1, BattleAction.Switch2, BattleAction.Switch3, BattleAction.Switch4, BattleAction.Switch5, BattleAction.Switch6]:
+	if 2 in categories and me.last_action in [BattleAction.Switch1, BattleAction.Switch2, BattleAction.Switch3, BattleAction.Switch4, BattleAction.Switch5, BattleAction.Switch6]:
 		priority = [int(i) for i in [
 			AvailableMove.Meditate, AvailableMove.Sharpen,
 			AvailableMove.Defense_Curl, AvailableMove.Harden, AvailableMove.Withdraw,
@@ -44,7 +56,7 @@ def gen1AI(me, op, categories, random):
 			AvailableMove.Growl,
 			AvailableMove.Leer, AvailableMove.Tail_Whip,
 			AvailableMove.String_Shot,
-			AvailableMove.Flash, AvailableMove.Kinesis, AvailableMove.Sand_Attack, AvailableMove.SmokeScreen,
+			AvailableMove.Flash, AvailableMove.Kinesis, AvailableMove.Sand_Attack, AvailableMove.Smokescreen,
 			AvailableMove.Conversion,
 			AvailableMove.Haze,
 			AvailableMove.Swords_Dance,
@@ -58,12 +70,12 @@ def gen1AI(me, op, categories, random):
 			AvailableMove.Reflect,
 		]]
 		for i in range(len(scores)):
-			if moves[i].getID() in priority:
+			if moves[i].id in priority:
 				scores[i] *= 2
 	if 3 in categories:
 		for i in range(len(scores)):
-			if moves[i].getCategory() != MoveCategory.Status:
-				mul = getAttackDamageMultiplier(moves[i].getType(), oppkmn.getTypes())
+			if moves[i].category != MoveCategory.Status:
+				mul = get_attack_damage_multiplier(moves[i].type, op_pkmn.types)
 				scores[i] *= mul
 		priority = [int(i) for i in [
 			AvailableMove.Super_Fang,
@@ -72,19 +84,19 @@ def gen1AI(me, op, categories, random):
 		]]
 		for k, p in enumerate(priority):
 			for i in range(len(scores)):
-				if moves[i].getID() == p:
+				if moves[i].id == p:
 					scores[i] *= 2 + k  / 10
 	if 4 in categories:
-		if mepkmn.getHealth() / mepkmn.getMaxHealth() < 0.1 and random.integers(low=0, high=63) < 5:
+		if me_pkmn.health / me_pkmn.max_health < 0.1 and random.integers(low=0, high=63) < 5:
 			for i in range(6):
-				index = (me.pokemonOnField + i) % 6
+				index = (me.pokemon_on_field_index + i) % 6
 				if len(me.team) <= index:
 					continue
-				if me.team[index].getHealth() == 0:
+				if me.team[index].health == 0:
 					continue
 				return BattleAction(BattleAction.Switch1 + index)
 	for i in range(0, len(scores)):
-		if moves[i].getID() == 0:
+		if moves[i].id == 0:
 			scores[i] = -1000
 	best = [0]
 	for i in range(1, len(scores)):
@@ -95,21 +107,21 @@ def gen1AI(me, op, categories, random):
 	return BattleAction(BattleAction.Attack1 + best[random.integers(low=0, high=len(best))])
 
 
-def basic_opponent(state, rng):
-	pkmn = state.op.team[state.op.pokemonOnField]
-	if pkmn.getHealth() == 0:
-		return BattleAction.Switch1 + state.op.pokemonOnField + 1
-	for i, move in enumerate(pkmn.getMoveSet()):
-		if move.getID() != 0 and move.getPP() != 0:
+def basic_opponent(state: BattleState, rng: Generator):
+	pkmn = state.op.pokemon_on_field
+	if pkmn.health == 0:
+		return BattleAction.Switch1 + state.op.pokemon_on_field_index + 1
+	for i, move in enumerate(pkmn.move_set):
+		if move.id != 0 and move.pp != 0:
 			return BattleAction.Attack1 + i
 	return BattleAction.StruggleMove
 
 
-def gen1AI_1(state, rng):
+def gen1AI_1(state: BattleState, rng: Generator):
 	return gen1AI(state.op, state.me, [1], rng)
 
 
-def gen1AI_13(state, rng):
+def gen1AI_13(state: BattleState, rng: Generator):
 	return gen1AI(state.op, state.me, [1, 3], rng)
 
 
@@ -468,16 +480,16 @@ class Examples:
 	}
 
 
-def loadTrainer(path):
+def load_trainer(path: str):
 	state = BattleState()
 	with open(path, "rb") as fd:
 		data = fd.read()
-	name, team = __loadTrainer(data, state)
+	name, team = _load_trainer(data, state)
 	return name, [{
-		"name": p.getName(False),
-		"level": p.getLevel(),
-		"species": p.getID(),
-		"moves": [m.getID() for m in p.getMoveSet()]
+		"name": p.name,
+		"level": p.level,
+		"species": p.id,
+		"moves": [m.id for m in p.move_set]
 	} for p in team]
 
 
@@ -495,7 +507,7 @@ class PokemonYellowBattle(Env):
 			  0,   0,
 			# ATK, DEF, SPD, SPE
 			  0,   0,   0,   0,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
 			# SLP, PSN, BRN, FRZ, PAR, TOX, LEE, CFZ
 			  0,   0,   0,   0,   0,   0,   0,   0,
@@ -511,7 +523,7 @@ class PokemonYellowBattle(Env):
 			  0,   0,
 			# ATK, DEF, SPD, SPE
 			  0,   0,   0,   0,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
 			# SLP, PSN, BRN, FRZ, PAR, TOX, LEE, CFZ
 			  0,   0,   0,   0,   0,   0,   0,   0,
@@ -527,7 +539,7 @@ class PokemonYellowBattle(Env):
 			  0,   0,
 			# ATK, DEF, SPD, SPE
 			  0,   0,   0,   0,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
 			# SLP, PSN, BRN, FRZ, PAR
 			  0,   0,   0,   0,   0,
@@ -539,7 +551,7 @@ class PokemonYellowBattle(Env):
 			 -10,  -10,
 			# ATK, DEF, SPD, SPE
 			  -10, -10, -10, -10,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 			# SLP, PSN, BRN, FRZ, PAR
 			  -10, -10, -10, -10, -10,
@@ -551,7 +563,7 @@ class PokemonYellowBattle(Env):
 			  -10,  -10,
 			# ATK, DEF, SPD, SPE
 			  -10, -10, -10, -10,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 			# SLP, PSN, BRN, FRZ, PAR
 			  -10, -10, -10, -10, -10,
@@ -563,7 +575,7 @@ class PokemonYellowBattle(Env):
 			  -10,  -10,
 			# ATK, DEF, SPD, SPE
 			  -10, -10, -10, -10,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 			# SLP, PSN, BRN, FRZ, PAR
 			  -10, -10, -10, -10, -10,
@@ -575,7 +587,7 @@ class PokemonYellowBattle(Env):
 			  -10,  -10,
 			# ATK, DEF, SPD, SPE
 			  -10, -10, -10, -10,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 			# SLP, PSN, BRN, FRZ, PAR
 			  -10, -10, -10, -10, -10,
@@ -587,7 +599,7 @@ class PokemonYellowBattle(Env):
 			  -10,  -10,
 			# ATK, DEF, SPD, SPE
 			  -10, -10, -10, -10,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 			# SLP, PSN, BRN, FRZ, PAR
 			  -10, -10, -10, -10, -10,
@@ -601,7 +613,7 @@ class PokemonYellowBattle(Env):
 			  0,   0,
 			# ATK, DEF, SPD, SPE
 			  0,   0,   0,   0,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
 			# SLP, PSN, BRN, FRZ, PAR
 			  0,   0,   0,   0,   0,
@@ -613,7 +625,7 @@ class PokemonYellowBattle(Env):
 			 -10,  -10,
 			# ATK, DEF, SPD, SPE
 			  -10, -10, -10, -10,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 			# SLP, PSN, BRN, FRZ, PAR
 			  -10, -10, -10, -10, -10,
@@ -625,7 +637,7 @@ class PokemonYellowBattle(Env):
 			  -10,  -10,
 			# ATK, DEF, SPD, SPE
 			  -10, -10, -10, -10,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 			# SLP, PSN, BRN, FRZ, PAR
 			  -10, -10, -10, -10, -10,
@@ -637,7 +649,7 @@ class PokemonYellowBattle(Env):
 			  -10,  -10,
 			# ATK, DEF, SPD, SPE
 			  -10, -10, -10, -10,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 			# SLP, PSN, BRN, FRZ, PAR
 			  -10, -10, -10, -10, -10,
@@ -649,7 +661,7 @@ class PokemonYellowBattle(Env):
 			  -10,  -10,
 			# ATK, DEF, SPD, SPE
 			  -10, -10, -10, -10,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 			# SLP, PSN, BRN, FRZ, PAR
 			  -10, -10, -10, -10, -10,
@@ -661,7 +673,7 @@ class PokemonYellowBattle(Env):
 			  -10,  -10,
 			# ATK, DEF, SPD, SPE
 			  -10, -10, -10, -10,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10,
 			# SLP, PSN, BRN, FRZ, PAR
 			  -10, -10, -10, -10, -10,
@@ -675,7 +687,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR, TOX, LEE, CFZ
 			  1,   1,   1,   1,   1,   1,   1,   1,
@@ -690,7 +702,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR, TOX, LEE, CFZ
 			  1,   1,   1,   1,   1,   1,   1,   1,
@@ -705,7 +717,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
@@ -716,7 +728,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
@@ -727,7 +739,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
@@ -738,7 +750,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
@@ -749,7 +761,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
@@ -760,7 +772,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
@@ -772,7 +784,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
@@ -783,7 +795,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
@@ -794,7 +806,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
@@ -805,7 +817,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
@@ -816,7 +828,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
@@ -827,7 +839,7 @@ class PokemonYellowBattle(Env):
 			  999, 999,
 			# ATK, DEF, SPD, SPE
 			  999, 999, 999, 999,
-			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fre, Wtr, Grs, Elc, Psy, Ice, Dgn
+			# Nor, Fgt, Fly, Psn, Gnd, Roc, Bug, Gst, Fir, Wtr, Grs, Elc, Psy, Ice, Dgn
 			  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
@@ -838,7 +850,24 @@ class PokemonYellowBattle(Env):
 		dtype=float32
 	)
 
-	def __init__(self, render_mode=None, episode_trigger=None, opponent_callback=basic_opponent, replay_folder=None, shuffle_teams=False):
+
+	battle: BattleHandler
+	op: Callable
+	base_op: Callable
+	max_turns: int
+	current_turn: int
+	render_mode: str|None
+	last_frames: list
+	episode_id: int
+	episode_trigger: Callable|None
+	recording: bool
+	shuffle_teams: bool
+	replay_folder: str
+	emulator: PyBoyEmulator|None
+	messages: list
+
+
+	def __init__(self, render_mode: str|None=None, episode_trigger: Callable[[], bool]=None, opponent_callback: Callable[[BattleState, Generator], BattleAction]=basic_opponent, replay_folder: str|None=None, shuffle_teams: bool=False):
 		self.battle = BattleHandler(False, False)
 		self.op = opponent_callback
 		self.base_op = opponent_callback
@@ -850,26 +879,26 @@ class PokemonYellowBattle(Env):
 		self.episode_trigger = episode_trigger
 		self.recording = False
 		self.shuffle_teams = shuffle_teams
-		self.last_state = None
 		self.replay_folder = replay_folder
 		if self.render_mode == "human":
-			self.emulator = Emulator(has_interface=True, sound_volume=25, save_frames=False)
+			self.emulator = PyBoyEmulator(has_interface=True, sound_volume=25, save_frames=False)
+			self.emulator.on_text_displayed = print
 		elif self.render_mode == "rgb_array_list":
-			self.emulator = Emulator(has_interface=False, sound_volume=0, save_frames=True)
+			self.emulator = PyBoyEmulator(has_interface=False, sound_volume=0, save_frames=True)
 		else:
 			self.emulator = None
 		self.messages = []
 		if self.render_mode == "ansi":
-			self.battle.state.battleLogger = lambda x: self.messages.append(x)
+			self.battle.state.logger = lambda x: self.messages.append(x)
 
 
-	def step_emulator(self, state):
+	def step_emulator(self, state: BattleState):
 		if self.emulator is None or not self.recording:
 			return
 		self.emulator.step(state)
 
 
-	def init_emulator(self, state):
+	def init_emulator(self, state: BattleState):
 		if self.emulator is None or not self.recording:
 			return
 		with open("pokeyellow_replay.state", "rb") as fd:
@@ -877,10 +906,10 @@ class PokemonYellowBattle(Env):
 
 
 	@staticmethod
-	def observe_pokemon_on_field(me_state, op_state):
-		pokemon = me_state.team[me_state.pokemonOnField]
-		boosts = pokemon.getStatsUpgradeStages()
-		status = pokemon.getStatus()
+	def observe_pokemon_on_field(me_state: PlayerState, op_state: PlayerState|None):
+		pokemon = me_state.pokemon_on_field
+		boosts = pokemon.stats_upgrade_stages
+		status = pokemon.status
 		status = [
 			bool(status & StatusChange.Asleep),
 			bool(status & StatusChange.Poisoned),
@@ -891,7 +920,7 @@ class PokemonYellowBattle(Env):
 			bool(status & StatusChange.Leeched),
 			bool(status & StatusChange.Confused)
 		]
-		types = pokemon.getTypes()
+		types = pokemon.types
 		types = [
 			types[0] == Type.Normal   or types[1] == Type.Normal,
 			types[0] == Type.Fighting or types[1] == Type.Fighting,
@@ -909,15 +938,15 @@ class PokemonYellowBattle(Env):
 			types[0] == Type.Ice      or types[1] == Type.Ice,
 			types[0] == Type.Dragon   or types[1] == Type.Dragon,
 		]
-		move_set = pokemon.getMoveSet()
+		move_set = pokemon.move_set
 		move_set += [None] * (4 - len(move_set))
 		moves = [
-			-1 if op_state is not None and not op_state.isPkmnMoveDiscovered(me_state.pokemonOnField, k) else i
-			for k, s in enumerate(move_set) for i in ([s.getID(), s.getPP()] if s is not None else [-10, -10])
+			-1 if op_state is not None and not op_state.is_pkmn_move_discovered(me_state.pokemon_on_field_index, k) else i
+			for k, s in enumerate(move_set) for i in ([s.id, s.pp] if s is not None else [-10, -10])
 		]
 		return [
-			pokemon.getHealth(), pokemon.getMaxHealth(),
-			pokemon.getAttack(), pokemon.getDefense(), pokemon.getSpeed(), pokemon.getSpecial(),
+			pokemon.health, pokemon.max_health,
+			pokemon.attack, pokemon.defense, pokemon.speed, pokemon.special,
 			*types,
 			*status,
 			boosts['ATK'] + 6, boosts['DEF'] + 6, boosts['SPD'] + 6, boosts['SPE'] + 6,
@@ -927,10 +956,10 @@ class PokemonYellowBattle(Env):
 
 
 	@staticmethod
-	def observe_pokemon(pokemon, slot, op_state):
-		if op_state and not op_state.isPkmnDiscovered(slot):
+	def observe_pokemon(pokemon: Pokemon, slot: int, op_state: PlayerState|None):
+		if op_state and not op_state.is_pkmn_discovered(slot):
 			return [-1] * 34
-		status = pokemon.getNonVolatileStatus()
+		status = pokemon.non_volatile_status
 		status = [
 			bool(status & StatusChange.Asleep),
 			bool(status & StatusChange.Poisoned),
@@ -938,7 +967,7 @@ class PokemonYellowBattle(Env):
 			bool(status & StatusChange.Frozen),
 			bool(status & StatusChange.Paralyzed),
 		]
-		types = pokemon.getTypes()
+		types = pokemon.types
 		types = [
 			types[0] == Type.Normal   or types[1] == Type.Normal,
 			types[0] == Type.Fighting or types[1] == Type.Fighting,
@@ -956,20 +985,20 @@ class PokemonYellowBattle(Env):
 			types[0] == Type.Ice      or types[1] == Type.Ice,
 			types[0] == Type.Dragon   or types[1] == Type.Dragon,
 		]
-		move_set = pokemon.getMoveSet()
+		move_set = pokemon.move_set
 		move_set += [None] * (4 - len(move_set))
 		moves = [
-			-1 if op_state is not None and not op_state.isPkmnMoveDiscovered(slot, k) else i
-			for k, s in enumerate(move_set) for i in ([s.getID(), s.getPP()] if s is not None else [-1, -1])
+			-1 if op_state is not None and not op_state.is_pkmn_move_discovered(slot, k) else i
+			for k, s in enumerate(move_set) for i in ([s.id, s.pp] if s is not None else [-1, -1])
 		]
 		return [
-			pokemon.getHealth(), pokemon.getMaxHealth(),
-			pokemon.getRawAttack(), pokemon.getRawDefense(), pokemon.getRawSpeed(), pokemon.getRawSpecial(),
+			pokemon.health,     pokemon.max_health,
+			pokemon.raw_attack, pokemon.raw_defense, pokemon.raw_speed, pokemon.raw_special,
 			*types, *status, *moves
 		]
 
 
-	def make_observation(self, state):
+	def make_observation(self, state: BattleState):
 		me_team = state.me.team
 		op_team = state.op.team
 		ob = self.observe_pokemon_on_field(state.me, None)
@@ -985,57 +1014,54 @@ class PokemonYellowBattle(Env):
 			else:
 				ob += [-10] * 34
 		ob = array(ob, dtype=float32)
-		pkmn = state.me.team[state.me.pokemonOnField]
-		if pkmn.getHealth() == 0:
-			moveMask = [False, False, False, False]
-			canUseStruggle = False
+		pkmn = state.me.pokemon_on_field
+		if pkmn.health == 0:
+			move_mask = [False, False, False, False]
+			can_use_struggle = False
 		else:
-			moveMask = [int(m.getID() != 0 and m.getPP() != 0) for m in pkmn.getMoveSet()] + [False for _ in range(len(pkmn.getMoveSet()), 4)]
-			canUseStruggle = int(not any(moveMask))
-		switchMask = [int(len(state.me.team) > i and state.me.pokemonOnField != i and state.me.team[i].getHealth() > 0) for i in range(6)]
-		result = moveMask + switchMask + [canUseStruggle]
+			move_mask = [int(m.id != 0 and m.pp != 0) for m in pkmn.move_set] + [False for _ in range(len(pkmn.move_set), 4)]
+			can_use_struggle = int(not any(move_mask))
+		switch_mask = [int(len(state.me.team) > i and state.me.pokemon_on_field_index != i and state.me.team[i].health > 0) for i in range(6)]
+		result = move_mask + switch_mask + [can_use_struggle]
 		if not any(result):
 			result = [1] * self.action_space.n
-		self.last_state = (ob, {
-			'mask': array(result, dtype=int8)
-		})
-		return self.last_state
+		return ob, { 'mask': array(result, dtype=int8) }
 
 
-	def compute_reward(self, old, new):
-		if all(f.getHealth() == 0 for f in new.op.team):
+	def compute_reward(self, old: BattleState, new: BattleState):
+		if all(f.health == 0 for f in new.op.team):
 			return 100 / self.current_turn
-		return sum(p.getHealth() for p in new.me.team) / sum(p.getMaxHealth() for p in new.me.team) - sum(p.getHealth() for p in new.op.team) / sum(p.getMaxHealth() for p in new.op.team)
+		return sum(p.health for p in new.me.team) / sum(p.max_health for p in new.me.team) - sum(p.health for p in new.op.team) / sum(p.max_health for p in new.op.team)
 
 
 	def step(self, action):
-		state = self.battle.state
+		state: BattleState = self.battle.state
 		if action == 10:
-			state.me.nextAction = BattleAction.StruggleMove
+			state.me.next_action = BattleAction.StruggleMove
 		else:
-			state.me.nextAction = BattleAction.Attack1 + action
-		state.op.nextAction = self.op(state, self.np_random)
+			state.me.next_action = BattleAction.Attack1 + action
+		state.op.next_action = self.op(state, self.np_random)
 		old = state.copy()
-		if state.me.nextAction == BattleAction.StruggleMove:
-			assert state.me.team[state.me.pokemonOnField].getHealth() != 0
-			assert all(m.getPP() == 0 or m.getID() == 0 for m in state.me.team[state.me.pokemonOnField].getMoveSet())
-		if BattleAction.Attack1 <= state.me.nextAction <= BattleAction.Attack4:
-			assert state.me.team[state.me.pokemonOnField].getHealth() != 0
-			assert state.me.nextAction - BattleAction.Attack1 < len(state.me.team[state.me.pokemonOnField].getMoveSet())
-			assert state.me.team[state.me.pokemonOnField].getMoveSet()[state.me.nextAction - BattleAction.Attack1].getID() != 0
-			assert state.me.team[state.me.pokemonOnField].getMoveSet()[state.me.nextAction - BattleAction.Attack1].getPP() != 0
-		if BattleAction.Switch1 <= state.me.nextAction <= BattleAction.Switch6:
-			assert state.me.nextAction - BattleAction.Switch1 != state.me.pokemonOnField
-			assert state.me.nextAction - BattleAction.Switch1 < len(state.me.team)
-			assert state.me.team[state.me.nextAction - BattleAction.Switch1].getHealth() != 0
+		if state.me.next_action == BattleAction.StruggleMove:
+			assert state.me.pokemon_on_field.health != 0
+			assert all(m.pp == 0 or m.id == 0 for m in state.me.pokemon_on_field.move_set)
+		if BattleAction.Attack1 <= state.me.next_action <= BattleAction.Attack4:
+			assert state.me.pokemon_on_field.health != 0
+			assert state.me.next_action - BattleAction.Attack1 < len(state.me.pokemon_on_field.move_set)
+			assert state.me.pokemon_on_field.move_set[state.me.next_action - BattleAction.Attack1].id != 0
+			assert state.me.pokemon_on_field.move_set[state.me.next_action - BattleAction.Attack1].pp != 0
+		if BattleAction.Switch1 <= state.me.next_action <= BattleAction.Switch6:
+			assert state.me.next_action - BattleAction.Switch1 != state.me.pokemon_on_field_index
+			assert state.me.next_action - BattleAction.Switch1 < len(state.me.team)
+			assert state.me.team[state.me.next_action - BattleAction.Switch1].health != 0
 		self.battle.tick()
 		self.current_turn += 1
-		if self.battle.isFinished() and self.replay_folder:
-			self.battle.saveReplay(os.path.join(self.replay_folder, f"episode-{self.episode_id}.replay"))
+		if self.battle.finished and self.replay_folder:
+			self.battle.save_replay(os.path.join(self.replay_folder, f"episode-{self.episode_id}.replay"))
 		observation, info = self.make_observation(state)
 		self.step_emulator(state)
 		# self.spec.max_episode_steps
-		return observation, self.compute_reward(old, state), self.battle.isFinished(), False, info
+		return observation, self.compute_reward(old, state), self.battle.finished, False, info
 
 
 	def reset(self, seed=None, options=None):
@@ -1049,21 +1075,20 @@ class PokemonYellowBattle(Env):
 			self.recording = True
 		state = self.battle.state
 		if options is None:
-			self.battle.reset()
 			if self.shuffle_teams:
 				state.me.team = self.np_random.permutation([Pokemon(
 					self.battle.state,
-					p.getName(False),
-					p.getLevel(),
-					PokemonBase(p.getID()),
-					self.np_random.permutation(list(Move(m.getID()) for m in p.getMoveSet() if m.getID()))
+					p.get_name(False),
+					p.level,
+					PokemonBase(p.id),
+					self.np_random.permutation(list(Move(m.id) for m in p.move_set if m.id))
 				) for p in state.me.team])
 				state.op.team = self.np_random.permutation([Pokemon(
 					self.battle.state,
-					p.getName(False),
-					p.getLevel(),
-					PokemonBase(p.getID()),
-					self.np_random.permutation(list(Move(m.getID()) for m in p.getMoveSet() if m.getID()))
+					p.get_name(False),
+					p.level,
+					PokemonBase(p.id),
+					self.np_random.permutation(list(Move(m.id) for m in p.move_set if m.id))
 				) for p in state.op.team])
 		else:
 			self.op = options.get("ai", self.base_op)
@@ -1079,29 +1104,31 @@ class PokemonYellowBattle(Env):
 						print(f"Warning: {AvailableMove(m).name} in team 2, on {p["name"]} doesn't work and has been replaced with Pound")
 			state.me.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m) for m in p["moves"]]) for p in options["p1team"]]
 			state.op.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m) for m in p["moves"]]) for p in options["p2team"]]
-		state.rng.setList([self.np_random.integers(low=0, high=255) for _ in range(9)])
+		state.rng.list = [self.np_random.integers(low=0, high=255) for _ in range(9)]
 
 		self.init_emulator(state)
 		return self.make_observation(state)
 
 
 	@staticmethod
-	def serialize_mon(s, i, op):
-		r = f'?????????? ({s.getSpeciesName(): >10}) l{s.getLevel():03d}, {typeToStringShort(s.getTypes()[0])}'
-		if s.getTypes()[0] != s.getTypes()[1]:
-			r += f'/{typeToStringShort(s.getTypes()[1])}'
-		if not op.isPkmnDiscovered(i):
+	def serialize_mon(s: Pokemon, i: int, op: PlayerState):
+		r = f'?????????? ({s.species_name: >10}) l{s.level:03d}, {type_to_string_short(s.types[0])}'
+		if s.types[0] != s.types[1]:
+			r += f'/{type_to_string_short(s.types[1])}'
+		if not op.is_pkmn_discovered(i):
 			r += " (Not revealed yet)"
+		if op.pokemon_on_field_index == i:
+			r += " (Active)"
 		r += "\n - "
-		r += f'{s.getHealth():03d}/{s.getMaxHealth():03d}HP, '
-		r += f'{s.getAttack():03d}ATK (???@+0), '
-		r += f'{s.getDefense():03d}DEF (???@+0), '
-		r += f'{s.getSpecial():03d}SPE (???@+0), '
-		r += f'{s.getSpeed(): >3d}SPD (???@+0), '
+		r += f'{s.health:03d}/{s.max_health:03d}HP, '
+		r += f'{s.attack:03d}ATK (???@+0), '
+		r += f'{s.defense:03d}DEF (???@+0), '
+		r += f'{s.special:03d}SPE (???@+0), '
+		r += f'{s.speed: >3d}SPD (???@+0), '
 		r += f'100%ACC (+0), '
 		r += f'100%EVD (+0)'
-		r += f'\n - Status: 0x{s.getNonVolatileStatus():02X} {statusToString(s.getNonVolatileStatus())}, '
-		r += f'\n - Moves: {", ".join(f'{m.getName()} {m.getPP():02d}/{m.getMaxPP():02d}PP{"" if op.isPkmnMoveDiscovered(i, _i) else " (Not yet revealed)"}' for _i, m in enumerate(s.getMoveSet()) if m)}'
+		r += f'\n - Status: 0x{s.non_volatile_status:02X} {status_to_string(s.non_volatile_status)}, '
+		r += f'\n - Moves: {", ".join(f'{m.name} {m.pp:02d}/{m.max_pp:02d}PP{"" if op.is_pkmn_move_discovered(i, _i) else " (Not yet revealed)"}' for _i, m in enumerate(s.move_set) if m)}'
 		return r
 
 
@@ -1120,7 +1147,7 @@ class PokemonYellowBattle(Env):
 
 	def close(self):
 		if self.emulator is not None:
-			self.emulator.stop(False)
+			self.emulator.stop()
 
 
 register('PokemonYellow', PokemonYellowBattle)

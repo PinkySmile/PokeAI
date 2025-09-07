@@ -2,7 +2,7 @@
 
 from libcpp.string cimport string
 
-cdef extern from "../../GameEngine/StatusChange.hpp" namespace "PokemonGen1":
+cdef extern from "<GameEngine/StatusChange.hpp>" namespace "PokemonGen1":
 	ctypedef enum StatusChange:
 		STATUS_NONE,
 		STATUS_ASLEEP_FOR_1_TURN,
@@ -28,4 +28,5 @@ cdef extern from "../../GameEngine/StatusChange.hpp" namespace "PokemonGen1":
 		STATUS_CONFUSED,
 		STATUS_FLINCHED
 
-	cdef string statusToString(StatusChange stat)
+	cdef string statusToString(unsigned stat)
+	cdef string statusToStringShort(unsigned stat)

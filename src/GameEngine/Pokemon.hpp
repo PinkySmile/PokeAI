@@ -215,7 +215,7 @@ namespace PokemonGen1
 		[[nodiscard]] nlohmann::json serialize() const;
 
 		void setInvincible(bool invincible);
-		void setId(unsigned char id, bool recomputeStats = true);
+		void setID(unsigned char id, bool recomputeStats = true);
 		void setNickname(const std::string &nickname);
 		void setLevel(unsigned char level);
 		void setMove(unsigned char index, const Move &move);

@@ -6,10 +6,10 @@ from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.functional cimport function
 
-from Pokemon cimport Pokemon
-from RandomGenerator cimport RandomGenerator
+from ._Pokemon cimport Pokemon
+from ._RandomGenerator cimport RandomGenerator
 
-cdef extern from "../../GameEngine/State.hpp" namespace "PokemonGen1":
+cdef extern from "<GameEngine/State.hpp>" namespace "PokemonGen1":
 	ctypedef enum BattleAction:
 		EmptyAction,
 		Attack1,

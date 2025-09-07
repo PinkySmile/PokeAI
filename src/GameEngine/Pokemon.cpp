@@ -316,13 +316,8 @@ namespace PokemonGen1
 		stream << ", " << std::setw(3) << this->getSpeed()    << "SPD (" << std::setw(3) << this->getRawSpeed()   << "@" << std::showpos << static_cast<int>(this->_upgradedStats.SPD) << std::noshowpos << ")";
 		stream << ", " << std::setprecision(4) << this->getAccuracyMul() * 100 << "%ACC (" << std::showpos << static_cast<int>(this->_upgradedStats.ACC) << std::noshowpos << ")";
 		stream << ", " << std::setprecision(4) << this->getEvasionMul()  * 100 << "%EVD (" << std::showpos << static_cast<int>(this->_upgradedStats.EVD) << std::noshowpos << ")";
-		stream << ", Status: " << std::hex << static_cast<int>(this->_currentStatus) << " ";
-		if (this->_currentStatus) {
-			for (unsigned i = 0; i < sizeof(this->_currentStatus) * 8; i++)
-				if (this->_currentStatus & (1U << i))
-					stream << statusToString(static_cast<StatusChange>(1U << i)) << ", ";
-		} else
-			stream << "OK, ";
+		stream << ", Status: 0x" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(this->_currentStatus) << " ";
+		stream << std::setw(6) << std::setfill(' ') << statusToStringShort(this->_currentStatus) << ", ";
 		if (this->_hasSub)
 			stream << "Sub " << std::dec << this->_subHealth << "HP, ";
 		stream << "Moves: ";
@@ -336,7 +331,7 @@ namespace PokemonGen1
 				continue;
 			if (!first)
 				stream << ", ";
-			stream << move.getName() << " " << std::dec << static_cast<int>(move.getPP()) << "/" << static_cast<int>(move.getMaxPP()) << "PP";
+			stream << std::setw(12) << move.getName() << " " << std::dec << std::setw(2) << static_cast<int>(move.getPP()) << "/" << std::setw(2) << static_cast<int>(move.getMaxPP()) << "PP";
 			first = false;
 		}
 		return stream.str();
@@ -1124,7 +1119,7 @@ namespace PokemonGen1
 		this->_statExps = statExps;
 	}
 
-	void Pokemon::setId(unsigned char id, bool recomputeStats)
+	void Pokemon::setID(unsigned char id, bool recomputeStats)
 	{
 		auto &base = pokemonList.at(id);
 

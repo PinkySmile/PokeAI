@@ -2,7 +2,7 @@
 
 from libcpp cimport bool
 
-cdef extern from "../../GameEngine/Damage.hpp":
+cdef extern from "<GameEngine/Damage.hpp>":
 	struct DamageResult:
 		bool critical
 		unsigned damage
@@ -10,3 +10,4 @@ cdef extern from "../../GameEngine/Damage.hpp":
 		bool isVeryEffective
 		bool isNotVeryEffective
 		DamageResult()
+		DamageResult(const DamageResult &)

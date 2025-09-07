@@ -1,5 +1,9 @@
-from pyboy import PyBoy
-from GameEngine import BattleAction, AvailableMove, convertString
+import traceback
+
+from .State import BattleAction, BattleState, PlayerState
+from .Move import AvailableMove
+from abc import ABC, abstractmethod
+from .EmulatorGameHandle import EmulatorGameHandle
 
 
 hWhoseTurn = 0xFFF3
@@ -75,8 +79,6 @@ t_health_holder = [0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x76, 0x77, 0x7F]
 t_oak_lab = [0x59, 0x5A, 0x58, 0x59, 0x59, 0x5A, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0F, 0x0F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F]
 t_waiting = [0x96, 0xA0, 0xA8, 0xB3, 0xA8, 0xAD, 0xA6, 0xE8, 0xE8, 0xE8, 0xE7] # Waiting...!
 t_bring_out_which = [0x81, 0xB1, 0xA8, 0xAD, 0xA6, 0x7F, 0xAE, 0xB4, 0xB3, 0x7F, 0xB6, 0xA7, 0xA8, 0xA2, 0xA7] # Bring out which
-
-ROM_PATH='pokeyellow.gbc'
 
 CHAR_START = 0
 CHAR_RAM = 1
@@ -368,14 +370,69 @@ Pkmn1CharToASCIIConversionTable = [
 ]
 
 
-def call_text_hook(self):
-	if self.on_text_displayed:
-		if self.emulator.register_file.HL < 0xc4b9:
+
+class PkmnYellowEmulator(ABC):
+	def __init__(self):
+		self.last_frames = []
+		self.text_buffer = ""
+		self.waiting_text = False
+		self.on_text_displayed = None
+
+
+	@property
+	@abstractmethod
+	def register_hl(self):
+		pass
+
+
+	@property
+	@abstractmethod
+	def register_de(self):
+		pass
+
+
+	@abstractmethod
+	def read(self, address: int, bank=None):
+		pass
+
+
+	@abstractmethod
+	def read_range(self, address_l: int, address_h: int, bank: int|None=None):
+		pass
+
+
+	@abstractmethod
+	def write(self, address: int, value: int, bank: int|None=None):
+		pass
+
+
+	@abstractmethod
+	def press_button(self, button: str, duration=1):
+		pass
+
+
+	@abstractmethod
+	def tick(self, count: int=1):
+		pass
+
+
+	@abstractmethod
+	def load_state(self, fd):
+		pass
+
+
+	@abstractmethod
+	def stop(self):
+		pass
+
+
+	def call_text_hook(self):
+		if self.on_text_displayed is None or self.register_hl < 0xc4b9:
 			return
-		text_address = self.emulator.register_file.D << 8 | self.emulator.register_file.E
+		text_address = self.register_de
 		end, txt = self.translate_text_at(text_address)
 		if self.waiting_text:
-			if self.emulator.register_file.HL == 0xc4b9:
+			if self.register_de == 0xc4b9:
 				self.text_buffer = txt
 			else:
 				self.text_buffer += txt
@@ -387,22 +444,10 @@ def call_text_hook(self):
 			self.text_buffer = ""
 
 
-class Emulator:
-	def __init__(self, has_interface=True, sound_volume=25, save_frames=False, debug=False):
-		self.has_interface = has_interface
-		self.save_frames = save_frames
-		self.last_frames = []
-		self.text_buffer = ""
-		self.waiting_text = False
-		self.on_text_displayed = None
-		self.emulator = PyBoy(ROM_PATH, sound_volume=sound_volume, window='SDL2' if has_interface else 'null', debug=debug)
-		self.emulator.hook_register(0x00, 0x1723, call_text_hook, self) # 0x3C36
-
-
-	def translate_text_at(self, address, bank=None):
+	def translate_text_at(self, address: int, bank: int|None=None):
 		s = ""
 		end = False
-		byte = self.emulator.memory[address] if bank is None else self.emulator.memory[bank, address]
+		byte = self.read(address, bank=bank)
 		while byte != CHAR_END:
 			if byte == CHAR_LINE:
 				s += " "
@@ -413,206 +458,197 @@ class Emulator:
 				end, v = self.translate_text_at(wRivalName)
 				s += v
 			elif byte == CHAR_TARGET:
-				turn = self.emulator.memory[hWhoseTurn]
+				turn = self.read(hWhoseTurn)
 				end, v = self.translate_text_at(wBattleMonNick if turn else wEnemyMonNick)
 				s += v
 			elif byte == CHAR_USER:
-				turn = self.emulator.memory[hWhoseTurn]
+				turn = self.read(hWhoseTurn)
 				end, v = self.translate_text_at(wEnemyMonNick if turn else wBattleMonNick)
 				s += v
 			else:
 				s += Pkmn1CharToASCIIConversionTable[byte]
 			address += 1
-			byte = self.emulator.memory[address] if bank is None else self.emulator.memory[bank, address]
+			byte = self.read(address, bank=bank)
 			if byte == CHAR_PROMPT or byte == CHAR_DONE:
 				return True, s
 		return end, s
 
 
-	def copy_battle_data_to_emulator(self, state, team_base_address, name_address, species_array, name_list_address):
-		self.emulator.memory[species_array] = len(state.team)
+	def copy_battle_data_to_emulator(self, state: PlayerState, team_base_address: int, name_address: int, species_array: int, name_list_address: int):
+		self.write(species_array, len(state.team))
 		for i, pkmn in enumerate(state.team):
-			self.emulator.memory[species_array + i + 1] = pkmn.getID()
+			self.write(species_array + i + 1, pkmn.id)
 			data = pkmn.encode()
 			for k, b in enumerate(data):
-				self.emulator.memory[team_base_address + i * len(data) + k] = b
-			data = convertString(pkmn.getName(False))
+				self.write(team_base_address + i * len(data) + k, b)
+			data = EmulatorGameHandle.convert_string(pkmn.get_name(False))
 			for j in range(11):
 				if j < len(data):
-					self.emulator.memory[name_list_address + i * 11 + j] = data[j]
+					self.write(name_list_address + i * 11 + j, data[j])
 				else:
-					self.emulator.memory[name_list_address + i * 11 + j] = 0x50
-		self.emulator.memory[species_array + len(state.team) + 1] = 0xFF
-		data = convertString(state.name)
+					self.write(name_list_address + i * 11 + j, CHAR_END)
+		self.write(species_array + len(state.team) + 1, 0xFF)
+		data = EmulatorGameHandle.convert_string(state.name)
 		for j in range(11):
 			if j < len(data):
-				self.emulator.memory[name_address + j] = data[j]
+				self.write(name_address + j, data[j])
 			else:
-				self.emulator.memory[name_address + j] = 0x50
+				self.write(name_address + j, CHAR_END)
 
 
-	def sync_battle_state(self, state):
-		me = state.me.team[state.me.pokemonOnField]
-		op = state.op.team[state.op.pokemonOnField]
+	def sync_battle_state(self, state: BattleState):
+		me = state.me.pokemon_on_field
+		op = state.op.pokemon_on_field
 
-		data = convertString(me.getName(False))
-		moves = me.getMoveSet()
+		data = EmulatorGameHandle.convert_string(me.get_name(False))
+		moves = me.move_set
 		for i in range(11):
 			if i < len(data):
-				self.emulator.memory[wBattleMonNick + i] = data[i]
+				self.write(wBattleMonNick + i, data[i])
 			else:
-				self.emulator.memory[wBattleMonNick + i] = 0x50
-		self.emulator.memory[wBattleMonLevel] = me.getLevel()
-		self.emulator.memory[wBattleMonBoxLevel] = me.getLevel()
-		self.emulator.memory[wPlayerMonUnmodifiedLevel] = me.getLevel()
-		self.emulator.memory[wBattleMonStatus] = me.getNonVolatileStatus()
-		self.emulator.memory[wBattleMonType1] = me.getTypes()[0]
-		self.emulator.memory[wBattleMonType2] = me.getTypes()[1]
-		self.emulator.memory[wBattleMonSpecies] = me.getID()
-		self.emulator.memory[wBattleMonHP      + 0] = me.getHealth() >> 8
-		self.emulator.memory[wBattleMonHP      + 1] = me.getHealth() & 0xFF
-		self.emulator.memory[wBattleMonMaxHP   + 0] = me.getMaxHealth() >> 8
-		self.emulator.memory[wBattleMonMaxHP   + 1] = me.getMaxHealth() & 0xFF
-		self.emulator.memory[wBattleMonAttack  + 0] = me.getAttack() >> 8
-		self.emulator.memory[wBattleMonAttack  + 1] = me.getAttack() & 0xFF
-		self.emulator.memory[wBattleMonDefense + 0] = me.getDefense() >> 8
-		self.emulator.memory[wBattleMonDefense + 1] = me.getDefense() & 0xFF
-		self.emulator.memory[wBattleMonSpeed   + 0] = me.getSpeed() >> 8
-		self.emulator.memory[wBattleMonSpeed   + 1] = me.getSpeed() & 0xFF
-		self.emulator.memory[wBattleMonSpecial + 0] = me.getSpecial() >> 8
-		self.emulator.memory[wBattleMonSpecial + 1] = me.getSpecial() & 0xFF
-		self.emulator.memory[wPlayerMonUnmodifiedMaxHP   + 0] = me.getMaxHealth() >> 8
-		self.emulator.memory[wPlayerMonUnmodifiedMaxHP   + 1] = me.getMaxHealth() & 0xFF
-		self.emulator.memory[wPlayerMonUnmodifiedAttack  + 0] = me.getRawAttack() >> 8
-		self.emulator.memory[wPlayerMonUnmodifiedAttack  + 1] = me.getRawAttack() & 0xFF
-		self.emulator.memory[wPlayerMonUnmodifiedDefense + 0] = me.getRawDefense() >> 8
-		self.emulator.memory[wPlayerMonUnmodifiedDefense + 1] = me.getRawDefense() & 0xFF
-		self.emulator.memory[wPlayerMonUnmodifiedSpeed   + 0] = me.getRawSpeed() >> 8
-		self.emulator.memory[wPlayerMonUnmodifiedSpeed   + 1] = me.getRawSpeed() & 0xFF
-		self.emulator.memory[wPlayerMonUnmodifiedSpecial + 0] = me.getRawSpecial() >> 8
-		self.emulator.memory[wPlayerMonUnmodifiedSpecial + 1] = me.getRawSpecial() & 0xFF
+				self.write(wBattleMonNick + i, CHAR_END)
+		self.write(wBattleMonLevel,           me.level)
+		self.write(wBattleMonBoxLevel,        me.level)
+		self.write(wPlayerMonUnmodifiedLevel, me.level)
+		self.write(wBattleMonStatus,          me.non_volatile_status)
+		self.write(wBattleMonType1,           me.types[0])
+		self.write(wBattleMonType2,           me.types[1])
+		self.write(wBattleMonSpecies,         me.id)
+		self.write(wBattleMonHP      + 0,     me.health >> 8)
+		self.write(wBattleMonHP      + 1,     me.health & 0xFF)
+		self.write(wBattleMonMaxHP   + 0,     me.max_health >> 8)
+		self.write(wBattleMonMaxHP   + 1,     me.max_health & 0xFF)
+		self.write(wBattleMonAttack  + 0,     me.attack >> 8)
+		self.write(wBattleMonAttack  + 1,     me.attack & 0xFF)
+		self.write(wBattleMonDefense + 0,     me.defense >> 8)
+		self.write(wBattleMonDefense + 1,     me.defense & 0xFF)
+		self.write(wBattleMonSpeed   + 0,     me.speed >> 8)
+		self.write(wBattleMonSpeed   + 1,     me.speed & 0xFF)
+		self.write(wBattleMonSpecial + 0,     me.special >> 8)
+		self.write(wBattleMonSpecial + 1,     me.special & 0xFF)
+		self.write(wPlayerMonUnmodifiedMaxHP   + 0, me.max_health >> 8)
+		self.write(wPlayerMonUnmodifiedMaxHP   + 1, me.max_health & 0xFF)
+		self.write(wPlayerMonUnmodifiedAttack  + 0, me.raw_attack >> 8)
+		self.write(wPlayerMonUnmodifiedAttack  + 1, me.raw_attack & 0xFF)
+		self.write(wPlayerMonUnmodifiedDefense + 0, me.raw_defense >> 8)
+		self.write(wPlayerMonUnmodifiedDefense + 1, me.raw_defense & 0xFF)
+		self.write(wPlayerMonUnmodifiedSpeed   + 0, me.raw_speed >> 8)
+		self.write(wPlayerMonUnmodifiedSpeed   + 1, me.raw_speed & 0xFF)
+		self.write(wPlayerMonUnmodifiedSpecial + 0, me.raw_special >> 8)
+		self.write(wPlayerMonUnmodifiedSpecial + 1, me.raw_special & 0xFF)
 		for i in range(4):
 			if i < len(moves):
-				self.emulator.memory[wBattleMonMoves + i] = moves[i].getID()
-				self.emulator.memory[wBattleMonPP    + i] = moves[i].getPP()
+				self.write(wBattleMonMoves + i, moves[i].id)
+				self.write(wBattleMonPP    + i, moves[i].pp)
 			else:
-				self.emulator.memory[wBattleMonMoves + i] = AvailableMove.Empty
-				self.emulator.memory[wBattleMonPP    + i] = 0
+				self.write(wBattleMonMoves + i, AvailableMove.Empty)
+				self.write(wBattleMonPP    + i, 0)
 
-		data = convertString(op.getName(False))
-		moves = op.getMoveSet()
+		data = EmulatorGameHandle.convert_string(op.name)
+		moves = op.move_set
 		for i in range(11):
 			if i < len(data):
-				self.emulator.memory[wEnemyMonNick + i] = data[i]
+				self.write(wEnemyMonNick + i, data[i])
 			else:
-				self.emulator.memory[wEnemyMonNick + i] = 0x50
-		self.emulator.memory[wEnemyMonLevel] = op.getLevel()
-		self.emulator.memory[wEnemyMonBoxLevel] = op.getLevel()
-		self.emulator.memory[wEnemyMonUnmodifiedLevel] = op.getLevel()
-		self.emulator.memory[wEnemyMonStatus] = op.getNonVolatileStatus()
-		self.emulator.memory[wEnemyMonType1] = op.getTypes()[0]
-		self.emulator.memory[wEnemyMonType2] = op.getTypes()[1]
-		self.emulator.memory[wEnemyMonSpecies] = op.getID()
-		self.emulator.memory[wEnemyMonHP      + 0] = op.getHealth() >> 8
-		self.emulator.memory[wEnemyMonHP      + 1] = op.getHealth() & 0xFF
-		self.emulator.memory[wEnemyMonMaxHP   + 0] = op.getMaxHealth() >> 8
-		self.emulator.memory[wEnemyMonMaxHP   + 1] = op.getMaxHealth() & 0xFF
-		self.emulator.memory[wEnemyMonAttack  + 0] = op.getAttack() >> 8
-		self.emulator.memory[wEnemyMonAttack  + 1] = op.getAttack() & 0xFF
-		self.emulator.memory[wEnemyMonDefense + 0] = op.getDefense() >> 8
-		self.emulator.memory[wEnemyMonDefense + 1] = op.getDefense() & 0xFF
-		self.emulator.memory[wEnemyMonSpeed   + 0] = op.getSpeed() >> 8
-		self.emulator.memory[wEnemyMonSpeed   + 1] = op.getSpeed() & 0xFF
-		self.emulator.memory[wEnemyMonSpecial + 0] = op.getSpecial() >> 8
-		self.emulator.memory[wEnemyMonSpecial + 1] = op.getSpecial() & 0xFF
-		self.emulator.memory[wEnemyMonUnmodifiedMaxHP   + 0] = op.getMaxHealth() >> 8
-		self.emulator.memory[wEnemyMonUnmodifiedMaxHP   + 1] = op.getMaxHealth() & 0xFF
-		self.emulator.memory[wEnemyMonUnmodifiedAttack  + 0] = op.getRawAttack() >> 8
-		self.emulator.memory[wEnemyMonUnmodifiedAttack  + 1] = op.getRawAttack() & 0xFF
-		self.emulator.memory[wEnemyMonUnmodifiedDefense + 0] = op.getRawDefense() >> 8
-		self.emulator.memory[wEnemyMonUnmodifiedDefense + 1] = op.getRawDefense() & 0xFF
-		self.emulator.memory[wEnemyMonUnmodifiedSpeed   + 0] = op.getRawSpeed() >> 8
-		self.emulator.memory[wEnemyMonUnmodifiedSpeed   + 1] = op.getRawSpeed() & 0xFF
-		self.emulator.memory[wEnemyMonUnmodifiedSpecial + 0] = op.getRawSpecial() >> 8
-		self.emulator.memory[wEnemyMonUnmodifiedSpecial + 1] = op.getRawSpecial() & 0xFF
+				self.write(wEnemyMonNick + i, CHAR_END)
+		self.write(wEnemyMonLevel,           op.level)
+		self.write(wEnemyMonBoxLevel,        op.level)
+		self.write(wEnemyMonUnmodifiedLevel, op.level)
+		self.write(wEnemyMonStatus,          op.non_volatile_status)
+		self.write(wEnemyMonType1,           op.types[0])
+		self.write(wEnemyMonType2,           op.types[1])
+		self.write(wEnemyMonSpecies,         op.id)
+		self.write(wEnemyMonHP      + 0,     op.health >> 8)
+		self.write(wEnemyMonHP      + 1,     op.health & 0xFF)
+		self.write(wEnemyMonMaxHP   + 0,     op.max_health >> 8)
+		self.write(wEnemyMonMaxHP   + 1,     op.max_health & 0xFF)
+		self.write(wEnemyMonAttack  + 0,     op.attack >> 8)
+		self.write(wEnemyMonAttack  + 1,     op.attack & 0xFF)
+		self.write(wEnemyMonDefense + 0,     op.defense >> 8)
+		self.write(wEnemyMonDefense + 1,     op.defense & 0xFF)
+		self.write(wEnemyMonSpeed   + 0,     op.speed >> 8)
+		self.write(wEnemyMonSpeed   + 1,     op.speed & 0xFF)
+		self.write(wEnemyMonSpecial + 0,     op.special >> 8)
+		self.write(wEnemyMonSpecial + 1,     op.special & 0xFF)
+		self.write(wEnemyMonUnmodifiedMaxHP   + 0, op.max_health >> 8)
+		self.write(wEnemyMonUnmodifiedMaxHP   + 1, op.max_health & 0xFF)
+		self.write(wEnemyMonUnmodifiedAttack  + 0, op.raw_attack >> 8)
+		self.write(wEnemyMonUnmodifiedAttack  + 1, op.raw_attack & 0xFF)
+		self.write(wEnemyMonUnmodifiedDefense + 0, op.raw_defense >> 8)
+		self.write(wEnemyMonUnmodifiedDefense + 1, op.raw_defense & 0xFF)
+		self.write(wEnemyMonUnmodifiedSpeed   + 0, op.raw_speed >> 8)
+		self.write(wEnemyMonUnmodifiedSpeed   + 1, op.raw_speed & 0xFF)
+		self.write(wEnemyMonUnmodifiedSpecial + 0, op.raw_special >> 8)
+		self.write(wEnemyMonUnmodifiedSpecial + 1, op.raw_special & 0xFF)
 		for i in range(4):
 			if i < len(moves):
-				self.emulator.memory[wEnemyMonMoves + i] = moves[i].getID()
-				self.emulator.memory[wEnemyMonPP    + i] = moves[i].getPP()
+				self.write(wEnemyMonMoves + i, moves[i].id)
+				self.write(wEnemyMonPP    + i, moves[i].pp)
 			else:
-				self.emulator.memory[wEnemyMonMoves + i] = AvailableMove.Empty
-				self.emulator.memory[wEnemyMonPP    + i] = 0
-
-
-	def tick(self, count=1):
-		step = 1 if self.has_interface else 30
-		for i in range(0, count, step):
-			if not self.emulator.tick(step):
-				raise InterruptedError()
-			if self.save_frames:
-				self.last_frames.append(self.emulator.screen.ndarray[:, :, :3].copy())
+				self.write(wEnemyMonMoves + i, AvailableMove.Empty)
+				self.write(wEnemyMonPP    + i, 0)
 
 
 	def wait_for_start_turn(self):
 		while True:
-			if self.emulator.memory[0x9C00:0x9C20] == t_oak_lab:
+			if self.read_range(0x9C00, 0x9C20) == t_oak_lab:
 				return
-			if self.emulator.memory[0x9D64:0x9D6F] == t_waiting:
+			if self.read_range(0x9D64, 0x9D6F) == t_waiting:
 				return
-			if self.emulator.memory[wBattleMonHP:wBattleMonHP+2] != [0, 0] and self.emulator.memory[0x9DD0] == 0xE1 and self.emulator.memory[0x9DD1] == 0xE2:
+			if self.read_range(wBattleMonHP, wBattleMonHP+2) != [0, 0] and self.read(0x9DD0) == 0xE1 and self.read(0x9DD1) == 0xE2:
 				return
-			if self.emulator.memory[wBattleMonHP:wBattleMonHP+2] == [0, 0] and self.emulator.memory[0x9DC1:0x9DD0] == t_bring_out_which:
+			if self.read_range(wBattleMonHP, wBattleMonHP+2) == [0, 0] and self.read_range(0x9DC1, 0x9DD0) == t_bring_out_which:
 				return
 			self.tick()
 
 
-	def select_action(self, action):
-		if self.emulator.memory[wBattleMonHP:wBattleMonHP+2] == [0, 0]:
+	def select_action(self, action: BattleAction):
+		if self.read_range(wBattleMonHP, wBattleMonHP+2) == [0, 0]:
 			assert BattleAction.Switch1 <= action <= BattleAction.Switch6
 			self.tick(10)
-			while self.emulator.memory[wCurrentMenuItem] != action - BattleAction.Switch1:
-				self.emulator.button('up', 5)
+			while self.read(wCurrentMenuItem) != action - BattleAction.Switch1:
+				self.press_button('up', 5)
 				self.tick(10)
-			self.emulator.button('a', 5)
+			self.press_button('a', 5)
 			self.tick(10)
 			return
 		if BattleAction.Run == action:
-			self.emulator.button('right', 5)
-			self.emulator.button('down', 5)
+			self.press_button('right', 5)
+			self.press_button('down', 5)
 		elif BattleAction.Switch1 <= action <= BattleAction.Switch6:
-			self.emulator.button('right', 5)
-			self.emulator.button('up', 5)
+			self.press_button('right', 5)
+			self.press_button('up', 5)
 		else:
-			self.emulator.button('left', 5)
-			self.emulator.button('up', 5)
+			self.press_button('left', 5)
+			self.press_button('up', 5)
 		self.tick(5)
-		self.emulator.button('a', 5)
+		self.press_button('a', 5)
 		self.tick(20)
 		if BattleAction.Switch1 <= action <= BattleAction.Switch6:
-			while self.emulator.memory[wCurrentMenuItem] != action - BattleAction.Switch1:
-				self.emulator.button('up', 5)
+			while self.read(wCurrentMenuItem) != action - BattleAction.Switch1:
+				self.press_button('up', 5)
 				self.tick(10)
-			self.emulator.button('a', 5)
+			self.press_button('a', 5)
 			self.tick(10)
-			self.emulator.button('a', 5)
+			self.press_button('a', 5)
 			self.tick(10)
 		elif BattleAction.Attack1 <= action <= BattleAction.Attack4:
-			while self.emulator.memory[wCurrentMenuItem] != action - BattleAction.Attack1 + 1 and self.emulator.memory[0x9D64:0x9D6F] != t_waiting:
-				self.emulator.button('up', 5)
+			while self.read(wCurrentMenuItem) != action - BattleAction.Attack1 + 1 and self.read_range(0x9D64, 0x9D6F) != t_waiting:
+				self.press_button('up', 5)
 				self.tick(10)
-			self.emulator.button('a', 5)
+			self.press_button('a', 5)
 			self.tick(10)
 
 
-	def step(self, state):
-		if self.emulator.memory[0x9D64:0x9D6F] != t_waiting:
-			self.select_action(state.me.lastAction)
-		while self.emulator.memory[0x9D64:0x9D6F] != t_waiting:
+	def step(self, state: BattleState):
+		if self.read_range(0x9D64, 0x9D6F) != t_waiting:
+			self.select_action(state.me.last_action)
+		while self.read_range(0x9D64, 0x9D6F) != t_waiting:
 			self.tick()
-		while self.emulator.memory[wSerialExchangeNybbleReceiveData] == 0xFF:
-			self.emulator.memory[wSerialExchangeNybbleReceiveData] = state.op.lastAction - BattleAction.Attack1
+		while self.read(wSerialExchangeNybbleReceiveData) == 0xFF:
+			self.write(wSerialExchangeNybbleReceiveData, state.op.last_action - BattleAction.Attack1)
 			self.tick()
-		while self.emulator.memory[0x9D64:0x9D6F] == t_waiting or self.emulator.memory[0x9D6A:0x9D74] != t_health_holder:
+		while self.read_range(0x9D64, 0x9D6F) == t_waiting or self.read_range(0x9D6A, 0x9D74) != t_health_holder:
 			self.tick()
 		self.waiting_text = True
 		self.wait_for_start_turn()
@@ -620,14 +656,15 @@ class Emulator:
 		self.text_buffer = ""
 
 
-	def init_battle(self, save_state_fd, state, sync_data=False):
-		self.emulator.load_state(save_state_fd)
-		l = state.rng.getList()
-		self.emulator.memory[wLinkBattleRandomNumberListIndex] = 0
+	def init_battle(self, save_state_fd, state: BattleState, sync_data: bool=False):
+		if save_state_fd is not None:
+			self.load_state(save_state_fd)
+		l = state.rng.list
+		self.write(wLinkBattleRandomNumberListIndex, 0)
 		for i in range(9):
-			self.emulator.memory[wLinkBattleRandomNumberList + i] = l[i]
+			self.write(wLinkBattleRandomNumberList + i, l[i])
 		self.last_frames = []
-		self.emulator.memory[wLinkState] = LINK_STATE_BATTLING
+		self.write(wLinkState, LINK_STATE_BATTLING)
 		self.copy_battle_data_to_emulator(state.me, wPartyMons, wPlayerName,  wPartyCount,      wPartyMonNicks)
 		self.copy_battle_data_to_emulator(state.op, wEnemyMons, wTrainerName, wEnemyPartyCount, wEnemyMonNicks)
 		if sync_data:
@@ -644,9 +681,5 @@ class Emulator:
 		return old
 
 
-	def stop(self, save):
-		self.emulator.stop(save)
-
-
 	def is_finished(self):
-		return self.emulator.memory[0x9C00:0x9C20] == t_oak_lab
+		return self.read_range(0x9C00, 0x9C20) == t_oak_lab

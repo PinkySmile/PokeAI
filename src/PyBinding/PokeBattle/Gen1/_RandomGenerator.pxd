@@ -2,7 +2,7 @@
 
 from libcpp.vector cimport vector
 
-cdef extern from "../../GameEngine/RandomGenerator.hpp" namespace "PokemonGen1":
+cdef extern from "<GameEngine/RandomGenerator.hpp>" namespace "PokemonGen1":
 	cdef cppclass RandomGenerator:
 		RandomGenerator()
 		void makeRandomList(unsigned int size)
