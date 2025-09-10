@@ -80,6 +80,7 @@ setup(
 		'PokeBattle/Gen1'
 	],
 	url='https://github.com/PinkySmile/PokeAI',
+	package_data={"PokeBattle/Gen1": ["pokeyellow.gbc"]},
 	ext_modules=[CMakeExtension(lib) for lib in libs] + cython_ext,
 	license='MIT',
 	author='PinkySmile',
