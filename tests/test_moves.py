@@ -132,6 +132,7 @@ def test_move(emulator, move, random_state, scenario, min_turns=6):
 	state.me.name = "Player 1"
 	state.me.team = [Pokemon(state, "", pokemon_data, False)]
 
+	battle.start()
 	emulator.init_battle(None, state)
 
 	current_turn = 0
@@ -251,6 +252,7 @@ def test_bind_switch(emulator, move, random_state, scenario):
 	state.me.name = "Player 1"
 	state.me.team = [Pokemon(state, "", pokemon_data, False)]
 
+	battle.start()
 	emulator.init_battle(None, state)
 
 	current_turn = 0
@@ -383,6 +385,7 @@ def test_bind_switch_inverted(emulator, move, random_state, scenario):
 	state.me.name = "Player 1"
 	state.me.team = [Pokemon(state, "", pokemon_data, False), Pokemon(state, "", pokemon_data, False)]
 
+	battle.start()
 	emulator.init_battle(None, state)
 
 	current_turn = 0
@@ -506,6 +509,7 @@ def hyper_beam_status_move(emulator: PyBoyEmulator, move: int, random_state: lis
 	state.me.name = "Player 1"
 	state.me.team = [Pokemon(state, "", pokemon_data, False)]
 
+	battle.start()
 	emulator.init_battle(None, state)
 
 	current_turn = 0
@@ -647,8 +651,8 @@ status_moves = [
 	AvailableMove.Spore
 ]
 
-# TODO: Add trap move + switch test
-# TODO: Add substitute + move test
+# TODO: Add status (PSN, BRN, LCH) + kill test
+# TODO: Add trap move + para test
 tests = []
 for move_index in range(1, AvailableMove.Struggle + 1):
 	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):

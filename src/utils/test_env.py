@@ -1,8 +1,18 @@
+import traceback
+
 from PokeBattle.Gen1.Env import Examples
 import gymnasium as gym
+import asyncio
+import sys
 
 
-def check_obs(obs):
+async def ainput(string: str) -> str:
+	sys.stdout.write(f'{string} ')
+	sys.stdout.flush()
+	return (await asyncio.to_thread(sys.stdin.readline)).rstrip('\n')
+
+
+def check_obs(p, obs):
 	low = p.observation_space.low
 	high = p.observation_space.high
 	for i in range(len(low)):
@@ -11,46 +21,48 @@ def check_obs(obs):
 		print(f"#{i} not in range: {low[i]} <= {obs[i]} <= {high[i]}")
 
 
-p = gym.make('PokemonYellow', render_mode="human", shuffle_teams=True)
-finished = False
-params = Examples.Brock
-# params = {
-# 	"p1name": "PokeAI",
-# 	"p2name": "Opponent",
-# 	"p1team": [{
-# 		"species": PokemonSpecies.Charmander,
-# 		"name": "CHARMANDER",
-# 		"level": 10,
-# 		"moves": [AvailableMove.Bone_Club, AvailableMove.Water_Gun, AvailableMove.Thundershock]
-# 	}],
-# 	"p2team": [{
-# 		"species": PokemonSpecies.Articuno,
-# 		"name": "ARTICUNO",
-# 		"level": 5,
-# 		"moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
-# 	},
-# 		{
-# 			"species": PokemonSpecies.Diglett,
-# 			"name": "DIGLETT",
-# 			"level": 10,
-# 			"moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
-# 		},
-# 		{
-# 			"species": PokemonSpecies.Charmander,
-# 			"name": "CHARMANDER",
-# 			"level": 10,
-# 			"moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
-# 		}
-# 	]
-# }
-observation, info = p.reset(options=params)
+async def main():
+	p = gym.make('PokemonYellow', render_mode="human", shuffle_teams=True)
+	finished = False
+	params = Examples.Blue3_3
+	observation, info = p.reset(options=params)
 
-print(observation, info, len(observation))
-check_obs(observation)
-while not finished:
-	observation, reward, finished, truncated, info = p.step(int(input()))
+	print(observation, info, len(observation))
+	check_obs(p, observation)
 	r = p.render()
 	if r:
 		print(r)
-	print(observation, info, len(observation))
-	check_obs(observation)
+	while not finished:
+		didit = False
+		while not didit:
+			future = asyncio.ensure_future(ainput("Action index:"))
+			while not future.done():
+				if info['emulator'] is not None:
+					info['emulator'].tick()
+				await asyncio.sleep(0)
+			while not didit:
+				try:
+					if future.result() == "stop":
+						info['simulator'].save_replay("interrupted.replay")
+						exit(1)
+					observation, reward, finished, truncated, info = p.step(int(future.result()))
+					didit = True
+				except InterruptedError:
+					raise
+				except SystemExit:
+					raise
+				except KeyboardInterrupt:
+					if info['emulator'] is not None:
+						info['emulator'].save_replay("interrupted.replay")
+					raise
+				except:
+					traceback.print_exc()
+					break
+
+		r = p.render()
+		if r:
+			print(r)
+		print(observation, info, len(observation))
+		check_obs(p, observation)
+
+asyncio.run(main())

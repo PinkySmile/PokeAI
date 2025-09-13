@@ -19,3 +19,4 @@ cdef extern from "<GameEngine/BattleHandler.hpp>" namespace "PokemonGen1":
 		bool loadState(const string &path) except +
 		void stopReplay()
 		bool playingReplay() const
+		void start()

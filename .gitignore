@@ -17,3 +17,4 @@ pokeyellow.gbc.state
 __pycache__
 dist
 *.egg-info
+*_log.json

@@ -14,6 +14,7 @@ from .StatusChange import StatusChange, status_to_string
 from .Pokemon import PokemonSpecies, Pokemon, PokemonBase
 from .Team import load_trainer as _load_trainer
 from .Type import Type, type_to_string_short, get_attack_damage_multiplier
+from .YellowEmulator import TrainerClass
 
 banned_moves = [ # These moves aren't implemented properly in the engine
 	# Can roll other moves from the list that aren't implemented
@@ -71,10 +72,11 @@ def gen1AI(me: PlayerState, op: PlayerState, categories: list[int], random: Gene
 			if moves[i].id in priority:
 				scores[i] *= 2
 	if 3 in categories:
-		for i in range(len(scores)):
-			if moves[i].category != MoveCategory.Status:
-				mul = get_attack_damage_multiplier(moves[i].type, op_pkmn.types)
-				scores[i] *= mul
+		if 'L' not in categories or me.pokemon_on_field_index != 0 or random.integers(low=0, high=256) > 101:
+			for i in range(len(scores)):
+				if moves[i].category != MoveCategory.Status:
+					mul = get_attack_damage_multiplier(moves[i].type, op_pkmn.types)
+					scores[i] *= mul
 		priority = [int(i) for i in [
 			AvailableMove.Super_Fang,
 			AvailableMove.Dragon_Rage, AvailableMove.Psywave, AvailableMove.Night_Shade, AvailableMove.Seismic_Toss,
@@ -83,7 +85,7 @@ def gen1AI(me: PlayerState, op: PlayerState, categories: list[int], random: Gene
 		for k, p in enumerate(priority):
 			for i in range(len(scores)):
 				if moves[i].id == p:
-					scores[i] *= 2 + k  / 10
+					scores[i] *= 2 + k / 10
 	if 4 in categories:
 		if me_pkmn.health / me_pkmn.max_health < 0.1 and random.integers(low=0, high=63) < 5:
 			for i in range(6):
@@ -123,365 +125,21 @@ def gen1AI_13(state: BattleState, rng: Generator):
 	return gen1AI(state.op, state.me, [1, 3], rng)
 
 
-class Examples:
-	Brock={
-		"ai": gen1AI_1,
-		"sprite": 0,
-		"p1name": "Ash",
-		"p2name": "Brock",
-		"p1team": [
-			{
-				"name": "PIKACHU",
-				"level": 11,
-				"species": PokemonSpecies.Pikachu,
-				"moves": [AvailableMove.Thundershock, AvailableMove.Quick_Attack, AvailableMove.Tail_Whip, AvailableMove.Thunder_Wave]
-			},
-			{
-				"name": "MANKEY",
-				"level": 8,
-				"species": PokemonSpecies.Mankey,
-				"moves": [AvailableMove.Scratch, AvailableMove.Leer]
-			},
-			{
-				"name": "NIDORAN~",
-				"level": 8,
-				"species": PokemonSpecies.Nidoran_M,
-				"moves": [AvailableMove.Tackle, AvailableMove.Leer, AvailableMove.Horn_Attack]
-			},
-			{
-				"name": "PIDGEY",
-				"level": 9,
-				"species": PokemonSpecies.Pidgey,
-				"moves": [AvailableMove.Gust, AvailableMove.Sand_Attack]
-			}
-		],
-		"p2team": [
-			{
-				"name": "GEODUDE",
-				"level": 10,
-				"species": PokemonSpecies.Geodude,
-				"moves": [AvailableMove.Tackle]
-			},
-			{
-				"name": "ONIX",
-				"level": 12,
-				"species": PokemonSpecies.Onix,
-				"moves": [AvailableMove.Bide, AvailableMove.Bind, AvailableMove.Screech, AvailableMove.Tackle]
-			}
-		]
-	}
-	Misty={
-		"ai": gen1AI_13,
-		"sprite": 0,
-		"p1name": "Ash",
-		"p2name": "Misty",
-		"p1team": [
-			{
-				"name": "PIKACHU",
-				"level": 15,
-				"species": PokemonSpecies.Pikachu,
-				"moves": [AvailableMove.Thundershock, AvailableMove.Quick_Attack, AvailableMove.Double_Team, AvailableMove.Thunder_Wave]
-			},
-			{
-				"name": "MANKEY",
-				"level": 9,
-				"species": PokemonSpecies.Mankey,
-				"moves": [AvailableMove.Scratch, AvailableMove.Leer, AvailableMove.Low_Kick]
-			},
-			{
-				"name": "NIDORAN~",
-				"level": 9,
-				"species": PokemonSpecies.Nidoran_M,
-				"moves": [AvailableMove.Tackle, AvailableMove.Leer, AvailableMove.Horn_Attack]
-			},
-			{
-				"name": "PIDGEY",
-				"level": 8,
-				"species": PokemonSpecies.Pidgey,
-				"moves": [AvailableMove.Gust, AvailableMove.Sand_Attack]
-			}
-		],
-		"p2team": [
-			{
-				"name": "STARYU",
-				"level": 18,
-				"species": PokemonSpecies.Staryu,
-				"moves": [AvailableMove.Tackle, AvailableMove.Water_Gun]
-			},
-			{
-				"name": "STARMIE",
-				"level": 21,
-				"species": PokemonSpecies.Starmie,
-				"moves": [AvailableMove.Bubblebeam, AvailableMove.Harden, AvailableMove.Water_Gun, AvailableMove.Tackle]
-			}
-		]
-	}
-	LtSurge={
-		"ai": gen1AI_1,
-		"sprite": 0,
-		"p1name": "Ash",
-		"p2name": "LT. Surge",
-		"p1team": [
-			{
-				"name": "PIKACHU",
-				"level": 22,
-				"species": PokemonSpecies.Pikachu,
-				"moves": [AvailableMove.Thundershock, AvailableMove.Slam, AvailableMove.Double_Team, AvailableMove.Thunder_Wave]
-			},
-			{
-				"name": "MANKEY",
-				"level": 15,
-				"species": PokemonSpecies.Mankey,
-				"moves": [AvailableMove.Scratch, AvailableMove.Leer, AvailableMove.Low_Kick, AvailableMove.Karate_Chop]
-			},
-			{
-				"name": "NIDORINO",
-				"level": 16,
-				"species": PokemonSpecies.Nidorino,
-				"moves": [AvailableMove.Tackle, AvailableMove.Leer, AvailableMove.Horn_Attack, AvailableMove.Double_Kick]
-			},
-			{
-				"name": "PIDGEY",
-				"level": 15,
-				"species": PokemonSpecies.Pidgey,
-				"moves": [AvailableMove.Gust, AvailableMove.Sand_Attack, AvailableMove.Quick_Attack]
-			}
-		],
-		"p2team": [
-			{
-				"name": "RAICHU",
-				"level": 28,
-				"species": PokemonSpecies.Raichu,
-				"moves": [AvailableMove.Growl, AvailableMove.Mega_Kick, AvailableMove.Mega_Punch, AvailableMove.Thunderbolt]
-			}
-		]
-	}
-	Erika={
-		"ai": gen1AI_13,
-		"sprite": 0,
-		"p1name": "Ash",
-		"p2name": "Erika",
-		"p1team": [
-			{
-				"name": "PIKACHU",
-				"level": 28,
-				"species": PokemonSpecies.Pikachu,
-				"moves": [AvailableMove.Thunderbolt, AvailableMove.Slam, AvailableMove.Double_Team, AvailableMove.Thunder_Wave]
-			},
-			{
-				"name": "MANKEY",
-				"level": 23,
-				"species": PokemonSpecies.Mankey,
-				"moves": [AvailableMove.Fury_Swipes, AvailableMove.Leer, AvailableMove.Low_Kick, AvailableMove.Karate_Chop]
-			},
-			{
-				"name": "NIDOKING",
-				"level": 26,
-				"species": PokemonSpecies.Nidoking,
-				"moves": [AvailableMove.Thrash, AvailableMove.Leer, AvailableMove.Horn_Attack, AvailableMove.Double_Kick]
-			},
-			{
-				"name": "PIDGEOTTO",
-				"level": 25,
-				"species": PokemonSpecies.Pidgeotto,
-				"moves": [AvailableMove.Gust, AvailableMove.Sand_Attack, AvailableMove.Quick_Attack, AvailableMove.Whirlwind]
-			}
-		],
-		"p2team": [
-			{
-				"name": "TANGELA",
-				"level": 30,
-				"species": PokemonSpecies.Tangela,
-				"moves": [AvailableMove.Bind, AvailableMove.Constrict, AvailableMove.Mega_Drain, AvailableMove.Vine_Whip]
-			},
-			{
-				"name": "WEEPINBELL",
-				"level": 32,
-				"species": PokemonSpecies.Weepinbell,
-				"moves": [AvailableMove.Acid, AvailableMove.Razor_Leaf, AvailableMove.Sleep_Powder, AvailableMove.Stun_Spore]
-			},
-			{
-				"name": "GLOOM",
-				"level": 32,
-				"species": PokemonSpecies.Gloom,
-				"moves": [AvailableMove.Acid, AvailableMove.Petal_Dance, AvailableMove.Sleep_Powder, AvailableMove.Stun_Spore]
-			}
-		]
-	}
-	Sabrina={
-		"ai": gen1AI_1,
-		"sprite": 0,
-		"p1name": "Ash",
-		"p2name": "Sabrina",
-		"p1team": [
-			{
-				"name": "PIKACHU",
-				"level": 46,
-				"species": PokemonSpecies.Pikachu,
-				"moves": [AvailableMove.Thunderbolt, AvailableMove.Surf, AvailableMove.Body_Slam, AvailableMove.Thunder_Wave]
-			},
-			{
-				"name": "PRIMEAPE",
-				"level": 41,
-				"species": PokemonSpecies.Primeape,
-				"moves": [AvailableMove.Seismic_Toss, AvailableMove.Rock_Slide, AvailableMove.Hyper_Beam, AvailableMove.Body_Slam]
-			},
-			{
-				"name": "NIDOKING",
-				"level": 40,
-				"species": PokemonSpecies.Nidoking,
-				"moves": [AvailableMove.Earthquake, AvailableMove.Thunderbolt, AvailableMove.Blizzard, AvailableMove.Substitute]
-			},
-			{
-				"name": "PIDGEOT",
-				"level": 41,
-				"species": PokemonSpecies.Pidgeot,
-				"moves": [AvailableMove.Double_Edge, AvailableMove.Hyper_Beam, AvailableMove.Agility, AvailableMove.Wing_Attack]
-			}
-		],
-		"p2team": [
-			{
-				"name": "ABRA",
-				"level": 50,
-				"species": PokemonSpecies.Abra,
-				"moves": [AvailableMove.Flash]
-			},
-			{
-				"name": "KADABRA",
-				"level": 50,
-				"species": PokemonSpecies.Kadabra,
-				"moves": [AvailableMove.Kinesis, AvailableMove.Psychic_M, AvailableMove.Psywave, AvailableMove.Recover]
-			},
-			{
-				"name": "ALAKAZAM",
-				"level": 50,
-				"species": PokemonSpecies.Alakazam,
-				"moves": [AvailableMove.Psychic_M, AvailableMove.Psywave, AvailableMove.Recover, AvailableMove.Reflect]
-			}
-		]
-	}
-	Blaine={
-		"ai": gen1AI_1,
-		"sprite": 0,
-		"p1name": "Ash",
-		"p2name": "Blaine",
-		"p1team": [
-			{
-				"name": "PIKACHU",
-				"level": 55,
-				"species": PokemonSpecies.Pikachu,
-				"moves": [AvailableMove.Thunderbolt, AvailableMove.Surf, AvailableMove.Body_Slam, AvailableMove.Thunder_Wave]
-			},
-			{
-				"name": "PRIMEAPE",
-				"level": 45,
-				"species": PokemonSpecies.Primeape,
-				"moves": [AvailableMove.Seismic_Toss, AvailableMove.Rock_Slide, AvailableMove.Hyper_Beam, AvailableMove.Body_Slam]
-			},
-			{
-				"name": "NIDOKING",
-				"level": 45,
-				"species": PokemonSpecies.Nidoking,
-				"moves": [AvailableMove.Earthquake, AvailableMove.Thunderbolt, AvailableMove.Blizzard, AvailableMove.Substitute]
-			},
-			{
-				"name": "PIDGEOT",
-				"level": 47,
-				"species": PokemonSpecies.Pidgeot,
-				"moves": [AvailableMove.Double_Edge, AvailableMove.Hyper_Beam, AvailableMove.Agility, AvailableMove.Wing_Attack]
-			}
-		],
-		"p2team": [
-			{
-				"name": "NINETALES",
-				"level": 48,
-				"species": PokemonSpecies.Ninetales,
-				"moves": [AvailableMove.Confuse_Ray, AvailableMove.Flamethrower, AvailableMove.Quick_Attack, AvailableMove.Tail_Whip]
-			},
-			{
-				"name": "RAPIDASH",
-				"level": 50,
-				"species": PokemonSpecies.Rapidash,
-				"moves": [AvailableMove.Fire_Spin, AvailableMove.Growl, AvailableMove.Stomp, AvailableMove.Take_Down]
-			},
-			{
-				"name": "ARCANINE",
-				"level": 54,
-				"species": PokemonSpecies.Arcanine,
-				"moves": [AvailableMove.Fire_Blast, AvailableMove.Flamethrower, AvailableMove.Reflect, AvailableMove.Take_Down]
-			}
-		]
-	}
-	Giovanni={
-		"ai": gen1AI_13,
-		"sprite": 0,
-		"p1name": "Ash",
-		"p2name": "Giovanni",
-		"p1team": [
-			{
-				"name": "PIKACHU",
-				"level": 60,
-				"species": PokemonSpecies.Pikachu,
-				"moves": [AvailableMove.Thunderbolt, AvailableMove.Surf, AvailableMove.Body_Slam, AvailableMove.Thunder_Wave]
-			},
-			{
-				"name": "PRIMEAPE",
-				"level": 49,
-				"species": PokemonSpecies.Primeape,
-				"moves": [AvailableMove.Seismic_Toss, AvailableMove.Rock_Slide, AvailableMove.Hyper_Beam, AvailableMove.Body_Slam]
-			},
-			{
-				"name": "NIDOKING",
-				"level": 47,
-				"species": PokemonSpecies.Nidoking,
-				"moves": [AvailableMove.Earthquake, AvailableMove.Thunderbolt, AvailableMove.Blizzard, AvailableMove.Substitute]
-			},
-			{
-				"name": "PIDGEOT",
-				"level": 46,
-				"species": PokemonSpecies.Pidgeot,
-				"moves": [AvailableMove.Double_Edge, AvailableMove.Hyper_Beam, AvailableMove.Agility, AvailableMove.Wing_Attack]
-			}
-		],
-		"p2team": [
-			{
-				"name": "DUGTRIO",
-				"level": 50,
-				"species": PokemonSpecies.Dugtrio,
-				"moves": [AvailableMove.Dig, AvailableMove.Earthquake, AvailableMove.Fissure, AvailableMove.Sand_Attack]
-			},
-			{
-				"name": "PERSIAN",
-				"level": 53,
-				"species": PokemonSpecies.Persian,
-				"moves": [AvailableMove.Double_Team, AvailableMove.Fury_Swipes, AvailableMove.Screech, AvailableMove.Slash]
-			},
-			{
-				"name": "NIDOQUEEN",
-				"level": 53,
-				"species": PokemonSpecies.Nidoqueen,
-				"moves": [AvailableMove.Double_Kick, AvailableMove.Earthquake, AvailableMove.Tail_Whip, AvailableMove.Thunder]
-			},
-			{
-				"name": "NIDOKING",
-				"level": 55,
-				"species": PokemonSpecies.Nidoking,
-				"moves": [AvailableMove.Double_Kick, AvailableMove.Earthquake, AvailableMove.Leer, AvailableMove.Thunder]
-			},
-			{
-				"name": "RHYDON",
-				"level": 55,
-				"species": PokemonSpecies.Rhydon,
-				"moves": [AvailableMove.Earthquake, AvailableMove.Fury_Attack, AvailableMove.Horn_Drill, AvailableMove.Rock_Slide]
-			}
-		]
-	}
+def gen1AI_123(state: BattleState, rng: Generator):
+	return gen1AI(state.op, state.me, [1, 2, 3], rng)
 
 
-def load_trainer(path: str):
+def gen1AI_123L(state: BattleState, rng: Generator):
+	return gen1AI(state.op, state.me, [1, 2, 3, 'L'], rng)
+
+
+def load_trainer(path: str|bytes):
 	state = BattleState()
-	with open(path, "rb") as fd:
-		data = fd.read()
+	if isinstance(path, str):
+		with open(path, "rb") as fd:
+			data = fd.read()
+	else:
+		data = path
 	name, team = _load_trainer(data, state)
 	return name, [{
 		"name": p.name,
@@ -489,6 +147,44 @@ def load_trainer(path: str):
 		"species": p.id,
 		"moves": [m.id for m in p.move_set]
 	} for p in team]
+
+
+def load_scenario(path: str, ai: Callable, c: TrainerClass|None=None):
+	with open(path, "rb") as fd:
+		b = fd.read()
+	name1, team1 = load_trainer(b[:TRAINER_DATA_SIZE])
+	name2, team2 = load_trainer(b[TRAINER_DATA_SIZE:])
+	return {
+		'ai': ai,
+		'sprite': c,
+		'p1name': name1,
+		'p2name': name2,
+		'p1team': team1,
+		'p2team': team2
+	}
+
+
+TRAINER_DATA_SIZE = 11 * 7 + 44 * 6 + 1
+
+scenario_folder = os.path.abspath(os.path.join(__file__, os.path.pardir, "scenarios"))
+
+
+class Examples:
+	Brock=   load_scenario(os.path.join(scenario_folder, "Brock.scenario"),    gen1AI_1)
+	Misty=   load_scenario(os.path.join(scenario_folder, "Misty.scenario"),    gen1AI_13)
+	LtSurge= load_scenario(os.path.join(scenario_folder, "LtSurge.scenario"),  gen1AI_1)
+	Erika=   load_scenario(os.path.join(scenario_folder, "Erika.scenario"),    gen1AI_13)
+	Koga=    load_scenario(os.path.join(scenario_folder, "Koga.scenario"),     gen1AI_13)
+	Sabrina= load_scenario(os.path.join(scenario_folder, "Sabrina.scenario"),  gen1AI_1)
+	Blaine=  load_scenario(os.path.join(scenario_folder, "Blaine.scenario"),   gen1AI_1)
+	Giovanni=load_scenario(os.path.join(scenario_folder, "Giovanni.scenario"), gen1AI_13)
+	Lorelei =load_scenario(os.path.join(scenario_folder, "Lorelei.scenario"),  gen1AI_123L)
+	Bruno   =load_scenario(os.path.join(scenario_folder, "Bruno.scenario"),    gen1AI_1)
+	Agatha  =load_scenario(os.path.join(scenario_folder, "Agatha.scenario"),   gen1AI_1)
+	Lance   =load_scenario(os.path.join(scenario_folder, "Lance.scenario"),    gen1AI_13)
+	Blue3_1 =load_scenario(os.path.join(scenario_folder, "Blue3_1.scenario"),  gen1AI_13,   TrainerClass.RIVAL3)
+	Blue3_2 =load_scenario(os.path.join(scenario_folder, "Blue3_2.scenario"),  gen1AI_13,   TrainerClass.RIVAL3)
+	Blue3_3 =load_scenario(os.path.join(scenario_folder, "Blue3_3.scenario"),  gen1AI_13,   TrainerClass.RIVAL3)
 
 
 class PokemonYellowBattle(Env):
@@ -693,7 +389,7 @@ class PokemonYellowBattle(Env):
 			# ATK, DEF, SPD, SPE, ACC, EVD
 			  12,  12,  12,  12,  12,  12,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 			
 			# My opponent on field
 			# HP,  MaxHP,
@@ -708,7 +404,7 @@ class PokemonYellowBattle(Env):
 			# ATK, DEF, SPD, SPE, ACC, EVD
 			  12,  12,  12,  12,  12,  12,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 
 			# Pokémon 1 in team
 			# HP,  MaxHP,
@@ -720,7 +416,7 @@ class PokemonYellowBattle(Env):
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 			# Pokémon 2 in team
 			# HP,  MaxHP,
 			  999, 999,
@@ -731,7 +427,7 @@ class PokemonYellowBattle(Env):
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 			# Pokémon 3 in team
 			# HP,  MaxHP,
 			  999, 999,
@@ -742,7 +438,7 @@ class PokemonYellowBattle(Env):
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 			# Pokémon 4 in team
 			# HP,  MaxHP,
 			  999, 999,
@@ -753,7 +449,7 @@ class PokemonYellowBattle(Env):
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 			# Pokémon 5 in team
 			# HP,  MaxHP,
 			  999, 999,
@@ -764,7 +460,7 @@ class PokemonYellowBattle(Env):
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 			# Pokémon 6 in team
 			# HP,  MaxHP,
 			  999, 999,
@@ -775,7 +471,7 @@ class PokemonYellowBattle(Env):
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 
 			# Pokémon 1 in opponent's team
 			# HP,  MaxHP,
@@ -787,7 +483,7 @@ class PokemonYellowBattle(Env):
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 			# Pokémon 2 in opponent's team
 			# HP,  MaxHP,
 			  999, 999,
@@ -798,7 +494,7 @@ class PokemonYellowBattle(Env):
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 			# Pokémon 3 in opponent's team
 			# HP,  MaxHP,
 			  999, 999,
@@ -809,7 +505,7 @@ class PokemonYellowBattle(Env):
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 			# Pokémon 4 in opponent's team
 			# HP,  MaxHP,
 			  999, 999,
@@ -820,7 +516,7 @@ class PokemonYellowBattle(Env):
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 			# Pokémon 5 in opponent's team
 			# HP,  MaxHP,
 			  999, 999,
@@ -831,7 +527,7 @@ class PokemonYellowBattle(Env):
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 			# Pokémon 6 in opponent's team
 			# HP,  MaxHP,
 			  999, 999,
@@ -842,7 +538,7 @@ class PokemonYellowBattle(Env):
 			# SLP, PSN, BRN, FRZ, PAR
 			  1,   1,   1,   1,   1,
 			# Move1ID, Move1PP, Move2ID, Move2PP, Move3ID, Move3PP, Move4ID, Move4PP
-			  164,     40,      164,     40,      164,     40,      164,     40,
+			  164,     64,      164,     64,      164,     64,      164,     64,
 		], dtype=float32),
 		shape=(494,),
 		dtype=float32
@@ -863,9 +559,10 @@ class PokemonYellowBattle(Env):
 	replay_folder: str
 	emulator: PyBoyEmulator|None
 	messages: list
+	trainer_class: TrainerClass|None
 
 
-	def __init__(self, render_mode: str|None=None, episode_trigger: Callable[[], bool]=None, opponent_callback: Callable[[BattleState, Generator], BattleAction]=basic_opponent, replay_folder: str|None=None, shuffle_teams: bool=False):
+	def __init__(self, render_mode: str|None=None, episode_trigger: Callable[[], bool]=None, opponent_callback: Callable[[BattleState, Generator], BattleAction]=basic_opponent, replay_folder: str|None=None, shuffle_teams: bool=False, rom: str|None= None):
 		self.battle = BattleHandler(False, False)
 		self.op = opponent_callback
 		self.base_op = opponent_callback
@@ -878,11 +575,12 @@ class PokemonYellowBattle(Env):
 		self.recording = False
 		self.shuffle_teams = shuffle_teams
 		self.replay_folder = replay_folder
+		self.load_state = rom is None
+		self.trainer_class = None
 		if self.render_mode == "human":
-			self.emulator = PyBoyEmulator(has_interface=True, sound_volume=25, save_frames=False)
-			self.emulator.on_text_displayed = print
+			self.emulator = PyBoyEmulator(has_interface=True, sound_volume=25, save_frames=False, rom=rom)
 		elif self.render_mode == "rgb_array_list":
-			self.emulator = PyBoyEmulator(has_interface=False, sound_volume=0, save_frames=True)
+			self.emulator = PyBoyEmulator(has_interface=False, sound_volume=0, save_frames=True, rom=rom)
 		else:
 			self.emulator = None
 		self.messages = []
@@ -899,8 +597,11 @@ class PokemonYellowBattle(Env):
 	def init_emulator(self, state: BattleState):
 		if self.emulator is None or not self.recording:
 			return
-		with open("pokeyellow_replay.state", "rb") as fd:
-			self.emulator.init_battle(fd, state)
+		if self.load_state:
+			with open(os.path.abspath(os.path.join(__file__, os.path.pardir, "pokeyellow_replay.state")), "rb") as fd:
+				self.emulator.init_battle(fd, state, trainer=self.trainer_class)
+		else:
+			self.emulator.init_battle(None, state, trainer=self.trainer_class)
 
 
 	@staticmethod
@@ -1023,7 +724,7 @@ class PokemonYellowBattle(Env):
 		result = move_mask + switch_mask + [can_use_struggle]
 		if not any(result):
 			result = [1] * self.action_space.n
-		return ob, { 'mask': array(result, dtype=int8) }
+		return ob, { 'mask': array(result, dtype=int8), 'emulator': self.emulator, 'simulator': self.battle }
 
 
 	def compute_reward(self, old: BattleState, new: BattleState):
@@ -1079,17 +780,18 @@ class PokemonYellowBattle(Env):
 					p.get_name(False),
 					p.level,
 					PokemonBase(p.id),
-					self.np_random.permutation(list(Move(m.id) for m in p.move_set if m.id))
+					self.np_random.permutation(list(Move(m.id, 3) for m in p.move_set if m.id))
 				) for p in state.me.team])
 				state.op.team = self.np_random.permutation([Pokemon(
 					self.battle.state,
 					p.get_name(False),
 					p.level,
 					PokemonBase(p.id),
-					self.np_random.permutation(list(Move(m.id) for m in p.move_set if m.id))
+					self.np_random.permutation(list(Move(m.id, 3) for m in p.move_set if m.id))
 				) for p in state.op.team])
 		else:
 			self.op = options.get("ai", self.base_op)
+			self.trainer_class = options.get('sprite')
 			state.me.name = options["p1name"]
 			state.op.name = options["p2name"]
 			for p in options["p1team"]:
@@ -1100,8 +802,8 @@ class PokemonYellowBattle(Env):
 				for m in p["moves"]:
 					if m in banned_moves:
 						print(f"Warning: {AvailableMove(m).name} in team 2, on {p["name"]} doesn't work and has been replaced with Pound")
-			state.me.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m) for m in p["moves"]]) for p in options["p1team"]]
-			state.op.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m) for m in p["moves"]]) for p in options["p2team"]]
+			state.me.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m, 3) for m in p["moves"]]) for p in options["p1team"]]
+			state.op.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m, 3) for m in p["moves"]]) for p in options["p2team"]]
 		state.rng.list = [self.np_random.integers(low=0, high=255) for _ in range(9)]
 
 		self.init_emulator(state)
@@ -1118,15 +820,16 @@ class PokemonYellowBattle(Env):
 		if op.pokemon_on_field_index == i:
 			r += " (Active)"
 		r += "\n - "
-		r += f'{s.health:03d}/{s.max_health:03d}HP, '
-		r += f'{s.attack:03d}ATK (???@+0), '
-		r += f'{s.defense:03d}DEF (???@+0), '
-		r += f'{s.special:03d}SPE (???@+0), '
-		r += f'{s.speed: >3d}SPD (???@+0), '
-		r += f'100%ACC (+0), '
-		r += f'100%EVD (+0)'
+		r += f'{s.health: >2d}/{s.max_health: >2d}HP, '
+		upgrade = s.stats_upgrade_stages
+		r += f'{s.attack: >3d}ATK (???@{upgrade['ATK']:+d}), '
+		r += f'{s.defense: >3d}DEF (???@{upgrade['DEF']:+d}), '
+		r += f'{s.special: >3d}SPE (???@{upgrade['SPE']:+d}), '
+		r += f'{s.speed: >3d}SPD (???@{upgrade['SPD']:+d}), '
+		r += f'{round(s.accuracy_mul * 100): >3d}%ACC ({upgrade['ACC']:+d}), '
+		r += f'{round(s.evasion_mul * 100): >3d}%EVD ({upgrade['EVD']:+d})'
 		r += f'\n - Status: 0x{s.non_volatile_status:02X} {status_to_string(s.non_volatile_status)}, '
-		r += f'\n - Moves: {", ".join(f'{m.name} {m.pp:02d}/{m.max_pp:02d}PP{"" if op.is_pkmn_move_discovered(i, _i) else " (Not yet revealed)"}' for _i, m in enumerate(s.move_set) if m)}'
+		r += f'\n - Moves: {", ".join(f'{m.name} {m.pp: >2d}/{m.max_pp: >2d}PP{"" if op.is_pkmn_move_discovered(i, _i) else " (Not yet revealed)"}' for _i, m in enumerate(s.move_set) if m)}'
 		return r
 
 

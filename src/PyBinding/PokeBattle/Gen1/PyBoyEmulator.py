@@ -21,7 +21,6 @@ class PyBoyEmulator(PkmnYellowEmulator):
 			sym = None
 		self.has_symbols = sym is not None
 		self.emulator = PyBoy(rom, symbols=sym, sound_volume=sound_volume, window='SDL2' if has_interface else 'null', debug=debug)
-		self.emulator.hook_register(0x00, 0x1723, PkmnYellowEmulator.call_text_hook, self) # 0x3C36
 		super().__init__()
 
 
@@ -123,13 +122,13 @@ class PyBoyEmulator(PkmnYellowEmulator):
 
 
 	def read(self, address):
-		if address.bank is not None:
+		if address.bank is not None and address.address < 0xFF00:
 			return self.emulator.memory[address.bank, address.address]
 		return self.emulator.memory[address.address]
 
 
 	def write(self, address, value):
-		if address.bank is not None:
+		if address.bank is not None and address.address < 0xFF00:
 			self.emulator.memory[address.bank, address.address] = value
 		else:
 			self.emulator.memory[address.address] = value

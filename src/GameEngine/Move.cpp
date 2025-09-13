@@ -173,7 +173,7 @@ namespace PokemonGen1
 		_category(other._category),
 		_power(other._power),
 		_id(other._id),
-		_pp(other._maxpp),
+		_pp(other._pp),
 		_ppup(other._ppup),
 		_maxpp(other._maxpp),
 		_nbHit(0),
@@ -206,7 +206,7 @@ namespace PokemonGen1
 		this->_category = other._category;
 		this->_power = other._power;
 		this->_id = other._id;
-		this->_pp = other._maxpp;
+		this->_pp = other._pp;
 		this->_ppup = other._ppup;
 		this->_maxpp = other._maxpp;
 		this->_nbHit = 0;
@@ -244,7 +244,11 @@ namespace PokemonGen1
 
 	unsigned char Move::getMaxPP() const
 	{
-		return this->_maxpp * (5 + this->_ppup) / 5;
+		auto total = this->_maxpp * (5 + this->_ppup) / 5;
+
+		if (total == 64)
+			return 63;
+		return total;
 	}
 
 	void Move::setPPUp(unsigned char nb)
@@ -623,6 +627,11 @@ namespace PokemonGen1
 		this->setHitsLeft(0);
 	}
 
+	bool Move::skipAccuracyCheck() const
+	{
+		return this->_skipAccuracyCheck;
+	}
+
 	/*
 	** From pokemondb, bulbapedia and Rhydon
 	** https://pokemondb.net/move/generation/1
@@ -685,7 +694,7 @@ namespace PokemonGen1
 		Move{0x32, "Disable"     , TYPE_NORMAL  , STATUS  ,   0,  55, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code this move
 		Move{0x33, "Acid"        , TYPE_POISON  , PHYSICAL,  40, 100, 30, NO_STATUS_CHANGE, {}, {{STATS_DEF, -1, 0x55}}},
 		Move{0x34, "Ember"       , TYPE_FIRE    , SPECIAL ,  40, 100, 25, {STATUS_BURNED, 0x1A}},
-		Move{0x35, "Flamethrower", TYPE_FIRE    , SPECIAL ,  95, 100, 25, {STATUS_BURNED, 0x1A}},
+		Move{0x35, "Flamethrower", TYPE_FIRE    , SPECIAL ,  95, 100, 15, {STATUS_BURNED, 0x1A}},
 		Move{0x36, "Mist"        , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code this move
 		Move{0x37, "Water Gun"   , TYPE_WATER   , SPECIAL ,  40, 100, 25},
 		Move{0x38, "Hydro Pump"  , TYPE_WATER   , SPECIAL , 120,  80,  5},
@@ -718,7 +727,7 @@ namespace PokemonGen1
 		Move{0x53, "Fire Spin"   , TYPE_FIRE    , SPECIAL ,  15,  70, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, WRAP_TARGET, GLITCH_HYPER_BEAM},
 		Move{0x54, "ThunderShock", TYPE_ELECTRIC, SPECIAL ,  40, 100, 30, {STATUS_PARALYZED, 0x1A}},
 		Move{0x55, "ThunderBolt" , TYPE_ELECTRIC, SPECIAL ,  95, 100, 15, {STATUS_PARALYZED, 0x1A}},
-		Move{0x56, "Thunder Wave", TYPE_ELECTRIC, STATUS  ,   0, 100, 30, {STATUS_PARALYZED, 0}},
+		Move{0x56, "Thunder Wave", TYPE_ELECTRIC, STATUS  ,   0, 100, 20, {STATUS_PARALYZED, 0}},
 		Move{0x57, "Thunder"     , TYPE_ELECTRIC, SPECIAL , 120,  70, 10, {STATUS_PARALYZED, 0x1A}},
 		Move{0x58, "Rock Throw"  , TYPE_ROCK    , PHYSICAL,  50,  65, 15},
 		Move{0x59, "Earthquake"  , TYPE_GROUND  , PHYSICAL, 100, 100, 10},

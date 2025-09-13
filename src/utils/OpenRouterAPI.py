@@ -29,6 +29,8 @@ Hidden pokémons are marked as <Pokémon not revealed yet>.
 Moves not revealed are marked "??? ??/??PP".
 The active pokémon on field have the "(Active)" mention at the end of the line.
 
+After are included the battle logs from the last turn.
+
 For example:
 ```
 Your team:
@@ -46,15 +48,22 @@ Battle logs:
 PIKACHU used TAIL WHIP!
 GEODUDE's DEFENSE fell!
 GEODUDE used TACKLE!
-PIKACHU used TAIL WHIP!
-GEODUDE's DEFENSE fell!
-GEODUDE used TACKLE!
 ```"""
 
-def get_move(state: BattleState, messages):
-	data = f"Your team (P1):\n - "
-	data += "\n - ".join(pkmn.dump() for pkmn in state.me.team)
-	data += "\n"
+msgs = [
+	{
+		"role": "developer",
+		"content": SYSTEM_PROMPT
+	}
+]
+
+def get_move(state: BattleState, model, messages):
+	data = f"Your team (P1):\n"
+	for i, pkmn in enumerate(state.me.team):
+		data += f" - {pkmn.dump()}"
+		if i == state.me.pokemon_on_field_index:
+			data += " (Active)"
+		data += "\n"
 
 	data += f"Opponent team (P2):\n"
 	for i, pkmn in enumerate(state.op.team):
@@ -86,9 +95,15 @@ def get_move(state: BattleState, messages):
 				data += f"{move.name: >12}  {move.pp: >2d}/{move.max_pp: >2d}PP"
 			else:
 				data += "         ??? ??/??PP"
+		if i == state.op.pokemon_on_field_index:
+			data += " (Active)"
 		data += "\n"
 	data += "Battle logs:\n"
 	data += "\n".join(messages)
+	msgs.append({
+		"role": "user",
+		"content": data
+	})
 
 	response = requests.post(
 		url="https://openrouter.ai/api/v1/chat/completions",
@@ -97,19 +112,73 @@ def get_move(state: BattleState, messages):
 			"Content-Type": "application/json"
 		},
 		data=json.dumps({
-			"model": "deepseek/deepseek-chat-v3.1:free",
-			"messages": [
-				{
-					"role": "developer",
-					"content": SYSTEM_PROMPT
-				},
-				{
-					"role": "user",
-					"content": data
-				}
-			]
+			"model": model,
+			"messages": msgs
 		})
 	)
 	j = response.json()
+	if 'error' in j:
+		raise RuntimeError(j['error']['message'])
+	msgs.append(j["choices"][0]["message"])
 	action = j["choices"][0]["message"]["content"]
+	return getattr(BattleAction, action)
+
+
+def get_move_manual(state: BattleState, messages):
+	data = f"Your team (P1):\n"
+	for i, pkmn in enumerate(state.me.team):
+		data += f" - {pkmn.dump()}"
+		if i == state.me.pokemon_on_field_index:
+			data += " (Active)"
+		data += "\n"
+
+	data += f"Opponent team (P2):\n"
+	for i, pkmn in enumerate(state.op.team):
+		data += " - "
+		if not state.me.is_pkmn_discovered(i):
+			data += "<Pokémon not revealed yet>\n"
+			continue
+		data += f"{pkmn.get_name(False): >10} ({pkmn.species_name: >10}) l{pkmn.level: >3d}, {type_to_string_short(pkmn.types[0])}"
+		if pkmn.types[0] != pkmn.types[1]:
+			data += f"/{type_to_string_short(pkmn.types[1])}"
+		else:
+			data += "    "
+		data += f", {pkmn.health: >3d}/{pkmn.max_health: >3d}HP"
+		data += f", {pkmn.attack: >3d}ATK ({pkmn.raw_attack: >3d}@{pkmn.stats_upgrade_stages['ATK']:+d})"
+		data += f", {pkmn.defense: >3d}DEF ({pkmn.raw_defense: >3d}@{pkmn.stats_upgrade_stages['DEF']:+d})"
+		data += f", {pkmn.special: >3d}SPE ({pkmn.raw_special: >3d}@{pkmn.stats_upgrade_stages['SPE']:+d})"
+		data += f", {pkmn.speed: >3d}SPD ({pkmn.raw_speed: >3d}@{pkmn.stats_upgrade_stages['SPD']:+d})"
+		data += f", {int(pkmn.accuracy_mul * 100): >3d}%ACC ({pkmn.stats_upgrade_stages['ACC']:+d})"
+		data += f", {int(pkmn.evasion_mul * 100): >3d}%ACC ({pkmn.stats_upgrade_stages['EVD']:+d})"
+		data += f", Status: 0x{pkmn.status:04X} {status_to_string_short(pkmn.status): >6}, "
+		if pkmn.substitute is not None:
+			data += f"Sub {pkmn.substitute}, "
+		data += "Moves: "
+		for j in range(4):
+			if j:
+				data += ", "
+			move = pkmn.move_set[j]
+			if state.me.is_pkmn_move_discovered(i, j):
+				data += f"{move.name: >12}  {move.pp: >2d}/{move.max_pp: >2d}PP"
+			else:
+				data += "         ??? ??/??PP"
+		if i == state.op.pokemon_on_field_index:
+			data += " (Active)"
+		data += "\n"
+	data += "Battle logs:\n"
+	data += "\n".join(messages)
+	print("-----------------------")
+	if len(msgs) == 1:
+		print(msgs[0]['content'])
+	print(data)
+
+	action = input("Reponse: ")
+	msgs.append({
+		"role": "user",
+		"content": data
+	})
+	msgs.append({
+		'role': 'assistant',
+		'content': action
+	})
 	return getattr(BattleAction, action)

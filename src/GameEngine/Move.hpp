@@ -422,6 +422,7 @@ namespace PokemonGen1
 		char getPriority() const;
 		bool isFinished() const;
 		unsigned char getHitsLeft() const;
+		bool skipAccuracyCheck() const;
 
 		void glitch();
 		void setPP(unsigned char pp);

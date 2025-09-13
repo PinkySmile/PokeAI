@@ -21,22 +21,27 @@ namespace PokemonGen1
 			this->reset();
 		};
 		this->_state.onBattleStart = [this] {
-			this->logBattle(this->_state.op.name + " wants to fight");
-			this->logBattle(this->_state.op.name + " sent out " + this->_state.op.team[0].getName(false));
-			this->logBattle(this->_state.me.team[0].getName() + " go");
-			this->_log("Game start!");
-			this->_log(this->_state.me.name + "'s team (P1)");
-			for (const Pokemon &pkmn : this->_state.me.team)
-				this->_log(pkmn.dump());
-			this->_log(this->_state.op.name + "'s team (P2)");
-			for (const Pokemon &pkmn : this->_state.op.team)
-				this->_log(pkmn.dump());
+			this->start();
 		};
 		this->_state.onTurnStart = [this]{
 			return this->tick();
 		};
-		this->_state.me.discovered[0].first = true;
-		this->_state.op.discovered[0].first = true;
+	}
+
+	void BattleHandler::start()
+	{
+		this->logBattle(this->_state.op.name + " wants to fight");
+		this->logBattle(this->_state.op.name + " sent out " + this->_state.op.team[this->_state.op.pokemonOnField].getName(false));
+		this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName() + " go");
+		this->_state.me.discovered[this->_state.me.pokemonOnField].first = true;
+		this->_state.op.discovered[this->_state.me.pokemonOnField].first = true;
+		this->_log("Game start!");
+		this->_log(this->_state.me.name + "'s team (P1)");
+		for (const Pokemon &pkmn : this->_state.me.team)
+			this->_log(pkmn.dump());
+		this->_log(this->_state.op.name + "'s team (P2)");
+		for (const Pokemon &pkmn : this->_state.op.team)
+			this->_log(pkmn.dump());
 	}
 
 	void BattleHandler::logBattle(const std::string &message)

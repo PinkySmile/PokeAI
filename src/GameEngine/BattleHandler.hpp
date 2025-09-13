@@ -67,6 +67,7 @@ namespace PokemonGen1
 		bool loadState(const std::string &path);
 		void stopReplay();
 		bool playingReplay() const;
+		void start();
 
 	private:
 		ReplayData _replayData;

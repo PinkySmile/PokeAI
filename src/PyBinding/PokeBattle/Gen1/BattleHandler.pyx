@@ -56,3 +56,6 @@ cdef class BattleHandler:
 			b.__instance = &self.__instance.getBattleState()
 			self.__pyState = b
 		return self.__pyState
+
+	def start(self):
+		self.__instance.start()

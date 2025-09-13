@@ -36,6 +36,7 @@ class GBAddress:
 
 
 default_symbols = {
+	"PlaceString":                                   GBAddress(0x00, 0x1723),
 	"LinkBattleExchangeData":                        GBAddress(0x0F, 0x5777),
 	"SlidePlayerAndEnemySilhouettesOnScreen":        GBAddress(0x0F, 0x404C),
 	"EndOfBattle":                                   GBAddress(0x04, 0x7765),
@@ -149,6 +150,7 @@ class TrainerClass(enum.IntEnum):
 	TAMER         = 0x16
 	BIRD_KEEPER   = 0x17
 	BLACKBELT     = 0x18
+	RIVAL         = 0x19
 	RIVAL1        = 0x19
 	PROF_OAK      = 0x1A
 	CHIEF         = 0x1B
@@ -532,6 +534,7 @@ class PkmnYellowEmulator(ABC):
 		self.hook(self.symbol("MoveSelectionMenu"), select_move, False)
 		self.hook(self.symbol("HandlePlayerMonFainted"), select_move, True)
 		self.hook(self.symbol("LinkBattleExchangeData"), wait_for_opponent)
+		self.hook(self.symbol("PlaceString"), self.call_text_hook) # 0x3C36
 
 
 	def symbol(self, name: str) -> GBAddress:
@@ -713,7 +716,7 @@ class PkmnYellowEmulator(ABC):
 		defense = int.from_bytes(bytes(self.read_range(base_address + defenseOffset, base_address + defenseOffset + 2)), byteorder='big')
 		speed = int.from_bytes(bytes(self.read_range(base_address + speedOffset, base_address + speedOffset + 2)), byteorder='big')
 		special = int.from_bytes(bytes(self.read_range(base_address + specialOffset, base_address + specialOffset + 2)), byteorder='big')
-		pps = self.read_range(base_address + ppOffset, base_address + ppOffset + 4)
+		pps = list(map(lambda p: p & 0x3F, self.read_range(base_address + ppOffset, base_address + ppOffset + 4)))
 		base_max_hp = int.from_bytes(bytes(self.read_range(base_stats, base_stats + 2)), byteorder='big')
 		base_attack = int.from_bytes(bytes(self.read_range(base_stats + 2, base_stats + 4)), byteorder='big')
 		base_defense = int.from_bytes(bytes(self.read_range(base_stats + 4, base_stats + 6)), byteorder='big')
@@ -841,7 +844,7 @@ class PkmnYellowEmulator(ABC):
 		return len(errors) == 0, errors
 
 
-	def call_text_hook(self):
+	def call_text_hook(self, _=None):
 		if self.on_text_displayed is None or self.register_hl < 0xc4b9:
 			return
 		end, txt = self.translate_text_at(GBAddress(self.register_de))
@@ -1018,7 +1021,7 @@ class PkmnYellowEmulator(ABC):
 		team_length = self.read(self.symbol("wPartyCount"))
 		if self.is_dead:
 			assert BattleAction.Switch1 <= action <= BattleAction.Switch6
-			self.tick(10)
+			self.tick(20)
 			target = action - BattleAction.Switch1
 			while self.read(menu_item) != target:
 				diff = (team_length + self.read(menu_item) - target) % team_length
@@ -1118,8 +1121,17 @@ class PkmnYellowEmulator(ABC):
 		try:
 			self.battle_finished = False
 			if trainer is None:
-				if hasattr(TrainerClass, state.op.name.upper()):
-					trainer = getattr(TrainerClass, state.op.name.upper())
+				n = state.op.name.upper()
+				n = n.replace(".", "")
+				n = n.replace(" ", "_")
+				n = n.replace("~", "_M")
+				n = n.replace("`", "_F")
+				if hasattr(TrainerClass, n):
+					trainer = getattr(TrainerClass, n)
+				elif n == "blue":
+					trainer = TrainerClass.RIVAL1
+				elif n == "champion":
+					trainer = TrainerClass.RIVAL3
 				else:
 					trainer = TrainerClass.NOBODY
 			self.fast_forward = fast_forward
@@ -1150,7 +1162,7 @@ class PkmnYellowEmulator(ABC):
 				self.hook_single(self.symbol("DoBattleTransitionAndInitBattleVariables.next"), __, LINK_STATE_BATTLING)
 				self.hook_single(self.symbol("_InitBattleCommon"), __, 0)
 
-			gym = [TrainerClass.BROCK, TrainerClass.MISTY, TrainerClass.LT_SURGE, TrainerClass.ERIKA, TrainerClass.KOGA, TrainerClass.BLAINE, TrainerClass.SABRINA, TrainerClass.LORELEI, TrainerClass.CHANNELER, TrainerClass.AGATHA, TrainerClass.LANCE]
+			gym = [TrainerClass.BROCK, TrainerClass.MISTY, TrainerClass.LT_SURGE, TrainerClass.ERIKA, TrainerClass.KOGA, TrainerClass.BLAINE, TrainerClass.SABRINA, TrainerClass.LORELEI, TrainerClass.BRUNO, TrainerClass.AGATHA, TrainerClass.LANCE]
 			if trainer in gym:
 				self.write(self.symbol("wGymLeaderNo"), 1)
 			self.hook_single(GBAddress(0x00, 0x0040), to_battle)

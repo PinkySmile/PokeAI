@@ -199,24 +199,25 @@ cdef class Move:
 			self.__instance = NULL
 		if len(args) == 0:
 			return
-		if len(args) == 1:
+		if len(args) == 1 or len(args) == 2:
 			object = args[0]
 			if isinstance(object, int) or isinstance(object, AvailableMove):
 				if object < 0 or object > 256:
 					raise IndexError("list object out of range")
 				self.__instance = new __Move(availableMoves[object])
-				self.__cinstance = self.__instance
-				self.__allocd = True
-				return
 			elif isinstance(object, Move):
 				self.__instance = new __Move(dereference((<Move>object).__instance))
+			if self.__instance != NULL:
 				self.__cinstance = self.__instance
 				self.__allocd = True
+				if len(args) == 2:
+					self.__instance.setPPUp(args[1])
+					self.pp = self.max_pp
 				return
 		raise TypeError("Invalid argument received")
 
 	def __assign__(self, Move other):
-		self.__instance[0] = other.__instance[0]
+		self.__instance[0] = other.__cinstance[0]
 		return self
 
 	def copy(self):
