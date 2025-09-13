@@ -25,7 +25,6 @@ banned_moves = [ # These moves aren't implemented properly in the engine
 	AvailableMove.Psybeam,
 
 	# Misc
-	AvailableMove.Leech_Seed,
 	AvailableMove.Disable,
 	AvailableMove.Mimic,
 	AvailableMove.Dream_Eater,
