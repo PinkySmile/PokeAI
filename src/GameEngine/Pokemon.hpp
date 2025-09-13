@@ -146,6 +146,7 @@ namespace PokemonGen1
 		std::string _name;
 		BaseStats _dvs;
 		BaseStats _statExps;
+		BaseStats _rawStats;
 		BaseStats _baseStats;
 		BaseStats _computedStats;
 		UpgradableStats _upgradedStats;
@@ -262,6 +263,7 @@ namespace PokemonGen1
 		[[nodiscard]] std::string getSpeciesName() const;
 		[[nodiscard]] const BaseStats &getDvs() const;
 		[[nodiscard]] const BaseStats &getStatExps() const;
+		[[nodiscard]] const BaseStats &getComputedStats() const;
 		[[nodiscard]] bool isEnemy() const;
 		void setStatExps(const BaseStats &statExps);
 

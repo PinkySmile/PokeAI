@@ -21,7 +21,7 @@ namespace PokemonGen1
 			f.push_back("Frozen");
 		if (status & STATUS_POISONED)
 			f.push_back("Poisoned");
-		if (status & STATUS_BADLY_POISONED)
+		if (status & STATUS_BAD_POISON)
 			f.push_back("Badly Poisoned");
 		if (status & STATUS_ASLEEP)
 			f.push_back("Asleep");
@@ -60,7 +60,7 @@ namespace PokemonGen1
 			f.push_back("FRZ");
 		if (status & STATUS_POISONED)
 			f.push_back("PSN");
-		if (status & STATUS_BADLY_POISONED)
+		if (status & STATUS_BAD_POISON)
 			f.push_back("BPN");
 		if (status & STATUS_ASLEEP)
 			f.push_back("SLP");

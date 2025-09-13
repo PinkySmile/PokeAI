@@ -22,9 +22,9 @@ def check_obs(p, obs):
 
 
 async def main():
-	p = gym.make('PokemonYellow', render_mode="human", shuffle_teams=True)
+	p = gym.make('PokemonYellow', render_mode="human", shuffle_teams=True, rom="/home/pinky/pokeyellow-gen-II/pokeyellow.gbc")
 	finished = False
-	params = Examples.Blue3_3
+	params = Examples.Blue3_1
 	observation, info = p.reset(options=params)
 
 	print(observation, info, len(observation))
@@ -40,6 +40,7 @@ async def main():
 				if info['emulator'] is not None:
 					info['emulator'].tick()
 				await asyncio.sleep(0)
+			info['simulator'].save_replay("interrupted.replay")
 			while not didit:
 				try:
 					if future.result() == "stop":
@@ -52,12 +53,12 @@ async def main():
 				except SystemExit:
 					raise
 				except KeyboardInterrupt:
-					if info['emulator'] is not None:
-						info['emulator'].save_replay("interrupted.replay")
+					info['simulator'].save_replay("interrupted.replay")
 					raise
 				except:
 					traceback.print_exc()
 					break
+			info['simulator'].save_replay("interrupted.replay")
 
 		r = p.render()
 		if r:

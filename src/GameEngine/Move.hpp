@@ -368,6 +368,8 @@ namespace PokemonGen1
 		std::string _fullDescription;
 
 	public:
+		bool wasReplaced = false;
+
 		Move(
 			unsigned char id,
 			const std::string &name,

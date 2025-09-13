@@ -38,7 +38,8 @@ namespace PokemonGen1
 		_name{base.name},
 		_dvs{0xF, 0xF, 0xF, 0xF, 0xF, 0xF},
 		_statExps{0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF},
-		_baseStats{makeStats(level, base, this->_dvs, this->_statExps)},
+		_rawStats{makeStats(level, base, this->_dvs, this->_statExps)},
+		_baseStats{this->_rawStats},
 		_upgradedStats{0, 0, 0, 0, 0, 0},
 		_moveSet{moveSet},
 		_types{base.typeA, base.typeB},
@@ -81,7 +82,7 @@ namespace PokemonGen1
 			NBR_2B(data[PACK_STAT_EXP_SPD_HB], data[PACK_STAT_EXP_SPD_LB]),
 			NBR_2B(data[PACK_STAT_EXP_SPE_HB], data[PACK_STAT_EXP_SPE_LB]),
 		},
-		_baseStats{
+		_rawStats{
 			static_cast<unsigned>(NBR_2B(data[PACK_HP_HB],  data[PACK_HP_LB])),
 			static_cast<unsigned>(NBR_2B(data[PACK_MAX_HP_HB], data[PACK_MAX_HP_LB])),
 			static_cast<unsigned short>(NBR_2B(data[PACK_ATK_HB], data[PACK_ATK_LB])), //ATK
@@ -89,6 +90,7 @@ namespace PokemonGen1
 			static_cast<unsigned short>(NBR_2B(data[PACK_SPD_HB], data[PACK_SPD_LB])), //SPD
 			static_cast<unsigned short>(NBR_2B(data[PACK_SPE_HB], data[PACK_SPE_LB]))  //SPE
 		},
+		_baseStats{this->_rawStats},
 		_upgradedStats{0, 0, 0, 0, 0, 0},
 		_types{
 			static_cast<Type>(data[PACK_TYPEA]),
@@ -151,6 +153,14 @@ namespace PokemonGen1
 			.DEF  = json["statExps"]["DEF"],
 			.SPD  = json["statExps"]["SPD"],
 			.SPE  = json["statExps"]["SPE"],
+		},
+		_rawStats{
+			.HP   = json["rawStats"]["HP"],
+			.maxHP= json["rawStats"]["maxHP"],
+			.ATK  = json["rawStats"]["ATK"],
+			.DEF  = json["rawStats"]["DEF"],
+			.SPD  = json["rawStats"]["SPD"],
+			.SPE  = json["rawStats"]["SPE"],
 		},
 		_baseStats{
 			.HP   = json["baseStats"]["HP"],
@@ -390,6 +400,14 @@ namespace PokemonGen1
 				{ "DEF",   this->_statExps.DEF },
 				{ "SPD",   this->_statExps.SPD },
 				{ "SPE",   this->_statExps.SPE }
+			} },
+			{ "rawStats", {
+				{ "HP",    this->_rawStats.HP },
+				{ "maxHP", this->_rawStats.maxHP },
+				{ "ATK",   this->_rawStats.ATK },
+				{ "DEF",   this->_rawStats.DEF },
+				{ "SPD",   this->_rawStats.SPD },
+				{ "SPE",   this->_rawStats.SPE }
 			} },
 			{ "baseStats", {
 				{ "HP",    this->_baseStats.HP },
@@ -636,6 +654,8 @@ namespace PokemonGen1
 				this->_lastUsedMove = availableMoves[0x00];
 			return;
 		}
+		for (auto &m : this->_moveSet)
+			m.wasReplaced = false;
 
 		// Check if using bind
 		// Check if thrashing about (Thrash & Petal Dance)
@@ -643,16 +663,18 @@ namespace PokemonGen1
 		// Check if using rage
 		if (this->_forcedAttack > 0) {
 			move = &this->_moveSet[this->_forcedAttack - 1];
-			if (this->useMove(*move, target) && move->getID() != Struggle)
+			if (this->useMove(*move, target) && move->getID() != Struggle && !move->wasReplaced)
 				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
 		} else if (moveSlot >= 4) {
 			this->_log(" has no moves left!");
 			this->useMove(availableMoves[Struggle], target);
 		} else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
 			move = &this->_moveSet[moveSlot];
-			if (this->useMove(*move, target) && move->getID() != Struggle)
+			if (this->useMove(*move, target) && move->getID() != Struggle && !move->wasReplaced)
 				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
 		}
+		for (auto &m : this->_moveSet)
+			m.wasReplaced = false;
 		if (!this->_lastUsedMove.isFinished())
 			this->_forcedAttack = moveSlot + 1;
 		else
@@ -832,22 +854,22 @@ namespace PokemonGen1
 
 	unsigned Pokemon::getRawAttack() const
 	{
-		return this->_baseStats.ATK;
+		return this->_rawStats.ATK;
 	}
 
 	unsigned Pokemon::getRawSpecial() const
 	{
-		return this->_baseStats.SPE;
+		return this->_rawStats.SPE;
 	}
 
 	unsigned Pokemon::getRawDefense() const
 	{
-		return this->_baseStats.DEF;
+		return this->_rawStats.DEF;
 	}
 
 	unsigned Pokemon::getRawSpeed() const
 	{
-		return this->_baseStats.SPD;
+		return this->_rawStats.SPD;
 	}
 
 	bool Pokemon::hasReflectUp() const
@@ -1054,6 +1076,11 @@ namespace PokemonGen1
 		return baseValue * Pokemon::_ratios[upgradeStage + 6].first / Pokemon::_ratios[upgradeStage + 6].second;
 	}
 
+	const Pokemon::BaseStats &Pokemon::getComputedStats() const
+	{
+		return this->_computedStats;
+	}
+
 	Pokemon::UpgradableStats Pokemon::getStatsUpgradeStages() const
 	{
 		return this->_upgradedStats;
@@ -1077,17 +1104,26 @@ namespace PokemonGen1
 		this->_oldState.stats = this->_baseStats;
 
 		auto stats = target.getBaseStats();
+		auto cstats = target.getComputedStats();
 
 		this->_id = target.getID();
 		this->_baseStats.ATK = stats.ATK;
 		this->_baseStats.DEF = stats.DEF;
 		this->_baseStats.SPD = stats.SPD;
 		this->_baseStats.SPE = stats.SPE;
+		this->_computedStats.ATK = cstats.ATK;
+		this->_computedStats.DEF = cstats.DEF;
+		this->_computedStats.SPD = cstats.SPD;
+		this->_computedStats.SPE = cstats.SPE;
 		this->_upgradedStats = target.getStatsUpgradeStages();
 		this->_moveSet = target.getMoveSet();
 		this->_types = target.getTypes();
-		for (auto &move : this->_moveSet)
-			move.setPP(5);
+		for (auto &move : this->_moveSet) {
+			if (move.getID() == None)
+				move.setPP(0);
+			else
+				move.setPP(5);
+		}
 		this->_transformed = true;
 	}
 

@@ -73,7 +73,8 @@ namespace PokemonGen1
 		_invulnerableDuringLoading(invulnerableDuringLoading),
 		_needRecharge(needRecharge),
 		_hitCallBackDescription(hitCallBackDescription),
-		_missCallBackDescription(missCallBackDescription)
+		_missCallBackDescription(missCallBackDescription),
+		wasReplaced(false)
 	{
 		if (category != STATUS)
 			switch (type) {
@@ -190,7 +191,8 @@ namespace PokemonGen1
 		_needRecharge(other._needRecharge),
 		_hitCallBackDescription(other._hitCallBackDescription),
 		_missCallBackDescription(other._missCallBackDescription),
-		_fullDescription(other._fullDescription)
+		_fullDescription(other._fullDescription),
+		wasReplaced(true)
 	{
 	}
 
@@ -224,6 +226,7 @@ namespace PokemonGen1
 		this->_hitCallBackDescription = other._hitCallBackDescription;
 		this->_missCallBackDescription = other._missCallBackDescription;
 		this->_fullDescription = other._fullDescription;
+		this->wasReplaced = true;
 		return *this;
 	}
 
