@@ -1,4 +1,5 @@
-from PokeBattle.Gen1 import load_trainer, BattleState
+from PokeBattle.Gen1.Team import load_trainer
+from PokeBattle.Gen1.State import BattleState
 import sys
 
 s = BattleState()

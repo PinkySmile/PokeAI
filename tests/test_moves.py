@@ -744,6 +744,9 @@ parser.add_argument('-o', '--output')
 parser.add_argument('-r', '--rom')
 args = parser.parse_args()
 
+# Leech_Seed[1](Sub)
+# Leech_Seed[2](Sub)
+
 debug = args.debug
 jobs = 1 if debug else int(args.jobs)
 

@@ -313,8 +313,10 @@ namespace PokemonGen1
 
 		if (sub && this->_category == STATUS && (!this->_foeChange.empty() || (
 			this->_statusChange.status &&
+			this->_statusChange.status != STATUS_LEECHED &&
 			this->_statusChange.status != STATUS_ASLEEP &&
-			this->_statusChange.status != STATUS_PARALYZED
+			this->_statusChange.status != STATUS_PARALYZED &&
+			this->_statusChange.status != STATUS_LEECHED
 		))) {
 			logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
 			logger("But, it failed!");
@@ -365,7 +367,8 @@ namespace PokemonGen1
 			this->_category == STATUS &&
 			!target.canHaveStatus(this->_statusChange.status) &&
 			this->_statusChange.status &&
-			this->_statusChange.status != STATUS_CONFUSED
+			this->_statusChange.status != STATUS_CONFUSED &&
+			this->_statusChange.status != STATUS_LEECHED
 		) {
 			auto s = messages[this->_statusChange.status];
 			auto pos = s.find("<TARGET>");
@@ -438,11 +441,20 @@ namespace PokemonGen1
 					logger(owner.getName() + "'s attack missed!");
 				if (this->_missCallback)
 					this->_missCallback(owner, target, this->isFinished(), logger);
+				else if (this->getID() == Leech_Seed)
+					// https://github.com/pret/pokeyellow/blob/d237b01cfb241f417567c964e0df0658cf921570/data/text/text_5.asm#L191
+					logger(target.getName() + " evaded attack!");
 				else if (!this->_power)
 					logger("But, it failed!");
 				owner.getBattleState().lastDamage = 0;
 				return false;
 			}
+		}
+		if (this->_statusChange.status == STATUS_LEECHED && (target.getStatus() & STATUS_LEECHED)) {
+			logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
+			// https://github.com/pret/pokeyellow/blob/d237b01cfb241f417567c964e0df0658cf921570/data/text/text_5.asm#L191
+			logger(target.getName() + " evaded attack!");
+			return false;
 		}
 
 		if (
@@ -507,7 +519,11 @@ namespace PokemonGen1
 
 		bool addedStatus = false;
 
-		if (!sub || (this->_category == STATUS && (this->_statusChange.status == STATUS_ASLEEP || this->_statusChange.status == STATUS_PARALYZED)))
+		if (!sub || (this->_category == STATUS && (
+			this->_statusChange.status == STATUS_ASLEEP ||
+			this->_statusChange.status == STATUS_LEECHED ||
+			this->_statusChange.status == STATUS_PARALYZED
+		)))
 			if (
 				!this->_statusChange.cmpVal || (
 					(this->_statusChange.status == STATUS_FLINCHED || (
