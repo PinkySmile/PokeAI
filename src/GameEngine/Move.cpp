@@ -679,7 +679,7 @@ namespace PokemonGen1
 		Move{0x13, "Fly"         , TYPE_FLYING  , PHYSICAL,  70,  95, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("flew up high!"), true},
 		Move{0x14, "Bind"        , TYPE_NORMAL  , PHYSICAL,  15,  75, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, WRAP_TARGET, GLITCH_HYPER_BEAM},
 		Move{0x15, "Slam"        , TYPE_NORMAL  , PHYSICAL,  80,  75, 20},
-		Move{0x16, "Vine Whip"   , TYPE_GRASS   , SPECIAL ,  35, 100, 25},
+		Move{0x16, "Vine Whip"   , TYPE_GRASS   , SPECIAL ,  35, 100, 10},
 		Move{0x17, "Stomp"       , TYPE_NORMAL  , PHYSICAL,  65, 100, 20, {STATUS_FLINCHED, 0x4D}},
 		Move{0x18, "Double Kick" , TYPE_FIGHTING, PHYSICAL,  30, 100, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, {2, 2}},
 		Move{0x19, "Mega Kick"   , TYPE_NORMAL  , PHYSICAL, 120,  75,  5},
