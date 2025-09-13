@@ -663,6 +663,8 @@ namespace PokemonGen1
 	{
 		unsigned short damage;
 
+		if (target.getHealth() == 0)
+			return;
 		if (this->_currentStatus & STATUS_BURNED) {
 			this->_log("'s hurt by the burn!");
 			this->takeDamage(target, this->getMaxHealth() / 16, true, false);
