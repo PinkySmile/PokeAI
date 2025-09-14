@@ -22,7 +22,6 @@ banned_moves = [ # These moves aren't implemented properly in the engine
 
 	# Misc
 	AvailableMove.Disable,
-	AvailableMove.Mimic,
 	AvailableMove.Dream_Eater,
 ]
 

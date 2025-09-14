@@ -312,6 +312,17 @@
 	return true;\
 }, PAY_DAY_DESC
 
+#define COPY_RANDOM_MOVE_DESC "Copy a random move from opponent's"
+#define COPY_RANDOM_MOVE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &){ \
+	auto &moves = target.getMoveSet();\
+	auto &rng = target.getRandomGenerator();\
+	size_t id = rng() & 3;\
+\
+	while (id >= moves.size() || moves[id].getID() == 0) id = rng() & 3;\
+	owner.learnMove(moves[id]);\
+	return true;\
+}, COPY_RANDOM_MOVE_DESC
+
 namespace PokemonGen1
 {
 	class Pokemon;

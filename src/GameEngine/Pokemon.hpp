@@ -129,9 +129,8 @@ namespace PokemonGen1
 
 	private:
 		struct PokemonState {
-			BaseStats                             stats;
-			unsigned char                         id;
-			std::vector<Move>                     moves;
+			BaseStats stats;
+			unsigned char id;
 			std::pair<Type, Type> types;
 		};
 
@@ -151,6 +150,7 @@ namespace PokemonGen1
 		BaseStats _computedStats;
 		UpgradableStats _upgradedStats;
 		std::vector<Move> _moveSet;
+		std::vector<Move> _moveSetCopy;
 		std::pair<Type, Type> _types;
 		unsigned char _level;
 		unsigned char _catchRate;
@@ -209,6 +209,7 @@ namespace PokemonGen1
 		void setRecharging(bool recharging = true);
 		void transform(const Pokemon &target);
 		void stepEnds(Pokemon &target);
+		void learnMove(const Move &move);
 		const std::set<AvailableMove> &getLearnableMoveSet() const;
 
 		[[nodiscard]] std::array<unsigned char, ENCODED_SIZE> encode() const;

@@ -9,6 +9,7 @@
 #include "Type.hpp"
 #include "Move.hpp"
 #include "BattleHandler.hpp"
+#include "Utils.hpp"
 
 #define NBR_2B(byte1, byte2) static_cast<unsigned short>((byte1 << 8U) + byte2)
 
@@ -42,6 +43,7 @@ namespace PokemonGen1
 		_baseStats{this->_rawStats},
 		_upgradedStats{0, 0, 0, 0, 0, 0},
 		_moveSet{moveSet},
+		_moveSetCopy{moveSet},
 		_types{base.typeA, base.typeB},
 		_level(level),
 		_catchRate{base.catchRate},
@@ -55,8 +57,10 @@ namespace PokemonGen1
 			this->_log("Warning : nickname is too big");
 			this->_nickname = this->_nickname.substr(0, NICK_SIZE);
 		}
-		for (int i = moveSet.size(); i < 4; i++)
+		for (size_t i = moveSet.size(); i < 4; i++)
 			this->_moveSet.push_back(availableMoves[0]);
+		for (size_t i = moveSet.size(); i < 4; i++)
+			this->_moveSetCopy.push_back(availableMoves[0]);
 		this->_computedStats = this->_baseStats;
 	}
 
@@ -116,6 +120,7 @@ namespace PokemonGen1
 			this->_moveSet[i].setPPUp(data[PACK_PPS_MOVE1 + i] >> 6U);
 			this->_moveSet[i].setPP(data[PACK_PPS_MOVE1 + i] & 0b111111U);
 		}
+		this->_moveSetCopy = this->_moveSet;
 		this->_computedStats = this->_baseStats;
 	}
 
@@ -130,7 +135,6 @@ namespace PokemonGen1
 				.SPE  = json["oldState"]["stats"]["SPE"],
 			},
 			.id    = json["oldState"]["id"],
-			.moves = {},
 			.types = { json["oldState"]["types"][0], json["oldState"]["types"][1] },
 		},
 		_id(json["id"]),
@@ -193,11 +197,11 @@ namespace PokemonGen1
 			this->_moveSet.back().setPP(move["pp"]);
 			this->_moveSet.back().setPPUp(move["ppUp"]);
 		}
-		this->_oldState.moves.reserve(4);
+		this->_moveSetCopy.reserve(4);
 		for (auto &move : json["oldState"]["moves"]) {
-			this->_oldState.moves.push_back(availableMoves[move["id"]]);
-			this->_oldState.moves.back().setPP(move["pp"]);
-			this->_oldState.moves.back().setPPUp(move["ppUp"]);
+			this->_moveSetCopy.push_back(availableMoves[move["id"]]);
+			this->_moveSetCopy.back().setPP(move["pp"]);
+			this->_moveSetCopy.back().setPPUp(move["ppUp"]);
 		}
 		this->_lastUsedMove.setHitsLeft(json["lastUsedMove"]["hitsLeft"]);
 		this->_computedStats = this->_baseStats;
@@ -435,14 +439,14 @@ namespace PokemonGen1
 			} }
 		};
 
-		for (auto &move : this->_oldState.moves) {
+		for (auto &move : this->_moveSetCopy) {
 			nlohmann::json j{
 				{ "id", move.getID() },
 				{ "pp", move.getPP() },
 				{ "ppUp", move.getPPUp() }
 			};
 
-			json["oldState"]["moves"].push_back(j);
+			json["moveSetCopy"].push_back(j);
 		}
 		for (auto &move : this->_moveSet) {
 			nlohmann::json j{
@@ -473,8 +477,8 @@ namespace PokemonGen1
 		this->_reflect = false;
 		this->_lightScreen = false;
 		if (this->_transformed) {
+			this->_moveSet = this->_moveSetCopy;
 			this->_id = this->_oldState.id;
-			this->_moveSet = this->_oldState.moves;
 			this->_baseStats.ATK = this->_oldState.stats.ATK;
 			this->_baseStats.DEF = this->_oldState.stats.DEF;
 			this->_baseStats.SPD = this->_oldState.stats.SPD;
@@ -669,6 +673,7 @@ namespace PokemonGen1
 			this->_log(" has no moves left!");
 			this->useMove(availableMoves[Struggle], target);
 		} else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
+			this->_forcedAttack = moveSlot + 1;
 			move = &this->_moveSet[moveSlot];
 			if (this->useMove(*move, target) && move->getID() != Struggle && !move->wasReplaced)
 				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
@@ -1098,8 +1103,9 @@ namespace PokemonGen1
 
 	void Pokemon::transform(const PokemonGen1::Pokemon &target)
 	{
+		for (size_t i = 0; i < this->_moveSet.size(); i++)
+			this->_moveSetCopy[i].setPP(this->_moveSet[i].getPP());
 		this->_oldState.id = this->_id;
-		this->_oldState.moves = this->_moveSet;
 		this->_oldState.types = this->_types;
 		this->_oldState.stats = this->_baseStats;
 
@@ -1232,11 +1238,11 @@ namespace PokemonGen1
 		this->_lastUsedMove = availableMoves[0x00];
 		if (this->_transformed) {
 			this->_id = this->_oldState.id;
-			this->_moveSet = this->_oldState.moves;
 			this->_baseStats = this->_oldState.stats;
 			this->_types = this->_oldState.types;
 			this->_transformed = false;
 		}
+		this->_moveSet = this->_moveSetCopy;
 		this->_baseStats.HP = this->_baseStats.maxHP;
 		this->_computedStats = this->_baseStats;
 		this->_flinched = false;
@@ -1276,6 +1282,18 @@ namespace PokemonGen1
 	unsigned short Pokemon::getNonVolatileStatus() const
 	{
 		return this->_currentStatus & STATUS_ANY_NON_VOLATILE_STATUS;
+	}
+
+	void Pokemon::learnMove(const Move &move)
+	{
+		if (this->_forcedAttack == 0)
+			return;
+
+		auto pp = this->_moveSet[this->_forcedAttack - 1].getPP();
+
+		this->_moveSet[this->_forcedAttack - 1] = move;
+		this->_moveSet[this->_forcedAttack - 1].setPP(pp - 1);
+		this->_battleState->battleLogger(this->getName() + " learned " + Utils::toUpper(move.getName()) + "!");
 	}
 
 	Pokemon::Base::Base(

@@ -630,6 +630,9 @@ extra_lists = {
 	AvailableMove.Psybeam: [
 		[132, 84, 53, 217, 113, 25, 203, 81, 173],
 		[174, 168, 171, 25, 193, 233, 186, 163, 94]
+	],
+	AvailableMove.Agility: [
+		[236, 181, 249, 127, 145, 72, 32, 7, 197]
 	]
 }
 binding_moves = [
@@ -657,6 +660,7 @@ status_moves = [
 
 # TODO: Add status (PSN, BRN, LCH) + kill test
 # TODO: Add trap move + para test
+# TODO: Test Mist more in depth
 tests = []
 for move_index in range(1, AvailableMove.Struggle + 1):
 	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):
