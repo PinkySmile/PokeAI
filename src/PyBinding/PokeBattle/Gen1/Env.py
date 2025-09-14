@@ -20,15 +20,10 @@ banned_moves = [ # These moves aren't implemented properly in the engine
 	# Can roll other moves from the list that aren't implemented
 	AvailableMove.Metronome,
 
-	# Confusion side effect
-	AvailableMove.Confusion,
-	AvailableMove.Psybeam,
-
 	# Misc
 	AvailableMove.Disable,
 	AvailableMove.Mimic,
 	AvailableMove.Dream_Eater,
-	AvailableMove.Transform,
 ]
 
 

@@ -37,29 +37,39 @@ class GBAddress:
 
 default_symbols = {
 	"PlaceString":                                   GBAddress(0x00, 0x1723),
-	"LinkBattleExchangeData":                        GBAddress(0x0F, 0x5777),
-	"SlidePlayerAndEnemySilhouettesOnScreen":        GBAddress(0x0F, 0x404C),
-	"EndOfBattle":                                   GBAddress(0x04, 0x7765),
-	"MainInBattleLoop":                              GBAddress(0x0F, 0x4249),
-	"MoveSelectionMenu":                             GBAddress(0x0F, 0x5320),
-	"HandlePlayerMonFainted":                        GBAddress(0x0F, 0x471d),
-	"MainInBattleLoop.selectEnemyMove":              GBAddress(0x0F, 0x42BC),
-	"DelayFrames":                                   GBAddress(0x00, 0x372f),
-	"PlayShootingStar":                              GBAddress(0x10, 0x5A02),
-	"InitBattle":                                    GBAddress(0x3D, 0x5FF2),
-	"Bankswitch":                                    GBAddress(0x00, 0x3E84),
 	"GetTrainerInformation":                         GBAddress(0x00, 0x3563),
 	"GetTrainerInformation.linkBattle":              GBAddress(0x00, 0x3594),
+	"DelayFrames":                                   GBAddress(0x00, 0x372F),
+	"Bankswitch":                                    GBAddress(0x00, 0x3E84),
+	"EndOfBattle":                                   GBAddress(0x04, 0x7765),
+	"SlidePlayerAndEnemySilhouettesOnScreen":        GBAddress(0x0F, 0x404C),
+	"MainInBattleLoop":                              GBAddress(0x0F, 0x4249),
+	"MainInBattleLoop.selectEnemyMove":              GBAddress(0x0F, 0x42BC),
+	"HandlePlayerMonFainted":                        GBAddress(0x0F, 0x471D),
+	"MoveSelectionMenu":                             GBAddress(0x0F, 0x5320),
+	"LinkBattleExchangeData":                        GBAddress(0x0F, 0x5777),
 	"DoBattleTransitionAndInitBattleVariables":      GBAddress(0x0F, 0x6DB8),
 	"DoBattleTransitionAndInitBattleVariables.next": GBAddress(0x0F, 0x6DD3),
+	"PlayShootingStar":                              GBAddress(0x10, 0x5A02),
+	"InitBattle":                                    GBAddress(0x3D, 0x5FF2),
 	"_InitBattleCommon":                             GBAddress(0x3D, 0x60EB),
-	"wGymLeaderNo":                                  GBAddress(0xD05B),
-	"wCurOpponent":                                  GBAddress(0xD058),
+	"wCurrentMenuItem":                              GBAddress(0xCC26),
+	"wSerialExchangeNybbleReceiveData":              GBAddress(0xCC3E),
 	"wPlayerSubstituteHP":                           GBAddress(0xCCD7),
 	"wEnemySubstituteHP":                            GBAddress(0xCCD8),
-	"wPlayerBattleStatus1":                          GBAddress(0xD061),
-	"wEnemyBattleStatus1":                           GBAddress(0xD066),
-	"hWhoseTurn":                                    GBAddress(0xFFF3),
+	"wLinkBattleRandomNumberListIndex":              GBAddress(0xCCDE),
+	"wPlayerMonUnmodifiedLevel":                     GBAddress(0xCD0F),
+	"wPlayerMonUnmodifiedMaxHP":                     GBAddress(0xCD10),
+	"wPlayerMonUnmodifiedAttack":                    GBAddress(0xCD12),
+	"wPlayerMonUnmodifiedDefense":                   GBAddress(0xCD14),
+	"wPlayerMonUnmodifiedSpeed":                     GBAddress(0xCD16),
+	"wPlayerMonUnmodifiedSpecial":                   GBAddress(0xCD18),
+	"wEnemyMonUnmodifiedLevel":                      GBAddress(0xCD23),
+	"wEnemyMonUnmodifiedMaxHP":                      GBAddress(0xCD24),
+	"wEnemyMonUnmodifiedAttack":                     GBAddress(0xCD26),
+	"wEnemyMonUnmodifiedDefense":                    GBAddress(0xCD28),
+	"wEnemyMonUnmodifiedSpeed":                      GBAddress(0xCD2A),
+	"wEnemyMonUnmodifiedSpecial":                    GBAddress(0xCD2C),
 	"wEnemyMonNick":                                 GBAddress(0xCFD9),
 	"wEnemyMon":                                     GBAddress(0xCFE4),
 	"wEnemyMonSpecies":                              GBAddress(0xCFE4),
@@ -79,12 +89,6 @@ default_symbols = {
 	"wEnemyMonSpeed":                                GBAddress(0xCFF9),
 	"wEnemyMonSpecial":                              GBAddress(0xCFFB),
 	"wEnemyMonPP":                                   GBAddress(0xCFFD),
-	"wEnemyMonUnmodifiedLevel":                      GBAddress(0xCD23),
-	"wEnemyMonUnmodifiedMaxHP":                      GBAddress(0xCD24),
-	"wEnemyMonUnmodifiedAttack":                     GBAddress(0xCD26),
-	"wEnemyMonUnmodifiedDefense":                    GBAddress(0xCD28),
-	"wEnemyMonUnmodifiedSpeed":                      GBAddress(0xCD2A),
-	"wEnemyMonUnmodifiedSpecial":                    GBAddress(0xCD2C),
 	"wBattleMonNick":                                GBAddress(0xD008),
 	"wBattleMonSpecies":                             GBAddress(0xD013),
 	"wBattleMonHP":                                  GBAddress(0xD014),
@@ -102,26 +106,23 @@ default_symbols = {
 	"wBattleMonSpeed":                               GBAddress(0xD028),
 	"wBattleMonSpecial":                             GBAddress(0xD02A),
 	"wBattleMonPP":                                  GBAddress(0xD02C),
-	"wPlayerMonUnmodifiedLevel":                     GBAddress(0xCD0F),
-	"wPlayerMonUnmodifiedMaxHP":                     GBAddress(0xCD10),
-	"wPlayerMonUnmodifiedAttack":                    GBAddress(0xCD12),
-	"wPlayerMonUnmodifiedDefense":                   GBAddress(0xCD14),
-	"wPlayerMonUnmodifiedSpeed":                     GBAddress(0xCD16),
-	"wPlayerMonUnmodifiedSpecial":                   GBAddress(0xCD18),
-	"wLinkBattleRandomNumberListIndex":              GBAddress(0xCCDE),
-	"wLinkBattleRandomNumberList":                   GBAddress(0xD147),
+	"wTrainerName":                                  GBAddress(0xD049),
+	"wCurOpponent":                                  GBAddress(0xD058),
+	"wGymLeaderNo":                                  GBAddress(0xD05B),
+	"wTrainerNo":                                    GBAddress(0xD05C),
+	"wPlayerBattleStatus1":                          GBAddress(0xD061),
+	"wEnemyBattleStatus1":                           GBAddress(0xD066),
 	"wLinkState":                                    GBAddress(0xD12A),
-	"wSerialExchangeNybbleReceiveData":              GBAddress(0xCC3E),
-	"wCurrentMenuItem":                              GBAddress(0xCC26),
-	"wPartyMons":                                    GBAddress(0xD16A),
-	"wPartyCount":                                   GBAddress(0xD162),
+	"wLinkBattleRandomNumberList":                   GBAddress(0xD147),
 	"wPlayerName":                                   GBAddress(0xD157),
+	"wPartyCount":                                   GBAddress(0xD162),
+	"wPartyMons":                                    GBAddress(0xD16A),
 	"wPartyMonNicks":                                GBAddress(0xD2B4),
 	"wRivalName":                                    GBAddress(0xD349),
-	"wEnemyMons":                                    GBAddress(0xD8A3),
 	"wEnemyPartyCount":                              GBAddress(0xD89B),
+	"wEnemyMons":                                    GBAddress(0xD8A3),
 	"wEnemyMonNicks":                                GBAddress(0xD9ED),
-	"wTrainerName":                                  GBAddress(0xD049),
+	"hWhoseTurn":                                    GBAddress(0xFFF3),
 }
 
 class TrainerClass(enum.IntEnum):
@@ -174,6 +175,7 @@ class TrainerClass(enum.IntEnum):
 	CHANNELER     = 0x2D
 	AGATHA        = 0x2E
 	LANCE         = 0x2F
+	JESSIE_JAMES  = 0x30
 
 LINK_STATE_BATTLING = 4
 HAS_SUBSTITUTE_UP =  4
@@ -1161,8 +1163,24 @@ class PkmnYellowEmulator(ABC):
 				self.hook_single(self.symbol("DoBattleTransitionAndInitBattleVariables"), __, 0)
 				self.hook_single(self.symbol("DoBattleTransitionAndInitBattleVariables.next"), __, LINK_STATE_BATTLING)
 				self.hook_single(self.symbol("_InitBattleCommon"), __, 0)
+			if trainer == TrainerClass.JESSIE_JAMES:
+				self.write(self.symbol("wTrainerNo"), 0x2A)
+				trainer = TrainerClass.ROCKET
 
-			gym = [TrainerClass.BROCK, TrainerClass.MISTY, TrainerClass.LT_SURGE, TrainerClass.ERIKA, TrainerClass.KOGA, TrainerClass.BLAINE, TrainerClass.SABRINA, TrainerClass.LORELEI, TrainerClass.BRUNO, TrainerClass.AGATHA, TrainerClass.LANCE]
+			gym = [
+				TrainerClass.BROCK,
+				TrainerClass.MISTY,
+				TrainerClass.LT_SURGE,
+				TrainerClass.ERIKA,
+				TrainerClass.KOGA,
+				TrainerClass.BLAINE,
+				TrainerClass.SABRINA,
+				TrainerClass.GIOVANNI,
+				TrainerClass.LORELEI,
+				TrainerClass.BRUNO,
+				TrainerClass.AGATHA,
+				TrainerClass.LANCE
+			]
 			if trainer in gym:
 				self.write(self.symbol("wGymLeaderNo"), 1)
 			self.hook_single(GBAddress(0x00, 0x0040), to_battle)

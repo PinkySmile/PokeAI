@@ -12,9 +12,31 @@ parser.add_argument('-v', '--volume', default=25)
 parser.add_argument('-f', '--fast', action='store_true')
 parser.add_argument('-e', '--emu-debug', action='store_true')
 parser.add_argument('-r', '--rom')
+parser.add_argument('--trainer')
 parser.add_argument('replay_file')
 args = parser.parse_args()
 emulator = PyBoyEmulator(has_interface=not args.fast, sound_volume=int(args.volume), save_frames=False, debug=args.emu_debug, rom=args.rom)
+
+trainer = args.trainer
+if trainer is None: trainer = ""
+trainer = trainer.upper()
+trainer = trainer.replace(".", "")
+trainer = trainer.replace(" ", "_")
+trainer = trainer.replace("&", "_")
+trainer = trainer.replace("~", "_M")
+trainer = trainer.replace("`", "_F")
+if hasattr(TrainerClass, trainer): trainer = getattr(TrainerClass, trainer)
+elif trainer == "blue": trainer = TrainerClass.RIVAL1
+elif trainer == "champion": trainer = TrainerClass.RIVAL3
+elif trainer == "red": trainer = TrainerClass.NOBODY
+elif trainer != "":
+	print("Invalid trainer class. Valid trainers are:")
+	for f in dir(TrainerClass):
+		if f.upper() != f:
+			continue
+		print(f' - {" ".join(map(lambda g: g.capitalize(), f.replace("_M", '~').replace("_F", '`').split('_')))}')
+	exit(1)
+else: trainer = None
 
 battle = BattleHandler(False, False)
 state = battle.state
@@ -35,7 +57,7 @@ if not args.fast:
 
 #with open("pokeyellow_replay.state", "rb") as fd:
 battle.start()
-emulator.init_battle(None, state, fast_forward=args.fast or to_turn > 0)
+emulator.init_battle(None, state, fast_forward=args.fast or to_turn > 0, trainer=trainer)
 
 turn = 0
 while not battle.finished:

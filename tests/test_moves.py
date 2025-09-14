@@ -626,6 +626,10 @@ extra_lists = {
 	],
 	AvailableMove.Thrash: [
 		[142, 172, 241, 22, 11, 130, 32, 83, 116]
+	],
+	AvailableMove.Psybeam: [
+		[132, 84, 53, 217, 113, 25, 203, 81, 173],
+		[174, 168, 171, 25, 193, 233, 186, 163, 94]
 	]
 }
 binding_moves = [
