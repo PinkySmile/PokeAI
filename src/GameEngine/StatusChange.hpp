@@ -38,7 +38,8 @@ namespace PokemonGen1
 		STATUS_FLINCHED                = 1U << 13U,
 	};
 
-	std::string statusToString(StatusChange stat);
+	std::string statusToString(unsigned stat);
+	std::string statusToStringShort(unsigned stat);
 }
 
 #endif //POKEAI_STATUSCHANGE_HPP

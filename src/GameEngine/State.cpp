@@ -23,8 +23,8 @@ namespace PokemonGen1
 	{
 		this->rng.setList(json["rng"]);
 		this->rng.setIndex(json["rngIndex"]);
-		this->me.deserialize(json["p1"], this->rng, this->battleLogger);
-		this->op.deserialize(json["p2"], this->rng, this->battleLogger);
+		this->me.deserialize(json["p1"], *this);
+		this->op.deserialize(json["p2"], *this);
 	}
 
 	nlohmann::json PlayerState::serialize()
@@ -43,7 +43,7 @@ namespace PokemonGen1
 		return json;
 	}
 
-	void PlayerState::deserialize(const nlohmann::json &json, RandomGenerator &rng, const BattleLogger &logger)
+	void PlayerState::deserialize(const nlohmann::json &json, BattleState &state)
 	{
 		this->name = json["name"];
 		this->lastAction = json["lastAction"];
@@ -52,38 +52,40 @@ namespace PokemonGen1
 		this->discovered = json["discovered"];
 		this->team.clear();
 		for (const auto &pkmn : json["team"])
-			this->team.emplace_back(rng, logger, pkmn);
+			this->team.emplace_back(state, pkmn);
 	}
 
 	std::string BattleActionToString(BattleAction action)
 	{
 		switch (action) {
-			case Attack1:
-				return "Attack1";
-			case Attack2:
-				return "Attack2";
-			case Attack3:
-				return "Attack3";
-			case Attack4:
-				return "Attack4";
-			case Switch1:
-				return "Switch1";
-			case Switch2:
-				return "Switch2";
-			case Switch3:
-				return "Switch3";
-			case Switch4:
-				return "Switch4";
-			case Switch5:
-				return "Switch5";
-			case Switch6:
-				return "Switch6";
-			case StruggleMove:
-				return "StruggleMove";
-			case Run:
-				return "Run";
-			case NoAction:
-				break;
+		case NoAction:
+			return "NoAction";
+		case Attack1:
+			return "Attack1";
+		case Attack2:
+			return "Attack2";
+		case Attack3:
+			return "Attack3";
+		case Attack4:
+			return "Attack4";
+		case Switch1:
+			return "Switch1";
+		case Switch2:
+			return "Switch2";
+		case Switch3:
+			return "Switch3";
+		case Switch4:
+			return "Switch4";
+		case Switch5:
+			return "Switch5";
+		case Switch6:
+			return "Switch6";
+		case StruggleMove:
+			return "StruggleMove";
+		case Run:
+			return "Run";
+		case EmptyAction:
+			break;
 		}
 		return "Unknown";
 	}

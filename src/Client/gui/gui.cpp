@@ -250,7 +250,7 @@ void openChangeMoveBox(tgui::Gui &gui, BattleResources &resources, Pokemon &pkmn
 		}, std::weak_ptr(moveButton), std::weak_ptr(bigPan));
 		pps->setText(std::to_string(move.getMaxPP()));
 		pow->setText(move.getPower() ? std::to_string(move.getPower()) : "-");
-		acc->setText(move.getAccuracy() > 100 ? "-" : std::to_string(move.getAccuracy()));
+		acc->setText(move.skipAccuracyCheck() ? "-" : std::to_string(move.getAccuracy() * 100 / 256) + "%");
 		if (move.getDescription().empty())
 			effects->setText("No additional effect");
 		else
@@ -522,7 +522,7 @@ void openChangePkmnBox(
 		sprite->onClick.connect([&emulator, &state, &aisSelected, &side, &window, &resources, &gui, index, &pkmn, &game, &base, &ready](std::weak_ptr<tgui::Panel> pkmnPan, std::weak_ptr<tgui::Panel> bigPan){
 			auto &s = (side ? state.op : state.me);
 
-			s.team.at(index) = Pokemon(state.rng, state.battleLogger, pkmn.getNickname(), pkmn.getLevel(), base, pkmn.getMoveSet());
+			s.team.at(index) = Pokemon(state, pkmn.getNickname(), pkmn.getLevel(), base, pkmn.getMoveSet());
 			gui.remove(bigPan.lock());
 			populatePokemonPanel(window, gui, emulator, game, resources, pkmnPan.lock(), index, s.team, aisSelected, side, ready);
 		}, std::weak_ptr(pkmnPan), std::weak_ptr(bigPan));
@@ -700,8 +700,8 @@ void makeMainMenuGUI(
 		side = !side;
 		makeMainMenuGUI(window, gui, emulator, game, resources, aisSelected, side, ready);
 	});
-	save->onClick.connect([&player]{
-		std::string path = Utils::saveFileDialog("Save team", ".", {{".+[.]pkmns", "Pokemon team file"}});
+	save->onClick.connect([&player, &state]{
+		std::string path = Utils::saveFileDialog("Save team", ".", {{".+[.]pkmns", "Pokemon team file"},{".+[.]scenario", "Pokemon scenario file"}});
 
 		if (path.empty())
 			return;
@@ -713,12 +713,20 @@ void makeMainMenuGUI(
 			return;
 		}
 
-		auto data = saveTrainer({player.name, player.team});
+		if (path.ends_with(".scenario")) {
+			auto data = saveTrainer({state.me.name, state.me.team});
 
-		stream.write(reinterpret_cast<const char *>(data.data()), data.size());
+			stream.write(reinterpret_cast<const char *>(data.data()), data.size());
+			data = saveTrainer({state.op.name, state.op.team});
+			stream.write(reinterpret_cast<const char *>(data.data()), data.size());
+		} else {
+			auto data = saveTrainer({player.name, player.team});
+
+			stream.write(reinterpret_cast<const char *>(data.data()), data.size());
+		}
 	});
 	load->onClick.connect([&aisSelected, &side, &window, &resources, &gui, &game, &state, &player, &emulator, &ready]{
-		std::string path = Utils::openFileDialog("Open team file", ".", {{".+[.]pkmns", "Pokemon team file"}});
+		std::string path = Utils::openFileDialog("Open team file", ".", {{".+[.]pkmns", "Pokemon team file"}, {".+[.]scenario", "Pokemon scenario file"}});
 
 		if (path.empty())
 			return;
@@ -729,22 +737,41 @@ void makeMainMenuGUI(
 			Utils::dispMsg("Error", "Cannot open file " + path + "\n" + strerror(errno), MB_ICONERROR);
 			return;
 		}
-		stream.seekg(0, std::ifstream::end);
 
-		auto length = stream.tellg();
+		auto length = std::filesystem::file_size(path);
 		std::vector<unsigned char> buffer;
 
-		buffer.resize(length);
-		stream.seekg(0, std::ifstream::beg);
-		stream.read(reinterpret_cast<char *>(buffer.data()), length);
-		try {
-			auto t = loadTrainer(buffer, state.rng, state.battleLogger);
+		if (path.ends_with(".scenario")) {
+			Trainer me;
+			Trainer op;
 
-			player.name = t.first;
-			player.team = t.second;
+			buffer.resize(length / 2);
+			try {
+				stream.read(reinterpret_cast<char *>(buffer.data()), length / 2);
+				me = loadTrainer(buffer, state);
+				stream.read(reinterpret_cast<char *>(buffer.data()), length / 2);
+				op = loadTrainer(buffer, state);
+			} catch (std::exception &e) {
+				Utils::dispMsg(Utils::getLastExceptionName(), "Cannot load load file \"" + path + "\"\n" + e.what(), MB_ICONERROR);
+			}
+
+			state.me.name = me.first;
+			state.me.team = me.second;
+			state.op.name = op.first;
+			state.op.team = op.second;
 			makeMainMenuGUI(window, gui, emulator, game, resources, aisSelected, side, ready);
-		} catch (std::exception &e) {
-			Utils::dispMsg(Utils::getLastExceptionName(), "Cannot load save file \"" + path + "\"\n" + e.what(), MB_ICONERROR);
+		} else {
+			buffer.resize(length);
+			stream.read(reinterpret_cast<char *>(buffer.data()), length);
+			try {
+				auto t = loadTrainer(buffer, state);
+
+				player.name = t.first;
+				player.team = t.second;
+				makeMainMenuGUI(window, gui, emulator, game, resources, aisSelected, side, ready);
+			} catch (std::exception &e) {
+				Utils::dispMsg(Utils::getLastExceptionName(), "Cannot load load file \"" + path + "\"\n" + e.what(), MB_ICONERROR);
+			}
 		}
 	});
 	loadReplay->onClick.connect([&game]{
@@ -853,7 +880,7 @@ void makeMainMenuGUI(
 		but->setSize({"&.w - 20", "&.h - 20"});
 		but->onClick.connect([&player, &emulator, &state, &window, &gui, &game, &resources, &aisSelected, &side, &ready]{
 			player.team.emplace_back(
-				state.rng, state.battleLogger, "", 100,
+				state, "", 100,
 				pokemonList.at(Rhydon),
 				std::vector<Move>{
 					availableMoves[Tackle],
@@ -1030,7 +1057,7 @@ void gui(const std::string &trainerName)
 	};
 	loadResources(resources);
 	state.me.team.resize(6, {
-		state.rng, state.battleLogger, "", 100,
+		state, "", 100,
 		pokemonList.at(Rhydon),
 		std::vector<Move>{
 			availableMoves[Tackle],
@@ -1038,7 +1065,7 @@ void gui(const std::string &trainerName)
 		}
 	});
 	state.op.team.resize(6, {
-		state.rng, state.battleLogger, "", 100,
+		state, "", 100,
 		pokemonList.at(Rhydon),
 		std::vector<Move>{
 			availableMoves[Tackle],

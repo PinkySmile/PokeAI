@@ -192,10 +192,10 @@ namespace PokemonGen1
 				this->_syncSignalsReceived = 0;
 				this->_state.me.pokemonOnField = 0;
 				this->_state.op.pokemonOnField = 0;
-				this->_state.me.lastAction = NoAction;
-				this->_state.op.lastAction = NoAction;
-				this->_state.me.nextAction = NoAction;
-				this->_state.op.nextAction = NoAction;
+				this->_state.me.lastAction = EmptyAction;
+				this->_state.op.lastAction = EmptyAction;
+				this->_state.me.nextAction = EmptyAction;
+				this->_state.op.nextAction = EmptyAction;
 				this->_log("Done: going to battle");
 				if (this->_state.onBattleStart)
 					this->_state.onBattleStart();
@@ -209,18 +209,18 @@ namespace PokemonGen1
 				this->_stage = PKMN_CENTER;
 				this->_timer = 0;
 			} else if (byte == 0) {
-				if (this->_state.op.nextAction == NoAction)
+				if (this->_state.op.nextAction == EmptyAction)
 					break;
 				this->_state.me.lastAction = this->_state.me.nextAction;
 				this->_state.op.lastAction = this->_state.op.nextAction;
-				this->_state.me.nextAction = NoAction;
-				this->_state.op.nextAction = NoAction;
+				this->_state.me.nextAction = EmptyAction;
+				this->_state.op.nextAction = EmptyAction;
 			} else if (byte != UNAVAILABLE_BYTE) {
-				if (this->_state.me.nextAction == NoAction) {
+				if (this->_state.me.nextAction == EmptyAction) {
 					byte = UNAVAILABLE_BYTE;
 					break;
 				}
-				if (this->_state.op.nextAction == NoAction)
+				if (this->_state.op.nextAction == EmptyAction)
 					this->_state.op.nextAction = static_cast<BattleAction>(byte);
 				byte = this->_state.me.nextAction;
 				handle.sendByte(0x00);
@@ -231,8 +231,8 @@ namespace PokemonGen1
 				}
 				this->_state.me.lastAction = this->_state.me.nextAction;
 				this->_state.op.lastAction = this->_state.op.nextAction;
-				this->_state.me.nextAction = NoAction;
-				this->_state.op.nextAction = NoAction;
+				this->_state.me.nextAction = EmptyAction;
+				this->_state.op.nextAction = EmptyAction;
 				this->_syncSignalsReceived = 0;
 			}
 			break;
@@ -308,10 +308,10 @@ namespace PokemonGen1
 			this->_val = 200;
 			break;
 		case BATTLE:
-			if (this->_state.op.nextAction != NoAction) {
+			if (this->_state.op.nextAction != EmptyAction) {
 				handle.sendByte(0x00);
 				this->_val = 200;
-			} else if (this->_state.me.nextAction == NoAction) {
+			} else if (this->_state.me.nextAction == EmptyAction) {
 				this->_val = 100;
 			} else {
 				handle.sendByte(this->_state.me.nextAction);
@@ -408,7 +408,7 @@ namespace PokemonGen1
 		this->_state.op.team.clear();
 		this->_state.op.team.reserve(nbPkmns);
 		for (int i = 0; i < nbPkmns; i++) {
-			this->_state.op.team.emplace_back(this->_state.rng, this->_state.battleLogger, this->convertString(this->_receiveBuffer), pkmnData[i], true);
+			this->_state.op.team.emplace_back(this->_state, this->convertString(this->_receiveBuffer), pkmnData[i], true);
 			this->_receiveBuffer.erase(this->_receiveBuffer.begin(), this->_receiveBuffer.begin() + 11);
 		}
 		for (const Pokemon &pkmn : this->_state.op.team)

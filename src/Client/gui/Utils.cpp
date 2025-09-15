@@ -156,6 +156,17 @@ namespace Utils
 
 		for (auto &entry : std::filesystem::directory_iterator(currentPath))
 			paths.push_back(entry);
+		std::sort(paths.begin(), paths.end(), [](const std::filesystem::directory_entry &a, const std::filesystem::directory_entry &b){
+			if (a.is_directory() != b.is_directory())
+				return a.is_directory();
+
+			std::string ap = a.path().string();
+			std::string bp = b.path().string();
+
+			std::transform(ap.begin(), ap.end(), ap.begin(), [](char c){ return std::tolower(c); });
+			std::transform(bp.begin(), bp.end(), bp.begin(), [](char c){ return std::tolower(c); });
+			return ap < bp;
+		});
 
 		panel->removeAllWidgets();
 		for (auto &entry : paths) {

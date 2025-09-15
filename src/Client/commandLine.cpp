@@ -40,7 +40,7 @@ BattleAction getAction(const std::string &val)
 	if (it != actions.end())
 		return it->second;
 	std::cout << "Invalid action " << val << std::endl;
-	return NoAction;
+	return EmptyAction;
 }
 
 Pokemon getPkmnFromCin(RandomGenerator &rng, const BattleLogger &logger, bool enemy)

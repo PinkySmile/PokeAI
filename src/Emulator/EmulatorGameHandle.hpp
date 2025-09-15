@@ -95,7 +95,7 @@ namespace PokemonGen1
 		void _log(const std::string &msg) const;
 
 	public:
-		explicit EmulatorGameHandle(
+		EmulatorGameHandle(
 			const EmulatorCreator &emulatorMaker,
 			BattleState &state,
 			bool player2 = false,

@@ -15,7 +15,7 @@ namespace PokemonGen1
 {
 	typedef std::pair<std::string, std::vector<Pokemon>> Trainer;
 
-	Trainer loadTrainer(const std::vector<unsigned char> &data, RandomGenerator &rng, const Pokemon::Logger &logger);
+	Trainer loadTrainer(const std::vector<unsigned char> &data, BattleState &state);
 	std::vector<unsigned char> saveTrainer(const Trainer &trainer);
 }
 

@@ -15,3 +15,6 @@ pokeyellow.gbc.ram
 pokeyellow.gbc.state
 *.replay_states
 __pycache__
+dist
+*.egg-info
+*_log.json

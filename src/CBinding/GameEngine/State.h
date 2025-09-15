@@ -9,7 +9,7 @@
 #include <stdbool.h>
 
 typedef enum PokemonGen1_BattleAction {
-	PokemonGen1_NoAction,
+	PokemonGen1_EmptyAction,
 	PokemonGen1_Attack1 = 0x60,
 	PokemonGen1_Attack2,
 	PokemonGen1_Attack3,

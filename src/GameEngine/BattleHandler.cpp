@@ -21,22 +21,27 @@ namespace PokemonGen1
 			this->reset();
 		};
 		this->_state.onBattleStart = [this] {
-			this->logBattle(this->_state.op.name + " wants to fight");
-			this->logBattle(this->_state.op.name + " sent out " + this->_state.op.team[0].getName(false));
-			this->logBattle(this->_state.me.team[0].getName() + " go");
-			this->_log("Game start!");
-			this->_log(this->_state.me.name + "'s team (P1)");
-			for (const Pokemon &pkmn : this->_state.me.team)
-				this->_log(pkmn.dump());
-			this->_log(this->_state.op.name + "'s team (P2)");
-			for (const Pokemon &pkmn : this->_state.op.team)
-				this->_log(pkmn.dump());
+			this->start();
 		};
 		this->_state.onTurnStart = [this]{
 			return this->tick();
 		};
-		this->_state.me.discovered[0].first = true;
-		this->_state.op.discovered[0].first = true;
+	}
+
+	void BattleHandler::start()
+	{
+		this->logBattle(this->_state.op.name + " wants to fight");
+		this->logBattle(this->_state.op.name + " sent out " + this->_state.op.team[this->_state.op.pokemonOnField].getName(false));
+		this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName() + " go");
+		this->_state.me.discovered[this->_state.me.pokemonOnField].first = true;
+		this->_state.op.discovered[this->_state.me.pokemonOnField].first = true;
+		this->_log("Game start!");
+		this->_log(this->_state.me.name + "'s team (P1)");
+		for (const Pokemon &pkmn : this->_state.me.team)
+			this->_log(pkmn.dump());
+		this->_log(this->_state.op.name + "'s team (P2)");
+		for (const Pokemon &pkmn : this->_state.op.team)
+			this->_log(pkmn.dump());
 	}
 
 	void BattleHandler::logBattle(const std::string &message)
@@ -63,26 +68,47 @@ namespace PokemonGen1
 		int p2PriorityFactor = p2.getPriorityFactor(this->_state.op.nextAction - Attack1);
 		bool p1Start = p1PriorityFactor > p2PriorityFactor;
 
+		if (p1Attack)
+			this->_state.me.lastAttack =
+				this->_state.me.nextAction == StruggleMove ? Struggle :
+				static_cast<AvailableMove>(p1.getMoveSet()[this->_state.me.nextAction - Attack1].getID());
+		if (p2Attack)
+			this->_state.op.lastAttack =
+				this->_state.op.nextAction == StruggleMove ? Struggle :
+				static_cast<AvailableMove>(p2.getMoveSet()[this->_state.op.nextAction - Attack1].getID());
+
 		if (p1PriorityFactor == p2PriorityFactor)
 			p1Start = (this->_state.rng() <= 0x80) ^ this->_isViewSwapped;
 
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
-		if (p1Attack && p1Start) {
-			this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
-			p1.attack(this->_state.me.nextAction - Attack1, p2);
+		if (p1Start) {
+			if (p1Attack) {
+				if (this->_state.me.nextAction != StruggleMove)
+					this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
+				p1.attack(this->_state.me.nextAction - Attack1, p2);
+			}
+			p1.stepEnds(p2);
 		}
+
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
 		if (p2Attack) {
-			this->_state.me.discovered[this->_state.op.pokemonOnField].second[this->_state.op.nextAction - Attack1] = true;
+			if (this->_state.op.nextAction != StruggleMove)
+				this->_state.me.discovered[this->_state.op.pokemonOnField].second[this->_state.op.nextAction - Attack1] = true;
 			p2.attack(this->_state.op.nextAction - Attack1, p1);
 		}
+		p2.stepEnds(p1);
+
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
-		if (p1Attack && !p1Start) {
-			this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
-			p1.attack(this->_state.me.nextAction - Attack1, p2);
+		if (!p1Start) {
+			if (p1Attack) {
+				if (this->_state.me.nextAction != StruggleMove)
+					this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
+				p1.attack(this->_state.me.nextAction - Attack1, p2);
+			}
+			p1.stepEnds(p2);
 		}
 	}
 
@@ -122,11 +148,13 @@ namespace PokemonGen1
 			case Switch6:
 				if (!p1Fainted) {
 					this->_state.me.team[this->_state.me.pokemonOnField].switched();
+					this->_state.op.team[this->_state.op.pokemonOnField].opponentSwitched();
 					this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName(false) + " come back");
 				}
 				this->_state.me.pokemonOnField = this->_state.me.nextAction - Switch1;
 				this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName(false) + " go");
 				this->_state.op.discovered[this->_state.me.pokemonOnField].first = true;
+				this->_state.me.team[this->_state.me.pokemonOnField].applyStatusDebuff();
 				break;
 			case Attack1:
 			case Attack2:
@@ -134,6 +162,8 @@ namespace PokemonGen1
 			case Attack4:
 			case StruggleMove:
 				p1Attack = true;
+				break;
+			case NoAction:
 				break;
 			default:
 				this->_log("Warning: Invalid P1 move " + std::to_string(this->_state.me.nextAction));
@@ -155,11 +185,13 @@ namespace PokemonGen1
 			case Switch6:
 				if (!p2Fainted) {
 					this->_state.op.team[this->_state.op.pokemonOnField].switched();
+					this->_state.me.team[this->_state.me.pokemonOnField].opponentSwitched();
 					this->logBattle(this->_state.op.name + " withdrew " + this->_state.op.team[this->_state.op.pokemonOnField].getName(false));
 				}
 				this->_state.op.pokemonOnField = this->_state.op.nextAction - Switch1;
 				this->logBattle(this->_state.op.name + " sent out " + this->_state.op.team[this->_state.op.pokemonOnField].getName(false));
 				this->_state.me.discovered[this->_state.op.pokemonOnField].first = true;
+				this->_state.op.team[this->_state.op.pokemonOnField].applyStatusDebuff();
 				break;
 			case Attack1:
 			case Attack2:
@@ -167,6 +199,8 @@ namespace PokemonGen1
 			case Attack4:
 			case StruggleMove:
 				p2Attack = true;
+				break;
+			case NoAction:
 				break;
 			default:
 				this->_log("Warning: Invalid p2 move " + std::to_string(this->_state.op.nextAction));
@@ -214,7 +248,7 @@ namespace PokemonGen1
 			}
 			this->_replayInputs.pop_front();
 		}
-		if (this->_state.me.nextAction == NoAction || this->_state.op.nextAction == NoAction)
+		if (this->_state.me.nextAction == EmptyAction || this->_state.op.nextAction == EmptyAction)
 			throw std::runtime_error("No action selected");
 		this->_state.me.discovered[this->_state.op.pokemonOnField].first = true;
 		this->_state.op.discovered[this->_state.me.pokemonOnField].first = true;
@@ -231,8 +265,8 @@ namespace PokemonGen1
 		this->_log("Game is " + std::string(this->_finished ? "" : "NOT ") + "finished");
 		this->_state.me.lastAction = this->_state.me.nextAction;
 		this->_state.op.lastAction = this->_state.op.nextAction;
-		this->_state.me.nextAction = NoAction;
-		this->_state.op.nextAction = NoAction;
+		this->_state.me.nextAction = EmptyAction;
+		this->_state.op.nextAction = EmptyAction;
 		if (this->_playingReplay && this->_replayInputs.empty())
 			this->_finished = true;
 		return this->_finished;
@@ -256,16 +290,16 @@ namespace PokemonGen1
 		this->_state.rng.reset();
 		this->_replayData.input.clear();
 
-		this->_state.me.lastAction = NoAction;
-		this->_state.me.nextAction = NoAction;
+		this->_state.me.lastAction = EmptyAction;
+		this->_state.me.nextAction = EmptyAction;
 		this->_state.me.pokemonOnField = 0;
 		this->_state.me.discovered.fill({false, {false, false, false, false}});
 		this->_state.me.discovered[0].first = true;
 		for (auto &pkmn : this->_state.me.team)
 			pkmn.reset();
 
-		this->_state.op.lastAction = NoAction;
-		this->_state.op.nextAction = NoAction;
+		this->_state.op.lastAction = EmptyAction;
+		this->_state.op.nextAction = EmptyAction;
 		this->_state.op.pokemonOnField = 0;
 		this->_state.op.discovered.fill({false, {false, false, false, false}});
 		this->_state.op.discovered[0].first = true;
@@ -323,14 +357,14 @@ namespace PokemonGen1
 		stream.read(reinterpret_cast<char *>(buffer.data()), TRAINER_DATA_SIZE);
 		if (stream.fail())
 			throw std::runtime_error("Reached EOF early");
-		tmp = loadTrainer(buffer, this->_state.rng, this->_state.battleLogger);
+		tmp = loadTrainer(buffer, this->_state);
 		data.nameP1 = tmp.first;
 		data.teamP1 = tmp.second;
 
 		stream.read(reinterpret_cast<char *>(buffer.data()), TRAINER_DATA_SIZE);
 		if (stream.fail())
 			throw std::runtime_error("Reached EOF early");
-		tmp = loadTrainer(buffer, this->_state.rng, this->_state.battleLogger);
+		tmp = loadTrainer(buffer, this->_state);
 		data.nameP2 = tmp.first;
 		data.teamP2 = tmp.second;
 
@@ -356,15 +390,15 @@ namespace PokemonGen1
 
 		this->_state.me.name = this->_replayData.nameP1;
 		this->_state.me.team = this->_replayData.teamP1;
-		this->_state.me.lastAction = NoAction;
-		this->_state.me.nextAction = NoAction;
+		this->_state.me.lastAction = EmptyAction;
+		this->_state.me.nextAction = EmptyAction;
 		this->_state.me.pokemonOnField = 0;
 		this->_state.me.discovered.fill({false, {false, false, false, false}});
 
 		this->_state.op.name = this->_replayData.nameP2;
 		this->_state.op.team = this->_replayData.teamP2;
-		this->_state.op.lastAction = NoAction;
-		this->_state.op.nextAction = NoAction;
+		this->_state.op.lastAction = EmptyAction;
+		this->_state.op.nextAction = EmptyAction;
 		this->_state.op.pokemonOnField = 0;
 		this->_state.op.discovered.fill({false, {false, false, false, false}});
 	}
@@ -433,10 +467,10 @@ namespace PokemonGen1
 		this->_replayData.nameP2 = state["replayInfo"]["p2"]["name"];
 		this->_replayData.teamP1.clear();
 		for (auto &j : state["replayInfo"]["p1"]["team"])
-			this->_replayData.teamP1.emplace_back(this->_state.rng, this->_state.battleLogger, j);
+			this->_replayData.teamP1.emplace_back(this->_state, j);
 		this->_replayData.teamP2.clear();
 		for (auto &j : state["replayInfo"]["p2"]["team"])
-			this->_replayData.teamP2.emplace_back(this->_state.rng, this->_state.battleLogger, j);
+			this->_replayData.teamP2.emplace_back(this->_state, j);
 		this->_replayData.rngList = state["replayInfo"]["rng"].get<std::vector<unsigned char>>();
 		this->_replayData.input.clear();
 		for (auto &j : state["replayInfo"]["inputs"])
