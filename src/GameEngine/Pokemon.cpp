@@ -587,10 +587,8 @@ namespace PokemonGen1
 
 	void Pokemon::setWrapped(bool isWrapped)
 	{
-		if (isWrapped)
-			this->_wrapped = isWrapped;
-		else
-			this->_stopWrapped = true;
+		this->_stopWrapped = false;
+		this->_wrapped = isWrapped;
 	}
 
 	unsigned Pokemon::getSpeed() const
@@ -616,10 +614,9 @@ namespace PokemonGen1
 	void Pokemon::endTurn()
 	{
 		this->_flinched = false;
-		if (this->_stopWrapped) {
+		if (this->_stopWrapped)
 			this->_wrapped = false;
-			this->_stopWrapped = false;
-		}
+		this->_stopWrapped = true;
 	}
 
 	void Pokemon::_log(const std::string &msg) const

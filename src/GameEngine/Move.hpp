@@ -81,7 +81,8 @@
 
 #define WRAP_TARGET_DESC "Set the foe in the wrapped state for all the move duration"
 #define WRAP_TARGET [](Pokemon &, Pokemon &target, unsigned, bool last, const std::function<void(const std::string &msg)> &){\
-	target.setWrapped(!last);\
+	if (!last)\
+		target.setWrapped(true);\
 	return true;\
 }, WRAP_TARGET_DESC
 
