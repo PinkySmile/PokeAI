@@ -309,6 +309,12 @@ namespace PokemonGen1
 		auto &rng = owner.getRandomGenerator();
 		bool sub = target.hasSubstitute();
 
+		if (this->_category == STATUS && !this->_foeChange.empty() && target.isMisted()) {
+			logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
+			logger("But, it failed!");
+			return false;
+		}
+
 		if (this->_category == STATUS && this->_statusChange.status == STATUS_ASLEEP && target.isRecharging()) {
 			logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
 			goto skipAccuracyAndDamageCheck;
@@ -716,7 +722,7 @@ namespace PokemonGen1
 		Move{0x33, "Acid"        , TYPE_POISON  , PHYSICAL,  40, 100, 30, NO_STATUS_CHANGE, {}, {{STATS_DEF, -1, 0x55}}},
 		Move{0x34, "Ember"       , TYPE_FIRE    , SPECIAL ,  40, 100, 25, {STATUS_BURNED, 0x1A}},
 		Move{0x35, "Flamethrower", TYPE_FIRE    , SPECIAL ,  95, 100, 15, {STATUS_BURNED, 0x1A}},
-		Move{0x36, "Mist"        , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code this move
+		Move{0x36, "Mist"        , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, MIST},
 		Move{0x37, "Water Gun"   , TYPE_WATER   , SPECIAL ,  40, 100, 25},
 		Move{0x38, "Hydro Pump"  , TYPE_WATER   , SPECIAL , 120,  80,  5},
 		Move{0x39, "Surf"        , TYPE_WATER   , SPECIAL ,  95, 100, 15},

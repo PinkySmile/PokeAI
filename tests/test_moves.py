@@ -299,7 +299,7 @@ def test_bind_switch(emulator, move, random_state, scenario):
 	else:
 		state.rng.generate_list(9)
 	if debug:
-		state.battleLogger = lambda x: print(f'Simulator: {x}')
+		state.logger = lambda x: print(f'Simulator: {x}')
 		emulator.on_text_displayed = lambda x: print(f'Emulator: {x}')
 	state.desync = DesyncPolicy.Ignore
 
@@ -432,7 +432,7 @@ def test_bind_switch_inverted(emulator, move, random_state, scenario):
 	else:
 		state.rng.generate_list(9)
 	if debug:
-		state.battleLogger = lambda x: print(f'Simulator: {x}')
+		state.logger = lambda x: print(f'Simulator: {x}')
 		emulator.on_text_displayed = lambda x: print(f'Emulator: {x}')
 	state.desync = DesyncPolicy.Ignore
 
@@ -559,7 +559,7 @@ def hyper_beam_status_move(emulator: PyBoyEmulator, move: int, random_state: lis
 	else:
 		state.rng.generate_list(9)
 	if debug:
-		state.battleLogger = lambda x: print(f'Simulator: {x}')
+		state.logger = lambda x: print(f'Simulator: {x}')
 		emulator.on_text_displayed = lambda x: print(f'Emulator: {x}')
 	state.desync = DesyncPolicy.Ignore
 
@@ -666,6 +666,117 @@ def hyper_beam_status_move(emulator: PyBoyEmulator, move: int, random_state: lis
 			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
 
 
+def test_mist(emulator: PyBoyEmulator, move: int, random_state: list|None):
+	min_turns = 6
+	battle = BattleHandler(False, debug)
+	state = battle.state
+	if random_state is not None:
+		assert len(random_state) == 9
+		state.rng.list = random_state
+	else:
+		state.rng.generate_list(9)
+	if debug:
+		state.logger = lambda x: print(f'Simulator: {x}')
+		emulator.on_text_displayed = lambda x: print(f'Emulator: {x}')
+	state.desync = DesyncPolicy.Ignore
+
+	pokemon_data = [0] * 44
+	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
+	pokemon_data[PACK_CURR_LEVEL] = 5
+	pokemon_data[PACK_STATUS] = StatusChange.OK
+	pokemon_data[PACK_TYPEA] = Type.Normal
+	pokemon_data[PACK_TYPEB] = Type.Normal
+	pokemon_data[PACK_MOVE1] = move
+	pokemon_data[PACK_MOVE2] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
+	pokemon_data[PACK_PPS_MOVE1] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 10
+	pokemon_data[PACK_PPS_MOVE3] = 10
+	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
+	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
+	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
+	pokemon_data[PACK_MAX_HP + 0] = 999 >> 8
+	pokemon_data[PACK_MAX_HP + 1] = 999 & 0xFF
+
+	pokemon_data[PACK_ATK + 0] = 999 >> 8
+	pokemon_data[PACK_ATK + 1] = 999 & 0xFF
+	pokemon_data[PACK_DEF + 0] = 25  >> 8
+	pokemon_data[PACK_DEF + 1] = 25  & 0xFF
+	pokemon_data[PACK_SPD + 0] = 999  >> 8
+	pokemon_data[PACK_SPD + 1] = 999 & 0xFF
+	pokemon_data[PACK_SPE + 0] = 999 >> 8
+	pokemon_data[PACK_SPE + 1] = 999 & 0xFF
+	state.op.name = "Player 2"
+	state.op.team = [Pokemon(state, "", pokemon_data, True)]
+
+	pokemon_data = [0] * 44
+	pokemon_data[PACK_SPECIES] = PokemonSpecies.Pikachu
+	pokemon_data[PACK_CURR_LEVEL] = 5
+	pokemon_data[PACK_STATUS] = StatusChange.OK
+	pokemon_data[PACK_TYPEA] = Type.Electric
+	pokemon_data[PACK_TYPEB] = Type.Electric
+	pokemon_data[PACK_MOVE1] = AvailableMove.Mist
+	pokemon_data[PACK_MOVE2] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
+	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
+	pokemon_data[PACK_PPS_MOVE1] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 10
+	pokemon_data[PACK_PPS_MOVE3] = 10
+	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
+	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
+	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
+	pokemon_data[PACK_MAX_HP + 0] = 999 >> 8
+	pokemon_data[PACK_MAX_HP + 1] = 999 & 0xFF
+	pokemon_data[PACK_ATK + 0] = 300 >> 8
+	pokemon_data[PACK_ATK + 1] = 300 & 0xFF
+	pokemon_data[PACK_DEF + 0] = 100 >> 8
+	pokemon_data[PACK_DEF + 1] = 100 & 0xFF
+	pokemon_data[PACK_SPD + 0] = 300 >> 8
+	pokemon_data[PACK_SPD + 1] = 300 & 0xFF
+	pokemon_data[PACK_SPE + 0] = 300 >> 8
+	pokemon_data[PACK_SPE + 1] = 300 & 0xFF
+	state.me.name = "Player 1"
+	state.me.team = [Pokemon(state, "", pokemon_data, False)]
+
+	battle.start()
+	emulator.init_battle(None, state)
+
+	current_turn = 0
+	emulator_state = emulator.get_emulator_basic_state()
+	if debug:
+		print(emulator.dump_basic_state(emulator_state[0]))
+		print(emulator.dump_basic_state(emulator_state[1]))
+		print(state.me.team[0].dump())
+		print(state.op.team[0].dump())
+		print(state.rng.index, emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.list)), list(map(lambda x: f'{x:02X}', emulator_state[3])))
+	f = emulator.compare_basic_states(battle.state, emulator_state)
+	if not f[0]:
+		state.rng.reset()
+		return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
+	while True:
+		if debug:
+			print(f' ---------- TURN {current_turn + 1} ----------')
+		state.me.next_action = BattleAction.Attack1
+		state.op.next_action = BattleAction.Attack1
+		battle.tick()
+		emulator.step(state)
+		current_turn += 1
+		emulator_state = emulator.get_emulator_basic_state()
+		if debug:
+			print(emulator.dump_basic_state(emulator_state[0]))
+			print(emulator.dump_basic_state(emulator_state[1]))
+			print(state.me.team[0].dump())
+			print(state.op.team[0].dump())
+			print(state.rng.index, emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.list)), list(map(lambda x: f'{x:02X}', emulator_state[3])))
+		f = emulator.compare_basic_states(battle.state, emulator_state)
+		if not f[0] or battle.finished or (current_turn > min_turns and not emulator.waiting):
+			state.rng.reset()
+			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
+
+
 def run_test(test, emulator):
 	if debug:
 		print(f"Testing {test['name']} ", test.get('args', []))
@@ -693,7 +804,7 @@ rand_lists = [
 ]
 extra_lists = {
 	AvailableMove.Pound: [
-		[204, 110, 122, 190, 50, 241, 10, 146, 180]
+		[204, 110, 122, 190,  50, 241,  10, 146, 180]
 	],
 	AvailableMove.Sand_Attack: [
 		[128,  17,  73,  86, 130,  10, 248,  81, 235]
@@ -704,51 +815,51 @@ extra_lists = {
 		[222, 200, 109,  20,  45, 136, 134,  33,  93]
 	],
 	AvailableMove.Fire_Blast: [
-		[248, 118, 7, 111, 14, 103, 172, 64, 130],
-		[111, 14, 248, 118, 7, 103, 172, 64, 130]
+		[248, 118,   7, 111,  14, 103, 172,  64, 130],
+		[111,  14, 248, 118,   7, 103, 172,  64, 130]
 	],
 	AvailableMove.String_Shot: [
-		[4, 63, 161, 224, 216, 223, 104, 116, 239]
+		[  4,  63, 161, 224, 216, 223, 104, 116, 239]
 	],
 	AvailableMove.Clamp: [
-		[185, 140, 44, 9, 213, 131, 159, 100, 113],
-		[29, 229, 85, 215, 221, 195, 7, 38, 118]
+		[185, 140,  44,   9, 213, 131, 159, 100, 113],
+		[ 29, 229,  85, 215, 221, 195,   7,  38, 118]
 	],
 	AvailableMove.Wrap: [
-		[185, 140, 44, 9, 213, 131, 159, 100, 113],
-		[29, 229, 85, 215, 221, 195, 7, 38, 118],
-		[50, 219, 65, 21, 137, 198, 18, 231, 200]
+		[185, 140,  44,   9, 213, 131, 159, 100, 113],
+		[ 29, 229,  85, 215, 221, 195,   7,  38, 118],
+		[ 50, 219,  65,  21, 137, 198,  18, 231, 200]
 	],
 	AvailableMove.Stomp: [
-		[240, 189, 56, 27, 100, 178, 159, 227, 132],
-		[78, 180, 90, 234, 5, 120, 28, 214, 234],
-		[7, 35, 174, 108, 104, 161, 75, 191, 118]
+		[240, 189,  56,  27, 100, 178, 159, 227, 132],
+		[ 78, 180,  90, 234,   5, 120,  28, 214, 234],
+		[  7,  35, 174, 108, 104, 161,  75, 191, 118]
 	],
 	AvailableMove.Low_Kick: [
-		[9, 26, 245, 52, 74, 71, 220, 133, 230]
+		[  9,  26, 245,  52,  74,  71, 220, 133, 230]
 	],
 	AvailableMove.Submission: [
-		[229, 8, 157, 51, 158, 233, 42, 83, 10]
+		[229,   8, 157,  51, 158, 233,  42,  83,  10]
 	],
 	AvailableMove.Double_Kick: [
-		[198, 46, 19, 167, 197, 228, 144, 12, 228],
-		[131, 73, 103, 200, 198, 245, 207, 125, 78]
+		[198,  46,  19, 167, 197, 228, 144,  12, 228],
+		[131,  73, 103, 200, 198, 245, 207, 125,  78]
 	],
 	AvailableMove.Doubleslap: [
-		[137, 49, 218, 202, 45, 152, 150, 134, 58]
+		[137,  49, 218, 202,  45, 152, 150, 134,  58]
 	],
 	AvailableMove.Confuse_Ray: [
-		[93, 179, 138, 177, 116, 218, 202, 3, 108]
+		[ 93, 179, 138, 177, 116, 218, 202,   3, 108]
 	],
 	AvailableMove.Thrash: [
-		[142, 172, 241, 22, 11, 130, 32, 83, 116]
+		[142, 172, 241,  22,  11, 130,  32,  83, 116]
 	],
 	AvailableMove.Psybeam: [
-		[132, 84, 53, 217, 113, 25, 203, 81, 173],
-		[174, 168, 171, 25, 193, 233, 186, 163, 94]
+		[132,  84,  53, 217, 113,  25, 203,  81, 173],
+		[174, 168, 171,  25, 193, 233, 186, 163,  94]
 	],
 	AvailableMove.Agility: [
-		[236, 181, 249, 127, 145, 72, 32, 7, 197]
+		[236, 181, 249, 127, 145,  72,  32,   7, 197]
 	]
 }
 binding_moves = [
@@ -775,8 +886,6 @@ status_moves = [
 ]
 
 # TODO: Add status (PSN, BRN, LCH) + kill test
-# TODO: Add trap move + para test
-# TODO: Test Mist more in depth
 tests = []
 for move_index in range(1, AvailableMove.Struggle + 1):
 	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):
@@ -864,6 +973,14 @@ for move_index in status_moves:
 			'cb': hyper_beam_status_move,
 			'args': [int(move_index), rand, 0],
 			'group': 'Hyper_Beam'
+		})
+for move_index in range(1, AvailableMove.Struggle + 1):
+	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):
+		tests.append({
+			'name': f'Mist&{AvailableMove(move_index).name}[{i}]',
+			'cb': test_mist,
+			'args': [move_index, rand],
+			'group': 'Mist'
 		})
 
 results = []

@@ -138,6 +138,9 @@ namespace PokemonGen1
 			.types = { json["oldState"]["types"][0], json["oldState"]["types"][1] },
 		},
 		_id(json["id"]),
+		_flinched(json["flinched"]),
+		_needsRecharge(json["needsRecharge"]),
+		_invincible(json["invincible"]),
 		_enemy(json["enemy"]),
 		_lastUsedMove(availableMoves[json["lastUsedMove"]["id"]]),
 		_nickname{json["nickname"]},
@@ -185,10 +188,20 @@ namespace PokemonGen1
 		_types{ json["types"][0], json["types"][1] },
 		_level{json["level"]},
 		_catchRate{json["catchRate"]},
+		_transformed(json["transformed"]),
+		_wrapped(json["wrapped"]),
+		_misted(json["misted"]),
+		_stopWrapped(json["stopWrapped"]),
 		_storingDamages(json["storingDamages"]),
 		_damageStored(json["damageStored"]),
+		_badPoisonStage(json["badPoisonStage"]),
 		_currentStatus{json["currentStatus"]},
 		_globalCritRatio(json["globalCritRatio"]),
+		_subHealth(json["subHealth"]),
+		_forcedAttack(json["forcedAttack"]),
+		_hasSub(json["hasSub"]),
+		_reflect(json["reflect"]),
+		_lightScreen(json["lightScreen"]),
 		_battleState(&state)
 	{
 		this->_moveSet.reserve(4);
@@ -359,19 +372,25 @@ namespace PokemonGen1
 			{ "needsRecharge",   this->_needsRecharge },
 			{ "invincible",      this->_invincible },
 			{ "enemy",           this->_enemy },
-			{ "moveSet",         nlohmann::json::array() },
-			{ "types",           { this->_types.first, this->_types.second } },
+			{ "nickname",        this->_nickname },
+			{ "name",            this->_name },
 			{ "level",           this->_level },
 			{ "catchRate",       this->_catchRate },
 			{ "transformed",     this->_transformed },
 			{ "wrapped",         this->_wrapped },
+			{ "misted",          this->_misted },
+			{ "stopWrapped",     this->_stopWrapped },
 			{ "storingDamages",  this->_storingDamages },
-			{ "damageStored",   this->_damageStored },
+			{ "damageStored",    this->_damageStored },
 			{ "badPoisonStage",  this->_badPoisonStage },
 			{ "currentStatus",   this->_currentStatus },
 			{ "globalCritRatio", this->_globalCritRatio },
-			{ "nickname",        this->_nickname },
-			{ "name",            this->_name },
+			{ "subHealth",       this->_subHealth },
+			{ "forcedAttack",    this->_forcedAttack },
+			{ "hasSub",          this->_hasSub },
+			{ "reflect",         this->_reflect },
+			{ "lightScreen",     this->_lightScreen },
+			{ "types",           { this->_types.first, this->_types.second } },
 			{ "oldState", {
 				{ "stats", {
 					{ "HP",    this->_oldState.stats.HP },
@@ -474,6 +493,7 @@ namespace PokemonGen1
 		this->_wrapped = false;
 		this->_subHealth = 0;
 		this->_hasSub = false;
+		this->_misted = false;
 		this->_reflect = false;
 		this->_lightScreen = false;
 		if (this->_transformed) {
@@ -497,6 +517,16 @@ namespace PokemonGen1
 		this->_computedStats.DEF = this->_baseStats.DEF;
 		this->_computedStats.SPE = this->_baseStats.SPE;
 		this->_computedStats.SPD = this->_baseStats.SPD;
+	}
+
+	void Pokemon::setMisted(bool value)
+	{
+		this->_misted = value;
+	}
+
+	bool Pokemon::isMisted() const
+	{
+		return this->_misted;
 	}
 
 	int Pokemon::getPriorityFactor(unsigned char moveSlot)

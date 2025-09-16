@@ -303,6 +303,16 @@
 	return true;\
 }, LIGHT_SCREEN_DESC
 
+#define MIST_DESC "Make stat reducing status moves miss"
+#define MIST [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){ \
+        if (owner.isMisted())\
+		logger("But, it failed!");\
+	else\
+		logger(owner.getName() + "'s shrouded in mist!");\
+	owner.setMisted(true);\
+	return true;\
+}, MIST_DESC
+
 #define COUNTER_DESC "Deal double the last damage dealt"
 #define COUNTER nullptr, COUNTER_DESC
 
