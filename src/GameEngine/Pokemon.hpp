@@ -156,6 +156,7 @@ namespace PokemonGen1
 		unsigned char _catchRate;
 		bool _transformed = false;
 		bool _wrapped = false;
+		bool _misted = false;
 		bool _stopWrapped = false;
 		bool _storingDamages = false;
 		unsigned int _damageStored = 0;
@@ -225,12 +226,14 @@ namespace PokemonGen1
 		void applyStatusDebuff();
 		void setReflectUp(bool value);
 		void setLightScreenUp(bool value);
+		void setMisted(bool value);
 
 		[[nodiscard]] struct BattleState &getBattleState();
 		[[nodiscard]] struct PlayerState &getMyState();
 		[[nodiscard]] struct PlayerState &getOpState();
 		[[nodiscard]] bool hasReflectUp() const;
 		[[nodiscard]] bool hasLightScreenUp() const;
+		[[nodiscard]] bool isMisted() const;
 		[[nodiscard]] RandomGenerator &getRandomGenerator();
 		[[nodiscard]] bool canHaveStatus(StatusChange status) const;
 		[[nodiscard]] unsigned short getStatus() const;

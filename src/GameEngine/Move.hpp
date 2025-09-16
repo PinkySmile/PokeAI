@@ -81,7 +81,8 @@
 
 #define WRAP_TARGET_DESC "Set the foe in the wrapped state for all the move duration"
 #define WRAP_TARGET [](Pokemon &, Pokemon &target, unsigned, bool last, const std::function<void(const std::string &msg)> &){\
-	target.setWrapped(!last);\
+	if (!last)\
+		target.setWrapped(true);\
 	return true;\
 }, WRAP_TARGET_DESC
 
@@ -302,6 +303,16 @@
 	owner.setLightScreenUp(true);\
 	return true;\
 }, LIGHT_SCREEN_DESC
+
+#define MIST_DESC "Make stat reducing status moves miss"
+#define MIST [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){ \
+        if (owner.isMisted())\
+		logger("But, it failed!");\
+	else\
+		logger(owner.getName() + "'s shrouded in mist!");\
+	owner.setMisted(true);\
+	return true;\
+}, MIST_DESC
 
 #define COUNTER_DESC "Deal double the last damage dealt"
 #define COUNTER nullptr, COUNTER_DESC

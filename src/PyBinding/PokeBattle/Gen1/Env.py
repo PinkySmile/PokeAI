@@ -11,7 +11,7 @@ from .BattleHandler import BattleHandler
 from .Move import AvailableMove, MoveCategory, Move
 from .State import BattleAction, BattleState, PlayerState
 from .StatusChange import StatusChange, status_to_string
-from .Pokemon import PokemonSpecies, Pokemon, PokemonBase
+from .Pokemon import Pokemon, PokemonBase
 from .Team import load_trainer as _load_trainer
 from .Type import Type, type_to_string_short, get_attack_damage_multiplier
 from .YellowEmulator import TrainerClass
@@ -555,10 +555,20 @@ class PokemonYellowBattle(Env):
 	trainer_class: TrainerClass|None
 
 
-	def __init__(self, render_mode: str|None=None, episode_trigger: Callable[[], bool]=None, opponent_callback: Callable[[BattleState, Generator], BattleAction]=basic_opponent, replay_folder: str|None=None, shuffle_teams: bool=False, rom: str|None= None):
+	def __init__(
+		self,
+		render_mode: str|None=None,
+		episode_trigger: Callable[[], bool]=None,
+		opponent_callback: Callable[[BattleState, Generator], BattleAction]=basic_opponent,
+		replay_folder: str|None=None,
+		shuffle_teams: bool=False,
+		rom: str|None=None,
+		leak_state: bool=False
+	):
 		self.battle = BattleHandler(False, False)
 		self.op = opponent_callback
 		self.base_op = opponent_callback
+		self.leak_state = leak_state
 		self.max_turns = -1
 		self.current_turn = 0
 		self.render_mode = render_mode
@@ -717,7 +727,11 @@ class PokemonYellowBattle(Env):
 		result = move_mask + switch_mask + [can_use_struggle]
 		if not any(result):
 			result = [1] * self.action_space.n
-		return ob, { 'mask': array(result, dtype=int8), 'emulator': self.emulator, 'simulator': self.battle }
+		info = { 'mask': array(result, dtype=int8) }
+		if self.leak_state:
+			info['emulator'] = self.emulator
+			info['simulator'] = self.battle
+		return ob, info
 
 
 	def compute_reward(self, old: BattleState, new: BattleState):

@@ -22,7 +22,7 @@ def check_obs(p, obs):
 
 
 async def main():
-	p = gym.make('PokemonYellow', render_mode="human", shuffle_teams=True, rom="/home/pinky/pokeyellow-gen-II/pokeyellow.gbc")
+	p = gym.make('PokemonYellow', render_mode="human", shuffle_teams=True, rom="/home/pinky/pokeyellow-gen-II/pokeyellow.gbc", leak_state=True)
 	finished = False
 	params = Examples.Blue3_1
 	observation, info = p.reset(options=params)

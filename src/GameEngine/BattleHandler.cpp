@@ -78,7 +78,7 @@ namespace PokemonGen1
 				static_cast<AvailableMove>(p2.getMoveSet()[this->_state.op.nextAction - Attack1].getID());
 
 		if (p1PriorityFactor == p2PriorityFactor)
-			p1Start = (this->_state.rng() <= 0x80) ^ this->_isViewSwapped;
+			p1Start = (this->_state.rng() < 0x80) ^ this->_isViewSwapped;
 
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
