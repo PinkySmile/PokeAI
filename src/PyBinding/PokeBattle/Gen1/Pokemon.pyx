@@ -350,7 +350,7 @@ cdef class Pokemon:
 			nickname: string = args[1] if isinstance(args[1], bytes) else args[1].encode('utf-8')
 			level: int = args[2]
 			base = args[3]
-			moveSetPy: list[Move] = args[4]
+			moveSetPy = args[4]
 			enemy: bool = False if len(args) == 5 else args[5]
 
 			for move in moveSetPy:
