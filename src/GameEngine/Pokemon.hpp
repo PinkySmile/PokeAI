@@ -136,6 +136,8 @@ namespace PokemonGen1
 
 		PokemonState _oldState{};
 		unsigned char _id;
+		unsigned char _disabledMove = 0;
+		unsigned char _disableTimer = 0;
 		bool _flinched = false;
 		bool _needsRecharge = false;
 		bool _invincible = false;
@@ -240,6 +242,7 @@ namespace PokemonGen1
 		[[nodiscard]] unsigned short getNonVolatileStatus() const;
 		[[nodiscard]] bool canGetHit() const;
 		[[nodiscard]] bool isRecharging() const;
+		[[nodiscard]] bool isWrapped() const;
 		[[nodiscard]] unsigned char getID() const;
 		[[nodiscard]] unsigned getDamagesStored() const;
 		[[nodiscard]] unsigned getSpeed() const;

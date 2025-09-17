@@ -1048,6 +1048,7 @@ class PkmnYellowEmulator(ABC):
 		if BattleAction.Switch1 <= action <= BattleAction.Switch6:
 			target = action - BattleAction.Switch1
 			diff = (team_length + self.read(menu_item) - target) % team_length
+			self.tick(20)
 			while self.read(menu_item) != target:
 				self.press_button('up' if diff < team_length // 2 else 'down', 5)
 				self.tick(10)

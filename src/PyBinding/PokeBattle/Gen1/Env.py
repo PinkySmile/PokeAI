@@ -89,7 +89,7 @@ def gen1AI(me: PlayerState, op: PlayerState, categories: list[int], random: Gene
 					continue
 				return BattleAction(BattleAction.Switch1 + index)
 	for i in range(0, len(scores)):
-		if moves[i].id == 0:
+		if moves[i].id == 0 or moves[i].pp == 0:
 			scores[i] = -1000
 	best = [0]
 	for i in range(1, len(scores)):
@@ -560,7 +560,7 @@ class PokemonYellowBattle(Env):
 		render_mode: str|None=None,
 		episode_trigger: Callable[[], bool]=None,
 		opponent_callback: Callable[[BattleState, Generator], BattleAction]=basic_opponent,
-		replay_folder: str|None=None,
+		replay_folder: str='.',
 		shuffle_teams: bool=False,
 		rom: str|None=None,
 		leak_state: bool=False
@@ -595,6 +595,14 @@ class PokemonYellowBattle(Env):
 		if self.emulator is None or not self.recording:
 			return
 		self.emulator.step(state)
+		emu_state = self.emulator.get_emulator_basic_state()
+		synced, errors = self.emulator.compare_basic_states(state, emu_state)
+		if not synced:
+			print("Emulator desync detected!")
+			for e in errors:
+				print(f" - {e}")
+			self.battle.save_replay(os.path.join(self.replay_folder, f"desynced-episode-{self.episode_id}.replay"))
+			self.recording = False
 
 
 	def init_emulator(self, state: BattleState):
@@ -717,16 +725,22 @@ class PokemonYellowBattle(Env):
 				ob += [-10] * 34
 		ob = array(ob, dtype=float32)
 		pkmn = state.me.pokemon_on_field
-		if pkmn.health == 0:
-			move_mask = [False, False, False, False]
-			can_use_struggle = False
-		else:
-			move_mask = [int(m.id != 0 and m.pp != 0) for m in pkmn.move_set] + [False for _ in range(len(pkmn.move_set), 4)]
-			can_use_struggle = int(not any(move_mask))
+		can_use_struggle = False
+		can_no_action = False
+		move_mask = [False] * 4
 		switch_mask = [int(len(state.me.team) > i and state.me.pokemon_on_field_index != i and state.me.team[i].health > 0) for i in range(6)]
-		result = move_mask + switch_mask + [can_use_struggle]
-		if not any(result):
-			result = [1] * self.action_space.n
+		if pkmn.health == 0:
+			pass
+		elif state.op.pokemon_on_field.health == 0:
+			switch_mask = [False] * 6
+			can_no_action = True
+		elif pkmn.wrapped:
+			can_no_action = True
+		else:
+			assert len(pkmn.move_set) == 4
+			move_mask = [int(m.id != 0 and m.pp != 0) for m in pkmn.move_set]
+			can_use_struggle = int(not any(move_mask))
+		result = move_mask + switch_mask + [can_no_action, can_use_struggle]
 		info = { 'mask': array(result, dtype=int8) }
 		if self.leak_state:
 			info['emulator'] = self.emulator
@@ -742,17 +756,24 @@ class PokemonYellowBattle(Env):
 
 	def step(self, action):
 		state: BattleState = self.battle.state
-		if action == 10:
-			state.me.next_action = BattleAction.StruggleMove
+		if action >= 10:
+			state.me.next_action = BattleAction.NoAction + action - 10
 		else:
 			state.me.next_action = BattleAction.Attack1 + action
 		state.op.next_action = self.op(state, self.np_random)
 		old = state.copy()
+		if state.me.next_action == BattleAction.NoAction:
+			if state.me.pokemon_on_field.health != 0:
+				assert state.me.pokemon_on_field.wrapped
+			else:
+				assert state.op.pokemon_on_field.health == 0
 		if state.me.next_action == BattleAction.StruggleMove:
 			assert state.me.pokemon_on_field.health != 0
+			assert not state.me.pokemon_on_field.wrapped
 			assert all(m.pp == 0 or m.id == 0 for m in state.me.pokemon_on_field.move_set)
 		if BattleAction.Attack1 <= state.me.next_action <= BattleAction.Attack4:
 			assert state.me.pokemon_on_field.health != 0
+			assert not state.me.pokemon_on_field.wrapped
 			assert state.me.next_action - BattleAction.Attack1 < len(state.me.pokemon_on_field.move_set)
 			assert state.me.pokemon_on_field.move_set[state.me.next_action - BattleAction.Attack1].id != 0
 			assert state.me.pokemon_on_field.move_set[state.me.next_action - BattleAction.Attack1].pp != 0

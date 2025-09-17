@@ -341,8 +341,8 @@ namespace PokemonGen1
 		stream << ", " << std::setw(3) << this->getDefense()  << "DEF (" << std::setw(3) << this->getRawDefense() << "@" << std::showpos << static_cast<int>(this->_upgradedStats.DEF) << std::noshowpos << ")";
 		stream << ", " << std::setw(3) << this->getSpecial()  << "SPE (" << std::setw(3) << this->getRawSpecial() << "@" << std::showpos << static_cast<int>(this->_upgradedStats.SPE) << std::noshowpos << ")";
 		stream << ", " << std::setw(3) << this->getSpeed()    << "SPD (" << std::setw(3) << this->getRawSpeed()   << "@" << std::showpos << static_cast<int>(this->_upgradedStats.SPD) << std::noshowpos << ")";
-		stream << ", " << std::setprecision(4) << this->getAccuracyMul() * 100 << "%ACC (" << std::showpos << static_cast<int>(this->_upgradedStats.ACC) << std::noshowpos << ")";
-		stream << ", " << std::setprecision(4) << this->getEvasionMul()  * 100 << "%EVD (" << std::showpos << static_cast<int>(this->_upgradedStats.EVD) << std::noshowpos << ")";
+		stream << ", " << std::setw(3) << std::setprecision(4) << this->getAccuracyMul() * 100 << "%ACC (" << std::showpos << static_cast<int>(this->_upgradedStats.ACC) << std::noshowpos << ")";
+		stream << ", " << std::setw(3) << std::setprecision(4) << this->getEvasionMul()  * 100 << "%EVD (" << std::showpos << static_cast<int>(this->_upgradedStats.EVD) << std::noshowpos << ")";
 		stream << ", Status: 0x" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(this->_currentStatus) << " ";
 		stream << std::setw(6) << std::setfill(' ') << statusToStringShort(this->_currentStatus) << ", ";
 		if (this->_hasSub)
@@ -1290,10 +1290,16 @@ namespace PokemonGen1
 
 	void Pokemon::applyStatusDebuff()
 	{
-		if (this->_currentStatus & STATUS_BURNED)
+		if (this->_currentStatus & STATUS_BURNED) {
 			this->_computedStats.ATK /= 2;
-		if (this->_currentStatus & STATUS_PARALYZED)
+			if (this->_computedStats.ATK == 0)
+				this->_computedStats.ATK = 1;
+		}
+		if (this->_currentStatus & STATUS_PARALYZED) {
 			this->_computedStats.SPD /= 4;
+			if (this->_computedStats.SPD == 0)
+				this->_computedStats.SPD = 1;
+		}
 	}
 
 	const std::set<AvailableMove> &Pokemon::getLearnableMoveSet() const
@@ -1321,6 +1327,11 @@ namespace PokemonGen1
 		this->_moveSet[this->_forcedAttack - 1] = move;
 		this->_moveSet[this->_forcedAttack - 1].setPP(pp - 1);
 		this->_battleState->battleLogger(this->getName() + " learned " + Utils::toUpper(move.getName()) + "!");
+	}
+
+	bool Pokemon::isWrapped() const
+	{
+		return this->_wrapped;
 	}
 
 	Pokemon::Base::Base(

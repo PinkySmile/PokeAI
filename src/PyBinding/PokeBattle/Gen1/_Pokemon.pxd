@@ -86,6 +86,7 @@ cdef extern from "<GameEngine/Pokemon.hpp>" namespace "PokemonGen1":
 		void switched()
 		int getPriorityFactor(unsigned char moveSlot)
 		void setWrapped(bool isWrapped)
+		bool isWrapped()
 		void setRecharging(bool recharging)
 		void transform(const Pokemon &target)
 		const set[AvailableMove] &getLearnableMoveSet() const
