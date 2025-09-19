@@ -718,7 +718,7 @@ namespace PokemonGen1
 		Move{0x2F, "Sing"        , TYPE_NORMAL  , STATUS  ,   0,  55, 15, {STATUS_ASLEEP, 0}},
 		Move{0x30, "Supersonic"  , TYPE_NORMAL  , STATUS  ,   0,  55, 20, {STATUS_CONFUSED, 0}},
 		Move{0x31, "SonicBoom"   , TYPE_NORMAL  , STATUS  ,   0,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_20_DAMAGE},
-		Move{0x32, "Disable"     , TYPE_NORMAL  , STATUS  ,   0,  55, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code this move
+		Move{0x32, "Disable"     , TYPE_NORMAL  , STATUS  ,   0,  55, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DISABLE},
 		Move{0x33, "Acid"        , TYPE_POISON  , PHYSICAL,  40, 100, 30, NO_STATUS_CHANGE, {}, {{STATS_DEF, -1, 0x55}}},
 		Move{0x34, "Ember"       , TYPE_FIRE    , SPECIAL ,  40, 100, 25, {STATUS_BURNED, 0x1A}},
 		Move{0x35, "Flamethrower", TYPE_FIRE    , SPECIAL ,  95, 100, 15, {STATUS_BURNED, 0x1A}},

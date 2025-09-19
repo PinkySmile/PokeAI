@@ -138,6 +138,8 @@ namespace PokemonGen1
 			.types = { json["oldState"]["types"][0], json["oldState"]["types"][1] },
 		},
 		_id(json["id"]),
+		_disabledMove(json["disabledMove"]),
+		_disableTimer(json["disableTimer"]),
 		_flinched(json["flinched"]),
 		_needsRecharge(json["needsRecharge"]),
 		_invincible(json["invincible"]),
@@ -375,6 +377,8 @@ namespace PokemonGen1
 			{ "nickname",        this->_nickname },
 			{ "name",            this->_name },
 			{ "level",           this->_level },
+			{ "disabledMove",    this->_disabledMove },
+			{ "disableTimer",    this->_disableTimer },
 			{ "catchRate",       this->_catchRate },
 			{ "transformed",     this->_transformed },
 			{ "wrapped",         this->_wrapped },
@@ -496,6 +500,8 @@ namespace PokemonGen1
 		this->_misted = false;
 		this->_reflect = false;
 		this->_lightScreen = false;
+		this->_disabledMove = 0;
+		this->_disableTimer = 0;
 		if (this->_transformed) {
 			this->_moveSet = this->_moveSetCopy;
 			this->_id = this->_oldState.id;
@@ -658,7 +664,16 @@ namespace PokemonGen1
 			this->_needsRecharge = false;
 			return;
 		}
-		// TODO: Check disabled no more
+
+		if (this->_forcedAttack > 0)
+			moveSlot = this->_forcedAttack - 1;
+
+		if (this->_disableTimer) {
+			this->_disableTimer--;
+			if (!this->_disableTimer)
+				this->_log(" is disabled no more!");
+		}
+
 		if (this->_currentStatus & STATUS_CONFUSED) {
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if ((this->_currentStatus & STATUS_CONFUSED)) {
@@ -676,7 +691,19 @@ namespace PokemonGen1
 			} else if (!(this->_currentStatus & STATUS_CONFUSED))
 				this->_log(" is confused no more!");
 		}
-		// TODO: Check disabled move
+
+		if (this->_disableTimer && moveSlot < this->_moveSet.size()) {
+			auto &sm = this->_moveSet[moveSlot];
+			auto &dm = this->_moveSet[this->_disabledMove];
+
+			if (dm.getID() == sm.getID()) {
+				if (this->_lastUsedMove.getID() == AvailableMove::Hyper_Beam)
+					this->_lastUsedMove = availableMoves[0x00];
+				this->_log("'s " + dm.getName() + " is disabled!");
+				return;
+			}
+		}
+
 		if ((this->_currentStatus & STATUS_PARALYZED) && this->_battleState->rng() < 0x3F) {
 			this->_log("'s fully paralyzed!");
 			// clear bide, thrashing about, charging up, and multi-turn moves such as warp
@@ -692,11 +719,7 @@ namespace PokemonGen1
 		// Check if thrashing about (Thrash & Petal Dance)
 		// Check if using multiturn move
 		// Check if using rage
-		if (this->_forcedAttack > 0) {
-			move = &this->_moveSet[this->_forcedAttack - 1];
-			if (this->useMove(*move, target) && move->getID() != Struggle && !move->wasReplaced)
-				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
-		} else if (moveSlot >= 4) {
+		if (moveSlot >= 4) {
 			this->_log(" has no moves left!");
 			this->useMove(availableMoves[Struggle], target);
 		} else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
@@ -1332,6 +1355,19 @@ namespace PokemonGen1
 	bool Pokemon::isWrapped() const
 	{
 		return this->_wrapped;
+	}
+
+	unsigned char Pokemon::getMoveDisabled() const
+	{
+		if (this->_disableTimer == 0)
+			return 0;
+		return this->_disabledMove + 1;
+	}
+
+	void Pokemon::setMoveDisabled(unsigned char slot)
+	{
+		this->_disabledMove = slot;
+		this->_disableTimer = (this->getRandomGenerator()() & 7) + 1;
 	}
 
 	Pokemon::Base::Base(

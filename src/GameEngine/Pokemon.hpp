@@ -229,10 +229,12 @@ namespace PokemonGen1
 		void setReflectUp(bool value);
 		void setLightScreenUp(bool value);
 		void setMisted(bool value);
+		void setMoveDisabled(unsigned char slot);
 
 		[[nodiscard]] struct BattleState &getBattleState();
 		[[nodiscard]] struct PlayerState &getMyState();
 		[[nodiscard]] struct PlayerState &getOpState();
+		[[nodiscard]] unsigned char getMoveDisabled() const;
 		[[nodiscard]] bool hasReflectUp() const;
 		[[nodiscard]] bool hasLightScreenUp() const;
 		[[nodiscard]] bool isMisted() const;

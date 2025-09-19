@@ -93,7 +93,8 @@ cdef extern from "<GameEngine/Pokemon.hpp>" namespace "PokemonGen1":
 		DataArray encode() const
 		string dump() const
 		#nlohmann::json serialize()
-
+		void setMoveDisabled(unsigned char slot)
+		unsigned char getMoveDisabled()
 		void setInvincible(bool invincible)
 		void setID(unsigned char id, bool recomputeStats)
 		void setNickname(const string &nickname)

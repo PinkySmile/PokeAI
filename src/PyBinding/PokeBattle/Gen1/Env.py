@@ -738,7 +738,7 @@ class PokemonYellowBattle(Env):
 			can_no_action = True
 		else:
 			assert len(pkmn.move_set) == 4
-			move_mask = [int(m.id != 0 and m.pp != 0) for m in pkmn.move_set]
+			move_mask = [int(m.id != 0 and m.pp != 0 and pkmn.move_disabled != i) for i, m in enumerate(pkmn.move_set)]
 			can_use_struggle = int(not any(move_mask))
 		result = move_mask + switch_mask + [can_no_action, can_use_struggle]
 		info = { 'mask': array(result, dtype=int8) }

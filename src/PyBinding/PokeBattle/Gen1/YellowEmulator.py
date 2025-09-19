@@ -107,6 +107,7 @@ default_symbols = {
 	"wBattleMonSpecial":                             GBAddress(0xD02A),
 	"wBattleMonPP":                                  GBAddress(0xD02C),
 	"wTrainerName":                                  GBAddress(0xD049),
+	"wIsInBattle":                                   GBAddress(0xD056),
 	"wCurOpponent":                                  GBAddress(0xD058),
 	"wGymLeaderNo":                                  GBAddress(0xD05B),
 	"wTrainerNo":                                    GBAddress(0xD05C),
@@ -1120,7 +1121,7 @@ class PkmnYellowEmulator(ABC):
 		self.hook(address, stub, data)
 
 
-	def init_battle(self, save_state_fd, state: BattleState, sync_data: bool=False, fast_forward: bool=False, trainer: TrainerClass|None=None):
+	def init_battle(self, save_state_fd, state: BattleState, sync_data: bool=False, fast_forward: bool=False, trainer: TrainerClass|int|None=None):
 		try:
 			self.battle_finished = False
 			if trainer is None:
@@ -1149,8 +1150,11 @@ class PkmnYellowEmulator(ABC):
 				self.load_state(save_state_fd)
 
 			def to_battle(_):
-				if trainer is not None:
-					self.write(self.symbol("wCurOpponent"), trainer + 200)
+				t = trainer
+				if isinstance(t, TrainerClass):
+					t += 200
+				if t is not None:
+					self.write(self.symbol("wCurOpponent"), t)
 				symbol = self.symbol("InitBattle")
 				self.register_hl = symbol.address
 				self.register_b = symbol.bank
@@ -1167,6 +1171,11 @@ class PkmnYellowEmulator(ABC):
 			if trainer == TrainerClass.JESSIE_JAMES:
 				self.write(self.symbol("wTrainerNo"), 0x2A)
 				trainer = TrainerClass.ROCKET
+			#if isinstance(trainer, int) and trainer < 200:
+			#	def __(_):
+			#		self.write(self.symbol("wCurOpponent"), 200)
+			#		self.write(self.symbol("wTrainerNo"), 200)
+			#	self.hook_single(self.symbol("_InitBattleCommon"), __)
 
 			gym = [
 				TrainerClass.BROCK,
@@ -1186,6 +1195,7 @@ class PkmnYellowEmulator(ABC):
 				self.write(self.symbol("wGymLeaderNo"), 1)
 			self.hook_single(GBAddress(0x00, 0x0040), to_battle)
 			self.run_until(self.symbol("SlidePlayerAndEnemySilhouettesOnScreen"))
+			self.write(self.symbol("wIsInBattle"), 2)
 
 			rng_list = state.rng.list
 			self.write(self.symbol("wLinkState"), LINK_STATE_BATTLING)

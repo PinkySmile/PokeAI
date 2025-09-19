@@ -515,6 +515,16 @@ cdef class Pokemon:
 		self.__instance.setWrapped(is_wrapped)
 
 	@property
+	def move_disabled(self) -> int|None:
+		v = self.__instance.getMoveDisabled()
+		if v == 0:
+			return None
+		return v - 1
+	@move_disabled.setter
+	def move_disabled(self, v: int):
+		self.__instance.setMoveDisabled(v)
+
+	@property
 	def level(self):
 		return self.__instance.getLevel()
 	@level.setter
