@@ -306,9 +306,9 @@ namespace PokemonGen1
 
 		std::map<StatusChange, std::string> messages = {
 			{ STATUS_ASLEEP_FOR_1_TURN,   " fell asleep!" },
-			{ STATUS_POISONED,            "" },
+			{ STATUS_POISONED,            " was poisoned!" },
 			{ STATUS_BURNED,              " was burned!" },
-			{ STATUS_FROZEN,              "" },
+			{ STATUS_FROZEN,              " was frozen solid!" },
 			{ STATUS_PARALYZED,           "'s paralyzed! It may not attack!" },
 			{ STATUS_BADLY_POISONED,      "'s badly poisoned!" },
 			{ STATUS_LEECHED,             "" },
