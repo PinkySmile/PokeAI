@@ -416,7 +416,9 @@ namespace PokemonGen1
 			logger("One-hit KO!");
 		} else if (this->_power) {
 			unsigned char r = rng();
-			unsigned char spd = std::min<unsigned int>(pokemonList.at(owner.getID()).SPD / 2 * this->_critChance, 255);
+			auto baseSpeed = pokemonList.at(owner.getID()).SPD;
+			unsigned tmp = (baseSpeed / 2) * this->_critChance;
+			unsigned char spd = std::min<unsigned int>(tmp * owner.getGlobalCritRatio(), 255);
 
 			r = (r << 3U) | ((r & 0b11100000U) >> 5U);
 			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, (r < spd), true, this->getID() == Explosion || this->getID() == Self_Destruct, false);

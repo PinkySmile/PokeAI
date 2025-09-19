@@ -210,7 +210,8 @@
 }, CANCEL_STATS_CHANGE_DESC
 
 #define SET_USER_CRIT_RATIO_TO_1_QUARTER_DESC "User has 4 times less chance to crit"
-#define SET_USER_CRIT_RATIO_TO_1_QUARTER [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define SET_USER_CRIT_RATIO_TO_1_QUARTER [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+	logger(owner.getName() + "'s getting pumped!");\
 	owner.setGlobalCritRatio(0.25);\
 	return true;\
 }, SET_USER_CRIT_RATIO_TO_1_QUARTER_DESC
@@ -389,7 +390,7 @@ namespace PokemonGen1
 	private:
 		HitCallback _hitCallback;
 		MissCallback _missCallback;
-		double _critChance;
+		unsigned _critChance = 1;
 		std::string _loadingMsg;
 		std::string _keepGoingMsg;
 		std::string _name;

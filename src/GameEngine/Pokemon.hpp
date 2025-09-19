@@ -234,6 +234,7 @@ namespace PokemonGen1
 		[[nodiscard]] struct BattleState &getBattleState();
 		[[nodiscard]] struct PlayerState &getMyState();
 		[[nodiscard]] struct PlayerState &getOpState();
+		[[nodiscard]] double getGlobalCritRatio() const;
 		[[nodiscard]] unsigned char getMoveDisabled() const;
 		[[nodiscard]] bool hasReflectUp() const;
 		[[nodiscard]] bool hasLightScreenUp() const;

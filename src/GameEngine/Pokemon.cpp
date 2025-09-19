@@ -50,7 +50,7 @@ namespace PokemonGen1
 		_storingDamages(false),
 		_damageStored(0),
 		_currentStatus(STATUS_NONE),
-		_globalCritRatio(-1),
+		_globalCritRatio(1),
 		_battleState(&state)
 	{
 		if (this->_nickname.size() > 10) {
@@ -105,7 +105,7 @@ namespace PokemonGen1
 		_storingDamages(false),
 		_damageStored(0),
 		_currentStatus{data[PACK_STATUS]},
-		_globalCritRatio(-1),
+		_globalCritRatio(1),
 		_battleState(&state)
 	{
 		this->_dvs.maxHP = this->_dvs.HP =
@@ -502,6 +502,7 @@ namespace PokemonGen1
 		this->_lightScreen = false;
 		this->_disabledMove = 0;
 		this->_disableTimer = 0;
+		this->_globalCritRatio = 1;
 		if (this->_transformed) {
 			this->_moveSet = this->_moveSetCopy;
 			this->_id = this->_oldState.id;
@@ -1308,7 +1309,7 @@ namespace PokemonGen1
 		this->_damageStored = 0;
 		this->_badPoisonStage = 0;
 		this->_currentStatus = STATUS_NONE;
-		this->_globalCritRatio = -1;
+		this->_globalCritRatio = 1;
 	}
 
 	void Pokemon::applyStatusDebuff()
@@ -1368,6 +1369,11 @@ namespace PokemonGen1
 	{
 		this->_disabledMove = slot;
 		this->_disableTimer = (this->getRandomGenerator()() & 7) + 1;
+	}
+
+	double Pokemon::getGlobalCritRatio() const
+	{
+		return this->_globalCritRatio;
 	}
 
 	Pokemon::Base::Base(

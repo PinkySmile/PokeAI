@@ -863,6 +863,23 @@ extra_lists = {
 	],
 	AvailableMove.Agility: [
 		[236, 181, 249, 127, 145,  72,  32,   7, 197]
+	],
+	AvailableMove.Metronome: [
+		[202,  88, 229, 250,  88, 170, 200,  85, 211],
+		[228,  54, 183, 208, 182,  28, 135,  72, 106],
+		[ 47, 203,  15,  24, 188,  70, 195, 139, 158],
+		[104, 128,  58,  97, 242, 113, 239, 117,  60],
+		[112, 168, 199, 244, 243, 224, 167, 192, 168],
+		[204, 227,  35, 111, 224, 158, 249, 221,  61],
+		[ 86,  36, 122,  77, 156,  69, 118, 128, 227],
+		[ 72, 249, 110, 219,  17, 201, 206,  80, 144],
+		[ 83, 252, 161,  23, 176, 198, 107, 165, 167],
+		None, None, None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None, None, None
 	]
 }
 binding_moves = [
