@@ -491,7 +491,8 @@ namespace PokemonGen1
 				logger("It's super effective!");
 			if (target.getHealth() && target.getLastUsedMove().getID() == Rage && !target.getLastUsedMove().isFinished()) {
 				logger(target.getName() + "'s RAGE is building!");
-				target.changeStat(STATS_ATK, 1);
+				if (target.changeStat(STATS_ATK, 1))
+					owner.applyStatusDebuff();
 			}
 			if (sub != target.hasSubstitute())
 				return true;
