@@ -311,7 +311,7 @@ namespace PokemonGen1
 			{ STATUS_FROZEN,              " was frozen solid!" },
 			{ STATUS_PARALYZED,           "'s paralyzed! It may not attack!" },
 			{ STATUS_BADLY_POISONED,      "'s badly poisoned!" },
-			{ STATUS_LEECHED,             "" },
+			{ STATUS_LEECHED,             " was seeded!" },
 			{ STATUS_CONFUSED_FOR_1_TURN, " became confused!" }
 		};
 
