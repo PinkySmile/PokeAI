@@ -880,6 +880,8 @@ extra_lists = {
 		[182,  58, 232, 172,  75, 139,  79, 136, 165], # Metronome[27](*)  => Fake issue. Test fails if dying while substitute is up.
 		[ 78, 230, 153,  47, 128, 211, 235, 198,   2], # Metronome[28](*)  => Freeze -> Mirror Move should fail
 		[172,   0, 174, 212,  51, 152, 214,  45, 117], # Metronome[29](*)  => Fake issue. Test fails if dying while substitute is up.
+		[ 74,  17,  98,  43,  18, 205,   7, 168,  34], # Metronome[30](*)  => Sleep -> Mirror Move should fail
+		[146, 199,  77, 181,  44, 103, 165,  54,  13], # Metronome[31](L*) => When asleep, action should be NoAction
 		None, None, None, None, None, None, None, None,
 		None, None, None, None, None, None, None, None,
 		None, None, None, None, None, None, None, None,
