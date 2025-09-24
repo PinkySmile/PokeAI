@@ -422,7 +422,7 @@ namespace PokemonGen1
 			unsigned tmp = (baseSpeed / 2) * this->_critChance;
 			unsigned char spd = std::min<unsigned int>(tmp * owner.getGlobalCritRatio(), 255);
 
-			r = (r << 3U) | ((r & 0b11100000U) >> 5U);
+			r = (r << 3U) | (r >> 5U);
 			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, (r < spd), true, this->getID() == Explosion || this->getID() == Self_Destruct, false);
 			owner.getBattleState().lastDamage = damage.damage;
 		}
@@ -432,8 +432,9 @@ namespace PokemonGen1
 			auto type = atk.getType();
 
 			if (
-				(type != TYPE_NORMAL && type != TYPE_FIGHTING) ||
+				atk.getID() == Counter ||
 				atk.getCategory() == STATUS ||
+				(type != TYPE_NORMAL && type != TYPE_FIGHTING) ||
 				owner.getBattleState().lastDamage == 0
 			) {
 				logger(owner.getName() + "'s attack missed!");
