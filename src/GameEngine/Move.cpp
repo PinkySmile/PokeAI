@@ -366,7 +366,8 @@ namespace PokemonGen1
 				logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
 			if (!this->_keepGoingMsg.empty())
 				logger(owner.getName() + this->_keepGoingMsg);
-			this->_nbHit--;
+			if (this->getID() != Rage)
+				this->_nbHit--;
 		}
 		if (this->_invulnerableDuringLoading && this->_needLoading)
 			owner.setInvincible(false);
@@ -390,6 +391,7 @@ namespace PokemonGen1
 		}
 		if ((this->_category != STATUS || this->_type == TYPE_ELECTRIC) && getAttackDamageMultiplier(this->_type, target.getTypes()) == 0) {
 			if (this->_category != STATUS) {
+				// First is crit check
 				rng(); // FIXME: Apparently 2 RNG ticks are required when the enemy isn't affected?????
 				rng(); //        Check out the code path in the assembly to figure out what these 2 values are used for.
 			}
