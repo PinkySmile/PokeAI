@@ -425,7 +425,8 @@ namespace PokemonGen1
 			r = (r << 3U) | (r >> 5U);
 			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, (r < spd), true, this->getID() == Explosion || this->getID() == Self_Destruct, false);
 			owner.getBattleState().lastDamage = damage.damage;
-		}
+		} else if (this->getID() == Metronome)
+			owner.getBattleState().lastDamage = 0;
 
 		if (this->getID() == Counter) {
 			auto &atk = availableMoves[target.getMyState().lastAttack];
