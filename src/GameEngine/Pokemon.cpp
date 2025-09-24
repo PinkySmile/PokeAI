@@ -743,20 +743,24 @@ namespace PokemonGen1
 
 		if (target.getHealth() == 0)
 			return;
-		if (this->_currentStatus & STATUS_BURNED) {
+
+		auto status = this->_currentStatus;
+
+		if (status & STATUS_BURNED) {
 			this->_log("'s hurt by the burn!");
 			this->takeDamage(target, this->getMaxHealth() / 16, true, false);
-		} else if (this->_currentStatus & STATUS_POISONED) {
+		} else if (status & STATUS_POISONED) {
 			this->_log("'s hurt by the poison!");
 			damage = this->getMaxHealth() / 16;
-			if (this->_currentStatus & STATUS_BAD_POISON)
+			if (status & STATUS_BAD_POISON)
 				damage *= this->_badPoisonStage++;
 			this->takeDamage(target, damage, true, false);
 		}
-		if (this->_currentStatus & STATUS_LEECHED) {
+		if (status & STATUS_LEECHED) {
+			// FIXME: If dead from poison, the "X fainted!" message shows before that one. See test `Metronome[26](H*)`.
 			this->_battleState->battleLogger("LEECH SEED saps " + this->getName() + "!");
 			damage = this->getMaxHealth() / 16;
-			if (this->_currentStatus & STATUS_BAD_POISON)
+			if (status & STATUS_BAD_POISON)
 				damage *= this->_badPoisonStage++;
 			this->takeDamage(target, damage, true, false);
 			target.heal(damage);

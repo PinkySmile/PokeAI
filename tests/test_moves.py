@@ -876,7 +876,7 @@ extra_lists = {
 		[ 72, 249, 110, 219,  17, 201, 206,  80, 144],
 		[ 83, 252, 161,  23, 176, 198, 107, 165, 167],
 		[ 63,  54,  78,   9, 244,  23, 234, 245, 195], # Metronome[25](H*) => Sleep -> Mirror Move should fail
-		[135, 193, 204,  72,  70, 187, 223, 161, 250], # Metronome[26](H*) => Leech seed should still proc when the opponent died from poison
+		[135, 193, 204,  72,  70, 187, 223, 161, 250],
 		[182,  58, 232, 172,  75, 139,  79, 136, 165], # Metronome[27](*)  => Fake issue. Test fails if dying while substitute is up.
 		[ 78, 230, 153,  47, 128, 211, 235, 198,   2], # Metronome[28](*)  => Freeze -> Mirror Move should fail
 		[172,   0, 174, 212,  51, 152, 214,  45, 117], # Metronome[29](*)  => Fake issue. Test fails if dying while substitute is up.
