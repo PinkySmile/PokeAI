@@ -9,7 +9,7 @@ from PokeBattle.Gen1.Move import AvailableMove
 from PokeBattle.Gen1.Pokemon import Pokemon, PokemonSpecies
 from PokeBattle.Gen1.State import DesyncPolicy, BattleAction
 from PokeBattle.Gen1.StatusChange import StatusChange
-
+from PokeBattle.Gen1.YellowEmulator import GBAddress
 
 PACK_SPECIES = 0
 PACK_HP_HB = 1
@@ -169,6 +169,7 @@ def test_move(emulator, move, random_state, scenario, min_turns=6):
 			print(state.op.team[0].dump())
 			print(state.rng.index, emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.list)), list(map(lambda x: f'{x:02X}', emulator_state[3])))
 		f = emulator.compare_basic_states(battle.state, emulator_state)
+		emulator.tick()
 		if not f[0] or battle.finished or (current_turn > min_turns and not emulator.waiting):
 			state.rng.reset()
 			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
@@ -866,20 +867,27 @@ extra_lists = {
 	],
 	AvailableMove.Metronome: [
 		[202,  88, 229, 250,  88, 170, 200,  85, 211],
-		[228,  54, 183, 208, 182,  28, 135,  72, 106], # Metronome[17]*    -> Rage buildup shouldn't re-apply debuffs
-		[ 47, 203,  15,  24, 188,  70, 195, 139, 158], # Metronome[18](HP) -> Counter from Metronome should fail
-		[104, 128,  58,  97, 242, 113, 239, 117,  60], # Metronome[19](*P) -> Counter from Metronome should fail
-		[112, 168, 199, 244, 243, 224, 167, 192, 168], # Metronome[20](*P) -> Counter from Metronome should fail
-		[204, 227,  35, 111, 224, 158, 249, 221,  61], # Metronome[21](HP) -> Counter from Metronome should fail
-		[ 86,  36, 122,  77, 156,  69, 118, 128, 227], # Metronome[22](L*) -> Rage buildup shouldn't re-apply debuffs
-		[ 72, 249, 110, 219,  17, 201, 206,  80, 144], # Metronome[23](*P) -> Counter from Metronome should fail
-		[ 83, 252, 161,  23, 176, 198, 107, 165, 167], # Metronome[24](*P) -> Counter from Metronome should fail
-		None, None, None, None, None, None, None, None, None, None,
-		None, None, None, None, None, None, None, None, None, None,
-		None, None, None, None, None, None, None, None, None, None,
-		None, None, None, None, None, None, None, None, None, None,
-		None, None, None, None, None, None, None, None, None, None,
-		None, None, None, None, None, None, None, None, None, None
+		[228,  54, 183, 208, 182,  28, 135,  72, 106],
+		[ 47, 203,  15,  24, 188,  70, 195, 139, 158],
+		[104, 128,  58,  97, 242, 113, 239, 117,  60],
+		[112, 168, 199, 244, 243, 224, 167, 192, 168],
+		[204, 227,  35, 111, 224, 158, 249, 221,  61],
+		[ 86,  36, 122,  77, 156,  69, 118, 128, 227],
+		[ 72, 249, 110, 219,  17, 201, 206,  80, 144],
+		[ 83, 252, 161,  23, 176, 198, 107, 165, 167],
+		[ 63,  54,  78,   9, 244,  23, 234, 245, 195], # Metronome[25](H*) => Sleep -> Mirror Move should fail
+		[135, 193, 204,  72,  70, 187, 223, 161, 250], # Metronome[26](H*) => Leech seed should still proc when the opponent died from poison
+		[182,  58, 232, 172,  75, 139,  79, 136, 165], # Metronome[27](*)  => Fake issue. Test fails if dying while substitute is up.
+		[ 78, 230, 153,  47, 128, 211, 235, 198,   2], # Metronome[28](*)  => Freeze -> Mirror Move should fail
+		[172,   0, 174, 212,  51, 152, 214,  45, 117], # Metronome[29](*)  => Fake issue. Test fails if dying while substitute is up.
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None
 	]
 }
 binding_moves = [

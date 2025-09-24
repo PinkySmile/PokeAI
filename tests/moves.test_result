@@ -1,5 +1,20 @@
-Metronome[10](HP) [[202, 88, 229, 250, 88, 170, 200, 85, 211]]: Failed
- - On turn 6: P2 Health b.966 vs e.967
+Metronome[31](HS) [[63, 54, 78, 9, 244, 23, 234, 245, 195]]: Failed
+ - On turn 7: RNG index b.7 vs e.8
+ - On turn 7: RNG list b.[22, 33, 89, 88, 199, 14, 69, 84, 202] vs e.[209, 160, 120, 171, 142, 105, 116, 119, 245]
+ - On turn 7: P2 Health b.986 vs e.987
+ - On turn 7: P2 Speed b.659 vs e.999
+Metronome[57](HP) [[135, 193, 204, 72, 70, 187, 223, 161, 250]]: Failed
+ - On turn 6: P1 Health b.990 vs e.999
+Metronome[32](HS) [[182, 58, 232, 172, 75, 139, 79, 136, 165]]: Failed
+ - On turn 7: P1 Has substitute b.False vs e.True
+Metronome[45](LS) [[78, 230, 153, 47, 128, 211, 235, 198, 2]]: Failed
+ - On turn 7: RNG list b.[156, 116, 143, 117, 62, 249, 81, 84, 176] vs e.[31, 23, 182, 228, 217, 152, 16, 119, 35]
+ - On turn 7: P2 Health b.807 vs e.808
+ - On turn 7: P2 Speed b.16 vs e.25
+Mist&Metronome[47] [[147, 132, 23, 185, 114, 244, 174, 123, 189]]: Failed
+ - On turn 2: P1 PPs b.[9, 0, 0, 0] vs e.[10, 0, 0, 0]
+Mist&Metronome[60] [[147, 118, 126, 114, 14, 1, 40, 241, 177]]: Failed
+ - On turn 2: P1 PPs b.[9, 0, 0, 0] vs e.[10, 0, 0, 0]
 Pound: 85/85
 Karate_Chop: 80/80
 Doubleslap: 85/85
@@ -53,7 +68,6 @@ Disable: 80/80
 Acid: 80/80
 Ember: 80/80
 Flamethrower: 80/80
-Mist: 2746/2746
 Water_Gun: 80/80
 Hydro_Pump: 80/80
 Surf: 80/80
@@ -164,6 +178,7 @@ Super_Fang: 80/80
 Slash: 80/80
 Substitute: 80/80
 Struggle: 80/80
-Metronome: 79/80
-16859 individual test(s) passed. 1 individual test(s) failed.
-164 test group(s) passed. 1 test group(s) failed.
+Mist: 2817/2819
+Metronome: 441/445
+17292 individual test(s) passed. 6 individual test(s) failed.
+163 test group(s) passed. 2 test group(s) failed.
