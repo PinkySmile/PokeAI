@@ -652,6 +652,8 @@ namespace PokemonGen1
 			this->_log(" is frozen solid!");
 			return;
 		}
+		if (moveSlot == 0xD)
+			return;
 		if (this->_wrapped) {
 			this->_log(" can't move!");
 			return;
@@ -720,7 +722,7 @@ namespace PokemonGen1
 		// Check if thrashing about (Thrash & Petal Dance)
 		// Check if using multiturn move
 		// Check if using rage
-		if (moveSlot >= 4) {
+		if (moveSlot == 0xE) {
 			this->_log(" has no moves left!");
 			this->useMove(availableMoves[Struggle], target);
 		} else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {

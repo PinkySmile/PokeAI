@@ -84,7 +84,7 @@ namespace PokemonGen1
 			return;
 		if (p1Start) {
 			if (p1Attack) {
-				if (this->_state.me.nextAction != StruggleMove)
+				if (this->_state.me.nextAction <= Attack4)
 					this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
 				p1.attack(this->_state.me.nextAction - Attack1, p2);
 			}
@@ -93,8 +93,8 @@ namespace PokemonGen1
 
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
-		if (p2Attack && this->_state.op.nextAction != NoAction) {
-			if (this->_state.op.nextAction != StruggleMove)
+		if (p2Attack) {
+			if (this->_state.op.nextAction <= Attack4)
 				this->_state.me.discovered[this->_state.op.pokemonOnField].second[this->_state.op.nextAction - Attack1] = true;
 			p2.attack(this->_state.op.nextAction - Attack1, p1);
 		}
@@ -102,9 +102,9 @@ namespace PokemonGen1
 
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
-		if (!p1Start && this->_state.me.nextAction != NoAction) {
+		if (!p1Start) {
 			if (p1Attack) {
-				if (this->_state.me.nextAction != StruggleMove)
+				if (this->_state.me.nextAction <= Attack4)
 					this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
 				p1.attack(this->_state.me.nextAction - Attack1, p2);
 			}
@@ -161,9 +161,8 @@ namespace PokemonGen1
 			case Attack3:
 			case Attack4:
 			case StruggleMove:
-				p1Attack = true;
-				break;
 			case NoAction:
+				p1Attack = true;
 				break;
 			default:
 				this->_log("Warning: Invalid P1 move " + std::to_string(this->_state.me.nextAction));
@@ -198,9 +197,8 @@ namespace PokemonGen1
 			case Attack3:
 			case Attack4:
 			case StruggleMove:
-				p2Attack = true;
-				break;
 			case NoAction:
+				p2Attack = true;
 				break;
 			default:
 				this->_log("Warning: Invalid p2 move " + std::to_string(this->_state.op.nextAction));
