@@ -806,11 +806,12 @@ class PkmnYellowEmulator(ABC):
 			errors.append(f"P1 Status b.{me_b.non_volatile_status} ({StatusChange(me_b.non_volatile_status).name}) vs e.{me_e['status']} ({StatusChange(me_e['status']).name})")
 		if me_b.health != me_e['hp']:
 			errors.append(f"P1 Health b.{me_b.health} vs e.{me_e['hp']}")
-		has_substitute = ((me_e['status_flags'][1] & (1 << HAS_SUBSTITUTE_UP)) != 0)
-		if (me_b.substitute is not None) != has_substitute:
-			errors.append(f"P1 Has substitute b.{me_b.substitute is not None} vs e.{has_substitute}")
-		if me_b.substitute is not None and has_substitute and me_b.substitute != me_e['substitute']:
-			errors.append(f"P1 Substitute health b.{me_b.substitute} vs e.{me_e['substitute']}")
+		if me_b.health != 0:
+			has_substitute = ((me_e['status_flags'][1] & (1 << HAS_SUBSTITUTE_UP)) != 0)
+			if (me_b.substitute is not None) != has_substitute:
+				errors.append(f"P1 Has substitute b.{me_b.substitute is not None} vs e.{has_substitute}")
+			if me_b.substitute is not None and has_substitute and me_b.substitute != me_e['substitute']:
+				errors.append(f"P1 Substitute health b.{me_b.substitute} vs e.{me_e['substitute']}")
 		if me_b.attack != me_e['attack']:
 			errors.append(f"P1 Attack b.{me_b.attack} vs e.{me_e['attack']}")
 		if me_b.defense != me_e['defense']:

@@ -889,14 +889,14 @@ extra_lists = {
 		[ 83, 252, 161,  23, 176, 198, 107, 165, 167],
 		[ 63,  54,  78,   9, 244,  23, 234, 245, 195], # Metronome[25](H*) => Sleep -> Mirror Move should fail
 		[135, 193, 204,  72,  70, 187, 223, 161, 250],
-		[182,  58, 232, 172,  75, 139,  79, 136, 165], # Metronome[27](*)  => Fake issue. Test fails if dying while substitute is up.
+		[182,  58, 232, 172,  75, 139,  79, 136, 165],
 		[ 78, 230, 153,  47, 128, 211, 235, 198,   2], # Metronome[28](*)  => Freeze -> Mirror Move should fail
-		[172,   0, 174, 212,  51, 152, 214,  45, 117], # Metronome[29](*)  => Fake issue. Test fails if dying while substitute is up.
+		[172,   0, 174, 212,  51, 152, 214,  45, 117],
 		[ 74,  17,  98,  43,  18, 205,   7, 168,  34], # Metronome[30](*)  => Sleep -> Mirror Move should fail
 		[146, 199,  77, 181,  44, 103, 165,  54,  13], # Metronome[31](L*) => When asleep, action should be NoAction
 		[210, 212,  85,  50,  62,  11,  22, 218,  93], # Metronome[32](*)  => Mirror Move shouldn't fail when paralyzed last turn
 		[234,  50, 228, 170, 148, 204,  54,  48, 221], # Mist&Metronome[33]=> When trapped, should tick sleep (Contradicts Metronome[35](H*))
-		[118, 123,  73, 198,  24, 236, 221, 101, 161], # Metronome[34](L*) => Fire moves should defrost opponents
+		[118, 123,  73, 198,  24, 236, 221, 101, 161],
 		[ 62, 199, 207, 119,   0,  47,  10,  94,  63], # Metronome[35](H*) => When trapped, should not tick sleep (Contradicts Mist&Metronome[33])
 		None, None, None, None, None, None, None, None,
 		None, None, None, None, None, None, None, None,
