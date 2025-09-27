@@ -1,0 +1,11 @@
+# distutils: language = c++
+
+from ._State cimport BADACTION_IGNORE, BADACTION_STRUGGLE, BADACTION_NOACTION, BADACTION_FIX, BADACTION_THROW
+
+
+cpdef enum BadActionPolicy:
+	Ignore = BADACTION_IGNORE
+	Struggle = BADACTION_STRUGGLE
+	NoAction = BADACTION_NOACTION
+	Fix = BADACTION_FIX
+	Throw = BADACTION_THROW

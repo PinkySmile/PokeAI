@@ -5,18 +5,14 @@ from libcpp.vector cimport vector
 from cython cimport cast
 from cython.operator cimport dereference
 from ._Pokemon cimport Pokemon as __Pokemon, pythonLoggerLambda, evalLogger
-from ._State cimport BattleAction as __BattleAction, BattleActionToString as __BattleActionToString, PlayerState as __PlayerState, BattleState as __BattleState, pythonCallbackLambda, pythonCallbackLambdaVoid, evalCallback, evalCallbackVoid, EmptyAction as __EmptyAction, Attack1 as __Attack1, Attack2 as __Attack2, Attack3 as __Attack3, Attack4 as __Attack4, Switch1 as __Switch1, Switch2 as __Switch2, Switch3 as __Switch3, Switch4 as __Switch4, Switch5 as __Switch5, Switch6 as __Switch6, NoAction as __NoAction, StruggleMove as __StruggleMove, Run as __Run, DESYNC_MISS, DESYNC_THROW, DESYNC_INVERT, DESYNC_IGNORE
+from ._State cimport BattleAction as __BattleAction, BattleActionToString as __BattleActionToString, PlayerState as __PlayerState, BattleState as __BattleState, pythonCallbackLambda, pythonCallbackLambdaVoid, evalCallback, evalCallbackVoid, EmptyAction as __EmptyAction, Attack1 as __Attack1, Attack2 as __Attack2, Attack3 as __Attack3, Attack4 as __Attack4, Switch1 as __Switch1, Switch2 as __Switch2, Switch3 as __Switch3, Switch4 as __Switch4, Switch5 as __Switch5, Switch6 as __Switch6, NoAction as __NoAction, StruggleMove as __StruggleMove, Run as __Run, DESYNC_MISS, DESYNC_THROW, DESYNC_INVERT, DESYNC_IGNORE, BADACTION_IGNORE, BADACTION_STRUGGLE, BADACTION_NOACTION, BADACTION_FIX, BADACTION_THROW
 from .Pokemon cimport Pokemon as PyPokemon
 from .RandomGenerator cimport RandomGenerator as PyRandomGenerator
 
 from .Pokemon import Pokemon
 from .RandomGenerator import RandomGenerator
-
-cpdef enum DesyncPolicy:
-	Miss = DESYNC_MISS
-	Throw = DESYNC_THROW
-	Invert = DESYNC_INVERT
-	Ignore = DESYNC_IGNORE
+from .DesyncPolicy import DesyncPolicy
+from .BadActionPolicy import BadActionPolicy
 
 
 cpdef enum BattleAction:
@@ -158,6 +154,13 @@ cdef class BattleState:
 	@desync.setter
 	def desync(self, c):
 		self.__instance.desync = c
+
+	@property
+	def bad_action(self):
+		return BadActionPolicy(self.__instance.badAction)
+	@bad_action.setter
+	def bad_action(self, v):
+		self.__instance.badAction = v
 
 	@property
 	def logger(self):

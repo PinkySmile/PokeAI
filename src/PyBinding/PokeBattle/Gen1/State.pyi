@@ -14,6 +14,17 @@ class DesyncPolicy(int):
 	def name(self) -> str: ...
 
 
+class BadActionPolicy(int):
+	Ignore: BadActionPolicy
+	Struggle: BadActionPolicy
+	NoAction: BadActionPolicy
+	Fix: BadActionPolicy
+	Throw: BadActionPolicy
+
+	@property
+	def name(self) -> str: ...
+
+
 class BattleAction(int):
 	EmptyAction: BattleAction
 	Attack1: BattleAction

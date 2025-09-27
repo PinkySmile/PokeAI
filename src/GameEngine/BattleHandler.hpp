@@ -79,6 +79,8 @@ namespace PokemonGen1
 		bool _finished = false;
 		bool _logMessages;
 
+		void _checkAction(PlayerState &myState, const PlayerState &opState);
+		void _checkActions();
 		void _populateStartParams();
 		void _executeBattleActions();
 		void _makePlayersAttack(bool AIAttack, bool opponentAttack);

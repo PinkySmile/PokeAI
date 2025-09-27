@@ -1,15 +1,15 @@
 import sys
 import time
 import threading
+import traceback
 from argparse import ArgumentParser
 from PokeBattle.Gen1.PyBoyEmulator import PyBoyEmulator
 from PokeBattle.Gen1.BattleHandler import BattleHandler
 from PokeBattle.Gen1.Type import Type
 from PokeBattle.Gen1.Move import AvailableMove
 from PokeBattle.Gen1.Pokemon import Pokemon, PokemonSpecies
-from PokeBattle.Gen1.State import DesyncPolicy, BattleAction
+from PokeBattle.Gen1.State import DesyncPolicy, BadActionPolicy, BattleAction
 from PokeBattle.Gen1.StatusChange import StatusChange
-from PokeBattle.Gen1.YellowEmulator import GBAddress
 
 PACK_SPECIES = 0
 PACK_HP_HB = 1
@@ -55,6 +55,7 @@ def test_move(emulator, move, random_state, scenario, min_turns=6):
 		state.logger = lambda x: print(f'Simulator: {x}')
 		emulator.on_text_displayed = lambda x: print(f'Emulator: {x}')
 	state.desync = DesyncPolicy.Ignore
+	state.bad_action = BadActionPolicy.Fix
 
 	pokemon_data = [0] * 44
 	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
@@ -187,6 +188,7 @@ def test_trap_move_turn_skip(emulator, move, random_state, scenario, min_turns=6
 		state.logger = lambda x: print(f'Simulator: {x}')
 		emulator.on_text_displayed = lambda x: print(f'Emulator: {x}')
 	state.desync = DesyncPolicy.Ignore
+	state.bad_action = BadActionPolicy.Fix
 
 	pokemon_data = [0] * 44
 	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
@@ -303,6 +305,7 @@ def test_bind_switch(emulator, move, random_state, scenario):
 		state.logger = lambda x: print(f'Simulator: {x}')
 		emulator.on_text_displayed = lambda x: print(f'Emulator: {x}')
 	state.desync = DesyncPolicy.Ignore
+	state.bad_action = BadActionPolicy.Fix
 
 	pokemon_data = [0] * 44
 	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
@@ -436,6 +439,7 @@ def test_bind_switch_inverted(emulator, move, random_state, scenario):
 		state.logger = lambda x: print(f'Simulator: {x}')
 		emulator.on_text_displayed = lambda x: print(f'Emulator: {x}')
 	state.desync = DesyncPolicy.Ignore
+	state.bad_action = BadActionPolicy.Fix
 
 	pokemon_data = [0] * 44
 	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
@@ -563,6 +567,7 @@ def hyper_beam_status_move(emulator: PyBoyEmulator, move: int, random_state: lis
 		state.logger = lambda x: print(f'Simulator: {x}')
 		emulator.on_text_displayed = lambda x: print(f'Emulator: {x}')
 	state.desync = DesyncPolicy.Ignore
+	state.bad_action = BadActionPolicy.Fix
 
 	pokemon_data = [0] * 44
 	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
@@ -680,6 +685,7 @@ def test_mist(emulator: PyBoyEmulator, move: int, random_state: list|None):
 		state.logger = lambda x: print(f'Simulator: {x}')
 		emulator.on_text_displayed = lambda x: print(f'Emulator: {x}')
 	state.desync = DesyncPolicy.Ignore
+	state.bad_action = BadActionPolicy.Fix
 
 	pokemon_data = [0] * 44
 	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
@@ -782,11 +788,17 @@ def test_mist(emulator: PyBoyEmulator, move: int, random_state: list|None):
 
 
 def run_test(test, emulator):
+	t = (len(str(len(tests_to_run))) - len(str(tests_ran))) * " "
+	t += f"{tests_ran}"
+	t += f"/{len(tests_to_run)}"
 	if debug:
-		print(f"Testing {test['name']} ", test.get('args', []))
+		print(f"{t} Testing {test['name']} ", test.get('args', []))
 	elif jobs == 1:
-		print(f'{test['name']}: ', end="", flush=True)
-	success, errors, extra = test['cb'](emulator, *test.get('args', []))
+		print(f'{t} {test['name']}: ', end="", flush=True)
+	try:
+		success, errors, extra = test['cb'](emulator, *test.get('args', []))
+	except:
+		success, errors, extra = False, [traceback.format_exc()], {}
 	if jobs == 1:
 		if not success:
 			if debug:
@@ -882,6 +894,8 @@ extra_lists = {
 		[172,   0, 174, 212,  51, 152, 214,  45, 117], # Metronome[29](*)  => Fake issue. Test fails if dying while substitute is up.
 		[ 74,  17,  98,  43,  18, 205,   7, 168,  34], # Metronome[30](*)  => Sleep -> Mirror Move should fail
 		[146, 199,  77, 181,  44, 103, 165,  54,  13], # Metronome[31](L*) => When asleep, action should be NoAction
+		[210, 212,  85,  50,  62,  11,  22, 218,  93], # Metronome[32]
+		[234,  50, 228, 170, 148, 204,  54,  48, 221], # Mist&Metronome[33]
 		None, None, None, None, None, None, None, None,
 		None, None, None, None, None, None, None, None,
 		None, None, None, None, None, None, None, None,
