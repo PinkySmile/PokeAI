@@ -242,8 +242,8 @@ namespace PokemonGen1
 		if (myState.nextAction == NoAction) {
 			if (pkmn.getHealth() == 0)
 				INVALID("NoAction", "alive");
-			if (!pkmn.isWrapped())
-				INVALID("NoAction", "trapped");
+			if (!pkmn.isWrapped() && opPkmn.getHealth() != 0)
+				INVALID("NoAction", "trapped or the opponent fainted, but not us");
 		} else if (myState.nextAction == StruggleMove) {
 			if (pkmn.getHealth() == 0)
 				INVALID("StruggleMove", "alive");
