@@ -86,13 +86,15 @@ cdef extern from "<GameEngine/Pokemon.hpp>" namespace "PokemonGen1":
 		void switched()
 		int getPriorityFactor(unsigned char moveSlot)
 		void setWrapped(bool isWrapped)
+		bool isWrapped()
 		void setRecharging(bool recharging)
 		void transform(const Pokemon &target)
 		const set[AvailableMove] &getLearnableMoveSet() const
 		DataArray encode() const
 		string dump() const
 		#nlohmann::json serialize()
-
+		void setMoveDisabled(unsigned char slot)
+		unsigned char getMoveDisabled()
 		void setInvincible(bool invincible)
 		void setID(unsigned char id, bool recomputeStats)
 		void setNickname(const string &nickname)

@@ -453,9 +453,6 @@ cdef class Pokemon:
 	def get_priority_factor(self, unsigned char moveSlot):
 		return self.__instance.getPriorityFactor(moveSlot)
 
-	def set_wrapped(self, bool isWrapped):
-		self.__instance.setWrapped(isWrapped)
-
 	def transform(self, Pokemon target):
 		self.__instance.transform(dereference(target.__instance))
 
@@ -509,6 +506,23 @@ cdef class Pokemon:
 		self.__instance.setID(id, True)
 	def set_id(self, unsigned char id, bool recomputeStats = True):
 		self.__instance.setID(id, recomputeStats)
+
+	@property
+	def wrapped(self) -> bool:
+		return self.__instance.isWrapped()
+	@wrapped.setter
+	def wrapped(self, is_wrapped: bool):
+		self.__instance.setWrapped(is_wrapped)
+
+	@property
+	def move_disabled(self) -> int|None:
+		v = self.__instance.getMoveDisabled()
+		if v == 0:
+			return None
+		return v - 1
+	@move_disabled.setter
+	def move_disabled(self, v: int):
+		self.__instance.setMoveDisabled(v)
 
 	@property
 	def level(self):

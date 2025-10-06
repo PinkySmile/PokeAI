@@ -7,6 +7,7 @@
 
 
 #include <string>
+#include <algorithm>
 #include <functional>
 #include "Type.hpp"
 #include "StatusChange.hpp"
@@ -209,7 +210,8 @@
 }, CANCEL_STATS_CHANGE_DESC
 
 #define SET_USER_CRIT_RATIO_TO_1_QUARTER_DESC "User has 4 times less chance to crit"
-#define SET_USER_CRIT_RATIO_TO_1_QUARTER [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &){\
+#define SET_USER_CRIT_RATIO_TO_1_QUARTER [](Pokemon &owner, Pokemon &, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+	logger(owner.getName() + "'s getting pumped!");\
 	owner.setGlobalCritRatio(0.25);\
 	return true;\
 }, SET_USER_CRIT_RATIO_TO_1_QUARTER_DESC
@@ -334,6 +336,32 @@
 	return true;\
 }, COPY_RANDOM_MOVE_DESC
 
+#define DISABLE_DESC "Disable a random move from foe"
+#define DISABLE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+	if (target.getMoveDisabled() != 0)\
+		return logger("But it failed!"), false;\
+\
+	auto &moveSet = target.getMoveSet();\
+	auto &rng = target.getRandomGenerator();\
+	const Move *move = nullptr;\
+	size_t slot;\
+\
+	do {\
+		do {\
+			slot = rng() & 3;\
+			if (slot < moveSet.size())\
+				move = &moveSet[slot];\
+		} while (move && move->getID() == None);\
+		if (std::ranges::all_of(moveSet.begin(), moveSet.end(), [](const Move &m){\
+			return m.getPP() == 0;\
+		}))\
+			return logger("But it failed!"), false;\
+	} while (move->getPP() == 0);\
+	logger(target.getName() + "'s " + move->getName() + " was disabled!");\
+	target.setMoveDisabled(slot);\
+	return true;\
+}, DISABLE_DESC
+
 namespace PokemonGen1
 {
 	class Pokemon;
@@ -362,7 +390,7 @@ namespace PokemonGen1
 	private:
 		HitCallback _hitCallback;
 		MissCallback _missCallback;
-		double _critChance;
+		unsigned _critChance = 1;
 		std::string _loadingMsg;
 		std::string _keepGoingMsg;
 		std::string _name;

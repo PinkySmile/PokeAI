@@ -50,7 +50,7 @@ namespace PokemonGen1
 		_storingDamages(false),
 		_damageStored(0),
 		_currentStatus(STATUS_NONE),
-		_globalCritRatio(-1),
+		_globalCritRatio(1),
 		_battleState(&state)
 	{
 		if (this->_nickname.size() > 10) {
@@ -105,7 +105,7 @@ namespace PokemonGen1
 		_storingDamages(false),
 		_damageStored(0),
 		_currentStatus{data[PACK_STATUS]},
-		_globalCritRatio(-1),
+		_globalCritRatio(1),
 		_battleState(&state)
 	{
 		this->_dvs.maxHP = this->_dvs.HP =
@@ -138,6 +138,8 @@ namespace PokemonGen1
 			.types = { json["oldState"]["types"][0], json["oldState"]["types"][1] },
 		},
 		_id(json["id"]),
+		_disabledMove(json["disabledMove"]),
+		_disableTimer(json["disableTimer"]),
 		_flinched(json["flinched"]),
 		_needsRecharge(json["needsRecharge"]),
 		_invincible(json["invincible"]),
@@ -304,12 +306,12 @@ namespace PokemonGen1
 
 		std::map<StatusChange, std::string> messages = {
 			{ STATUS_ASLEEP_FOR_1_TURN,   " fell asleep!" },
-			{ STATUS_POISONED,            "" },
+			{ STATUS_POISONED,            " was poisoned!" },
 			{ STATUS_BURNED,              " was burned!" },
-			{ STATUS_FROZEN,              "" },
+			{ STATUS_FROZEN,              " was frozen solid!" },
 			{ STATUS_PARALYZED,           "'s paralyzed! It may not attack!" },
 			{ STATUS_BADLY_POISONED,      "'s badly poisoned!" },
-			{ STATUS_LEECHED,             "" },
+			{ STATUS_LEECHED,             " was seeded!" },
 			{ STATUS_CONFUSED_FOR_1_TURN, " became confused!" }
 		};
 
@@ -341,8 +343,8 @@ namespace PokemonGen1
 		stream << ", " << std::setw(3) << this->getDefense()  << "DEF (" << std::setw(3) << this->getRawDefense() << "@" << std::showpos << static_cast<int>(this->_upgradedStats.DEF) << std::noshowpos << ")";
 		stream << ", " << std::setw(3) << this->getSpecial()  << "SPE (" << std::setw(3) << this->getRawSpecial() << "@" << std::showpos << static_cast<int>(this->_upgradedStats.SPE) << std::noshowpos << ")";
 		stream << ", " << std::setw(3) << this->getSpeed()    << "SPD (" << std::setw(3) << this->getRawSpeed()   << "@" << std::showpos << static_cast<int>(this->_upgradedStats.SPD) << std::noshowpos << ")";
-		stream << ", " << std::setprecision(4) << this->getAccuracyMul() * 100 << "%ACC (" << std::showpos << static_cast<int>(this->_upgradedStats.ACC) << std::noshowpos << ")";
-		stream << ", " << std::setprecision(4) << this->getEvasionMul()  * 100 << "%EVD (" << std::showpos << static_cast<int>(this->_upgradedStats.EVD) << std::noshowpos << ")";
+		stream << ", " << std::setw(3) << std::setprecision(4) << this->getAccuracyMul() * 100 << "%ACC (" << std::showpos << static_cast<int>(this->_upgradedStats.ACC) << std::noshowpos << ")";
+		stream << ", " << std::setw(3) << std::setprecision(4) << this->getEvasionMul()  * 100 << "%EVD (" << std::showpos << static_cast<int>(this->_upgradedStats.EVD) << std::noshowpos << ")";
 		stream << ", Status: 0x" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(this->_currentStatus) << " ";
 		stream << std::setw(6) << std::setfill(' ') << statusToStringShort(this->_currentStatus) << ", ";
 		if (this->_hasSub)
@@ -375,6 +377,8 @@ namespace PokemonGen1
 			{ "nickname",        this->_nickname },
 			{ "name",            this->_name },
 			{ "level",           this->_level },
+			{ "disabledMove",    this->_disabledMove },
+			{ "disableTimer",    this->_disableTimer },
 			{ "catchRate",       this->_catchRate },
 			{ "transformed",     this->_transformed },
 			{ "wrapped",         this->_wrapped },
@@ -496,6 +500,9 @@ namespace PokemonGen1
 		this->_misted = false;
 		this->_reflect = false;
 		this->_lightScreen = false;
+		this->_disabledMove = 0;
+		this->_disableTimer = 0;
+		this->_globalCritRatio = 1;
 		if (this->_transformed) {
 			this->_moveSet = this->_moveSetCopy;
 			this->_id = this->_oldState.id;
@@ -658,7 +665,16 @@ namespace PokemonGen1
 			this->_needsRecharge = false;
 			return;
 		}
-		// TODO: Check disabled no more
+
+		if (this->_forcedAttack > 0)
+			moveSlot = this->_forcedAttack - 1;
+
+		if (this->_disableTimer) {
+			this->_disableTimer--;
+			if (!this->_disableTimer)
+				this->_log(" is disabled no more!");
+		}
+
 		if (this->_currentStatus & STATUS_CONFUSED) {
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if ((this->_currentStatus & STATUS_CONFUSED)) {
@@ -676,7 +692,19 @@ namespace PokemonGen1
 			} else if (!(this->_currentStatus & STATUS_CONFUSED))
 				this->_log(" is confused no more!");
 		}
-		// TODO: Check disabled move
+
+		if (this->_disableTimer && moveSlot < this->_moveSet.size()) {
+			auto &sm = this->_moveSet[moveSlot];
+			auto &dm = this->_moveSet[this->_disabledMove];
+
+			if (dm.getID() == sm.getID()) {
+				if (this->_lastUsedMove.getID() == AvailableMove::Hyper_Beam)
+					this->_lastUsedMove = availableMoves[0x00];
+				this->_log("'s " + dm.getName() + " is disabled!");
+				return;
+			}
+		}
+
 		if ((this->_currentStatus & STATUS_PARALYZED) && this->_battleState->rng() < 0x3F) {
 			this->_log("'s fully paralyzed!");
 			// clear bide, thrashing about, charging up, and multi-turn moves such as warp
@@ -692,11 +720,7 @@ namespace PokemonGen1
 		// Check if thrashing about (Thrash & Petal Dance)
 		// Check if using multiturn move
 		// Check if using rage
-		if (this->_forcedAttack > 0) {
-			move = &this->_moveSet[this->_forcedAttack - 1];
-			if (this->useMove(*move, target) && move->getID() != Struggle && !move->wasReplaced)
-				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
-		} else if (moveSlot >= 4) {
+		if (moveSlot >= 4) {
 			this->_log(" has no moves left!");
 			this->useMove(availableMoves[Struggle], target);
 		} else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
@@ -719,20 +743,24 @@ namespace PokemonGen1
 
 		if (target.getHealth() == 0)
 			return;
-		if (this->_currentStatus & STATUS_BURNED) {
+
+		auto status = this->_currentStatus;
+
+		if (status & STATUS_BURNED) {
 			this->_log("'s hurt by the burn!");
 			this->takeDamage(target, this->getMaxHealth() / 16, true, false);
-		} else if (this->_currentStatus & STATUS_POISONED) {
+		} else if (status & STATUS_POISONED) {
 			this->_log("'s hurt by the poison!");
 			damage = this->getMaxHealth() / 16;
-			if (this->_currentStatus & STATUS_BAD_POISON)
+			if (status & STATUS_BAD_POISON)
 				damage *= this->_badPoisonStage++;
 			this->takeDamage(target, damage, true, false);
 		}
-		if (this->_currentStatus & STATUS_LEECHED) {
+		if (status & STATUS_LEECHED) {
+			// FIXME: If dead from poison, the "X fainted!" message shows before that one. See test `Metronome[26](H*)`.
 			this->_battleState->battleLogger("LEECH SEED saps " + this->getName() + "!");
 			damage = this->getMaxHealth() / 16;
-			if (this->_currentStatus & STATUS_BAD_POISON)
+			if (status & STATUS_BAD_POISON)
 				damage *= this->_badPoisonStage++;
 			this->takeDamage(target, damage, true, false);
 			target.heal(damage);
@@ -1285,15 +1313,21 @@ namespace PokemonGen1
 		this->_damageStored = 0;
 		this->_badPoisonStage = 0;
 		this->_currentStatus = STATUS_NONE;
-		this->_globalCritRatio = -1;
+		this->_globalCritRatio = 1;
 	}
 
 	void Pokemon::applyStatusDebuff()
 	{
-		if (this->_currentStatus & STATUS_BURNED)
+		if (this->_currentStatus & STATUS_BURNED) {
 			this->_computedStats.ATK /= 2;
-		if (this->_currentStatus & STATUS_PARALYZED)
+			if (this->_computedStats.ATK == 0)
+				this->_computedStats.ATK = 1;
+		}
+		if (this->_currentStatus & STATUS_PARALYZED) {
 			this->_computedStats.SPD /= 4;
+			if (this->_computedStats.SPD == 0)
+				this->_computedStats.SPD = 1;
+		}
 	}
 
 	const std::set<AvailableMove> &Pokemon::getLearnableMoveSet() const
@@ -1321,6 +1355,29 @@ namespace PokemonGen1
 		this->_moveSet[this->_forcedAttack - 1] = move;
 		this->_moveSet[this->_forcedAttack - 1].setPP(pp - 1);
 		this->_battleState->battleLogger(this->getName() + " learned " + Utils::toUpper(move.getName()) + "!");
+	}
+
+	bool Pokemon::isWrapped() const
+	{
+		return this->_wrapped;
+	}
+
+	unsigned char Pokemon::getMoveDisabled() const
+	{
+		if (this->_disableTimer == 0)
+			return 0;
+		return this->_disabledMove + 1;
+	}
+
+	void Pokemon::setMoveDisabled(unsigned char slot)
+	{
+		this->_disabledMove = slot;
+		this->_disableTimer = (this->getRandomGenerator()() & 7) + 1;
+	}
+
+	double Pokemon::getGlobalCritRatio() const
+	{
+		return this->_globalCritRatio;
 	}
 
 	Pokemon::Base::Base(

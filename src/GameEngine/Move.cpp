@@ -366,7 +366,8 @@ namespace PokemonGen1
 				logger(owner.getName() + " used " + Utils::toUpper(this->_name) + "!");
 			if (!this->_keepGoingMsg.empty())
 				logger(owner.getName() + this->_keepGoingMsg);
-			this->_nbHit--;
+			if (this->getID() != Rage)
+				this->_nbHit--;
 		}
 		if (this->_invulnerableDuringLoading && this->_needLoading)
 			owner.setInvincible(false);
@@ -390,6 +391,7 @@ namespace PokemonGen1
 		}
 		if ((this->_category != STATUS || this->_type == TYPE_ELECTRIC) && getAttackDamageMultiplier(this->_type, target.getTypes()) == 0) {
 			if (this->_category != STATUS) {
+				// First is crit check
 				rng(); // FIXME: Apparently 2 RNG ticks are required when the enemy isn't affected?????
 				rng(); //        Check out the code path in the assembly to figure out what these 2 values are used for.
 			}
@@ -416,20 +418,24 @@ namespace PokemonGen1
 			logger("One-hit KO!");
 		} else if (this->_power) {
 			unsigned char r = rng();
-			unsigned char spd = std::min<unsigned int>(pokemonList.at(owner.getID()).SPD / 2 * this->_critChance, 255);
+			auto baseSpeed = pokemonList.at(owner.getID()).SPD;
+			unsigned tmp = (baseSpeed / 2) * this->_critChance;
+			unsigned char spd = std::min<unsigned int>(tmp * owner.getGlobalCritRatio(), 255);
 
-			r = (r << 3U) | ((r & 0b11100000U) >> 5U);
+			r = (r << 3U) | (r >> 5U);
 			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, (r < spd), true, this->getID() == Explosion || this->getID() == Self_Destruct, false);
 			owner.getBattleState().lastDamage = damage.damage;
-		}
+		} else if (this->getID() == Metronome)
+			owner.getBattleState().lastDamage = 0;
 
 		if (this->getID() == Counter) {
 			auto &atk = availableMoves[target.getMyState().lastAttack];
 			auto type = atk.getType();
 
 			if (
-				(type != TYPE_NORMAL && type != TYPE_FIGHTING) ||
+				atk.getID() == Counter ||
 				atk.getCategory() == STATUS ||
+				(type != TYPE_NORMAL && type != TYPE_FIGHTING) ||
 				owner.getBattleState().lastDamage == 0
 			) {
 				logger(owner.getName() + "'s attack missed!");
@@ -489,7 +495,8 @@ namespace PokemonGen1
 				logger("It's super effective!");
 			if (target.getHealth() && target.getLastUsedMove().getID() == Rage && !target.getLastUsedMove().isFinished()) {
 				logger(target.getName() + "'s RAGE is building!");
-				target.changeStat(STATS_ATK, 1);
+				if (target.changeStat(STATS_ATK, 1))
+					owner.applyStatusDebuff();
 			}
 			if (sub != target.hasSubstitute())
 				return true;
@@ -718,7 +725,7 @@ namespace PokemonGen1
 		Move{0x2F, "Sing"        , TYPE_NORMAL  , STATUS  ,   0,  55, 15, {STATUS_ASLEEP, 0}},
 		Move{0x30, "Supersonic"  , TYPE_NORMAL  , STATUS  ,   0,  55, 20, {STATUS_CONFUSED, 0}},
 		Move{0x31, "SonicBoom"   , TYPE_NORMAL  , STATUS  ,   0,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_20_DAMAGE},
-		Move{0x32, "Disable"     , TYPE_NORMAL  , STATUS  ,   0,  55, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NOT_IMPLEMENTED}, //TODO: Code this move
+		Move{0x32, "Disable"     , TYPE_NORMAL  , STATUS  ,   0,  55, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DISABLE},
 		Move{0x33, "Acid"        , TYPE_POISON  , PHYSICAL,  40, 100, 30, NO_STATUS_CHANGE, {}, {{STATS_DEF, -1, 0x55}}},
 		Move{0x34, "Ember"       , TYPE_FIRE    , SPECIAL ,  40, 100, 25, {STATUS_BURNED, 0x1A}},
 		Move{0x35, "Flamethrower", TYPE_FIRE    , SPECIAL ,  95, 100, 15, {STATUS_BURNED, 0x1A}},
@@ -798,7 +805,7 @@ namespace PokemonGen1
 		Move{0x7F, "Waterfall"   , TYPE_WATER   , SPECIAL ,  80, 100, 15},
 		Move{0x80, "Clamp"       , TYPE_WATER   , SPECIAL,   35,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, WRAP_TARGET, GLITCH_HYPER_BEAM},
 		Move{0x81, "Swift"       , TYPE_NORMAL  , PHYSICAL,  60, 255, 20},
-		Move{0x82, "Skull Bash"  , TYPE_NORMAL  , PHYSICAL, 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("lowered it's head!")},
+		Move{0x82, "Skull Bash"  , TYPE_NORMAL  , PHYSICAL, 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("lowered its head!")},
 		Move{0x83, "Spike Cannon", TYPE_NORMAL  , PHYSICAL,  20, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x84, "Constrict"   , TYPE_NORMAL  , PHYSICAL,  10, 100, 35, NO_STATUS_CHANGE, {}, {{STATS_SPD, -1, 0x55}}},
 		Move{0x85, "Amnesia"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {{STATS_SPE, 2, 0}}},
@@ -806,7 +813,7 @@ namespace PokemonGen1
 		Move{0x87, "SoftBoiled"  , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEAL_HALF_HEALTH},
 		Move{0x88, "Hi Jump Kick", TYPE_FIGHTING, PHYSICAL,  85,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, NO_CALLBACK, TAKE_1DAMAGE},
 		Move{0x89, "Glare"       , TYPE_NORMAL  , STATUS  ,   0,  75, 30, {STATUS_PARALYZED, 0}},
-		Move{0x8A, "Dream Eater" , TYPE_PSYCHIC , STATUS  ,   0, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ABSORB_HALF_DAMAGE},
+		Move{0x8A, "Dream Eater" , TYPE_PSYCHIC , SPECIAL , 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ABSORB_HALF_DAMAGE},
 		Move{0x8B, "Poison Gas"  , TYPE_POISON  , STATUS  ,   0,  55, 40, {STATUS_POISONED, 0}},
 		Move{0x8C, "Barrage"     , TYPE_NORMAL  , PHYSICAL,  15,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x8D, "Leech Life"  , TYPE_BUG     , PHYSICAL,  20, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ABSORB_HALF_DAMAGE},

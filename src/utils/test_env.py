@@ -43,10 +43,14 @@ async def main():
 			info['simulator'].save_replay("interrupted.replay")
 			while not didit:
 				try:
-					if future.result() == "stop":
+					action = future.result()
+					if action == "stop":
 						info['simulator'].save_replay("interrupted.replay")
 						exit(1)
-					observation, reward, finished, truncated, info = p.step(int(future.result()))
+					action = int(future.result())
+					if not info['mask'][action]:
+						print("Warning: using disabled action")
+					observation, reward, finished, truncated, info = p.step(action)
 					didit = True
 				except InterruptedError:
 					raise

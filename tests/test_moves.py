@@ -9,7 +9,7 @@ from PokeBattle.Gen1.Move import AvailableMove
 from PokeBattle.Gen1.Pokemon import Pokemon, PokemonSpecies
 from PokeBattle.Gen1.State import DesyncPolicy, BattleAction
 from PokeBattle.Gen1.StatusChange import StatusChange
-
+from PokeBattle.Gen1.YellowEmulator import GBAddress
 
 PACK_SPECIES = 0
 PACK_HP_HB = 1
@@ -72,9 +72,9 @@ def test_move(emulator, move, random_state, scenario, min_turns=6):
 	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
 	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
 	pokemon_data[PACK_PPS_MOVE1] = 10
-	pokemon_data[PACK_PPS_MOVE2] = 10
-	pokemon_data[PACK_PPS_MOVE3] = 10
-	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 0
+	pokemon_data[PACK_PPS_MOVE3] = 0
+	pokemon_data[PACK_PPS_MOVE4] = 0
 	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
 	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
 	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
@@ -113,9 +113,9 @@ def test_move(emulator, move, random_state, scenario, min_turns=6):
 	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
 	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
 	pokemon_data[PACK_PPS_MOVE1] = 10
-	pokemon_data[PACK_PPS_MOVE2] = 10
-	pokemon_data[PACK_PPS_MOVE3] = 10
-	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 0
+	pokemon_data[PACK_PPS_MOVE3] = 0
+	pokemon_data[PACK_PPS_MOVE4] = 0
 	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
 	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
 	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
@@ -169,6 +169,7 @@ def test_move(emulator, move, random_state, scenario, min_turns=6):
 			print(state.op.team[0].dump())
 			print(state.rng.index, emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.list)), list(map(lambda x: f'{x:02X}', emulator_state[3])))
 		f = emulator.compare_basic_states(battle.state, emulator_state)
+		emulator.tick()
 		if not f[0] or battle.finished or (current_turn > min_turns and not emulator.waiting):
 			state.rng.reset()
 			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
@@ -202,8 +203,8 @@ def test_trap_move_turn_skip(emulator, move, random_state, scenario, min_turns=6
 	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
 	pokemon_data[PACK_PPS_MOVE1] = 10
 	pokemon_data[PACK_PPS_MOVE2] = 10
-	pokemon_data[PACK_PPS_MOVE3] = 10
-	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_PPS_MOVE3] = 0
+	pokemon_data[PACK_PPS_MOVE4] = 0
 	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
 	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
 	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
@@ -231,9 +232,9 @@ def test_trap_move_turn_skip(emulator, move, random_state, scenario, min_turns=6
 	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
 	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
 	pokemon_data[PACK_PPS_MOVE1] = 10
-	pokemon_data[PACK_PPS_MOVE2] = 10
-	pokemon_data[PACK_PPS_MOVE3] = 10
-	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 0
+	pokemon_data[PACK_PPS_MOVE3] = 0
+	pokemon_data[PACK_PPS_MOVE4] = 0
 	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
 	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
 	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
@@ -317,9 +318,9 @@ def test_bind_switch(emulator, move, random_state, scenario):
 	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
 	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
 	pokemon_data[PACK_PPS_MOVE1] = 10
-	pokemon_data[PACK_PPS_MOVE2] = 10
-	pokemon_data[PACK_PPS_MOVE3] = 10
-	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 0
+	pokemon_data[PACK_PPS_MOVE3] = 0
+	pokemon_data[PACK_PPS_MOVE4] = 0
 	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
 	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
 	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
@@ -349,8 +350,8 @@ def test_bind_switch(emulator, move, random_state, scenario):
 	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
 	pokemon_data[PACK_PPS_MOVE1] = 10
 	pokemon_data[PACK_PPS_MOVE2] = 10
-	pokemon_data[PACK_PPS_MOVE3] = 10
-	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_PPS_MOVE3] = 0
+	pokemon_data[PACK_PPS_MOVE4] = 0
 	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
 	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
 	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
@@ -450,9 +451,9 @@ def test_bind_switch_inverted(emulator, move, random_state, scenario):
 	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
 	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
 	pokemon_data[PACK_PPS_MOVE1] = 10
-	pokemon_data[PACK_PPS_MOVE2] = 10
-	pokemon_data[PACK_PPS_MOVE3] = 10
-	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 0
+	pokemon_data[PACK_PPS_MOVE3] = 0
+	pokemon_data[PACK_PPS_MOVE4] = 0
 	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
 	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
 	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
@@ -482,8 +483,8 @@ def test_bind_switch_inverted(emulator, move, random_state, scenario):
 	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
 	pokemon_data[PACK_PPS_MOVE1] = 10
 	pokemon_data[PACK_PPS_MOVE2] = 10
-	pokemon_data[PACK_PPS_MOVE3] = 10
-	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_PPS_MOVE3] = 0
+	pokemon_data[PACK_PPS_MOVE4] = 0
 	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
 	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
 	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
@@ -575,8 +576,8 @@ def hyper_beam_status_move(emulator: PyBoyEmulator, move: int, random_state: lis
 	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
 	pokemon_data[PACK_PPS_MOVE1] = 10
 	pokemon_data[PACK_PPS_MOVE2] = 10
-	pokemon_data[PACK_PPS_MOVE3] = 10
-	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_PPS_MOVE3] = 0
+	pokemon_data[PACK_PPS_MOVE4] = 0
 	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
 	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
 	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
@@ -605,9 +606,9 @@ def hyper_beam_status_move(emulator: PyBoyEmulator, move: int, random_state: lis
 	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
 	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
 	pokemon_data[PACK_PPS_MOVE1] = 10
-	pokemon_data[PACK_PPS_MOVE2] = 10
-	pokemon_data[PACK_PPS_MOVE3] = 10
-	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 0
+	pokemon_data[PACK_PPS_MOVE3] = 0
+	pokemon_data[PACK_PPS_MOVE4] = 0
 	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
 	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
 	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
@@ -691,9 +692,9 @@ def test_mist(emulator: PyBoyEmulator, move: int, random_state: list|None):
 	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
 	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
 	pokemon_data[PACK_PPS_MOVE1] = 10
-	pokemon_data[PACK_PPS_MOVE2] = 10
-	pokemon_data[PACK_PPS_MOVE3] = 10
-	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 0
+	pokemon_data[PACK_PPS_MOVE3] = 0
+	pokemon_data[PACK_PPS_MOVE4] = 0
 	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
 	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
 	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
@@ -722,9 +723,9 @@ def test_mist(emulator: PyBoyEmulator, move: int, random_state: list|None):
 	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
 	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
 	pokemon_data[PACK_PPS_MOVE1] = 10
-	pokemon_data[PACK_PPS_MOVE2] = 10
-	pokemon_data[PACK_PPS_MOVE3] = 10
-	pokemon_data[PACK_PPS_MOVE4] = 10
+	pokemon_data[PACK_PPS_MOVE2] = 0
+	pokemon_data[PACK_PPS_MOVE3] = 0
+	pokemon_data[PACK_PPS_MOVE4] = 0
 	pokemon_data[PACK_CURR_LEVEL_DUP] = 5
 	pokemon_data[PACK_HP_HB  + 0] = 999 >> 8
 	pokemon_data[PACK_HP_HB  + 1] = 999 & 0xFF
@@ -759,7 +760,10 @@ def test_mist(emulator: PyBoyEmulator, move: int, random_state: list|None):
 	while True:
 		if debug:
 			print(f' ---------- TURN {current_turn + 1} ----------')
-		state.me.next_action = BattleAction.Attack1
+		if state.me.pokemon_on_field.move_disabled == 0:
+			state.me.next_action = BattleAction.StruggleMove
+		else:
+			state.me.next_action = BattleAction.Attack1
 		state.op.next_action = BattleAction.Attack1
 		battle.tick()
 		emulator.step(state)
@@ -860,6 +864,32 @@ extra_lists = {
 	],
 	AvailableMove.Agility: [
 		[236, 181, 249, 127, 145,  72,  32,   7, 197]
+	],
+	AvailableMove.Metronome: [
+		[202,  88, 229, 250,  88, 170, 200,  85, 211],
+		[228,  54, 183, 208, 182,  28, 135,  72, 106],
+		[ 47, 203,  15,  24, 188,  70, 195, 139, 158],
+		[104, 128,  58,  97, 242, 113, 239, 117,  60],
+		[112, 168, 199, 244, 243, 224, 167, 192, 168],
+		[204, 227,  35, 111, 224, 158, 249, 221,  61],
+		[ 86,  36, 122,  77, 156,  69, 118, 128, 227],
+		[ 72, 249, 110, 219,  17, 201, 206,  80, 144],
+		[ 83, 252, 161,  23, 176, 198, 107, 165, 167],
+		[ 63,  54,  78,   9, 244,  23, 234, 245, 195], # Metronome[25](H*) => Sleep -> Mirror Move should fail
+		[135, 193, 204,  72,  70, 187, 223, 161, 250],
+		[182,  58, 232, 172,  75, 139,  79, 136, 165], # Metronome[27](*)  => Fake issue. Test fails if dying while substitute is up.
+		[ 78, 230, 153,  47, 128, 211, 235, 198,   2], # Metronome[28](*)  => Freeze -> Mirror Move should fail
+		[172,   0, 174, 212,  51, 152, 214,  45, 117], # Metronome[29](*)  => Fake issue. Test fails if dying while substitute is up.
+		[ 74,  17,  98,  43,  18, 205,   7, 168,  34], # Metronome[30](*)  => Sleep -> Mirror Move should fail
+		[146, 199,  77, 181,  44, 103, 165,  54,  13], # Metronome[31](L*) => When asleep, action should be NoAction
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None,
+		None, None, None, None, None, None, None, None
 	]
 }
 binding_moves = [

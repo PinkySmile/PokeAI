@@ -136,6 +136,8 @@ namespace PokemonGen1
 
 		PokemonState _oldState{};
 		unsigned char _id;
+		unsigned char _disabledMove = 0;
+		unsigned char _disableTimer = 0;
 		bool _flinched = false;
 		bool _needsRecharge = false;
 		bool _invincible = false;
@@ -227,10 +229,13 @@ namespace PokemonGen1
 		void setReflectUp(bool value);
 		void setLightScreenUp(bool value);
 		void setMisted(bool value);
+		void setMoveDisabled(unsigned char slot);
 
 		[[nodiscard]] struct BattleState &getBattleState();
 		[[nodiscard]] struct PlayerState &getMyState();
 		[[nodiscard]] struct PlayerState &getOpState();
+		[[nodiscard]] double getGlobalCritRatio() const;
+		[[nodiscard]] unsigned char getMoveDisabled() const;
 		[[nodiscard]] bool hasReflectUp() const;
 		[[nodiscard]] bool hasLightScreenUp() const;
 		[[nodiscard]] bool isMisted() const;
@@ -240,6 +245,7 @@ namespace PokemonGen1
 		[[nodiscard]] unsigned short getNonVolatileStatus() const;
 		[[nodiscard]] bool canGetHit() const;
 		[[nodiscard]] bool isRecharging() const;
+		[[nodiscard]] bool isWrapped() const;
 		[[nodiscard]] unsigned char getID() const;
 		[[nodiscard]] unsigned getDamagesStored() const;
 		[[nodiscard]] unsigned getSpeed() const;

@@ -25,7 +25,8 @@ trainer = trainer.replace(" ", "_")
 trainer = trainer.replace("&", "_")
 trainer = trainer.replace("~", "_M")
 trainer = trainer.replace("`", "_F")
-if hasattr(TrainerClass, trainer): trainer = getattr(TrainerClass, trainer)
+if trainer.isdigit(): trainer = int(trainer)
+elif hasattr(TrainerClass, trainer): trainer = getattr(TrainerClass, trainer)
 elif trainer == "blue": trainer = TrainerClass.RIVAL1
 elif trainer == "champion": trainer = TrainerClass.RIVAL3
 elif trainer == "red": trainer = TrainerClass.NOBODY
