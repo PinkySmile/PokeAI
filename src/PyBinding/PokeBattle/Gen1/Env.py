@@ -799,7 +799,7 @@ class PokemonYellowBattle(Env):
 			self.recording = True
 		state = self.battle.state
 		state.desync = DesyncPolicy.Invert
-		state.badAction = BadActionPolicy.Throw
+		state.bad_action = BadActionPolicy.Throw
 		if options is None:
 			if self.shuffle_teams:
 				state.me.team = self.np_random.permutation([Pokemon(
