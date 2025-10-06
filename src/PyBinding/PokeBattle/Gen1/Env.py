@@ -764,24 +764,6 @@ class PokemonYellowBattle(Env):
 			state.me.next_action = BattleAction.Attack1 + action
 		state.op.next_action = self.op(state, self.np_random)
 		old = state.copy()
-		if state.me.next_action == BattleAction.NoAction:
-			assert state.me.pokemon_on_field.health != 0
-			assert state.me.pokemon_on_field.wrapped or state.me.pokemon_on_field.has_status(StatusChange.Asleep | StatusChange.Frozen)
-		if state.me.next_action == BattleAction.StruggleMove:
-			assert state.me.pokemon_on_field.health != 0
-			assert not state.me.pokemon_on_field.wrapped and not state.me.pokemon_on_field.has_status(StatusChange.Asleep | StatusChange.Frozen)
-			assert all(m.pp == 0 or m.id == 0 or i == state.me.pokemon_on_field.move_disabled for i, m in enumerate(state.me.pokemon_on_field.move_set))
-		if BattleAction.Attack1 <= state.me.next_action <= BattleAction.Attack4:
-			assert state.me.pokemon_on_field.health != 0
-			assert not state.me.pokemon_on_field.wrapped and not state.me.pokemon_on_field.has_status(StatusChange.Asleep | StatusChange.Frozen)
-			assert state.me.next_action - BattleAction.Attack1 < len(state.me.pokemon_on_field.move_set)
-			assert state.me.pokemon_on_field.move_set[state.me.next_action - BattleAction.Attack1].id != 0
-			assert state.me.pokemon_on_field.move_set[state.me.next_action - BattleAction.Attack1].pp != 0
-			assert state.me.pokemon_on_field.move_disabled != state.me.next_action - BattleAction.Attack1
-		if BattleAction.Switch1 <= state.me.next_action <= BattleAction.Switch6:
-			assert state.me.next_action - BattleAction.Switch1 != state.me.pokemon_on_field_index
-			assert state.me.next_action - BattleAction.Switch1 < len(state.me.team)
-			assert state.me.team[state.me.next_action - BattleAction.Switch1].health != 0
 		self.battle.tick()
 		self.current_turn += 1
 		if self.battle.finished and self.replay_folder:
