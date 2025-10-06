@@ -19,12 +19,8 @@ from .Type import Type, type_to_string_short, get_attack_damage_multiplier
 from .YellowEmulator import TrainerClass
 
 banned_moves = [ # These moves aren't implemented properly in the engine
-	# Can roll other moves from the list that aren't implemented
+	# Some errors still occur with metronomes
 	AvailableMove.Metronome,
-
-	# Misc
-	AvailableMove.Disable,
-	AvailableMove.Dream_Eater,
 ]
 
 
