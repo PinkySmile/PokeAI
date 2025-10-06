@@ -743,6 +743,8 @@ class PokemonYellowBattle(Env):
 			move_mask = [int(m.id != 0 and m.pp != 0 and pkmn.move_disabled != i) for i, m in enumerate(pkmn.move_set)]
 			can_use_struggle = int(not any(move_mask))
 		result = move_mask + switch_mask + [can_no_action, can_use_struggle]
+		if not any(result):
+			result[10] = True
 		info = { 'mask': array(result, dtype=int8) }
 		if self.leak_state:
 			info['emulator'] = self.emulator
