@@ -28,11 +28,11 @@ def gen1AI(me: PlayerState, op: PlayerState, categories: list[int], random: Gene
 	me_pkmn = me.pokemon_on_field
 	if me_pkmn.health == 0:
 		return BattleAction(BattleAction.Switch1 + next(i for i in range(len(me.team)) if me.team[i].health))
+	if me_pkmn.wrapped:
+		return BattleAction.NoAction
 	moves = me_pkmn.move_set
 	scores = [1000 for _ in moves]
 	op_pkmn = op.pokemon_on_field
-	if op_pkmn.wrapped:
-		return BattleAction.NoAction
 	if 1 in categories and op_pkmn.has_status(StatusChange.Any_non_volatile_status):
 		for i in range(len(scores)):
 			if (moves[i].status_change['status'] & StatusChange.Any_non_volatile_status) and moves[i].category == MoveCategory.Status:
@@ -89,7 +89,7 @@ def gen1AI(me: PlayerState, op: PlayerState, categories: list[int], random: Gene
 					continue
 				return BattleAction(BattleAction.Switch1 + index)
 	for i in range(0, len(scores)):
-		if moves[i].id == 0 or moves[i].pp == 0:
+		if moves[i].id == 0 or moves[i].pp == 0 or i == me_pkmn.move_disabled:
 			scores[i] = -1000
 	best = [0]
 	for i in range(1, len(scores)):
@@ -104,8 +104,10 @@ def basic_opponent(state: BattleState, rng: Generator):
 	pkmn = state.op.pokemon_on_field
 	if pkmn.health == 0:
 		return BattleAction.Switch1 + state.op.pokemon_on_field_index + 1
+	if pkmn.wrapped:
+		return BattleAction.NoAction
 	for i, move in enumerate(pkmn.move_set):
-		if move.id != 0 and move.pp != 0:
+		if move.id != 0 and move.pp != 0 or i == pkmn.move_disabled:
 			return BattleAction.Attack1 + i
 	return BattleAction.StruggleMove
 
