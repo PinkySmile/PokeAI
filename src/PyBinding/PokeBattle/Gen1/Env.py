@@ -187,7 +187,7 @@ class PokemonYellowBattle(Env):
 		'render_modes': ["human", "ansi", "rgb_array_list"],
 		'render_fps': 10
 	}
-	action_space = Discrete(11)
+	action_space = Discrete(12)
 	observation_space = Box(
 		low= array([
 			# Offset 0
