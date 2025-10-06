@@ -36,11 +36,19 @@ namespace PokemonGen1
 	typedef std::pair<bool, MovesDiscovered> PkmnDiscovered;
 	typedef std::function<void (const std::string &message)> BattleLogger;
 
-	enum DesyncPolicy {
-		DESYNC_MISS,  // Make moves miss when they would desync
-		DESYNC_THROW, // Throw an exception when a move would desync
-		DESYNC_INVERT,// Invert calculations to replicate the opponent's PoV and stay in sync
-		DESYNC_IGNORE // Apply normal calculations even when it would result in a desync
+	enum DesyncPolicy {  // What to do when a move would desyncs
+		DESYNC_MISS,  // Make the move miss
+		DESYNC_THROW, // Throw an exception
+		DESYNC_INVERT,// Invert calculations (replicate the opponent's PoV)
+		DESYNC_IGNORE // Apply normal calculations
+	};
+
+	enum BadActionPolicy {    // What to do when an invalid aciton is used
+		BADACTION_IGNORE,  // Perform the action anyway; May crash
+		BADACTION_STRUGGLE,// Replace the action by StruggleMove
+		BADACTION_NOACTION,// Replace the action with NoAction
+		BADACTION_FIX,     // Try to find a suitable replacement and do that instead. Throw if no action can be performed.
+		BADACTION_THROW    // Throw an exception
 	};
 
 	struct PlayerState {
@@ -61,6 +69,7 @@ namespace PokemonGen1
 		PlayerState op;
 		RandomGenerator rng;
 		DesyncPolicy desync = DESYNC_INVERT;
+		BadActionPolicy badAction = BADACTION_THROW;
 		unsigned short lastDamage = 0;
 		BattleLogger battleLogger = [](const std::string &){};
 		std::function<bool ()> onTurnStart;

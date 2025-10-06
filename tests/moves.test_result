@@ -1,20 +1,87 @@
-Metronome[31](HS) [[63, 54, 78, 9, 244, 23, 234, 245, 195]]: Failed
+Metronome[27](LP) [[182, 58, 232, 172, 75, 139, 79, 136, 165]]: Failed
+ - On turn 7: P1 Has substitute b.False vs e.True
+Metronome[25](HP) [[63, 54, 78, 9, 244, 23, 234, 245, 195]]: Failed
  - On turn 7: RNG index b.7 vs e.8
  - On turn 7: RNG list b.[22, 33, 89, 88, 199, 14, 69, 84, 202] vs e.[209, 160, 120, 171, 142, 105, 116, 119, 245]
  - On turn 7: P2 Health b.986 vs e.987
  - On turn 7: P2 Speed b.659 vs e.999
-Metronome[57](HP) [[135, 193, 204, 72, 70, 187, 223, 161, 250]]: Failed
- - On turn 6: P1 Health b.990 vs e.999
-Metronome[32](HS) [[182, 58, 232, 172, 75, 139, 79, 136, 165]]: Failed
- - On turn 7: P1 Has substitute b.False vs e.True
-Metronome[45](LS) [[78, 230, 153, 47, 128, 211, 235, 198, 2]]: Failed
+Metronome[30](HP) [[74, 17, 98, 43, 18, 205, 7, 168, 34]]: Failed
+ - On turn 6: RNG index b.1 vs e.6
+ - On turn 6: RNG list b.[130, 105, 154, 67, 74, 165, 159, 32, 90] vs e.[220, 219, 180, 197, 228, 119, 129, 42, 116]
+ - On turn 6: P2 Health b.988 vs e.989
+Metronome[28](LS) [[78, 230, 153, 47, 128, 211, 235, 198, 2]]: Failed
  - On turn 7: RNG list b.[156, 116, 143, 117, 62, 249, 81, 84, 176] vs e.[31, 23, 182, 228, 217, 152, 16, 119, 35]
  - On turn 7: P2 Health b.807 vs e.808
  - On turn 7: P2 Speed b.16 vs e.25
-Mist&Metronome[47] [[147, 132, 23, 185, 114, 244, 174, 123, 189]]: Failed
- - On turn 2: P1 PPs b.[9, 0, 0, 0] vs e.[10, 0, 0, 0]
-Mist&Metronome[60] [[147, 118, 126, 114, 14, 1, 40, 241, 177]]: Failed
- - On turn 2: P1 PPs b.[9, 0, 0, 0] vs e.[10, 0, 0, 0]
+Metronome[25](HS) [[63, 54, 78, 9, 244, 23, 234, 245, 195]]: Failed
+ - On turn 7: RNG index b.7 vs e.8
+ - On turn 7: RNG list b.[22, 33, 89, 88, 199, 14, 69, 84, 202] vs e.[209, 160, 120, 171, 142, 105, 116, 119, 245]
+ - On turn 7: P2 Health b.986 vs e.987
+ - On turn 7: P2 Speed b.659 vs e.999
+Metronome[28](HP) [[78, 230, 153, 47, 128, 211, 235, 198, 2]]: Failed
+ - On turn 6: RNG list b.[156, 116, 143, 117, 62, 249, 81, 84, 176] vs e.[31, 23, 182, 228, 217, 152, 16, 119, 35]
+ - On turn 6: P2 Health b.987 vs e.988
+ - On turn 6: P2 Speed b.659 vs e.999
+Metronome[29](HS) [[172, 0, 174, 212, 51, 152, 214, 45, 117]]: Failed
+ - On turn 5: P1 Has substitute b.False vs e.True
+Metronome[32](LP) [[210, 212, 85, 50, 62, 11, 22, 218, 93]]: Failed
+ - On turn 3: RNG list b.[135, 241, 166, 103, 227, 84, 155, 47, 78] vs e.[51, 253, 226, 19, 207, 176, 7, 91, 10]
+ - On turn 3: P1 Speed b.300 vs e.198
+ - On turn 3: P2 Health b.994 vs e.983
+Metronome[27](HP) [[182, 58, 232, 172, 75, 139, 79, 136, 165]]: Failed
+ - On turn 7: P1 Has substitute b.False vs e.True
+Metronome[28](LP) [[78, 230, 153, 47, 128, 211, 235, 198, 2]]: Failed
+ - On turn 7: RNG list b.[156, 116, 143, 117, 62, 249, 81, 84, 176] vs e.[31, 23, 182, 228, 217, 152, 16, 119, 35]
+ - On turn 7: P2 Health b.792 vs e.808
+ - On turn 7: P2 Speed b.16 vs e.25
+Metronome[30](LP) [[74, 17, 98, 43, 18, 205, 7, 168, 34]]: Failed
+ - On turn 7: RNG index b.1 vs e.6
+ - On turn 7: RNG list b.[130, 105, 154, 67, 74, 165, 159, 32, 90] vs e.[220, 219, 180, 197, 228, 119, 129, 42, 116]
+ - On turn 7: P2 Health b.815 vs e.830
+Metronome[28](HS) [[78, 230, 153, 47, 128, 211, 235, 198, 2]]: Failed
+ - On turn 6: RNG list b.[156, 116, 143, 117, 62, 249, 81, 84, 176] vs e.[31, 23, 182, 228, 217, 152, 16, 119, 35]
+ - On turn 6: P2 Health b.987 vs e.988
+ - On turn 6: P2 Speed b.659 vs e.999
+Metronome[30](LS) [[74, 17, 98, 43, 18, 205, 7, 168, 34]]: Failed
+ - On turn 7: RNG index b.1 vs e.6
+ - On turn 7: RNG list b.[130, 105, 154, 67, 74, 165, 159, 32, 90] vs e.[220, 219, 180, 197, 228, 119, 129, 42, 116]
+ - On turn 7: P2 Health b.829 vs e.830
+Metronome[29](HP) [[172, 0, 174, 212, 51, 152, 214, 45, 117]]: Failed
+ - On turn 5: P1 Has substitute b.False vs e.True
+Metronome[32](LS) [[210, 212, 85, 50, 62, 11, 22, 218, 93]]: Failed
+ - On turn 3: RNG list b.[135, 241, 166, 103, 227, 84, 155, 47, 78] vs e.[51, 253, 226, 19, 207, 176, 7, 91, 10]
+ - On turn 3: P1 Speed b.300 vs e.198
+ - On turn 3: P2 Health b.994 vs e.993
+Metronome[27](LS) [[182, 58, 232, 172, 75, 139, 79, 136, 165]]: Failed
+ - On turn 7: P1 Has substitute b.False vs e.True
+Metronome[27](HS) [[182, 58, 232, 172, 75, 139, 79, 136, 165]]: Failed
+ - On turn 7: P1 Has substitute b.False vs e.True
+Metronome[30](HS) [[74, 17, 98, 43, 18, 205, 7, 168, 34]]: Failed
+ - On turn 6: RNG index b.1 vs e.6
+ - On turn 6: RNG list b.[130, 105, 154, 67, 74, 165, 159, 32, 90] vs e.[220, 219, 180, 197, 228, 119, 129, 42, 116]
+ - On turn 6: P2 Health b.988 vs e.989
+Metronome[33](Sub) [[234, 50, 228, 170, 148, 204, 54, 48, 221]]: Failed
+ - On turn 7: P2 Status b.2 (Asleep_for_2_turn) vs e.3 (Asleep_for_3_turn)
+Metronome[29](LP) [[172, 0, 174, 212, 51, 152, 214, 45, 117]]: Failed
+ - On turn 5: P1 Has substitute b.False vs e.True
+Metronome[53](LP) [[118, 123, 73, 198, 24, 236, 221, 101, 161]]: Failed
+ - On turn 5: RNG index b.7 vs e.5
+ - On turn 5: RNG list b.[123, 132, 42, 11, 5, 233, 206, 246, 98] vs e.[104, 149, 211, 56, 26, 142, 7, 207, 235]
+ - On turn 5: P1 Health b.964 vs e.953
+ - On turn 5: P1 Speed b.300 vs e.198
+ - On turn 5: P2 Status b.32 (Frozen) vs e.0 (OK)
+Metronome[32](HP) [[210, 212, 85, 50, 62, 11, 22, 218, 93]]: Failed
+ - On turn 3: RNG index b.6 vs e.4
+ - On turn 3: RNG list b.[78, 48, 33, 174, 250, 119, 82, 214, 169] vs e.[135, 241, 166, 103, 227, 84, 155, 47, 78]
+ - On turn 3: P2 Health b.999 vs e.998
+Metronome[29](LS) [[172, 0, 174, 212, 51, 152, 214, 45, 117]]: Failed
+ - On turn 5: P1 Has substitute b.False vs e.True
+Metronome[32](HS) [[210, 212, 85, 50, 62, 11, 22, 218, 93]]: Failed
+ - On turn 3: RNG index b.6 vs e.4
+ - On turn 3: RNG list b.[78, 48, 33, 174, 250, 119, 82, 214, 169] vs e.[135, 241, 166, 103, 227, 84, 155, 47, 78]
+ - On turn 3: P2 Health b.999 vs e.998
+Metronome[90](Sub) [[62, 199, 207, 119, 0, 47, 10, 94, 63]]: Failed
+ - On turn 6: P2 Status b.1 (Asleep_for_1_turn) vs e.2 (Asleep_for_2_turn)
 Pound: 85/85
 Karate_Chop: 80/80
 Doubleslap: 85/85
@@ -68,6 +135,7 @@ Disable: 80/80
 Acid: 80/80
 Ember: 80/80
 Flamethrower: 80/80
+Mist: 2828/2828
 Water_Gun: 80/80
 Hydro_Pump: 80/80
 Surf: 80/80
@@ -178,7 +246,6 @@ Super_Fang: 80/80
 Slash: 80/80
 Substitute: 80/80
 Struggle: 80/80
-Mist: 2817/2819
-Metronome: 441/445
-17292 individual test(s) passed. 6 individual test(s) failed.
-163 test group(s) passed. 2 test group(s) failed.
+Metronome: 465/490
+17327 individual test(s) passed. 25 individual test(s) failed.
+164 test group(s) passed. 1 test group(s) failed.

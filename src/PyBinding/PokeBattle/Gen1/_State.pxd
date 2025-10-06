@@ -32,6 +32,13 @@ cdef extern from "<GameEngine/State.hpp>" namespace "PokemonGen1":
 		DESYNC_INVERT,
 		DESYNC_IGNORE
 
+	ctypedef enum BadActionPolicy:
+		BADACTION_IGNORE,
+		BADACTION_STRUGGLE,
+		BADACTION_NOACTION,
+		BADACTION_FIX,
+		BADACTION_THROW
+
 	cdef string BattleActionToString(BattleAction action)
 
 	ctypedef bool MovesDiscovered[4]
@@ -50,6 +57,7 @@ cdef extern from "<GameEngine/State.hpp>" namespace "PokemonGen1":
 		PlayerState op
 		RandomGenerator rng
 		DesyncPolicy desync
+		BadActionPolicy badAction
 		function[void(const string &)] battleLogger
 		function[unsigned char ()] onTurnStart
 		function[void ()] onBattleEnd

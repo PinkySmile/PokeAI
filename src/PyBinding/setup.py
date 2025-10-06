@@ -69,6 +69,8 @@ extensions = [
 	Extension("PokeBattle.Gen1.StatusChange",       ['PokeBattle/Gen1/StatusChange.pyx'],       include_dirs=incs, libraries=libs),
 	Extension("PokeBattle.Gen1.Team",               ['PokeBattle/Gen1/Team.pyx'],               include_dirs=incs, libraries=libs),
 	Extension("PokeBattle.Gen1.Type",               ['PokeBattle/Gen1/Type.pyx'],               include_dirs=incs, libraries=libs),
+	Extension("PokeBattle.Gen1.DesyncPolicy",       ['PokeBattle/Gen1/DesyncPolicy.pyx'],       include_dirs=incs, libraries=libs),
+	Extension("PokeBattle.Gen1.BadActionPolicy",    ['PokeBattle/Gen1/BadActionPolicy.pyx'],    include_dirs=incs, libraries=libs),
 ]
 cython_ext = cythonize(extensions, build_dir="build")
 

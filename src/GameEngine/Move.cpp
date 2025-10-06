@@ -562,6 +562,10 @@ namespace PokemonGen1
 				addedStatus |= owner.changeStat(val.stat, val.nb);
 		if (addedStatus)
 			target.applyStatusDebuff();
+		if (target.hasStatus(STATUS_FROZEN) && this->getType() == TYPE_FIRE) {
+			logger("Fire defrosted " + target.getName());
+			target.setNonVolatileStatus(STATUS_NONE);
+		}
 
 		if (this->_hitCallback)
 			return this->_hitCallback(owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger);

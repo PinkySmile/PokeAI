@@ -200,6 +200,8 @@
 	owner.setGlobalCritRatio(1);\
 	owner.setReflectUp(false);\
 	owner.setLightScreenUp(false);\
+	if (target.hasStatus(STATUS_ASLEEP) || target.hasStatus(STATUS_FROZEN))\
+		target.getMyState().nextAction = NoAction;\
 	target.resetStatsChanges();\
 	target.setStatus(STATUS_NONE);\
 	target.setGlobalCritRatio(1);\
@@ -337,7 +339,7 @@
 }, COPY_RANDOM_MOVE_DESC
 
 #define DISABLE_DESC "Disable a random move from foe"
-#define DISABLE [](Pokemon &owner, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
+#define DISABLE [](Pokemon &, Pokemon &target, unsigned, bool, const std::function<void(const std::string &msg)> &logger){\
 	if (target.getMoveDisabled() != 0)\
 		return logger("But it failed!"), false;\
 \

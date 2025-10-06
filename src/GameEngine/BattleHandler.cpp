@@ -84,7 +84,7 @@ namespace PokemonGen1
 			return;
 		if (p1Start) {
 			if (p1Attack) {
-				if (this->_state.me.nextAction != StruggleMove)
+				if (this->_state.me.nextAction <= Attack4)
 					this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
 				p1.attack(this->_state.me.nextAction - Attack1, p2);
 			}
@@ -94,7 +94,7 @@ namespace PokemonGen1
 		if (!p1.getHealth() || !p2.getHealth())
 			return;
 		if (p2Attack) {
-			if (this->_state.op.nextAction != StruggleMove)
+			if (this->_state.op.nextAction <= Attack4)
 				this->_state.me.discovered[this->_state.op.pokemonOnField].second[this->_state.op.nextAction - Attack1] = true;
 			p2.attack(this->_state.op.nextAction - Attack1, p1);
 		}
@@ -104,7 +104,7 @@ namespace PokemonGen1
 			return;
 		if (!p1Start) {
 			if (p1Attack) {
-				if (this->_state.me.nextAction != StruggleMove)
+				if (this->_state.me.nextAction <= Attack4)
 					this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
 				p1.attack(this->_state.me.nextAction - Attack1, p2);
 			}
@@ -161,9 +161,8 @@ namespace PokemonGen1
 			case Attack3:
 			case Attack4:
 			case StruggleMove:
-				p1Attack = true;
-				break;
 			case NoAction:
+				p1Attack = true;
 				break;
 			default:
 				this->_log("Warning: Invalid P1 move " + std::to_string(this->_state.me.nextAction));
@@ -198,9 +197,8 @@ namespace PokemonGen1
 			case Attack3:
 			case Attack4:
 			case StruggleMove:
-				p2Attack = true;
-				break;
 			case NoAction:
+				p2Attack = true;
 				break;
 			default:
 				this->_log("Warning: Invalid p2 move " + std::to_string(this->_state.op.nextAction));
@@ -230,6 +228,135 @@ namespace PokemonGen1
 		}
 	}
 
+	#define INVALID(name, msg) do { bad = true; message = "Warning: Invalid " + player + " action: Can only do " + name + " when " + msg; goto end; } while (0)
+	#define FIX(ok, action) do { if (ok) { myState.nextAction = static_cast<BattleAction>(action); return; } }  while (0)
+	void BattleHandler::_checkAction(PlayerState &myState, const PlayerState &opState)
+	{
+		bool bad = false;
+		std::string message;
+		std::string player = (&myState == &this->_state.me) ? "P1" : "P2";
+		auto &pkmn = myState.team[myState.pokemonOnField];
+		auto &opPkmn = opState.team[opState.pokemonOnField];
+		auto &moveSet = pkmn.getMoveSet();
+
+		if (myState.nextAction == NoAction) {
+			if (pkmn.getHealth() == 0)
+				INVALID("NoAction", "alive");
+			if (!pkmn.isWrapped())
+				INVALID("NoAction", "trapped");
+		} else if (myState.nextAction == StruggleMove) {
+			if (pkmn.getHealth() == 0)
+				INVALID("StruggleMove", "alive");
+			if (pkmn.isWrapped())
+				INVALID("StruggleMove", "not trapped");
+			for (size_t i = 0; i < moveSet.size(); i++)
+				bad |= moveSet[i].getID() != 0 && moveSet[i].getPP() != 0 && i + 1 != pkmn.getMoveDisabled();
+			if (bad)
+				INVALID("StruggleMove", "no moves are left (all either have no PP, are an empty slot, or disabled)");
+		} else if (Attack1 <= myState.nextAction && myState.nextAction <= Attack4) {
+			if (pkmn.getHealth() == 0)
+				INVALID(BattleActionToString(myState.nextAction), "alive");
+			if (pkmn.isWrapped())
+				INVALID(BattleActionToString(myState.nextAction), "not trapped");
+
+			size_t id = myState.nextAction - Attack1;
+
+			if (id >= moveSet.size() || moveSet[id].getID() == None)
+				INVALID(BattleActionToString(myState.nextAction), "it's not an empty slot");
+			if (moveSet[id].getPP() == 0)
+				INVALID(BattleActionToString(myState.nextAction), "it has PP left");
+			if (id + 1 == pkmn.getMoveDisabled())
+				INVALID(BattleActionToString(myState.nextAction), "it's not disabled");
+		} else if (Switch1 <= myState.nextAction && myState.nextAction <= Switch6) {
+			if (pkmn.getHealth() != 0 && opPkmn.getHealth() == 0)
+				INVALID(BattleActionToString(myState.nextAction), "pokemon on field fainted, or the opponent didn't faint");
+
+			size_t id = myState.nextAction - Switch1;
+
+			if (id == myState.pokemonOnField)
+				INVALID(BattleActionToString(myState.nextAction), "the target isn't already on the field");
+			if (id >= myState.team.size())
+				INVALID(BattleActionToString(myState.nextAction), "the target exists in the team");
+			if (myState.team[id].getHealth() == 0)
+				INVALID(BattleActionToString(myState.nextAction), "the target hasn't fainted");
+		}
+
+	end:
+		if (!bad)
+			return;
+		if (this->_state.badAction != BADACTION_THROW)
+			std::cout << message << std::endl;
+		switch (this->_state.badAction) {
+		case BADACTION_STRUGGLE:
+			myState.nextAction = StruggleMove;
+			return;
+		case BADACTION_NOACTION:
+			myState.nextAction = NoAction;
+			return;
+		case BADACTION_THROW:
+			throw std::runtime_error(message);
+		case BADACTION_IGNORE:
+			return;
+		case BADACTION_FIX:
+			break;
+		}
+
+		size_t firstUsableAttack = 0;
+		size_t firstSwitchablePokemon = 0;
+
+		while (firstUsableAttack < moveSet.size() && (
+			moveSet[firstUsableAttack].getPP() == 0 ||
+			moveSet[firstUsableAttack].getID() == None ||
+			firstUsableAttack + 1 == pkmn.getMoveDisabled()
+		))
+			firstUsableAttack++;
+		while (firstSwitchablePokemon < myState.team.size() && myState.team[firstSwitchablePokemon].getHealth() == 0)
+			firstSwitchablePokemon++;
+		if (myState.nextAction == NoAction) {
+			if (pkmn.getHealth() == 0) {
+				FIX(firstSwitchablePokemon < myState.team.size(), Switch1 + firstSwitchablePokemon);
+				throw std::runtime_error("No possible actions remaining");
+			} else {
+				FIX(firstUsableAttack < moveSet.size(), Attack1 + firstUsableAttack);
+				myState.nextAction = StruggleMove;
+			}
+		} else if (myState.nextAction == StruggleMove) {
+			if (pkmn.getHealth() == 0) {
+				FIX(firstSwitchablePokemon < myState.team.size(), Switch1 + firstSwitchablePokemon);
+				throw std::runtime_error("No possible actions remaining");
+			}
+			if (pkmn.isWrapped())
+				myState.nextAction = NoAction;
+			else
+				myState.nextAction = static_cast<BattleAction>(Attack1 + firstUsableAttack);
+		} else if (Attack1 <= myState.nextAction && myState.nextAction <= Attack4) {
+			if (pkmn.getHealth() == 0) {
+				FIX(firstSwitchablePokemon < myState.team.size(), Switch1 + firstSwitchablePokemon);
+				throw std::runtime_error("No possible actions remaining");
+			}
+			if (!pkmn.isWrapped()) {
+				FIX(firstUsableAttack < moveSet.size(), Attack1 + firstUsableAttack);
+				myState.nextAction = StruggleMove;
+			} else
+				myState.nextAction = NoAction;
+		} else if (Switch1 <= myState.nextAction && myState.nextAction <= Switch6) {
+			FIX(firstSwitchablePokemon < myState.team.size(), Switch1 + firstSwitchablePokemon);
+			if (pkmn.getHealth() == 0)
+				throw std::runtime_error("No possible actions remaining");
+			if (!pkmn.isWrapped()) {
+				FIX(firstUsableAttack < moveSet.size(), Attack1 + firstUsableAttack);
+				myState.nextAction = StruggleMove;
+			} else
+				myState.nextAction = NoAction;
+		}
+	}
+
+	void BattleHandler::_checkActions()
+	{
+		this->_checkAction(this->_state.me, this->_state.op);
+		this->_checkAction(this->_state.op, this->_state.me);
+	}
+
 	bool BattleHandler::tick()
 	{
 		if (!this->_started) {
@@ -248,6 +375,7 @@ namespace PokemonGen1
 			}
 			this->_replayInputs.pop_front();
 		}
+		this->_checkActions();
 		if (this->_state.me.nextAction == EmptyAction || this->_state.op.nextAction == EmptyAction)
 			throw std::runtime_error("No action selected");
 		this->_state.me.discovered[this->_state.op.pokemonOnField].first = true;
