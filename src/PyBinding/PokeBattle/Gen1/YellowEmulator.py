@@ -1025,7 +1025,7 @@ class PkmnYellowEmulator(ABC):
 		team_length = self.read(self.symbol("wPartyCount"))
 		if self.is_dead:
 			assert BattleAction.Switch1 <= action <= BattleAction.Switch6
-			self.tick(20)
+			self.tick(240)
 			target = action - BattleAction.Switch1
 			while self.read(menu_item) != target:
 				diff = (team_length + self.read(menu_item) - target) % team_length
