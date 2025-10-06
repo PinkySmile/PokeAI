@@ -31,6 +31,8 @@ def gen1AI(me: PlayerState, op: PlayerState, categories: list[int], random: Gene
 	moves = me_pkmn.move_set
 	scores = [1000 for _ in moves]
 	op_pkmn = op.pokemon_on_field
+	if op_pkmn.wrapped:
+		return BattleAction.NoAction
 	if 1 in categories and op_pkmn.has_status(StatusChange.Any_non_volatile_status):
 		for i in range(len(scores)):
 			if (moves[i].status_change['status'] & StatusChange.Any_non_volatile_status) and moves[i].category == MoveCategory.Status:
@@ -732,7 +734,7 @@ class PokemonYellowBattle(Env):
 		elif state.op.pokemon_on_field.health == 0:
 			switch_mask = [False] * 6
 			can_no_action = True
-		elif pkmn.wrapped or pkmn.has_status(StatusChange.Asleep | StatusChange.Frozen):
+		elif pkmn.wrapped:
 			can_no_action = True
 		else:
 			assert len(pkmn.move_set) == 4
