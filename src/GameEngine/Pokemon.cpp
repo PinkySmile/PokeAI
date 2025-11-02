@@ -515,6 +515,7 @@ namespace PokemonGen1
 		}
 		if (this->_currentStatus == STATUS_BADLY_POISONED)
 			this->_currentStatus = STATUS_POISONED;
+		this->_currentStatus &= STATUS_ANY_NON_VOLATILE_STATUS;
 	}
 
 	void Pokemon::resetStatsChanges()

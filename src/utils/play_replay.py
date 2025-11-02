@@ -70,10 +70,22 @@ while not battle.finished:
 	emulator.step(state, fast_forward=args.fast or turn < to_turn)
 	emulator_state = emulator.get_emulator_basic_state()
 	if not args.fast:
+		print(" ---- EMULATOR ---- ")
 		print(emulator.dump_basic_state(emulator_state[0]))
 		print(emulator.dump_basic_state(emulator_state[1]))
-		print(state.me.pokemon_on_field.dump())
-		print(state.op.pokemon_on_field.dump())
+		print(" ---- SIMULATOR ---- ")
+		print(state.me.name)
+		for i, pkmn in enumerate(state.me.team):
+			if i == state.me.pokemon_on_field_index:
+				print(pkmn.dump(), "(Active)")
+			else:
+				print(pkmn.dump())
+		print(state.op.name)
+		for i, pkmn in enumerate(state.op.team):
+			if i == state.op.pokemon_on_field_index:
+				print(pkmn.dump(), "(Active)")
+			else:
+				print(pkmn.dump())
 		print(state.rng.index, emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.list)), list(map(lambda x: f'{x:02X}', emulator_state[3])))
 	f = emulator.compare_basic_states(battle.state, emulator_state)
 	if f[1]:
