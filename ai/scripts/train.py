@@ -11,12 +11,11 @@ import gymnasium as gym
 import os
 import glob
 import json
+from pathlib import Path
 
 # --- PokeAI imports ---
-from PokeBattle.Gen1.Env import Examples, basic_opponent
-from PokeBattle.Gen1.Pokemon import PokemonSpecies
-from PokeBattle.Gen1.Move import AvailableMove
-from PokeBattle.Gen1.State import BattleAction, BattleState
+import PokeBattle.Gen1.Env
+from PokeBattle.Gen1.Env import Examples, basic_opponent, load_scenario
 from gymnasium import logger
 
 # --- Load config paths ---
@@ -29,39 +28,6 @@ RUNS_DIR = CONFIG.get("runs_dir")
 
 def get_replay_folder(run_name: str):
     return f'{LOGS_ROOT}/{run_name}/{VIDEOS_SUBDIR}'
-
-# --- Player and Opponent teams definition ---
-START_OPTIONS = {
-        "p1name": "PokeAI",
-        "p2name": "Opponent",
-        "p1team": [{
-            "species": PokemonSpecies.Charmander,
-            "name": "CHARMANDER",
-            "level": 10,
-            "moves": [AvailableMove.Bonemerang, AvailableMove.Water_Gun, AvailableMove.Thundershock]
-        }],
-        "p2team": [{
-                "species": PokemonSpecies.Articuno,
-                "name": "ARTICUNO",
-                "level": 5,
-                "moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
-            },
-            {
-                "species": PokemonSpecies.Diglett,
-                "name": "DIGLETT",
-                "level": 8,
-                "moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
-            },
-            {
-                "species": PokemonSpecies.Ponyta,
-                "name": "PONYTA",
-                "level": 8,
-                "moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
-            }
-        ]
-    }
-
-# START_OPTIONS = Examples.LtSurge
 
 def _capture_frame(self):
     assert self.recording, "Cannot capture a frame, recording wasn't started."
@@ -297,7 +263,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--exp-name', type=str, default='exp', help='Name of the experiment')
-    parser.add_argument('--gym-id', type=str, default='CartPole-v1', help='ID of the Gymnasium environment')
+    parser.add_argument('--gym-id', type=str, default='PokemonYellow', help='ID of the Gymnasium environment')
     parser.add_argument('--learning-rate', type=float, default=2.5e-4, help='Learning rate of the optimizer')
     parser.add_argument('--disable-anneal-lr', action='store_false', dest='anneal_lr', default=True, help='Toggle learning rate annealing for policy and value networks')
     parser.add_argument('--seed', type=int, default=42, help='Seed used for the training')
@@ -326,6 +292,8 @@ def parse_args():
     parser.add_argument('--max-grad-norm', type=float, default=0.5, help='The maximum norm for the gradient clipping')
     parser.add_argument('--target-kl', type=float, default=None, help='the KL divergence threshold for early stopping')
 
+    parser.add_argument('--scenario', type=str, default="simple", help="Pokemon battle scenario")
+
     args = parser.parse_args()
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
@@ -335,6 +303,24 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
     run_name = f'{args.gym_id}_{args.exp_name}_{args.seed}_{int(time.time())}'
+    if os.path.exists(f"ai/scenarios/{args.scenario}.json"):
+        with open(f"ai/scenarios/{args.scenario}.json") as fd:
+            j = json.load(fd)
+        ai = getattr(PokeBattle.Gen1.Env, j["ai"]) if "ai" in j else basic_opponent
+        start_options = load_scenario(f"ai/scenarios/{j["scenario"]}", ai)
+    else:
+        try:
+            start_options = getattr(PokeBattle.Gen1.Env.Examples, args.scenario)
+        except AttributeError:
+            print(f"Cannot find scenario {args.scenario}")
+            print("Valid scenarios are:")
+            for elem in filter(lambda k: not k.startswith('__'), Examples.__dict__.keys()):
+                print(f" - {elem}")
+            for elem in os.listdir("ai/scenarios"):
+                p = Path(elem)
+                if p.suffix == ".json":
+                    print(f" - {p.stem}")
+            exit(1)
 
     try:
         run_videos_dir = os.path.join(LOGS_ROOT, run_name, VIDEOS_SUBDIR)
@@ -399,7 +385,7 @@ if __name__ == '__main__':
     global_step = 0
     start_time = time.time()
     # next_obs, _ = envs.reset(seed=args.seed)
-    next_obs, next_obs_info = envs.reset(seed=args.seed, options=START_OPTIONS)
+    next_obs, next_obs_info = envs.reset(seed=args.seed, options=start_options)
     next_mask = torch.as_tensor(next_obs_info.get('mask'), device=device, dtype=torch.bool)
     next_obs = torch.as_tensor(next_obs, dtype=torch.float32, device=device)
     next_done = torch.zeros(args.num_envs, dtype=torch.float32, device=device)
