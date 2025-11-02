@@ -1,6 +1,4 @@
 import time
-from distutils.util import strtobool
-
 import argparse
 import torch
 import torch.nn as nn
@@ -13,42 +11,45 @@ import gymnasium as gym
 import os
 import glob
 
-#PokeAI imports
-from GameEngine import PokemonSpecies, AvailableMove, BattleAction, BattleState
-from Env import Examples, basic_opponent
+# --- PokeAI imports ---
+from PokeBattle.Gen1.Env import Examples, basic_opponent
+from PokeBattle.Gen1.Pokemon import PokemonSpecies
+from PokeBattle.Gen1.Move import AvailableMove
+from PokeBattle.Gen1.State import BattleAction, BattleState
 from gymnasium import logger
 
-# START_OPTIONS = {
-#         "p1name": "PokeAI",
-#         "p2name": "Opponent",
-#         "p1team": [{
-#             "species": PokemonSpecies.Charmander,
-#             "name": "CHARMANDER",
-#             "level": 10,
-#             "moves": [AvailableMove.Bonemerang, AvailableMove.Water_Gun, AvailableMove.Thundershock]
-#         }],
-#         "p2team": [{
-#                 "species": PokemonSpecies.Articuno,
-#                 "name": "ARTICUNO",
-#                 "level": 5,
-#                 "moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
-#             },
-#             {
-#                 "species": PokemonSpecies.Diglett,
-#                 "name": "DIGLETT",
-#                 "level": 10,
-#                 "moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
-#             },
-#             {
-#                 "species": PokemonSpecies.Ponyta,
-#                 "name": "PONYTA",
-#                 "level": 10,
-#                 "moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
-#             }
-#         ]
-#     }
+# --- Player and Opponent teams definition ---
+START_OPTIONS = {
+        "p1name": "PokeAI",
+        "p2name": "Opponent",
+        "p1team": [{
+            "species": PokemonSpecies.Charmander,
+            "name": "CHARMANDER",
+            "level": 10,
+            "moves": [AvailableMove.Bonemerang, AvailableMove.Water_Gun, AvailableMove.Thundershock]
+        }],
+        "p2team": [{
+                "species": PokemonSpecies.Articuno,
+                "name": "ARTICUNO",
+                "level": 5,
+                "moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
+            },
+            {
+                "species": PokemonSpecies.Diglett,
+                "name": "DIGLETT",
+                "level": 8,
+                "moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
+            },
+            {
+                "species": PokemonSpecies.Ponyta,
+                "name": "PONYTA",
+                "level": 8,
+                "moves": [AvailableMove.Tackle, AvailableMove.Tail_Whip]
+            }
+        ]
+    }
 
-START_OPTIONS = Examples.Brock
+# START_OPTIONS = Examples.LtSurge
 
 def _capture_frame(self):
     assert self.recording, "Cannot capture a frame, recording wasn't started."
@@ -77,7 +78,7 @@ def make_env(gym_id, seed, idx, capture_video, run_name, video_every):
         # Use rgb_array only for the video env. otherwise standard env
         if capture_video and idx == 0:
             if gym_id == 'PokemonYellow':
-                env = gym.make('PokemonYellow', seed, render_mode='rgb_array_list', opponent_callback=basic_opponent, episode_trigger=fn_episode_trigger, replay_folder=f'videos/{run_name}')
+                env = gym.make('PokemonYellow', seed, render_mode='rgb_array_list', opponent_callback=basic_opponent, episode_trigger=fn_episode_trigger, replay_folder=f'videos/{run_name}', shuffle_teams=True)
             else:
                 env = gym.make(gym_id, seed, render_mode='rgb_array')
             # record every `video_every` episodes on env 0
@@ -89,7 +90,7 @@ def make_env(gym_id, seed, idx, capture_video, run_name, video_every):
         else:
             try:
                 if gym_id == 'PokemonYellow':
-                    env = gym.make('PokemonYellow', seed, opponent_callback=basic_opponent, render_mode='human' if idx==0 else None, replay_folder=f'videos/{run_name}')
+                    env = gym.make('PokemonYellow', seed, opponent_callback=basic_opponent, render_mode='human' if idx==0 else None, replay_folder=f'videos/{run_name}', shuffle_teams=True)
                 else:
                     env = gym.make(gym_id, seed)
             except TypeError:
@@ -111,7 +112,97 @@ def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
     torch.nn.init.constant_(layer.bias, bias_const)
     return layer
 
-#
+
+class Agent(nn.Module):
+    def __init__(self, envs):
+        super(Agent, self).__init__()
+        obs_dim = int(np.array(envs.single_observation_space.shape).prod())
+        act_dim = envs.single_action_space.n
+
+        self.move_embedding = nn.Embedding(
+            num_embeddings=166,  # 0-164 moves, 165: token
+            embedding_dim=16,
+            padding_idx=0
+        )
+
+        embedded_obs_dim = obs_dim - 8 + (8 * 16)
+
+        # Shared feature extractor
+        self.feature_extractor = nn.Sequential(
+            layer_init(nn.Linear(embedded_obs_dim, 2048)),
+            nn.Tanh(),
+            layer_init(nn.Linear(2048, 1024)),
+            nn.Tanh(),
+        )
+
+        # Project features to embedding dimension for move scoring
+        self.move_scorer = layer_init(nn.Linear(1024, 16), std=0.01)
+
+        # Separate heads for switch and other actions
+        self.other_actions = layer_init(nn.Linear(1024, 8), std=0.01)
+
+        self.critic = nn.Sequential(
+            layer_init(nn.Linear(embedded_obs_dim, 2048)),
+            nn.Tanh(),
+            layer_init(nn.Linear(2048, 1024)),
+            nn.Tanh(),
+            layer_init(nn.Linear(1024, 1), std=1.),
+        )
+
+    def embed_observation(self, x):
+        batch_size = x.shape[0]
+
+        move_id_positions = [35, 37, 39, 41, 78, 80, 82, 84]
+        move_ids = x[:, move_id_positions].long()
+        move_ids = move_ids.clone()
+        move_ids = torch.where(move_ids == -10, torch.zeros_like(move_ids), move_ids)
+        move_ids = torch.where(move_ids == -1, torch.ones_like(move_ids) * 165, move_ids)
+
+        move_embeds = self.move_embedding(move_ids)
+        move_embeds = move_embeds.view(batch_size, -1)
+
+        all_positions = list(range(x.shape[1]))
+        non_move_positions = [i for i in all_positions if i not in move_id_positions]
+
+        non_move_features = x[:, non_move_positions]
+        return torch.cat([non_move_features, move_embeds], dim=1)
+
+    def get_value(self, x):
+        x_embedded = self.embed_observation(x)
+        return self.critic(x_embedded)
+
+    def get_action_and_value(self, x, mask=None, action=None):
+        batch_size = x.shape[0]
+        x_embedded = self.embed_observation(x)
+
+        # Get move embeddings for current pokemon
+        move_id_positions = [35, 37, 39, 41]
+        move_ids = x[:, move_id_positions].long()
+        move_ids = move_ids.clone()
+        move_ids = torch.where(move_ids == -10, torch.zeros_like(move_ids), move_ids)
+        move_ids = torch.where(move_ids == -1, torch.ones_like(move_ids) * 165, move_ids)
+        move_embeds = self.move_embedding(move_ids)  # (batch, 4, 16)
+
+        features = self.feature_extractor(x_embedded)  # (batch, 1024)
+
+        # Project to embedding space and compute move values
+        move_query = self.move_scorer(features)  # (batch, 16)
+        move_values = torch.bmm(move_embeds, move_query.unsqueeze(-1)).squeeze(-1)  # (batch, 4)
+        other_values = self.other_actions(features)  # (batch, 8)
+
+        # given the current state features, what kind of move characteristics do I want? (the move_query), then scores each available move based on how well it matches those desired characteristic
+
+        logits = torch.cat([move_values, other_values], dim=1)  # (batch, 12)
+
+        if mask is not None:
+            logits = logits.masked_fill(mask == 0, float('-inf'))
+
+        probs = Categorical(logits=logits)
+        if action is None:
+            action = probs.sample()
+
+        return action, probs.log_prob(action), probs.entropy(), self.critic(x_embedded)
+
 # class Agent(nn.Module):
 #     def __init__(self, envs):
 #         super(Agent, self).__init__()
@@ -122,18 +213,18 @@ def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
 #
 #         )
 #         self.critic = nn.Sequential(
-#             layer_init(nn.Linear(obs_dim, 4096)),
+#             layer_init(nn.Linear(obs_dim, 1024)),
 #             nn.Tanh(),
-#             layer_init(nn.Linear(4096, 2048)),
+#             layer_init(nn.Linear(1024, 512)),
 #             nn.Tanh(),
-#             layer_init(nn.Linear(2048, 1), std=1.),
+#             layer_init(nn.Linear(512, 1), std=1.),
 #         )
 #         self.actor = nn.Sequential(
-#             layer_init(nn.Linear(obs_dim, 4096)),
+#             layer_init(nn.Linear(obs_dim, 1024)),
 #             nn.Tanh(),
-#             layer_init(nn.Linear(4096, 2048)),
+#             layer_init(nn.Linear(1024, 512)),
 #             nn.Tanh(),
-#             layer_init(nn.Linear(2048, act_dim), std=0.01),
+#             layer_init(nn.Linear(512, act_dim), std=0.01),
 #         )
 #
 #     def get_value(self, x):
@@ -151,35 +242,36 @@ def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
 #         return action, probs.log_prob(action), probs.entropy(), self.critic(x)
 
 # # Share common layers
-class Agent(nn.Module):
-    def __init__(self, envs):
-        super(Agent, self).__init__()
-        obs_dim = int(np.array(envs.single_observation_space.shape).prod())
-        act_dim = envs.single_action_space.n
-
-        self.network = nn.Sequential(
-            layer_init(nn.Linear(obs_dim, 1024)),
-            nn.Tanh(),
-            layer_init(nn.Linear(1024, 512)),
-            nn.Tanh(),
-        )
-
-        self.critic = layer_init(nn.Linear(512, 1), std=1.)
-        self.actor = layer_init(nn.Linear(512, act_dim), std=0.01)
-
-    def get_value(self, x):
-        features = self.network(x)
-        return self.critic(features)
-
-    def get_action_and_value(self, x, mask=None, action=None):
-        features = self.network(x)
-        logits = self.actor(features)
-        if mask is not None:
-            logits = logits.masked_fill(mask == 0, float('-inf'))
-        probs = Categorical(logits=logits)
-        if action is None:
-            action = probs.sample()
-        return action, probs.log_prob(action), probs.entropy(), self.critic(features)
+# class Agent(nn.Module):
+#     def __init__(self, envs):
+#         super(Agent, self).__init__()
+#         obs_dim = int(np.array(envs.single_observation_space.shape).prod())
+#         act_dim = envs.single_action_space.n
+#
+#         self.network = nn.Sequential(
+#             layer_init(nn.Linear(obs_dim, 2048)),
+#             nn.Tanh(),
+#             layer_init(nn.Linear(2048, 1024)),
+#             nn.Tanh(),
+#         )
+#
+#         self.critic = layer_init(nn.Linear(1024, 1), std=1.)
+#         self.actor = layer_init(nn.Linear(1024, act_dim), std=0.01)
+#
+#     def get_value(self, x):
+#         features = self.network(x)
+#         return self.critic(features)
+#
+#     def get_action_and_value(self, x, mask=None, action=None):
+#         features = self.network(x)
+#         logits = self.actor(features)
+#         # print(f'Action mask: {mask}')
+#         if mask is not None:
+#             logits = logits.masked_fill(mask == 0, float('-inf'))
+#         probs = Categorical(logits=logits)
+#         if action is None:
+#             action = probs.sample()
+#         return action, probs.log_prob(action), probs.entropy(), self.critic(features)
 
 
 #--- Parser ---
@@ -201,10 +293,10 @@ def parse_args():
     parser.add_argument('--capture-video', action='store_true', default=False, help='Save video of the agent in its environment')
     parser.add_argument('--video-every', type=int, default=100, help='Record a video every N episodes on env 0')
 
-    parser.add_argument('--num-envs', type=int, default=64, help='Number of parallel environments to run')
+    parser.add_argument('--num-envs', type=int, default=16, help='Number of parallel environments to run')
     parser.add_argument('--num-steps', type=int, default=128, help='Number of steps to run in each environments per policy rollout')
 
-    parser.add_argument('--gamma-gae',  type=float, default=0.99, help='The discount factor')
+    parser.add_argument('--gamma-gae',  type=float, default=0.995, help='The discount factor')
     parser.add_argument('--lambda-gae',  type=float, default=0.95, help='The lambda for GAE')
     parser.add_argument('--num-minibatches', type=int, default=8, help='The number of minibatches')
     parser.add_argument('--update_epochs', type=int, default=4, help='The number of epochs to update the policy')
