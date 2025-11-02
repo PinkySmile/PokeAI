@@ -13,6 +13,7 @@ import os
 import glob
 import json
 from pathlib import Path
+from datetime import datetime
 
 # --- PokeAI imports ---
 import PokeBattle.Gen1.Env
@@ -31,6 +32,7 @@ RUNS_DIR = CONFIG.get("runs_dir")
 
 def get_replay_folder(run_name: str):
     return f'{LOGS_ROOT}/{run_name}/{VIDEOS_SUBDIR}'
+
 
 def _capture_frame(self):
     assert self.recording, "Cannot capture a frame, recording wasn't started."
@@ -320,7 +322,8 @@ def parse_args():
 
 if __name__ == '__main__':
     args = parse_args()
-    run_name = f'{args.gym_id}_{args.exp_name}_{args.seed}_{int(time.time())}'
+    current_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+    run_name = f'{args.gym_id}_{args.exp_name}_{args.seed}_{current_time}'
     if os.path.exists(f"ai/scenarios/{args.scenario}.json"):
         with open(f"ai/scenarios/{args.scenario}.json") as fd:
             j = json.load(fd)
@@ -366,7 +369,7 @@ if __name__ == '__main__':
             save_code=True,
             dir=f'{LOGS_ROOT}/{run_name}'
         )
-    writer = SummaryWriter(f'{RUNS_DIR}/{run_name}')
+    writer = SummaryWriter(f'{LOGS_ROOT}/{run_name}')
     writer.add_text('hyperparameters',
                     '|param|value|\n|-|-|\n%s' % ('\n'.join(f'|{key}|{value}|' for key, value in vars(args).items())))
 
