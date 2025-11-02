@@ -209,6 +209,10 @@ class Agent(nn.Module):
         if mask is not None:
             logits = logits.masked_fill(mask == 0, float('-inf'))
 
+        invalid_logits_row = torch.isneginf(logits).all(dim=1)
+        if invalid_logits_row.any():
+            raise ValueError(f"No valid actions available. Check the action mask.")
+
         probs = Categorical(logits=logits)
         if action is None:
             action = probs.sample()
