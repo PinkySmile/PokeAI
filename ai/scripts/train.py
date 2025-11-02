@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.distributions.categorical import Categorical
+from torch.utils.checkpoint import checkpoint
 from torch.utils.tensorboard import SummaryWriter
 import random
 import numpy as np
@@ -16,6 +17,7 @@ from pathlib import Path
 # --- PokeAI imports ---
 import PokeBattle.Gen1.Env
 from PokeBattle.Gen1.Env import Examples, basic_opponent, load_scenario
+from PokeBattle.Gen1.Move import AvailableMove
 from gymnasium import logger
 
 # --- Load config paths ---
@@ -25,6 +27,7 @@ with open("ai/configs/config.json", "r") as f:
 LOGS_ROOT = CONFIG.get("logs_root")
 VIDEOS_SUBDIR = CONFIG.get("videos_subdir")
 RUNS_DIR = CONFIG.get("runs_dir")
+
 
 def get_replay_folder(run_name: str):
     return f'{LOGS_ROOT}/{run_name}/{VIDEOS_SUBDIR}'
@@ -47,16 +50,20 @@ def _capture_frame(self):
             f"Recording stopped: expected type of frame returned by render to be a numpy array, got instead {type(frame)}."
         )
 
+
 gym.wrappers.RecordVideo._capture_frame = _capture_frame
 
 
 def make_env(gym_id, seed, idx, capture_video, run_name, video_every):
     fn_episode_trigger = lambda ep_id: ep_id % max(1, int(video_every)) == 0
+
     def thunk():
         # Use rgb_array only for the video env. otherwise standard env
         if capture_video and idx == 0:
             if gym_id == 'PokemonYellow':
-                env = gym.make('PokemonYellow', seed, render_mode='rgb_array_list', opponent_callback=basic_opponent, episode_trigger=fn_episode_trigger, replay_folder=get_replay_folder(run_name), shuffle_teams=True)
+                env = gym.make('PokemonYellow', seed, render_mode='rgb_array_list', opponent_callback=basic_opponent,
+                               episode_trigger=fn_episode_trigger, replay_folder=get_replay_folder(run_name),
+                               shuffle_teams=True)
             else:
                 env = gym.make(gym_id, seed, render_mode='rgb_array')
             # record every `video_every` episodes on env 0
@@ -68,7 +75,9 @@ def make_env(gym_id, seed, idx, capture_video, run_name, video_every):
         else:
             try:
                 if gym_id == 'PokemonYellow':
-                    env = gym.make('PokemonYellow', seed, opponent_callback=basic_opponent, render_mode='human' if idx==0 else None, replay_folder=get_replay_folder(run_name), shuffle_teams=True)
+                    env = gym.make('PokemonYellow', seed, opponent_callback=basic_opponent,
+                                   render_mode='human' if idx == 0 else None, replay_folder=get_replay_folder(run_name),
+                                   shuffle_teams=True)
                 else:
                     env = gym.make(gym_id, seed)
             except TypeError:
@@ -97,9 +106,8 @@ class Agent(nn.Module):
         obs_dim = int(np.array(envs.single_observation_space.shape).prod())
         act_dim = envs.single_action_space.n
 
-        # TODO: add method to check how many moves are defined and use this instead of hardcoding
         self.move_embedding = nn.Embedding(
-            num_embeddings=166,  # 0-164 moves, 165: token for unknown move
+            num_embeddings=len(AvailableMove),  # 0-164 moves, 165: token for unknown move
             embedding_dim=16,
             padding_idx=0
         )
@@ -159,8 +167,9 @@ class Agent(nn.Module):
         move_id_positions = [35, 37, 39, 41]
         move_ids = x[:, move_id_positions].long()
         move_ids = move_ids.clone()
-        move_ids = torch.where(move_ids == -10, torch.zeros_like(move_ids), move_ids) # no move slot
-        move_ids = torch.where(move_ids == -1, torch.ones_like(move_ids) * 165, move_ids) # unknown move (opponent's unrevealed move) -> use a special "unknown" token
+        move_ids = torch.where(move_ids == -10, torch.zeros_like(move_ids), move_ids)  # no move slot
+        move_ids = torch.where(move_ids == -1, torch.ones_like(move_ids) * 165,
+                               move_ids)  # unknown move (opponent's unrevealed move) -> use a special "unknown" token
         move_embeds = self.move_embedding(move_ids)  # (batch, 4, 16)
 
         features = self.feature_extractor(x_embedded)  # (batch, 1024)
@@ -186,6 +195,7 @@ class Agent(nn.Module):
             action = probs.sample()
 
         return action, probs.log_prob(action), probs.entropy(), self.critic(x_embedded)
+
 
 # class Agent(nn.Module):
 #     def __init__(self, envs):
@@ -258,39 +268,47 @@ class Agent(nn.Module):
 #         return action, probs.log_prob(action), probs.entropy(), self.critic(features)
 
 
-#--- Parser ---
+# --- Parser ---
 def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--exp-name', type=str, default='exp', help='Name of the experiment')
     parser.add_argument('--gym-id', type=str, default='PokemonYellow', help='ID of the Gymnasium environment')
     parser.add_argument('--learning-rate', type=float, default=2.5e-4, help='Learning rate of the optimizer')
-    parser.add_argument('--disable-anneal-lr', action='store_false', dest='anneal_lr', default=True, help='Toggle learning rate annealing for policy and value networks')
+    parser.add_argument('--disable-anneal-lr', action='store_false', dest='anneal_lr', default=True,
+                        help='Toggle learning rate annealing for policy and value networks')
     parser.add_argument('--seed', type=int, default=42, help='Seed used for the training')
     parser.add_argument('--total-timesteps', type=int, default=500000, help='The total timesteps of the training')
     # For GPU
-    parser.add_argument('--torch-deterministic', type=bool, default=True, help='torch.backends.cudnn.deterministic=True by default')
+    parser.add_argument('--torch-deterministic', type=bool, default=True,
+                        help='torch.backends.cudnn.deterministic=True by default')
     parser.add_argument('--use-cpu', action='store_true', default=False, help='To use CPU only')
     # Logging
     parser.add_argument('--wandb', action='store_true', default=False, help='Log the experiment using wandb')
     parser.add_argument('--wandb-project-name', type=str, default='ppo', help='wandb project name')
-    parser.add_argument('--capture-video', action='store_true', default=False, help='Save video of the agent in its environment')
+    parser.add_argument('--capture-video', action='store_true', default=False,
+                        help='Save video of the agent in its environment')
     parser.add_argument('--video-every', type=int, default=100, help='Record a video every N episodes on env 0')
 
     parser.add_argument('--num-envs', type=int, default=16, help='Number of parallel environments to run')
-    parser.add_argument('--num-steps', type=int, default=128, help='Number of steps to run in each environments per policy rollout')
+    parser.add_argument('--num-steps', type=int, default=128,
+                        help='Number of steps to run in each environments per policy rollout')
 
-    parser.add_argument('--gamma-gae',  type=float, default=0.995, help='The discount factor')
-    parser.add_argument('--lambda-gae',  type=float, default=0.95, help='The lambda for GAE')
+    parser.add_argument('--gamma-gae', type=float, default=0.995, help='The discount factor')
+    parser.add_argument('--lambda-gae', type=float, default=0.95, help='The lambda for GAE')
     parser.add_argument('--num-minibatches', type=int, default=8, help='The number of minibatches')
     parser.add_argument('--update_epochs', type=int, default=4, help='The number of epochs to update the policy')
-    parser.add_argument('--no-norm-adv', action='store_false', dest='norm_adv', default=True, help='Do not normalize advantages')
+    parser.add_argument('--no-norm-adv', action='store_false', dest='norm_adv', default=True,
+                        help='Do not normalize advantages')
     parser.add_argument('--clip-coef', type=float, default=0.2, help='The surrogate clipping coefficient')
-    parser.add_argument('--no-clip-vloss', action='store_false', dest='clip_vloss', default=True, help='Using clipped loss for the value function by default')
+    parser.add_argument('--no-clip-vloss', action='store_false', dest='clip_vloss', default=True,
+                        help='Using clipped loss for the value function by default')
     parser.add_argument('--ent-coef', type=float, default=0.01, help='coefficient for the entropy loss')
     parser.add_argument('--vf-coef', type=float, default=0.5, help='coefficient of the value function')
     parser.add_argument('--max-grad-norm', type=float, default=0.5, help='The maximum norm for the gradient clipping')
     parser.add_argument('--target-kl', type=float, default=None, help='the KL divergence threshold for early stopping')
+    parser.add_argument('--resume-checkpoint', type=str, default=None,
+                        help='Path to the checkpoint.pt file to resume training from')
 
     parser.add_argument('--scenario', type=str, default="simple", help="Pokemon battle scenario")
 
@@ -326,17 +344,20 @@ if __name__ == '__main__':
         run_videos_dir = os.path.join(LOGS_ROOT, run_name, VIDEOS_SUBDIR)
         run_wandb_dir = os.path.join(LOGS_ROOT, run_name)
         run_runs_dir = os.path.join(RUNS_DIR, run_name)
+        checkpoints_dir = os.path.join(LOGS_ROOT, run_name, "checkpoints")
 
         os.makedirs(run_videos_dir, exist_ok=True)
         os.makedirs(run_wandb_dir, exist_ok=True)
         os.makedirs(run_runs_dir, exist_ok=True)
+        os.makedirs(checkpoints_dir, exist_ok=True)
     except Exception:
         logger.warn("Could not create directories.")
         pass
 
-    #--- Logging ---
+    # --- Logging ---
     if args.wandb:
         import wandb
+
         wandb.init(
             project=args.wandb_project_name,
             sync_tensorboard=True,
@@ -349,7 +370,7 @@ if __name__ == '__main__':
     writer.add_text('hyperparameters',
                     '|param|value|\n|-|-|\n%s' % ('\n'.join(f'|{key}|{value}|' for key, value in vars(args).items())))
 
-    #--- Fixing the seed for reproducibility ---
+    # --- Fixing the seed for reproducibility ---
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -360,10 +381,13 @@ if __name__ == '__main__':
     print(f'Using {device}')
 
     # Creating the vectorized environments to run multiple independent copies of the same environment in parallel
-    envs = gym.vector.AsyncVectorEnv([make_env(args.gym_id, args.seed + i, i, args.capture_video, run_name, args.video_every) for i in range(args.num_envs)])
+    envs = gym.vector.AsyncVectorEnv(
+        [make_env(args.gym_id, args.seed + i, i, args.capture_video, run_name, args.video_every) for i in
+         range(args.num_envs)])
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), 'We only support discrete action space'
 
     agent = Agent(envs).to(device)
+
     # try torch.compile for speedups (optional)
     try:
         if hasattr(torch, "compile"):
@@ -373,16 +397,30 @@ if __name__ == '__main__':
 
     optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
 
-    #--- Training storage (preallocated on device) ---
-    obs = torch.zeros((args.num_steps, args.num_envs) + envs.single_observation_space.shape, dtype=torch.float32, device=device) # Ex: shape [128, 4, 4]
-    actions = torch.zeros((args.num_steps, args.num_envs) + envs.single_action_space.shape, dtype=torch.long, device=device) #Ex: shape [128, 4]
+    # --- Load checkpoint if specified
+    start_update = 1
+    if args.resume_checkpoint:
+        if os.path.exists(args.resume_checkpoint):
+            print(f"Loading checkpoint from {args.resume_checkpoint}")
+            checkpoint = torch.load(args.resume_checkpoint, map_location=device)
+            agent.load_state_dict(checkpoint["model_state"])
+            start_update = checkpoint["update"] + 1
+            print(f"Resumed from update {checkpoint['update']}")
+        else:
+            raise FileNotFoundError(f"Checkpoint {args.resume_checkpoint} not found.")
+
+    # --- Training storage (preallocated on device) ---
+    obs = torch.zeros((args.num_steps, args.num_envs) + envs.single_observation_space.shape, dtype=torch.float32,
+                      device=device)  # Ex: shape [128, 4, 4]
+    actions = torch.zeros((args.num_steps, args.num_envs) + envs.single_action_space.shape, dtype=torch.long,
+                          device=device)  # Ex: shape [128, 4]
     logprobs = torch.zeros((args.num_steps, args.num_envs), dtype=torch.float32, device=device)
     rewards = torch.zeros((args.num_steps, args.num_envs), dtype=torch.float32, device=device)
     dones = torch.zeros((args.num_steps, args.num_envs), dtype=torch.float32, device=device)
     values = torch.zeros((args.num_steps, args.num_envs), dtype=torch.float32, device=device)
-    masks = torch.zeros((args.num_steps, args.num_envs, envs.single_action_space.n),dtype=torch.bool, device=device)
+    masks = torch.zeros((args.num_steps, args.num_envs, envs.single_action_space.n), dtype=torch.bool, device=device)
 
-    global_step = 0
+    global_step = (start_update - 1) * args.batch_size
     start_time = time.time()
     # next_obs, _ = envs.reset(seed=args.seed)
     next_obs, next_obs_info = envs.reset(seed=args.seed, options=start_options)
@@ -391,8 +429,8 @@ if __name__ == '__main__':
     next_done = torch.zeros(args.num_envs, dtype=torch.float32, device=device)
     num_updates = args.total_timesteps // args.batch_size
 
-    #--- Training loop ---
-    for update in range(1, num_updates + 1):
+    # --- Training loop ---
+    for update in range(start_update, num_updates + 1):
         if args.anneal_lr:
             frac = 1.0 - (update - 1.0) / num_updates
             lrnow = frac * args.learning_rate
@@ -405,7 +443,7 @@ if __name__ == '__main__':
 
             with torch.no_grad():
                 action, logprob, _, value = agent.get_action_and_value(x=next_obs, mask=next_mask)
-                values[step] = value.view(-1) # or values[step] = value.flatten() for non contiguous tensor
+                values[step] = value.view(-1)  # or values[step] = value.flatten() for non contiguous tensor
             actions[step] = action
             logprobs[step] = logprob
 
@@ -426,7 +464,8 @@ if __name__ == '__main__':
                     if infos["_episode"][i]:
                         ep_return = infos["episode"]["r"][i]
                         ep_length = infos["episode"]["l"][i]
-                        print(f"global_step={global_step}, env={i}, episode_lenght: {ep_length}, episodic_return={ep_return}")
+                        print(
+                            f"global_step={global_step}, env={i}, episode_lenght: {ep_length}, episodic_return={ep_return}")
                         writer.add_scalar("charts/episodic_return", ep_return, global_step)
                         writer.add_scalar("charts/episodic_length", ep_length, global_step)
                         # Log the latest recorded video to W&B when env 0 finishes an episode
@@ -439,7 +478,7 @@ if __name__ == '__main__':
                             except Exception:
                                 pass
 
-        #--- General Advantage Estimation (GAE) (once per rollout) ---
+        # --- General Advantage Estimation (GAE) (once per rollout) ---
         with torch.no_grad():
             next_value = agent.get_value(next_obs).reshape(1, -1)
             advantages = torch.zeros_like(rewards, device=device)
@@ -476,7 +515,7 @@ if __name__ == '__main__':
                 end = start + minibatch_size
                 mb_inds = perm[start:end]
                 _, newlogprob, entropy, newvalue = agent.get_action_and_value(b_obs[mb_inds],
-                                                                              mask=b_masks[mb_inds], # A changer
+                                                                              mask=b_masks[mb_inds],  # A changer
                                                                               action=b_actions[mb_inds])
 
                 logratio = newlogprob - b_logprobs[mb_inds]
@@ -523,6 +562,12 @@ if __name__ == '__main__':
 
             if args.target_kl is not None and approx_kl is not None and approx_kl > args.target_kl:
                 break
+        if update % 10 == 0:
+            torch.save({
+                "update": update,
+                "model_state": agent.state_dict(),
+                "optim_state": optimizer.state_dict(),
+            }, os.path.join(checkpoints_dir, f"update{update}.pt"))
 
         # DEBUG: Is the value function a good indicator of the returns ?
         y_pred, y_true = b_values.cpu().numpy(), b_returns.cpu().numpy()
@@ -542,6 +587,12 @@ if __name__ == '__main__':
         writer.add_scalar("losses/explained_variance", explained_var, global_step)
         print("SPS:", int(global_step / (time.time() - start_time)))
         writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
+
+    torch.save({
+        "update": update,
+        "model_state": agent.state_dict(),
+        "optim_sstate": optimizer.state_dict(),
+    }, os.path.join(checkpoints_dir, f"final_update{update}.pt"))
 
     envs.close()
     writer.close()
