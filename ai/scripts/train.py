@@ -131,8 +131,9 @@ class Agent(nn.Module):
         obs_dim = int(np.array(envs.single_observation_space.shape).prod())
         act_dim = envs.single_action_space.n
 
+        # TODO: add method to check how many moves are defined and use this instead of hardcoding
         self.move_embedding = nn.Embedding(
-            num_embeddings=166,  # 0-164 moves, 165: token
+            num_embeddings=166,  # 0-164 moves, 165: token for unknown move
             embedding_dim=16,
             padding_idx=0
         )
@@ -188,11 +189,12 @@ class Agent(nn.Module):
         x_embedded = self.embed_observation(x)
 
         # Get move embeddings for current pokemon
+        # TODO: use variables instead of hardcoding moves positions from Env
         move_id_positions = [35, 37, 39, 41]
         move_ids = x[:, move_id_positions].long()
         move_ids = move_ids.clone()
-        move_ids = torch.where(move_ids == -10, torch.zeros_like(move_ids), move_ids)
-        move_ids = torch.where(move_ids == -1, torch.ones_like(move_ids) * 165, move_ids)
+        move_ids = torch.where(move_ids == -10, torch.zeros_like(move_ids), move_ids) # no move slot
+        move_ids = torch.where(move_ids == -1, torch.ones_like(move_ids) * 165, move_ids) # unknown move (opponent's unrevealed move) -> use a special "unknown" token
         move_embeds = self.move_embedding(move_ids)  # (batch, 4, 16)
 
         features = self.feature_extractor(x_embedded)  # (batch, 1024)
