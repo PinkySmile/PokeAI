@@ -1384,6 +1384,11 @@ namespace PokemonGen1
 		return this->_globalCritRatio;
 	}
 
+	unsigned char Pokemon::getForcedAttack() const
+	{
+		return this->_forcedAttack;
+	}
+
 	Pokemon::Base::Base(
 		unsigned char id,
 		unsigned char dexId,

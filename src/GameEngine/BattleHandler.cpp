@@ -68,14 +68,20 @@ namespace PokemonGen1
 		int p2PriorityFactor = p2.getPriorityFactor(this->_state.op.nextAction - Attack1);
 		bool p1Start = p1PriorityFactor > p2PriorityFactor;
 
-		if (p1Attack)
+		if (p1Attack) {
 			this->_state.me.lastAttack =
 				this->_state.me.nextAction == StruggleMove ? Struggle :
 				static_cast<AvailableMove>(p1.getMoveSet()[this->_state.me.nextAction - Attack1].getID());
-		if (p2Attack)
+			if (p1.getForcedAttack())
+				this->_state.me.nextAction = static_cast<BattleAction>(Attack1 + p1.getForcedAttack() - 1);
+		}
+		if (p2Attack) {
 			this->_state.op.lastAttack =
 				this->_state.op.nextAction == StruggleMove ? Struggle :
 				static_cast<AvailableMove>(p2.getMoveSet()[this->_state.op.nextAction - Attack1].getID());
+			if (p2.getForcedAttack())
+				this->_state.op.nextAction = static_cast<BattleAction>(Attack1 + p2.getForcedAttack() - 1);
+		}
 
 		if (p1PriorityFactor == p2PriorityFactor)
 			p1Start = (this->_state.rng() < 0x80) ^ this->_isViewSwapped;
