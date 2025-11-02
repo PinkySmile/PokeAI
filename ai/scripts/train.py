@@ -10,6 +10,7 @@ import numpy as np
 import gymnasium as gym
 import os
 import glob
+import json
 
 # --- PokeAI imports ---
 from PokeBattle.Gen1.Env import Examples, basic_opponent
@@ -17,6 +18,17 @@ from PokeBattle.Gen1.Pokemon import PokemonSpecies
 from PokeBattle.Gen1.Move import AvailableMove
 from PokeBattle.Gen1.State import BattleAction, BattleState
 from gymnasium import logger
+
+# --- Load config paths ---
+with open("ai/configs/config.json", "r") as f:
+    CONFIG = json.load(f).get("paths", {})
+
+LOGS_ROOT = CONFIG.get("logs_root")
+VIDEOS_SUBDIR = CONFIG.get("videos_subdir")
+RUNS_DIR = CONFIG.get("runs_dir")
+
+def get_replay_folder(run_name: str):
+    return f'{LOGS_ROOT}/{run_name}/{VIDEOS_SUBDIR}'
 
 # --- Player and Opponent teams definition ---
 START_OPTIONS = {
@@ -78,19 +90,19 @@ def make_env(gym_id, seed, idx, capture_video, run_name, video_every):
         # Use rgb_array only for the video env. otherwise standard env
         if capture_video and idx == 0:
             if gym_id == 'PokemonYellow':
-                env = gym.make('PokemonYellow', seed, render_mode='rgb_array_list', opponent_callback=basic_opponent, episode_trigger=fn_episode_trigger, replay_folder=f'videos/{run_name}', shuffle_teams=True)
+                env = gym.make('PokemonYellow', seed, render_mode='rgb_array_list', opponent_callback=basic_opponent, episode_trigger=fn_episode_trigger, replay_folder=get_replay_folder(run_name), shuffle_teams=True)
             else:
                 env = gym.make(gym_id, seed, render_mode='rgb_array')
             # record every `video_every` episodes on env 0
             env = gym.wrappers.RecordVideo(
                 env,
-                f'videos/{run_name}',
+                get_replay_folder(run_name),
                 episode_trigger=fn_episode_trigger
             )
         else:
             try:
                 if gym_id == 'PokemonYellow':
-                    env = gym.make('PokemonYellow', seed, opponent_callback=basic_opponent, render_mode='human' if idx==0 else None, replay_folder=f'videos/{run_name}', shuffle_teams=True)
+                    env = gym.make('PokemonYellow', seed, opponent_callback=basic_opponent, render_mode='human' if idx==0 else None, replay_folder=get_replay_folder(run_name), shuffle_teams=True)
                 else:
                     env = gym.make(gym_id, seed)
             except TypeError:
@@ -318,6 +330,18 @@ if __name__ == '__main__':
     args = parse_args()
     run_name = f'{args.gym_id}_{args.exp_name}_{args.seed}_{int(time.time())}'
 
+    try:
+        run_videos_dir = os.path.join(LOGS_ROOT, run_name, VIDEOS_SUBDIR)
+        run_wandb_dir = os.path.join(LOGS_ROOT, run_name)
+        run_runs_dir = os.path.join(RUNS_DIR, run_name)
+
+        os.makedirs(run_videos_dir, exist_ok=True)
+        os.makedirs(run_wandb_dir, exist_ok=True)
+        os.makedirs(run_runs_dir, exist_ok=True)
+    except Exception:
+        logger.warn("Could not create directories.")
+        pass
+
     #--- Logging ---
     if args.wandb:
         import wandb
@@ -326,9 +350,10 @@ if __name__ == '__main__':
             sync_tensorboard=True,
             config=vars(args),
             name=run_name,
-            save_code=True
+            save_code=True,
+            dir=f'{LOGS_ROOT}/{run_name}'
         )
-    writer = SummaryWriter(f'runs/{run_name}')
+    writer = SummaryWriter(f'{RUNS_DIR}/{run_name}')
     writer.add_text('hyperparameters',
                     '|param|value|\n|-|-|\n%s' % ('\n'.join(f'|{key}|{value}|' for key, value in vars(args).items())))
 
@@ -415,7 +440,7 @@ if __name__ == '__main__':
                         # Log the latest recorded video to W&B when env 0 finishes an episode
                         if args.wandb and args.capture_video and i == 0:
                             try:
-                                video_dir = os.path.join('videos', run_name)
+                                video_dir = os.path.join(get_replay_folder(run_name))
                                 mp4s = sorted(glob.glob(os.path.join(video_dir, '*.mp4')))
                                 if mp4s:
                                     wandb.log({"video/rollout": wandb.Video(mp4s[-1], format="mp4")})

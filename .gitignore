@@ -18,3 +18,11 @@ __pycache__
 dist
 *.egg-info
 *_log.json
+ai/logs/training/*
+ai/models/*
+*.pt
+*.pth
+*.ckpt
+__pycache__/
+*.tmp
+*.mp4

@@ -1,0 +1,7 @@
+{
+  "paths": {
+    "logs_root": "ai/logs/training",
+    "videos_subdir": "videos",
+    "runs_dir": "ai/logs/training"
+  }
+}
