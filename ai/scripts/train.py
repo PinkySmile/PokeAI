@@ -311,7 +311,7 @@ def parse_args():
     parser.add_argument('--target-kl', type=float, default=None, help='the KL divergence threshold for early stopping')
     parser.add_argument('--resume-checkpoint', type=str, default=None,
                         help='Path to the checkpoint.pt file to resume training from')
-
+    parser.add_argument('--save-checkpoint-every', type=int, default=0, help='Saves a checkpoint every N episodes.')
     parser.add_argument('--scenario', type=str, default="simple", help="Pokemon battle scenario")
 
     args = parser.parse_args()
@@ -565,7 +565,7 @@ if __name__ == '__main__':
 
             if args.target_kl is not None and approx_kl is not None and approx_kl > args.target_kl:
                 break
-        if update % 10 == 0:
+        if args.save_checkpoint_every > 0 and update % args.save_checkpoint_every == 0:
             torch.save({
                 "update": update,
                 "model_state": agent.state_dict(),
@@ -592,10 +592,10 @@ if __name__ == '__main__':
         writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
 
     torch.save({
-        "update": update,
+        "update": num_updates,
         "model_state": agent.state_dict(),
-        "optim_sstate": optimizer.state_dict(),
-    }, os.path.join(checkpoints_dir, f"final_update{update}.pt"))
+        "optim_state": optimizer.state_dict(),
+    }, os.path.join(checkpoints_dir, f"final_update{num_updates}.pt"))
 
     envs.close()
     writer.close()
