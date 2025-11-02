@@ -1254,6 +1254,7 @@ namespace PokemonGen1
 		if (index > 4)
 			throw std::out_of_range("");
 		this->_moveSet[index] = move;
+		this->_moveSetCopy[index] = move;
 	}
 
 	void Pokemon::setInvincible(bool invincible)
