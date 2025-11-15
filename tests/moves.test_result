@@ -1,18 +1,8 @@
-Metronome[27](LP) [[182, 58, 232, 172, 75, 139, 79, 136, 165]]: Failed
- - On turn 7: P1 Has substitute b.False vs e.True
 Metronome[25](HP) [[63, 54, 78, 9, 244, 23, 234, 245, 195]]: Failed
  - On turn 7: RNG index b.7 vs e.8
  - On turn 7: RNG list b.[22, 33, 89, 88, 199, 14, 69, 84, 202] vs e.[209, 160, 120, 171, 142, 105, 116, 119, 245]
  - On turn 7: P2 Health b.986 vs e.987
  - On turn 7: P2 Speed b.659 vs e.999
-Metronome[30](HP) [[74, 17, 98, 43, 18, 205, 7, 168, 34]]: Failed
- - On turn 6: RNG index b.1 vs e.6
- - On turn 6: RNG list b.[130, 105, 154, 67, 74, 165, 159, 32, 90] vs e.[220, 219, 180, 197, 228, 119, 129, 42, 116]
- - On turn 6: P2 Health b.988 vs e.989
-Metronome[28](LS) [[78, 230, 153, 47, 128, 211, 235, 198, 2]]: Failed
- - On turn 7: RNG list b.[156, 116, 143, 117, 62, 249, 81, 84, 176] vs e.[31, 23, 182, 228, 217, 152, 16, 119, 35]
- - On turn 7: P2 Health b.807 vs e.808
- - On turn 7: P2 Speed b.16 vs e.25
 Metronome[25](HS) [[63, 54, 78, 9, 244, 23, 234, 245, 195]]: Failed
  - On turn 7: RNG index b.7 vs e.8
  - On turn 7: RNG list b.[22, 33, 89, 88, 199, 14, 69, 84, 202] vs e.[209, 160, 120, 171, 142, 105, 116, 119, 245]
@@ -22,230 +12,222 @@ Metronome[28](HP) [[78, 230, 153, 47, 128, 211, 235, 198, 2]]: Failed
  - On turn 6: RNG list b.[156, 116, 143, 117, 62, 249, 81, 84, 176] vs e.[31, 23, 182, 228, 217, 152, 16, 119, 35]
  - On turn 6: P2 Health b.987 vs e.988
  - On turn 6: P2 Speed b.659 vs e.999
-Metronome[29](HS) [[172, 0, 174, 212, 51, 152, 214, 45, 117]]: Failed
- - On turn 5: P1 Has substitute b.False vs e.True
-Metronome[32](LP) [[210, 212, 85, 50, 62, 11, 22, 218, 93]]: Failed
- - On turn 3: RNG list b.[135, 241, 166, 103, 227, 84, 155, 47, 78] vs e.[51, 253, 226, 19, 207, 176, 7, 91, 10]
- - On turn 3: P1 Speed b.300 vs e.198
- - On turn 3: P2 Health b.994 vs e.983
-Metronome[27](HP) [[182, 58, 232, 172, 75, 139, 79, 136, 165]]: Failed
- - On turn 7: P1 Has substitute b.False vs e.True
-Metronome[28](LP) [[78, 230, 153, 47, 128, 211, 235, 198, 2]]: Failed
- - On turn 7: RNG list b.[156, 116, 143, 117, 62, 249, 81, 84, 176] vs e.[31, 23, 182, 228, 217, 152, 16, 119, 35]
- - On turn 7: P2 Health b.792 vs e.808
- - On turn 7: P2 Speed b.16 vs e.25
-Metronome[30](LP) [[74, 17, 98, 43, 18, 205, 7, 168, 34]]: Failed
- - On turn 7: RNG index b.1 vs e.6
- - On turn 7: RNG list b.[130, 105, 154, 67, 74, 165, 159, 32, 90] vs e.[220, 219, 180, 197, 228, 119, 129, 42, 116]
- - On turn 7: P2 Health b.815 vs e.830
 Metronome[28](HS) [[78, 230, 153, 47, 128, 211, 235, 198, 2]]: Failed
  - On turn 6: RNG list b.[156, 116, 143, 117, 62, 249, 81, 84, 176] vs e.[31, 23, 182, 228, 217, 152, 16, 119, 35]
  - On turn 6: P2 Health b.987 vs e.988
  - On turn 6: P2 Speed b.659 vs e.999
-Metronome[30](LS) [[74, 17, 98, 43, 18, 205, 7, 168, 34]]: Failed
- - On turn 7: RNG index b.1 vs e.6
- - On turn 7: RNG list b.[130, 105, 154, 67, 74, 165, 159, 32, 90] vs e.[220, 219, 180, 197, 228, 119, 129, 42, 116]
- - On turn 7: P2 Health b.829 vs e.830
-Metronome[29](HP) [[172, 0, 174, 212, 51, 152, 214, 45, 117]]: Failed
- - On turn 5: P1 Has substitute b.False vs e.True
-Metronome[32](LS) [[210, 212, 85, 50, 62, 11, 22, 218, 93]]: Failed
- - On turn 3: RNG list b.[135, 241, 166, 103, 227, 84, 155, 47, 78] vs e.[51, 253, 226, 19, 207, 176, 7, 91, 10]
- - On turn 3: P1 Speed b.300 vs e.198
- - On turn 3: P2 Health b.994 vs e.993
-Metronome[27](LS) [[182, 58, 232, 172, 75, 139, 79, 136, 165]]: Failed
- - On turn 7: P1 Has substitute b.False vs e.True
-Metronome[27](HS) [[182, 58, 232, 172, 75, 139, 79, 136, 165]]: Failed
- - On turn 7: P1 Has substitute b.False vs e.True
+Metronome[28](LP) [[78, 230, 153, 47, 128, 211, 235, 198, 2]]: Failed
+ - On turn 7: RNG list b.[156, 116, 143, 117, 62, 249, 81, 84, 176] vs e.[31, 23, 182, 228, 217, 152, 16, 119, 35]
+ - On turn 7: P2 Health b.792 vs e.808
+ - On turn 7: P2 Speed b.16 vs e.25
+Metronome[28](LS) [[78, 230, 153, 47, 128, 211, 235, 198, 2]]: Failed
+ - On turn 7: RNG list b.[156, 116, 143, 117, 62, 249, 81, 84, 176] vs e.[31, 23, 182, 228, 217, 152, 16, 119, 35]
+ - On turn 7: P2 Health b.807 vs e.808
+ - On turn 7: P2 Speed b.16 vs e.25
+Metronome[30](HP) [[74, 17, 98, 43, 18, 205, 7, 168, 34]]: Failed
+ - On turn 6: RNG index b.1 vs e.6
+ - On turn 6: RNG list b.[130, 105, 154, 67, 74, 165, 159, 32, 90] vs e.[220, 219, 180, 197, 228, 119, 129, 42, 116]
+ - On turn 6: P2 Health b.988 vs e.989
 Metronome[30](HS) [[74, 17, 98, 43, 18, 205, 7, 168, 34]]: Failed
  - On turn 6: RNG index b.1 vs e.6
  - On turn 6: RNG list b.[130, 105, 154, 67, 74, 165, 159, 32, 90] vs e.[220, 219, 180, 197, 228, 119, 129, 42, 116]
  - On turn 6: P2 Health b.988 vs e.989
-Metronome[33](Sub) [[234, 50, 228, 170, 148, 204, 54, 48, 221]]: Failed
- - On turn 7: P2 Status b.2 (Asleep_for_2_turn) vs e.3 (Asleep_for_3_turn)
-Metronome[29](LP) [[172, 0, 174, 212, 51, 152, 214, 45, 117]]: Failed
- - On turn 5: P1 Has substitute b.False vs e.True
-Metronome[53](LP) [[118, 123, 73, 198, 24, 236, 221, 101, 161]]: Failed
- - On turn 5: RNG index b.7 vs e.5
- - On turn 5: RNG list b.[123, 132, 42, 11, 5, 233, 206, 246, 98] vs e.[104, 149, 211, 56, 26, 142, 7, 207, 235]
- - On turn 5: P1 Health b.964 vs e.953
- - On turn 5: P1 Speed b.300 vs e.198
- - On turn 5: P2 Status b.32 (Frozen) vs e.0 (OK)
+Metronome[30](LP) [[74, 17, 98, 43, 18, 205, 7, 168, 34]]: Failed
+ - On turn 7: RNG index b.1 vs e.6
+ - On turn 7: RNG list b.[130, 105, 154, 67, 74, 165, 159, 32, 90] vs e.[220, 219, 180, 197, 228, 119, 129, 42, 116]
+ - On turn 7: P2 Health b.815 vs e.830
+Metronome[30](LS) [[74, 17, 98, 43, 18, 205, 7, 168, 34]]: Failed
+ - On turn 7: RNG index b.1 vs e.6
+ - On turn 7: RNG list b.[130, 105, 154, 67, 74, 165, 159, 32, 90] vs e.[220, 219, 180, 197, 228, 119, 129, 42, 116]
+ - On turn 7: P2 Health b.829 vs e.830
 Metronome[32](HP) [[210, 212, 85, 50, 62, 11, 22, 218, 93]]: Failed
  - On turn 3: RNG index b.6 vs e.4
  - On turn 3: RNG list b.[78, 48, 33, 174, 250, 119, 82, 214, 169] vs e.[135, 241, 166, 103, 227, 84, 155, 47, 78]
  - On turn 3: P2 Health b.999 vs e.998
-Metronome[29](LS) [[172, 0, 174, 212, 51, 152, 214, 45, 117]]: Failed
- - On turn 5: P1 Has substitute b.False vs e.True
 Metronome[32](HS) [[210, 212, 85, 50, 62, 11, 22, 218, 93]]: Failed
  - On turn 3: RNG index b.6 vs e.4
  - On turn 3: RNG list b.[78, 48, 33, 174, 250, 119, 82, 214, 169] vs e.[135, 241, 166, 103, 227, 84, 155, 47, 78]
  - On turn 3: P2 Health b.999 vs e.998
-Metronome[90](Sub) [[62, 199, 207, 119, 0, 47, 10, 94, 63]]: Failed
- - On turn 6: P2 Status b.1 (Asleep_for_1_turn) vs e.2 (Asleep_for_2_turn)
-Pound: 85/85
-Karate_Chop: 80/80
-Doubleslap: 85/85
-Comet_Punch: 80/80
-Mega_Punch: 80/80
-Pay_Day: 80/80
-Fire_Punch: 80/80
-Ice_Punch: 80/80
-Thunder_Punch: 80/80
-Scratch: 80/80
-Vise_Grip: 80/80
-Guillotine: 80/80
-Razor_Wind: 80/80
-Swords_Dance: 80/80
-Cut: 80/80
-Gust: 80/80
-Wing_Attack: 80/80
-Whirlwind: 80/80
-Fly: 80/80
-Bind: 176/176
-Slam: 80/80
-Vine_Whip: 80/80
-Stomp: 95/95
-Double_Kick: 90/90
-Mega_Kick: 80/80
-Jump_Kick: 80/80
-Rolling_Kick: 80/80
-Sand_Attack: 85/85
-Headbutt: 80/80
-Horn_Attack: 80/80
-Fury_Attack: 80/80
-Horn_Drill: 80/80
-Tackle: 80/80
-Body_Slam: 80/80
-Wrap: 209/209
-Take_Down: 80/80
-Thrash: 85/85
-Double_Edge: 80/80
-Tail_Whip: 80/80
-Poison_Sting: 80/80
-Twineedle: 80/80
-Pin_Missile: 80/80
-Leer: 80/80
-Bite: 80/80
-Growl: 80/80
-Roar: 80/80
-Sing: 80/80
-Supersonic: 80/80
-Sonic_Boom: 80/80
-Disable: 80/80
-Acid: 80/80
-Ember: 80/80
-Flamethrower: 80/80
-Mist: 2828/2828
-Water_Gun: 80/80
-Hydro_Pump: 80/80
-Surf: 80/80
-Ice_Beam: 80/80
-Blizzard: 80/80
-Psybeam: 90/90
-Bubblebeam: 80/80
-Aurora_Beam: 80/80
-Hyper_Beam: 530/530
-Peck: 80/80
-Drill_Peck: 80/80
-Submission: 85/85
-Low_Kick: 85/85
-Counter: 80/80
-Seismic_Toss: 80/80
-Strength: 80/80
+Metronome[32](LP) [[210, 212, 85, 50, 62, 11, 22, 218, 93]]: Failed
+ - On turn 3: RNG list b.[135, 241, 166, 103, 227, 84, 155, 47, 78] vs e.[51, 253, 226, 19, 207, 176, 7, 91, 10]
+ - On turn 3: P1 Speed b.300 vs e.198
+ - On turn 3: P2 Health b.994 vs e.983
+Metronome[32](LS) [[210, 212, 85, 50, 62, 11, 22, 218, 93]]: Failed
+ - On turn 3: RNG list b.[135, 241, 166, 103, 227, 84, 155, 47, 78] vs e.[51, 253, 226, 19, 207, 176, 7, 91, 10]
+ - On turn 3: P1 Speed b.300 vs e.198
+ - On turn 3: P2 Health b.994 vs e.993
+Metronome[36](LP) [[86, 74, 144, 153, 155, 134, 193, 4, 82]]: Failed
+ - On turn 7: P2 Speed b.4 vs e.1
+Metronome[36](LS) [[86, 74, 144, 153, 155, 134, 193, 4, 82]]: Failed
+ - On turn 7: P2 Speed b.4 vs e.1
+Metronome[6](LP) [[43, 94, 76, 25, 23, 170, 212, 187, 89]]: Failed
+ - On turn 7: P2 Speed b.4 vs e.1
+Metronome[7](LP) [[181, 179, 12, 164, 249, 82, 14, 185, 56]]: Failed
+ - On turn 7: P1 PPs b.[5, 0, 0, 0] vs e.[6, 0, 0, 0]
 Absorb: 80/80
-Mega_Drain: 80/80
-Leech_Seed: 80/80
-Growth: 80/80
-Razor_Leaf: 80/80
-Solarbeam: 80/80
-Poisonpowder: 80/80
-Stun_Spore: 80/80
-Sleep_Powder: 80/80
-Petal_Dance: 80/80
-String_Shot: 85/85
-Dragon_Rage: 80/80
-Fire_Spin: 176/176
-Thundershock: 80/80
-Thunderbolt: 80/80
-Thunder_Wave: 80/80
-Thunder: 80/80
-Rock_Throw: 80/80
-Earthquake: 80/80
-Fissure: 80/80
-Dig: 80/80
-Toxic: 80/80
-Confusion: 80/80
-Psychic_M: 80/80
-Hypnosis: 80/80
-Meditate: 80/80
+Acid: 80/80
+Acid_Armor: 80/80
 Agility: 85/85
+Amnesia: 80/80
+Aurora_Beam: 80/80
+Barrage: 80/80
+Barrier: 80/80
+Bide: 80/80
+Bind: 176/176
+Bite: 80/80
+Blizzard: 80/80
+Body_Slam: 80/80
+Bone_Club: 80/80
+Bonemerang: 80/80
+Bubble: 80/80
+Bubblebeam: 80/80
+Clamp: 198/198
+Comet_Punch: 80/80
+Confuse_Ray: 85/85
+Confusion: 80/80
+Constrict: 80/80
+Conversion: 80/80
+Counter: 80/80
+Crabhammer: 80/80
+Cut: 80/80
+Defense_Curl: 80/80
+Dig: 80/80
+Disable: 80/80
+Dizzy_Punch: 80/80
+Double_Edge: 80/80
+Double_Kick: 90/90
+Double_Team: 80/80
+Doubleslap: 85/85
+Dragon_Rage: 80/80
+Dream_Eater: 80/80
+Drill_Peck: 80/80
+Earthquake: 80/80
+Egg_Bomb: 80/80
+Ember: 80/80
+Explosion: 80/80
+Fire_Blast: 90/90
+Fire_Punch: 80/80
+Fire_Spin: 176/176
+Fissure: 80/80
+Flamethrower: 80/80
+Flash: 80/80
+Fly: 80/80
+Focus_Energy: 80/80
+Fury_Attack: 80/80
+Fury_Swipes: 80/80
+Glare: 80/80
+Growl: 80/80
+Growth: 80/80
+Guillotine: 80/80
+Gust: 80/80
+Harden: 80/80
+Haze: 80/80
+Headbutt: 80/80
+Hi_Jump_Kick: 80/80
+Horn_Attack: 80/80
+Horn_Drill: 80/80
+Hydro_Pump: 80/80
+Hyper_Beam: 530/530
+Hyper_Fang: 80/80
+Hypnosis: 80/80
+Ice_Beam: 80/80
+Ice_Punch: 80/80
+Jump_Kick: 80/80
+Karate_Chop: 80/80
+Kinesis: 80/80
+Leech_Life: 80/80
+Leech_Seed: 80/80
+Leer: 80/80
+Lick: 80/80
+Light_Screen: 80/80
+Lovely_Kiss: 80/80
+Low_Kick: 85/85
+Meditate: 80/80
+Mega_Drain: 80/80
+Mega_Kick: 80/80
+Mega_Punch: 80/80
+Mimic: 80/80
+Minimize: 80/80
+Mirror_Move: 80/80
+Mist: 2831/2831
+Night_Shade: 80/80
+Pay_Day: 80/80
+Peck: 80/80
+Petal_Dance: 80/80
+Pin_Missile: 80/80
+Poison_Gas: 80/80
+Poison_Sting: 80/80
+Poisonpowder: 80/80
+Pound: 85/85
+Psybeam: 90/90
+Psychic_M: 80/80
+Psywave: 80/80
 Quick_Attack: 80/80
 Rage: 80/80
-Teleport: 80/80
-Night_Shade: 80/80
-Mimic: 80/80
-Screech: 80/80
-Double_Team: 80/80
+Razor_Leaf: 80/80
+Razor_Wind: 80/80
 Recover: 80/80
-Harden: 80/80
-Minimize: 80/80
-Smokescreen: 95/95
-Confuse_Ray: 85/85
-Withdraw: 80/80
-Defense_Curl: 80/80
-Barrier: 80/80
-Light_Screen: 80/80
-Haze: 80/80
 Reflect: 80/80
-Focus_Energy: 80/80
-Bide: 80/80
-Mirror_Move: 80/80
-Self_Destruct: 80/80
-Egg_Bomb: 80/80
-Lick: 80/80
-Smog: 80/80
-Sludge: 80/80
-Bone_Club: 80/80
-Fire_Blast: 90/90
-Waterfall: 80/80
-Clamp: 198/198
-Swift: 80/80
-Skull_Bash: 80/80
-Spike_Cannon: 80/80
-Constrict: 80/80
-Amnesia: 80/80
-Kinesis: 80/80
-Softboiled: 80/80
-Hi_Jump_Kick: 80/80
-Glare: 80/80
-Dream_Eater: 80/80
-Poison_Gas: 80/80
-Barrage: 80/80
-Leech_Life: 80/80
-Lovely_Kiss: 80/80
-Sky_Attack: 80/80
-Transform: 80/80
-Bubble: 80/80
-Dizzy_Punch: 80/80
-Spore: 80/80
-Flash: 80/80
-Psywave: 80/80
-Splash: 80/80
-Acid_Armor: 80/80
-Crabhammer: 80/80
-Explosion: 80/80
-Fury_Swipes: 80/80
-Bonemerang: 80/80
 Rest: 80/80
+Roar: 80/80
 Rock_Slide: 80/80
-Hyper_Fang: 80/80
+Rock_Throw: 80/80
+Rolling_Kick: 80/80
+Sand_Attack: 85/85
+Scratch: 80/80
+Screech: 80/80
+Seismic_Toss: 80/80
+Self_Destruct: 80/80
 Sharpen: 80/80
-Conversion: 80/80
-Tri_Attack: 80/80
-Super_Fang: 80/80
+Sing: 80/80
+Skull_Bash: 80/80
+Sky_Attack: 80/80
+Slam: 80/80
 Slash: 80/80
-Substitute: 80/80
+Sleep_Powder: 80/80
+Sludge: 80/80
+Smog: 80/80
+Smokescreen: 95/95
+Softboiled: 80/80
+Solarbeam: 80/80
+Sonic_Boom: 80/80
+Spike_Cannon: 80/80
+Splash: 80/80
+Spore: 80/80
+Stomp: 95/95
+Strength: 80/80
+String_Shot: 85/85
 Struggle: 80/80
-Metronome: 465/490
-17327 individual test(s) passed. 25 individual test(s) failed.
+Stun_Spore: 80/80
+Submission: 85/85
+Substitute: 80/80
+Super_Fang: 80/80
+Supersonic: 80/80
+Surf: 80/80
+Swift: 80/80
+Swords_Dance: 80/80
+Tackle: 80/80
+Tail_Whip: 80/80
+Take_Down: 80/80
+Teleport: 80/80
+Thrash: 85/85
+Thunder: 80/80
+Thunder_Punch: 80/80
+Thunder_Wave: 80/80
+Thunderbolt: 80/80
+Thundershock: 80/80
+Toxic: 80/80
+Transform: 80/80
+Tri_Attack: 80/80
+Twineedle: 80/80
+Vine_Whip: 80/80
+Vise_Grip: 80/80
+Water_Gun: 80/80
+Waterfall: 80/80
+Whirlwind: 80/80
+Wing_Attack: 80/80
+Withdraw: 80/80
+Wrap: 209/209
+Metronome: 487/505
+17352 individual test(s) passed. 18 individual test(s) failed.
 164 test group(s) passed. 1 test group(s) failed.

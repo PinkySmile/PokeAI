@@ -359,8 +359,13 @@ namespace PokemonGen1
 
 	void BattleHandler::_checkActions()
 	{
-		this->_checkAction(this->_state.me, this->_state.op);
-		this->_checkAction(this->_state.op, this->_state.me);
+		auto &me = this->_state.me.team[this->_state.me.pokemonOnField];
+		auto &op = this->_state.op.team[this->_state.op.pokemonOnField];
+
+		if (!me.hasStatus(STATUS_ASLEEP) && !me.hasStatus(STATUS_FROZEN))
+			this->_checkAction(this->_state.me, this->_state.op);
+		if (!op.hasStatus(STATUS_ASLEEP) && !op.hasStatus(STATUS_FROZEN))
+			this->_checkAction(this->_state.op, this->_state.me);
 	}
 
 	bool BattleHandler::tick()
@@ -382,6 +387,14 @@ namespace PokemonGen1
 			this->_replayInputs.pop_front();
 		}
 		this->_checkActions();
+
+		auto &me = this->_state.me.team[this->_state.me.pokemonOnField];
+		auto &op = this->_state.op.team[this->_state.op.pokemonOnField];
+
+		if (me.hasStatus(STATUS_ASLEEP) || me.hasStatus(STATUS_FROZEN))
+			this->_state.me.nextAction = this->_state.me.lastAction;
+		if (op.hasStatus(STATUS_ASLEEP) || op.hasStatus(STATUS_FROZEN))
+			this->_state.op.nextAction = this->_state.op.lastAction;
 		if (this->_state.me.nextAction == EmptyAction || this->_state.op.nextAction == EmptyAction)
 			throw std::runtime_error("No action selected");
 		this->_state.me.discovered[this->_state.op.pokemonOnField].first = true;

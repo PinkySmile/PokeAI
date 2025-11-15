@@ -893,11 +893,13 @@ extra_lists = {
 		[ 78, 230, 153,  47, 128, 211, 235, 198,   2], # Metronome[28](*)  => Freeze -> Mirror Move should fail
 		[172,   0, 174, 212,  51, 152, 214,  45, 117],
 		[ 74,  17,  98,  43,  18, 205,   7, 168,  34], # Metronome[30](*)  => Sleep -> Mirror Move should fail
-		[146, 199,  77, 181,  44, 103, 165,  54,  13], # Metronome[31](L*) => When asleep, action should be NoAction
+		[146, 199,  77, 181,  44, 103, 165,  54,  13],
 		[210, 212,  85,  50,  62,  11,  22, 218,  93], # Metronome[32](*)  => Mirror Move shouldn't fail when paralyzed last turn
-		[234,  50, 228, 170, 148, 204,  54,  48, 221], # Mist&Metronome[33]=> When trapped, should tick sleep (Contradicts Metronome[35](H*))
+		[234,  50, 228, 170, 148, 204,  54,  48, 221],
 		[118, 123,  73, 198,  24, 236, 221, 101, 161],
-		[ 62, 199, 207, 119,   0,  47,  10,  94,  63], # Metronome[35](H*) => When trapped, should not tick sleep (Contradicts Mist&Metronome[33])
+		[ 62, 199, 207, 119,   0,  47,  10,  94,  63],
+		[ 86,  74, 144, 153, 155, 134, 193,   4,  82], # Metronome[36](L*)
+		[181, 179,  12, 164, 249,  82,  14, 185,  56], # Metronome[37](L*,Sub) -> Using struggle should never lower PP (even if used from Mirror Move)
 		None, None, None, None, None, None, None, None,
 		None, None, None, None, None, None, None, None,
 		None, None, None, None, None, None, None, None,
@@ -1033,11 +1035,12 @@ results = []
 
 parser = ArgumentParser(prog=sys.argv[0])
 parser.add_argument('-d', '--debug', action='store_true')
-parser.add_argument('-v', '--display-emulator', action='store_true')
+parser.add_argument('-u', '--display-emulator', action='store_true')
 parser.add_argument('-e', '--emu-debug', action='store_true')
 parser.add_argument('-i', '--show-individual', action='store_true')
 parser.add_argument('-f', '--show-failure', action='store_true')
 parser.add_argument('-t', '--test', nargs='*')
+parser.add_argument('-v', '--volume', default=25, type=int)
 parser.add_argument('-j', '--jobs', default=1, type=int)
 parser.add_argument('-o', '--output')
 parser.add_argument('-r', '--rom')
@@ -1061,7 +1064,7 @@ else:
 
 def run_tests(offset: int, count: int):
 	global tests_ran
-	emulator = PyBoyEmulator(has_interface=args.display_emulator and offset == 0, sound_volume=25 if debug and offset == 0 else 0, save_frames=False, debug=args.emu_debug, rom=args.rom)
+	emulator = PyBoyEmulator(has_interface=args.display_emulator and offset == 0, sound_volume=args.volume if debug and offset == 0 else 0, save_frames=False, debug=args.emu_debug, rom=args.rom)
 	for test_object in tests_to_run[offset::count]:
 		errors, extra = run_test(test_object, emulator)
 		tests_ran += 1
@@ -1094,7 +1097,7 @@ failures = 0
 groups = {}
 print()
 fd = None if args.output is None else open(args.output, "w")
-for r in sorted(results, key=lambda x: len(x['errors']) != 0):
+for r in sorted(results, key=lambda x: str((int(len(x['errors']) != 0))) + x["name"]):
 	if r['group'] not in groups:
 		groups[r['group']] = [0, 0]
 	groups[r['group']][1] += 1

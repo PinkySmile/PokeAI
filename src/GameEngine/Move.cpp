@@ -415,7 +415,6 @@ namespace PokemonGen1
 			damage.isVeryEffective = false;
 			damage.isNotVeryEffective = false;
 			owner.getBattleState().lastDamage = damage.damage;
-			logger("One-hit KO!");
 		} else if (this->_power) {
 			unsigned char r = rng();
 			auto baseSpeed = pokemonList.at(owner.getID()).SPD;
@@ -484,6 +483,8 @@ namespace PokemonGen1
 
 	skipAccuracyAndDamageCheck:
 		if (this->_power) {
+			if (this->_power == 255)
+				logger("One-hit KO!");
 			if (!target.hasSubstitute() && owner.getBattleState().lastDamage > target.getHealth())
 				owner.getBattleState().lastDamage = target.getHealth();
 			target.takeDamage(owner, owner.getBattleState().lastDamage, false, false);
