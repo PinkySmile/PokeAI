@@ -554,7 +554,7 @@ def test_bind_switch_inverted(emulator, move, random_state, scenario):
 			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
 
 
-def hyper_beam_status_move(emulator: PyBoyEmulator, move: int, random_state: list|None, scenario: int):
+def multi_turn_status_move(emulator: PyBoyEmulator, move: int, move2: int, random_state: list | None, scenario: int):
 	min_turns = 6
 	battle = BattleHandler(False, debug)
 	state = battle.state
@@ -606,7 +606,7 @@ def hyper_beam_status_move(emulator: PyBoyEmulator, move: int, random_state: lis
 	pokemon_data[PACK_STATUS] = StatusChange.OK
 	pokemon_data[PACK_TYPEA] = Type.Electric
 	pokemon_data[PACK_TYPEB] = Type.Electric
-	pokemon_data[PACK_MOVE1] = AvailableMove.Hyper_Beam
+	pokemon_data[PACK_MOVE1] = move2
 	pokemon_data[PACK_MOVE2] = AvailableMove.Empty
 	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
 	pokemon_data[PACK_MOVE4] = AvailableMove.Empty
@@ -877,6 +877,9 @@ extra_lists = {
 	AvailableMove.Agility: [
 		[236, 181, 249, 127, 145,  72,  32,   7, 197]
 	],
+	AvailableMove.Dig: [
+		[ 75, 249,  72, 171, 120,  78,  39, 204,  67]
+	],
 	AvailableMove.Metronome: [
 		[202,  88, 229, 250,  88, 170, 200,  85, 211],
 		[228,  54, 183, 208, 182,  28, 135,  72, 106],
@@ -931,6 +934,17 @@ status_moves = [
 	AvailableMove.Poison_Gas,
 	AvailableMove.Lovely_Kiss,
 	AvailableMove.Spore
+]
+multi_turn_moves = [
+	AvailableMove.Dig,
+	AvailableMove.Fly,
+	AvailableMove.Razor_Wind,
+	AvailableMove.Solarbeam,
+	AvailableMove.Hyper_Beam,
+	AvailableMove.Petal_Dance,
+	AvailableMove.Thrash,
+	AvailableMove.Rage,
+	AvailableMove.Bide
 ]
 
 # TODO: Add status (PSN, BRN, LCH) + kill test
@@ -1008,20 +1022,21 @@ for move_index in binding_moves:
 			'group': name
 		})
 for move_index in status_moves:
-	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):
-		name = move_index.name
-		tests.append({
-			'name': f'Hyper_Beam&{name}[{i}](Par->Move)',
-			'cb': hyper_beam_status_move,
-			'args': [int(move_index), rand, 1],
-			'group': 'Hyper_Beam'
-		})
-		tests.append({
-			'name': f'Hyper_Beam&{name}[{i}](Move->Par)',
-			'cb': hyper_beam_status_move,
-			'args': [int(move_index), rand, 0],
-			'group': 'Hyper_Beam'
-		})
+	for move_index2 in multi_turn_moves:
+		for i, rand in enumerate(rand_lists + extra_lists.get(move_index, []) + extra_lists.get(move_index2, [])):
+			name = move_index.name
+			tests.append({
+				'name': f'{move_index2.name}&{name}[{i}](Par->Move)',
+				'cb': multi_turn_status_move,
+				'args': [int(move_index), int(move_index2), rand, 1],
+				'group': move_index2.name
+			})
+			tests.append({
+				'name': f'{move_index2.name}&{name}[{i}](Move->Par)',
+				'cb': multi_turn_status_move,
+				'args': [int(move_index), int(move_index2), rand, 0],
+				'group': move_index2.name
+			})
 for move_index in range(1, AvailableMove.Struggle + 1):
 	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):
 		tests.append({
