@@ -26,3 +26,4 @@ ai/models/*
 __pycache__/
 *.tmp
 *.mp4
+exports

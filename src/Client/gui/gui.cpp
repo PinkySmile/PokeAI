@@ -523,6 +523,8 @@ void openChangePkmnBox(
 			auto &s = (side ? state.op : state.me);
 
 			s.team.at(index) = Pokemon(state, pkmn.getNickname(), pkmn.getLevel(), base, pkmn.getMoveSet());
+			resources.crySound.setBuffer(resources.battleCries[base.id]);
+			resources.crySound.play();
 			gui.remove(bigPan.lock());
 			populatePokemonPanel(window, gui, emulator, game, resources, pkmnPan.lock(), index, s.team, aisSelected, side, ready);
 		}, std::weak_ptr(pkmnPan), std::weak_ptr(bigPan));
@@ -1007,7 +1009,7 @@ void loadResources(BattleResources &resources)
 	(void)resources.boxes[3].loadFromFile("assets/pkmns_border_player_side.png");
 
 	for (int i = 0; i < 256; i++)
-		(void)resources.battleCries[i].loadFromFile("assets/cries/" + std::to_string(i) + "_cry.wav");
+		(void)resources.battleCries[i].loadFromFile("assets/cries/cry_" + std::to_string(i) + ".ogg");
 }
 
 static std::string splitText(std::string str)

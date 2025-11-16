@@ -29,6 +29,7 @@ struct BattleResources {
 	sf::SoundBuffer				hitSounds[3];
 	sf::SoundBuffer				trainerLand;
 	sf::SoundBuffer				battleCries[256];
+	sf::Sound                               crySound{this->battleCries[0]};
 	std::map<std::string, sf::Texture>	types;
 };
 
