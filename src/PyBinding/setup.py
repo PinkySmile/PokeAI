@@ -40,6 +40,12 @@ class build_ext(build_ext_orig):
 			'-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + str(extdir.absolute()),
 			'-DCMAKE_BUILD_TYPE=' + config
 		]
+		f = os.environ.get("SFML_DIR")
+		if f:
+			cmake_args.append('-DSFML_DIR=' + f)
+		f = os.environ.get("TGUI_DIR")
+		if f:
+			cmake_args.append('-DTGUI_DIR=' + f)
 		build_args = [
 			'--target', ext.name,
 			'--', '-j'
