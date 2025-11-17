@@ -44,6 +44,11 @@ add_library(
 	src/GameEngine/Utils.hpp
 	src/GameEngine/Damage.hpp
 )
+target_link_libraries(
+	PokemonGen1Core
+	SFML::Graphics
+	SFML::Audio
+)
 
 
 add_library(
@@ -109,8 +114,6 @@ target_link_libraries(
 	PokeAI_gui
 	PokemonGen1Client
 	TGUI::TGUI
-	SFML::Graphics
-	SFML::Audio
 )
 
 add_executable(
