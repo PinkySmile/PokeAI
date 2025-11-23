@@ -7,7 +7,7 @@ from .YellowEmulator import PkmnYellowEmulator, GBAddress, ROM_PATH, SYM_PATH
 
 
 class PyBoyEmulator(PkmnYellowEmulator):
-	def __init__(self, has_interface=True, sound_volume=25, save_frames=False, debug=False, rom=None):
+	def __init__(self, has_interface=True, sound_volume=25, save_frames=False, debug=False, rom=None, cgb=None):
 		self.has_interface = has_interface
 		self.save_frames = save_frames
 		self.active_hooks = {}
@@ -20,7 +20,8 @@ class PyBoyEmulator(PkmnYellowEmulator):
 		if sym and not os.path.isfile(sym):
 			sym = None
 		self.has_symbols = sym is not None
-		self.emulator = PyBoy(rom, symbols=sym, sound_volume=sound_volume, window='SDL2' if has_interface else 'null', debug=debug)
+		self.cgb = cgb if cgb is not None else True
+		self.emulator = PyBoy(rom, symbols=sym, sound_volume=sound_volume, window='SDL2' if has_interface else 'null', debug=debug, cgb=cgb)
 		super().__init__()
 
 
@@ -123,13 +124,18 @@ class PyBoyEmulator(PkmnYellowEmulator):
 
 	def read(self, address):
 		if address.bank is not None and address.address < 0xFF00:
+			if not self.cgb and 0xC000 <= address.address < 0xE000:
+				return self.emulator.memory[address.address]
 			return self.emulator.memory[address.bank, address.address]
 		return self.emulator.memory[address.address]
 
 
 	def write(self, address, value):
 		if address.bank is not None and address.address < 0xFF00:
-			self.emulator.memory[address.bank, address.address] = value
+			if not self.cgb and 0xC000 <= address.address < 0xE000:
+				self.emulator.memory[address.address] = value
+			else:
+				self.emulator.memory[address.bank, address.address] = value
 		else:
 			self.emulator.memory[address.address] = value
 

@@ -1,0 +1,1030 @@
+//
+// Created by PinkySmile on 19/11/2025.
+//
+
+#include <fstream>
+#include <nlohmann/json.hpp>
+#include "Gen1Renderer.hpp"
+
+#define _isPlayer _gpCounter[0]
+#define _animMove _gpCounter[1]
+#define _animCounter _gpCounter[2]
+#define _subCounter _gpCounter[3]
+#define _subSpawnTimer _gpCounter[4]
+#define _subSpawnUnspawn _gpCounter[5]
+#define _currentCharacter _gpCounter[0]
+#define _textTimer _gpCounter[1]
+#define _textCounter _gpCounter[2]
+
+#define TEXT_LINE_TIME 40
+#define TEXT_LINE_SCROLL 10
+#define TEXT_WAIT_AFTER 40
+
+using namespace Pokemon;
+
+void Gen1Renderer::_loadMoveData(Gen1Renderer::MoveData &data, const std::string &id)
+{
+	std::ifstream stream{"assets/gen1/moves/anims/move_" + id + ".json"};
+	nlohmann::json json;
+
+	stream >> json;
+
+	if (id != "45" && id != "46") // Growl and Roar
+		(void)data.sound.loadFromFile("assets/gen1/moves/sounds/move_" + id + ".ogg");
+
+	for (auto &janim : json["frames_p1"]) {
+		data.animP1.emplace_back();
+
+		auto &anim = data.animP1.back();
+
+		anim.palB = janim["palB"].get<std::array<unsigned, 4>>();
+		anim.pal0 = janim["pal1"].get<std::array<unsigned, 4>>();
+		anim.pal1 = janim["pal2"].get<std::array<unsigned, 4>>();
+		anim.duration = janim["duration"];
+		anim.scx = janim["scx"];
+		anim.scy = janim["scy"];
+		anim.wx = janim["wx"];
+		anim.wy = janim["wy"];
+		anim.tileset = janim["tileset"];
+		anim.p1Off = janim["p1"].get<std::optional<std::pair<int, int>>>();
+		anim.p2Off = janim["p2"].get<std::optional<std::pair<int, int>>>();
+		for (auto &j: janim["sprites"]) {
+			anim.sprites.emplace_back();
+
+			auto &sprite = anim.sprites.back();
+
+			sprite.x = j["x"];
+			sprite.y = j["y"];
+			sprite.id = j["id"];
+			sprite.palNum = j["pal_num"];
+			sprite.flip = j["flip"].get<std::pair<bool, bool>>();
+			sprite.prio = j["prio"];
+		}
+	}
+
+	for (auto &janim : json["frames_p2"]) {
+		data.animP2.emplace_back();
+
+		auto &anim = data.animP2.back();
+
+		anim.palB = janim["palB"].get<std::array<unsigned, 4>>();
+		anim.pal0 = janim["pal1"].get<std::array<unsigned, 4>>();
+		anim.pal1 = janim["pal2"].get<std::array<unsigned, 4>>();
+		anim.duration = janim["duration"];
+		anim.scx = janim["scx"];
+		anim.scy = janim["scy"];
+		anim.wx = janim["wx"];
+		anim.wy = janim["wy"];
+		anim.tileset = janim["tileset"];
+		anim.p1Off = janim["p1"].get<std::optional<std::pair<int, int>>>();
+		anim.p2Off = janim["p2"].get<std::optional<std::pair<int, int>>>();
+		for (auto &j: janim["sprites"]) {
+			anim.sprites.emplace_back();
+
+			auto &sprite = anim.sprites.back();
+
+			sprite.x = j["x"];
+			sprite.y = j["y"];
+			sprite.id = j["id"];
+			sprite.palNum = j["pal_num"];
+			sprite.flip = j["flip"].get<std::pair<bool, bool>>();
+			sprite.prio = j["prio"];
+		}
+	}
+}
+
+void Gen1Renderer::_loadPokemonData(PokemonData &data, const std::string &folder)
+{
+	(void)data.front.init("assets/gen1/pokemons/" + folder + "/front.png");
+	(void)data.back.init("assets/gen1/pokemons/" + folder + "/back.png");
+	(void)data.icon.loadFromFile("assets/gen1/pokemons/" + folder + "/icon.png");
+	(void)data.cry.loadFromFile("assets/gen1/pokemons/" + folder + "/cry.ogg");
+	(void)data.roar.loadFromFile("assets/gen1/moves/sounds/move_46/" + folder + ".ogg");
+	(void)data.growl.loadFromFile("assets/gen1/moves/sounds/move_45/" + folder + ".ogg");
+}
+
+Gen1Renderer::Gen1Renderer() :
+	_font("assets/gen1/font.ttf"),
+	_music("assets/gen1/sounds/battle1.ogg")
+{
+	std::ifstream streamLoop{"assets/gen1/sounds/battle1_loop.txt"};
+	std::ifstream streamList{"assets/gen1/list.json"};
+	std::ifstream streamListMove{"assets/gen1/moves/list.json"};
+	nlohmann::json json;
+	std::string line;
+
+	this->_font.setSmooth(false);
+	std::getline(streamLoop, line);
+	this->_music.setLoopPoints({
+		.offset = sf::seconds(std::stof(line)),
+		.length = this->_music.getDuration() - sf::seconds(std::stof(line)),
+	});
+	this->_music.setLooping(true);
+
+	(void)this->_moveTextures[0].init("assets/gen1/moves/tilemap1.png");
+	(void)this->_moveTextures[1].init("assets/gen1/moves/tilemap2.png");
+
+	(void)this->_balls[0].loadFromFile("assets/gen1/pokeballs/pkmnOK.png");
+	(void)this->_balls[1].loadFromFile("assets/gen1/pokeballs/pkmnNO.png");
+	(void)this->_balls[2].loadFromFile("assets/gen1/pokeballs/pkmnFNT.png");
+	(void)this->_balls[3].loadFromFile("assets/gen1/pokeballs/pkmnSTATUS.png");
+
+	(void)this->_hitSounds[0].loadFromFile("assets/gen1/sounds/ne_sound.ogg");
+	(void)this->_hitSounds[1].loadFromFile("assets/gen1/sounds/hit_sound.ogg");
+	(void)this->_hitSounds[2].loadFromFile("assets/gen1/sounds/ve_sound.ogg");
+	(void)this->_trainerLand.loadFromFile("assets/gen1/sounds/trainer_land.ogg");
+
+	(void)this->_trainer[0].init("assets/gen1/redb.png");
+	(void)this->_trainer[1].init("assets/gen1/red.png");
+
+	(void)this->_choicesHUD.loadFromFile("assets/gen1/choices.png");
+	(void)this->_attackHUD.loadFromFile("assets/gen1/attacks_overlay.png");
+	(void)this->_waitingHUD.loadFromFile("assets/gen1/wait_overlay.png");
+	(void)this->_hpOverlay.init("assets/gen1/hp_overlay.png");
+	(void)this->_levelSprite.init("assets/gen1/level_icon.png");
+
+	(void)this->_arrows[0].loadFromFile("assets/gen1/arrow.png");
+	(void)this->_arrows[1].loadFromFile("assets/gen1/selectArrow.png");
+
+	(void)this->_boxes[0].init("assets/gen1/text_box.png");
+	(void)this->_boxes[1].init("assets/gen1/VS_box.png");
+	(void)this->_boxes[2].init("assets/gen1/pkmns_border.png");
+	(void)this->_boxes[3].init("assets/gen1/pkmns_border_player_side.png");
+
+	streamList >> json;
+	Gen1Renderer::_loadPokemonData(this->_missingno, "missingno");
+	for (auto &id : json) {
+		unsigned id_ = id;
+
+		Gen1Renderer::_loadPokemonData(this->_data[id_], std::to_string(id_));
+	}
+
+	streamListMove >> json;
+	for (auto &id : json) {
+		unsigned id_ = id;
+
+		Gen1Renderer::_loadMoveData(this->_moveData[id_], std::to_string(id_));
+	}
+}
+
+bool (Gen1Renderer::*Gen1Renderer::_updates[])() = {
+	&Gen1Renderer::_updateNormal,
+	&Gen1Renderer::_updateGameStart,
+	&Gen1Renderer::_updateGameEnd,
+	&Gen1Renderer::_updateHit,
+	&Gen1Renderer::_updateDeath,
+	&Gen1Renderer::_updateSwitch,
+	&Gen1Renderer::_updateHealthMod,
+	&Gen1Renderer::_updateExtraAnim,
+	&Gen1Renderer::_updateAnim,
+	&Gen1Renderer::_updateMove,
+	&Gen1Renderer::_updateText
+};
+
+void (Gen1Renderer::*Gen1Renderer::_renderers[])(sf::RenderTarget &) = {
+	&Gen1Renderer::_renderNormal,
+	&Gen1Renderer::_renderGameStart,
+	&Gen1Renderer::_renderGameEnd,
+	&Gen1Renderer::_renderHit,
+	&Gen1Renderer::_renderDeath,
+	&Gen1Renderer::_renderSwitch,
+	&Gen1Renderer::_renderHealthMod,
+	&Gen1Renderer::_renderExtraAnim,
+	&Gen1Renderer::_renderAnim,
+	&Gen1Renderer::_renderMove,
+	&Gen1Renderer::_renderText
+};
+
+void Gen1Renderer::update()
+{
+	while (!(this->*Gen1Renderer::_updates[this->_currentEvent])()) {
+		this->_currentEvent = EVNTTYPE_NONE;
+		if (this->_queue.empty())
+			break;
+		this->_handleEvent(this->_queue.front());
+		this->_queue.pop_front();
+	}
+}
+
+void Gen1Renderer::render(sf::RenderTarget &target)
+{
+	(this->*Gen1Renderer::_renderers[this->_currentEvent])(target);
+}
+
+void Gen1Renderer::consumeEvent(const Event &event)
+{
+	this->_queue.push_back(event);
+}
+
+std::optional<IRenderer::BattleAction> Gen1Renderer::selectAction(bool attackDisabled)
+{
+	return {};
+}
+
+void Gen1Renderer::reset()
+{
+}
+
+const sf::Texture &Gen1Renderer::getPkmnFace(unsigned int pkmnId)
+{
+	auto it = this->_data.find(pkmnId);
+
+	if (it == this->_data.end()) {
+		this->_missingno.front.palettize({0, 1, 2, 3}, false);
+		return this->_missingno.front.texture;
+	}
+	it->second.front.palettize({0, 1, 2, 3}, false);
+	return it->second.front.texture;
+}
+
+const sf::SoundBuffer &Gen1Renderer::getPkmnCry(unsigned int pkmnId)
+{
+	auto it = this->_data.find(pkmnId);
+
+	if (it == this->_data.end())
+		return this->_missingno.cry;
+	return it->second.cry;
+}
+
+sf::Vector2u Gen1Renderer::getSize() const
+{
+	return { 160, 144 };
+}
+
+static std::string splitText(std::string str)
+{
+	size_t lineSize = 0;
+	std::string result;
+	std::string token;
+
+	result.reserve(str.size());
+	for (size_t pos = str.find(' '); !str.empty(); pos = str.find(' ')) {
+		token = str.substr(0, pos);
+
+		if (!result.empty()) {
+			if (lineSize + token.size() + 1 > 18) {
+				result += "\n";
+				lineSize = 0;
+			} else {
+				result += " ";
+				lineSize++;
+			}
+		}
+		result += token;
+		lineSize += token.size();
+		if (pos == std::string::npos)
+			break;
+		str.erase(0, pos + 1);
+	}
+	return result;
+}
+
+void Gen1Renderer::_handleEvent(const Event &event)
+{
+	if (auto move = std::get_if<MoveEvent>(&event)) {
+		this->_currentEvent = EVNTTYPE_MOVE;
+		auto it = this->_moveData.find(move->moveId);
+		auto &f = move->player ? this->state.p1 : this->state.p2;
+		auto it2 = this->_data.find(f.team[f.active].id);
+		auto &pkmn = it2 == this->_data.end() ? this->_missingno : it2->second;
+
+		if (it == this->_moveData.end())
+			it = this->_moveData.find(1);
+		this->_isPlayer = move->player;
+		this->_animMove = move->moveId;
+		this->_animCounter = 0;
+		this->_subCounter = 0;
+		this->_subSpawnTimer = 0;
+		this->_subSpawnUnspawn = 0;
+		if (move->moveId == 45)
+			this->_moveSound.setBuffer(pkmn.growl);
+		else if (move->moveId == 46)
+			this->_moveSound.setBuffer(pkmn.roar);
+		else
+			this->_moveSound.setBuffer(it->second.sound);
+	} else if (auto text = std::get_if<TextEvent>(&event)) {
+		this->_currentEvent = EVNTTYPE_TEXT;
+		this->_currentCharacter = 0;
+		this->_textTimer = 0;
+		this->_textCounter = 0;
+		this->_displayedText.clear();
+		this->_queuedText = splitText(text->message);
+	} else
+		throw std::runtime_error("Not implemented");
+}
+
+bool Gen1Renderer::_updateNormal()
+{
+	return false;
+}
+bool Gen1Renderer::_updateGameStart()
+{
+	return false;
+}
+bool Gen1Renderer::_updateGameEnd()
+{
+	return false;
+}
+bool Gen1Renderer::_updateHit()
+{
+	return false;
+}
+bool Gen1Renderer::_updateDeath()
+{
+	return false;
+}
+bool Gen1Renderer::_updateSwitch()
+{
+	return false;
+}
+bool Gen1Renderer::_updateHealthMod()
+{
+	return false;
+}
+bool Gen1Renderer::_updateExtraAnim()
+{
+	return false;
+}
+bool Gen1Renderer::_updateAnim()
+{
+	return false;
+}
+bool Gen1Renderer::_updateMove()
+{
+	auto it = this->_moveData.find(this->_animMove);
+	auto &state = this->_isPlayer ? this->state.p1 : this->state.p2;
+	auto &anim = this->_isPlayer ? it->second.animP1 : it->second.animP2;
+
+	if (this->_animCounter == 0) {
+		if (state.substitute && this->_subSpawnTimer < 16) {
+			this->_subSpawnTimer++;
+			return true;
+		}
+	} else if (anim.size() == this->_animCounter) {
+		if (state.substitute && this->_subSpawnTimer < 16) {
+			this->_subSpawnTimer++;
+			return this->_subSpawnTimer < 16;
+		}
+	}
+	if (it == this->_moveData.end())
+		it = this->_moveData.find(1);
+
+	if (this->_animCounter == 0 && this->_subCounter == 0)
+		this->_moveSound.play();
+	this->_subCounter++;
+	if (this->_subCounter == anim[this->_animCounter].duration) {
+		auto &ostate = this->_isPlayer ? this->state.p2 : this->state.p1;
+
+		this->_subCounter = 0;
+		this->_animCounter++;
+		if (this->_animMove == 164) { // Substitute
+			if (this->_animCounter == anim.size() - 2)
+				state.substitute = true;
+		} else if (this->_animMove == 107) { // Minimize
+			if (this->_animCounter == anim.size() - 3)
+				state.spriteId = 257;
+		} else if (this->_animMove == 144) { // Transform
+			if (this->_animCounter == anim.size() - 2)
+				state.spriteId = ostate.team[ostate.active].id;
+		}
+	}
+	if (anim.size() == this->_animCounter) {
+		if (state.substitute && this->_animMove != 164) {
+			this->_subSpawnTimer = 0;
+			this->_subSpawnUnspawn = 1;
+			return true;
+		}
+		return false;
+	}
+	return true;
+}
+bool Gen1Renderer::_updateText()
+{
+	if (this->_queuedText.empty())
+		return false;
+	if (this->_textTimer < 1) {
+		this->_textTimer++;
+		return true;
+	}
+	if (this->_currentCharacter == this->_queuedText.size()) {
+		this->_textTimer++;
+		return this->_textTimer < TEXT_WAIT_AFTER;
+	}
+	if (this->_queuedText[this->_currentCharacter] == '\n' && this->_displayedText.find('\n') != std::string::npos) {
+		this->_textCounter++;
+		if (this->_textCounter == TEXT_LINE_TIME) {
+			auto pos = this->_displayedText.find('\n');
+
+			this->_textCounter = 0;
+			this->_displayedText.erase(0, pos + 1);
+		} else
+			return true;
+	}
+	this->_displayedText += this->_queuedText[this->_currentCharacter];
+	this->_currentCharacter++;
+	this->_textTimer = 0;
+	return true;
+}
+
+void Gen1Renderer::_displayMyStats(sf::RenderTarget &target, const Pokemon &pkmn, const std::array<unsigned, 4> &palette)
+{
+	float percent = static_cast<float>(pkmn.hp) / pkmn.maxHp;
+	sf::Sprite sprite{this->_boxes[3].texture};
+	sf::RectangleShape rect;
+	sf::Color healthColor;
+	sf::Text text{this->_font};
+
+	this->_boxes[3].palettize(palette, false);
+	text.setCharacterSize(8);
+	text.setOutlineThickness(0);
+	text.setFillColor(Gen1Renderer::_getDmgColor(palette[3]));
+	sprite.setPosition({72, 72});
+	target.draw(sprite);
+
+	if (!this->_hasColor)
+		healthColor = Gen1Renderer::_getDmgColor(palette[2]);
+	else if (percent >= 0.5)
+		healthColor = sf::Color::Green;
+	else if (percent >= 0.1)
+		healthColor = sf::Color{255, 128, 0, 255};
+	else
+		healthColor = sf::Color::Red;
+	rect.setFillColor(healthColor);
+	rect.setSize({48 * percent, 4});
+	rect.setPosition({95, 73});
+	target.draw(rect);
+
+	this->_hpOverlay.palettize(palette, false);
+	sprite.setTexture(this->_hpOverlay.texture, true);
+	sprite.setPosition({80, 72});
+	target.draw(sprite);
+
+	text.setPosition({103, 64});
+	if (pkmn.burned) {
+		text.setString("BRN");
+		target.draw(text);
+	} else if (pkmn.poisoned) {
+		text.setString("PSN");
+		target.draw(text);
+	} else if (pkmn.frozen) {
+		text.setString("FRZ");
+		target.draw(text);
+	} else if (pkmn.asleep) {
+		text.setString("SLP");
+		target.draw(text);
+	} else if (pkmn.paralyzed) {
+		text.setString("PAR");
+		target.draw(text);
+	} else {
+		text.setString(std::to_string(pkmn.level));
+		if (pkmn.level < 100) {
+			sprite.setPosition({103, 64});
+			this->_levelSprite.palettize(palette, false);
+			sprite.setTexture(this->_levelSprite.texture, true);
+			target.draw(sprite);
+			text.setPosition({111, 64});
+			target.draw(text);
+		} else
+			target.draw(text);
+	}
+
+	text.setString(pkmn.name);
+	text.setPosition({80, 56});
+	target.draw(text);
+
+	text.setString(std::to_string(pkmn.hp));
+	text.setPosition({112.f - std::to_string(pkmn.hp).size() * 8, 80});
+	target.draw(text);
+	text.setString("/");
+	text.setPosition({112.f, 80});
+	target.draw(text);
+	text.setString(std::to_string(pkmn.maxHp));
+	text.setPosition({144.f - std::to_string(pkmn.maxHp).size() * 8, 80});
+	target.draw(text);
+}
+
+void Gen1Renderer::_displayOpStats(sf::RenderTarget &target, const Pokemon &pkmn, const std::array<unsigned, 4> &palette)
+{
+	float percent = static_cast<float>(pkmn.hp) / pkmn.maxHp;
+	sf::Sprite sprite{this->_boxes[2].texture};
+	sf::RectangleShape rect;
+	sf::Color healthColor;
+	sf::Text text{this->_font};
+
+	this->_boxes[2].palettize(palette, false);
+	text.setCharacterSize(8);
+	text.setOutlineThickness(0);
+	text.setFillColor(Gen1Renderer::_getDmgColor(palette[3]));
+	sprite.setPosition({8, 16});
+	target.draw(sprite);
+
+	if (!this->_hasColor)
+		healthColor = Gen1Renderer::_getDmgColor(palette[2]);
+	else if (percent >= 0.5)
+		healthColor = sf::Color::Green;
+	else if (percent >= 0.1)
+		healthColor = sf::Color{255, 128, 0, 255};
+	else
+		healthColor = sf::Color::Red;
+	rect.setFillColor(healthColor);
+	rect.setSize({48 * percent, 4});
+	rect.setPosition({31, 17});
+	target.draw(rect);
+
+	this->_hpOverlay.palettize(palette, false);
+	sprite.setTexture(this->_hpOverlay.texture, true);
+	sprite.setPosition({16, 16});
+	target.draw(sprite);
+
+	text.setPosition({32, 8});
+	if (pkmn.burned) {
+		text.setString("BRN");
+		target.draw(text);
+	} else if (pkmn.poisoned) {
+		text.setString("PSN");
+		target.draw(text);
+	} else if (pkmn.frozen) {
+		text.setString("FRZ");
+		target.draw(text);
+	} else if (pkmn.asleep) {
+		text.setString("SLP");
+		target.draw(text);
+	} else if (pkmn.paralyzed) {
+		text.setString("PAR");
+		target.draw(text);
+	} else {
+		text.setString(std::to_string(pkmn.level));
+		if (pkmn.level < 100) {
+			sprite.setPosition({32, 8});
+			this->_levelSprite.palettize(palette, false);
+			sprite.setTexture(this->_levelSprite.texture, true);
+			target.draw(sprite);
+			text.setPosition({40, 8});
+			target.draw(text);
+		} else
+			target.draw(text);
+	}
+
+	text.setString(pkmn.name);
+	text.setPosition({8, 0});
+	target.draw(text);
+}
+
+void Gen1Renderer::_renderScene(sf::RenderTarget &target, const std::array<unsigned int, 4> &palette)
+{
+	sf::Text text{this->_font};
+	sf::Sprite sprite{this->_boxes[0].texture};
+
+	target.clear(Gen1Renderer::_getDmgColor(palette[0]));
+	this->_displayMyStats(target, this->state.p1.team[this->state.p1.active], palette);
+	this->_displayOpStats(target, this->state.p2.team[this->state.p2.active], palette);
+
+	this->_boxes[0].palettize(palette, false);
+	sprite.setPosition({0, 96});
+	target.draw(sprite);
+
+	text.setCharacterSize(8);
+	text.setOutlineThickness(0);
+	text.setFillColor(Gen1Renderer::_getDmgColor(palette[3]));
+	text.setString(this->_displayedText);
+	text.setPosition({8, 112});
+	text.setLineSpacing(2);
+	target.draw(text);
+}
+
+void Gen1Renderer::_displayMyFace(sf::RenderTarget &target, unsigned pkmnId, const std::array<unsigned int, 4> &palette, const sf::Vector2i &offset)
+{
+	sf::Vector2f basePos{8 + offset.x * 8.f, 40};
+	auto it = this->_data.find(pkmnId);
+	auto &data = it == this->_data.end() ? this->_missingno : it->second;
+	sf::Sprite sprite{data.back.texture};
+	auto size = data.back.texture.getSize();
+
+	if (offset.y > 0) {
+		basePos.y += offset.y * 8.f;
+		sprite.setTextureRect({{0, 0}, {static_cast<int>(size.x), static_cast<int>(size.y) - offset.y * 4 - 4}});
+	} else if (offset.y < 0)
+		sprite.setTextureRect({
+			{0, static_cast<int>(-offset.y * 4.f)},
+			{static_cast<int>(size.x), static_cast<int>(size.y) + offset.y * 4}
+		});
+	data.back.palettize(palette, true);
+	if (pkmnId < 256)
+		sprite.setScale({2, 2});
+	sprite.setPosition(basePos);
+	target.draw(sprite);
+}
+
+void Gen1Renderer::_displayOpFace(sf::RenderTarget &target, unsigned pkmnId, const std::array<unsigned int, 4> &palette, const sf::Vector2i &offset)
+{
+	sf::Vector2f basePos{96 + offset.x * 8.f, 0};
+	auto it = this->_data.find(pkmnId);
+	auto &data = it == this->_data.end() ? this->_missingno : it->second;
+	sf::Sprite sprite{data.front.texture};
+	auto size = data.front.source.getSize();
+
+	if (offset.y > 0) {
+		basePos.y += offset.y * 8.f;
+		sprite.setTextureRect({{0, 0}, {static_cast<int>(size.x), static_cast<int>(size.y) - offset.y * 8}});
+	} else if (offset.y < 0)
+		sprite.setTextureRect({
+			{0, static_cast<int>(-offset.y * 8.f)},
+			{static_cast<int>(size.x), static_cast<int>(size.y) + offset.y * 8}
+		});
+	basePos.x += static_cast<int>(56.f - size.x) / 16 * 8;
+	basePos.y += 56 - size.y;
+	data.front.palettize(palette, true);
+	sprite.setPosition(basePos);
+	target.draw(sprite);
+}
+
+void Gen1Renderer::_displayMyShrunkFace(sf::RenderTarget &target, unsigned int pkmnId, const std::array<unsigned int, 4> &palette, unsigned int current, unsigned int max)
+{
+	if (current >= max)
+		return;
+
+	sf::Vector2f basePos{8, 40};
+	auto it = this->_data.find(pkmnId);
+	auto &data = it == this->_data.end() ? this->_missingno : it->second;
+	sf::Sprite sprite{data.back.texture};
+	auto size = data.back.texture.getSize();
+	auto realSize = size;
+
+	data.back.palettize(palette, true);
+	if (pkmnId < 256) {
+		sprite.setScale({2, 2});
+		realSize.x *= 2;
+		realSize.y *= 2;
+	}
+	if (current < max / 2) {
+		sprite.setTextureRect({
+			{0, 0},
+			{static_cast<int>((size.x / 2) - (size.x / 2) * current / (max / 2)), static_cast<int>(size.y)}
+		});
+		sprite.setPosition({basePos.x + (realSize.x / 2) * current / (max / 2), basePos.y});
+		target.draw(sprite);
+
+		sprite.setTextureRect({
+			{static_cast<int>(size.x / 2), 0},
+			{static_cast<int>((size.x + 1) / 2), static_cast<int>(size.y)}
+		});
+		sprite.setPosition({basePos.x + realSize.x / 2, basePos.y});
+		target.draw(sprite);
+	} else {
+		sprite.setTextureRect({
+			{static_cast<int>(size.x / 2), 0},
+			{static_cast<int>(((size.x + 1) / 2) - ((size.x + 1) / 2) * (current - max / 2) / (max / 2)), static_cast<int>(size.y)}
+		});
+		sprite.setPosition({basePos.x + realSize.x / 2, basePos.y});
+		target.draw(sprite);
+	}
+}
+
+void Gen1Renderer::_displayOpShrunkFace(sf::RenderTarget &target, unsigned int pkmnId, const std::array<unsigned int, 4> &palette, unsigned int current, unsigned int max)
+{
+	if (current >= max)
+		return;
+
+	sf::Vector2f basePos{96, 0};
+	auto it = this->_data.find(pkmnId);
+	auto &data = it == this->_data.end() ? this->_missingno : it->second;
+	sf::Sprite sprite{data.front.texture};
+	auto size = data.front.source.getSize();
+	auto realSize = size;
+
+	basePos.x += static_cast<int>(56.f - size.x) / 16 * 8;
+	basePos.y += 56 - size.y;
+	data.front.palettize(palette, true);
+	if (current < max / 2) {
+		sprite.setTextureRect({
+			{0, 0},
+			{static_cast<int>((size.x / 2) - (size.x / 2) * current / (max / 2)), static_cast<int>(size.y)}
+		});
+		sprite.setPosition({basePos.x + (realSize.x / 2) * current / (max / 2), basePos.y});
+		target.draw(sprite);
+
+		sprite.setTextureRect({
+			{static_cast<int>(size.x / 2), 0},
+			{static_cast<int>((size.x + 1) / 2), static_cast<int>(size.y)}
+		});
+		sprite.setPosition({basePos.x + realSize.x / 2, basePos.y});
+		target.draw(sprite);
+	} else {
+		sprite.setTextureRect({
+			{static_cast<int>(size.x / 2), 0},
+			{static_cast<int>(((size.x + 1) / 2) - ((size.x + 1) / 2) * (current - max / 2) / (max / 2)), static_cast<int>(size.y)}
+		});
+		sprite.setPosition({basePos.x + realSize.x / 2, basePos.y});
+		target.draw(sprite);
+	}
+}
+
+void Gen1Renderer::_renderNormal(sf::RenderTarget &target)
+{
+	this->_renderScene(target);
+	this->_displayMyFace(target, this->state.p1.substitute ? 256 : this->state.p1.spriteId);
+	this->_displayOpFace(target, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
+
+	/*if (menu == 0) {
+		drawSprite(window, sprite, resources.choicesHUD, 256, 384);
+		drawSprite(window, sprite, resources.arrows[1], 288 + 192 * (selectedMenu % 2), 448 + 64 * (selectedMenu / 2));
+		if (ai1 && state.me.nextAction == EmptyAction)
+			state.me.nextAction = ai1->getNextMove(state, false);
+		if (ai2 && state.op.nextAction == EmptyAction)
+			state.op.nextAction = ai2->getNextMove(state, true);
+	} else if (menu == 1) {
+		auto move = state.me.team[state.me.pokemonOnField].getMoveSet()[selectedMenu];
+
+		drawSprite(window, sprite, resources.attackHUD, 0, 256);
+		for (int i = 0; i < 4; i++)
+			drawText(window, text, strToUpper(state.me.team[state.me.pokemonOnField].getMoveSet()[i].getName()), 192, 416 + 32 * i);
+		drawText(window, text, strToUpper(typeToString(move.getType())), 64, 320);
+		drawText(window, text, std::to_string(move.getPP()), 160 + (move.getPP() < 10) * 32, 352);
+		drawText(window, text, "/" + std::to_string(move.getMaxPP()), 224, 352);
+		drawText(window, text, std::to_string(move.getMaxPP()), 256 + (move.getMaxPP() < 10) * 32, 352);
+		drawSprite(window, sprite, resources.arrows[1], 160, 416 + 32 * selectedMenu);
+	} else if (menu == 2) {
+		window.clear({255, 255, 255, 255});
+		drawSprite(window, sprite, resources.boxes[0], 0, 384);
+		for (size_t i = 0; i < state.me.team.size(); i++) {
+			auto &pkmn = state.me.team[i];
+			float percent = static_cast<float>(pkmn.getHealth()) / pkmn.getMaxHealth();
+
+			rect.setFillColor(
+				percent >= 0.5 ? sf::Color{0, 255, 0, 255} : (
+					percent >= 0.1 ? sf::Color{255, 255, 0, 255} : sf::Color{255, 0, 0, 255})
+			);
+			rect.setSize({192 * percent, 16});
+			rect.setPosition({188, i * 64 + 36.f});
+			window.draw(rect);
+			drawSprite(window, sprite, resources.hpOverlay, 128, 32 + i * 64);
+			if (pkmn.getHealth() == 0) {
+				drawText(window, text, "FNT", 416, i * 64);
+			} else if (pkmn.hasStatus(STATUS_BURNED)) {
+				drawText(window, text, "BRN", 416, i * 64);
+			} else if (pkmn.hasStatus(STATUS_POISONED) || pkmn.hasStatus(STATUS_BADLY_POISONED)) {
+				drawText(window, text, "PSN", 416, i * 64);
+			} else if (pkmn.hasStatus(STATUS_FROZEN)) {
+				drawText(window, text, "FRZ", 416, i * 64);
+			} else if (pkmn.hasStatus(STATUS_ASLEEP)) {
+				drawText(window, text, "SLP", 416, i * 64);
+			} else if (pkmn.hasStatus(STATUS_PARALYZED)) {
+				drawText(window, text, "PAR", 416, i * 64);
+			} else {
+				drawSprite(window, sprite, resources.levelSprite, 416, i * 64);
+				drawText(window, text, std::to_string(pkmn.getLevel()), 448, i * 64);
+			}
+			drawText(window, text, pkmn.getName(), 96, i * 64);
+
+			drawText(window, text, std::to_string(pkmn.getHealth()), 512 - std::to_string(pkmn.getHealth()).size() * 32, i * 64 + 32);
+			drawText(window, text, "/", 512, 64 * 2 + 32);
+			drawText(window, text, std::to_string(pkmn.getMaxHealth()), 640 - std::to_string(pkmn.getMaxHealth()).size() * 32, i * 64 + 32);
+		}
+		drawSprite(window, sprite, resources.arrows[1], 0, 64 * selectedMenu + 32);
+	} else if (menu == 3) {
+		if (log.empty()) {
+			drawSprite(window, sprite, resources.waitingHUD, 96, 320);
+			drawText(window, text, "Waiting...", 128, 352);
+			if (updateManually && (state.op.nextAction || game.playingReplay()))
+				state.onTurnStart();
+		} else {
+			clock.restart();
+			menu = 4 + (state.me.team[state.me.pokemonOnField].getHealth() == 0) * 2;
+		}
+	} else if (menu >= 4) {
+		drawText(window, text, log[0].substr(0, clock.getElapsedTime().asSeconds() * 50), 32, 440);
+		if (clock.getElapsedTime().asSeconds() > log[0].size() / 50.f + 1) {
+			log.erase(log.begin());
+			if (log.empty())
+				menu -= 4;
+			else
+				clock.restart();
+		}
+	}*/
+}
+void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
+{
+}
+void Gen1Renderer::_renderGameEnd(sf::RenderTarget &target)
+{
+}
+void Gen1Renderer::_renderHit(sf::RenderTarget &target)
+{
+}
+void Gen1Renderer::_renderDeath(sf::RenderTarget &target)
+{
+}
+void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
+{
+}
+void Gen1Renderer::_renderHealthMod(sf::RenderTarget &target)
+{
+}
+void Gen1Renderer::_renderExtraAnim(sf::RenderTarget &target)
+{
+}
+void Gen1Renderer::_renderAnim(sf::RenderTarget &target)
+{
+}
+void Gen1Renderer::_renderMove(sf::RenderTarget &target)
+{
+	auto size = this->getSize();
+	auto it = this->_moveData.find(this->_animMove);
+
+	target.clear(sf::Color::White);
+	if (it == this->_moveData.end())
+		it = this->_moveData.find(1);
+
+	auto &anim = this->_isPlayer ? it->second.animP1 : it->second.animP2;
+	auto &state = this->_isPlayer ? this->state.p1 : this->state.p2;
+	auto p1s = this->state.p1.substitute && (this->_animMove == 164 || !this->_isPlayer) ? 256 : this->state.p1.spriteId;
+	auto p2s = this->state.p2.substitute && (this->_animMove == 164 || this->_isPlayer)  ? 256 : this->state.p2.spriteId;
+
+	if (this->_animCounter == 0) {
+		if (state.substitute && this->_subSpawnTimer < 16) {
+			this->_renderScene(target, {0, 1, 2, 3});
+			this->_displayMyFace(target, this->_isPlayer  ? 256 : p1s, {0, 1, 2, 3}, this->_isPlayer ? sf::Vector2i{-static_cast<int>(this->_subSpawnTimer / 2), 0} : sf::Vector2i{0, 0});
+			this->_displayOpFace(target, !this->_isPlayer ? 256 : p2s, {0, 1, 2, 3}, !this->_isPlayer ? sf::Vector2i{static_cast<int>(this->_subSpawnTimer / 2), 0} : sf::Vector2i{0, 0});
+			return;
+		}
+	} else if (anim.size() == this->_animCounter) {
+		if (state.substitute && this->_subSpawnTimer < 16) {
+			this->_renderScene(target, {0, 1, 2, 3});
+			this->_displayMyFace(target, this->_isPlayer  ? this->state.p1.spriteId : p1s, {0, 1, 2, 3}, this->_isPlayer ? sf::Vector2i{-static_cast<int>(this->_subSpawnTimer / 2), 0} : sf::Vector2i{0, 0});
+			this->_displayOpFace(target, !this->_isPlayer ? this->state.p2.spriteId : p2s, {0, 1, 2, 3}, !this->_isPlayer ? sf::Vector2i{static_cast<int>(this->_subSpawnTimer / 2), 0} : sf::Vector2i{0, 0});
+			return;
+		}
+	}
+
+	auto &frame = anim[this->_animCounter];
+
+	if (this->_animMove == 100 || this->_animMove == 143) { // Teleport, Sky attack
+		if (this->_animCounter == 1) {
+			this->_renderScene(target, {0, 1, 2, 3});
+			if (frame.p1Off)
+				this->_displayMyFace(target, p1s, frame.palB, {frame.p1Off->first, frame.p1Off->second});
+			else
+				this->_displayMyShrunkFace(target, p1s, frame.palB, this->_subCounter + 1, frame.duration);
+			if (frame.p2Off)
+				this->_displayOpFace(target, p2s, frame.palB, {frame.p2Off->first, frame.p2Off->second});
+			else
+				this->_displayOpShrunkFace(target, p2s, frame.palB, this->_subCounter + 1, frame.duration);
+			return;
+		}
+	}
+
+	sf::RenderTexture rtexture{size};
+	sf::RenderTexture rtexture2{size};
+	sf::Sprite sprite{rtexture.getTexture()};
+	sf::Sprite sprite2{rtexture2.getTexture()};
+
+	this->_renderScene(rtexture, frame.palB);
+	if (frame.wy >= (int)size.y) {
+		float x = frame.scx;
+		bool side = frame.wx;
+
+		this->_displayMyFace(rtexture, p1s, frame.palB);
+		this->_displayOpFace(rtexture, p2s, frame.palB);
+		for (size_t i = 0; i < size.y; i++) {
+			sprite.setPosition({x, static_cast<float>(size.y - i - 1)});
+			sprite.setTextureRect({
+				{ 0, static_cast<int>(i) },
+				{ static_cast<int>(size.x), 1 }
+			});
+			target.draw(sprite);
+			if (i % 2 == 0) {
+				if (x == -2)
+					side = true;
+				if (x == 2)
+					side = false;
+				if (side)
+					x++;
+				else
+					x--;
+			}
+		}
+		return;
+	}
+
+	sprite.setPosition({static_cast<float>(frame.wx), static_cast<float>(frame.wy) + this->getSize().y});
+	sprite.setScale({1, -1});
+	target.draw(sprite);
+
+	auto &tileset = frame.tileset == 1 ? this->_moveTextures[0] : this->_moveTextures[1];
+
+	sprite.setTexture(tileset.texture);
+	sprite.setOrigin({4, 4});
+	for (auto &s : frame.sprites) {
+		if (!s.prio)
+			continue;
+		tileset.palettize(s.palNum == 0 ? frame.pal0 : frame.pal1, true);
+		sprite.setTextureRect({
+			{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
+			{8, 8}
+		});
+		sprite.setPosition({s.x + 4.f, s.y + 4.f});
+		sprite.setScale({s.flip.first ? -1.f : 1.f, s.flip.second ? -1.f : 1.f});
+		target.draw(sprite);
+	}
+
+	rtexture2.clear(sf::Color::Transparent);
+	if (frame.p1Off)
+		this->_displayMyFace(rtexture2, p1s, frame.palB, {frame.p1Off->first, frame.p1Off->second});
+	if (frame.p2Off)
+		this->_displayOpFace(rtexture2, p2s, frame.palB, {frame.p2Off->first, frame.p2Off->second});
+	sprite2.setPosition({static_cast<float>(frame.wx), static_cast<float>(frame.wy) + this->getSize().y});
+	sprite2.setScale({1, -1});
+	target.draw(sprite2);
+
+	for (auto &s : frame.sprites) {
+		if (s.prio)
+			continue;
+		tileset.palettize(s.palNum == 0 ? frame.pal0 : frame.pal1, true);
+		sprite.setTextureRect({
+			{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
+			{8, 8}
+		});
+		sprite.setPosition({s.x + 4.f, s.y + 4.f});
+		sprite.setScale({s.flip.first ? -1.f : 1.f, s.flip.second ? -1.f : 1.f});
+		target.draw(sprite);
+	}
+}
+void Gen1Renderer::_renderText(sf::RenderTarget &target)
+{
+	sf::Text text{this->_font};
+	sf::Sprite sprite{this->_boxes[0].texture};
+
+	target.clear(Gen1Renderer::_getDmgColor(0));
+	this->_displayMyStats(target, this->state.p1.team[this->state.p1.active]);
+	this->_displayOpStats(target, this->state.p2.team[this->state.p2.active]);
+
+	this->_boxes[0].palettize({0, 1, 2, 3}, false);
+	sprite.setPosition({0, 96});
+	target.draw(sprite);
+
+	text.setCharacterSize(8);
+	text.setOutlineThickness(0);
+	text.setFillColor(Gen1Renderer::_getDmgColor(3));
+	text.setString(this->_displayedText);
+	if (this->_textCounter > TEXT_LINE_TIME - TEXT_LINE_SCROLL)
+		text.setPosition({8, 104});
+	else
+		text.setPosition({8, 112});
+	text.setLineSpacing(2);
+	target.draw(text);
+	this->_displayMyFace(target, this->state.p1.substitute ? 256 : this->state.p1.spriteId);
+	this->_displayOpFace(target, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
+}
+
+void Gen1Renderer::consumeEvent(const sf::Event &event)
+{
+
+}
+
+sf::Color Gen1Renderer::_getDmgColor(unsigned int color)
+{
+	switch (color) {
+	case 0:
+		return sf::Color{0xFF, 0xFF, 0xFF, 255};
+	case 1:
+		return sf::Color{0xAA, 0xAA, 0xAA, 255};
+	case 2:
+		return sf::Color{0x55, 0x55, 0x55, 255};
+	default:
+		return sf::Color{0x00, 0x00, 0x00, 255};
+	}
+}
+
+void Gen1Renderer::PalettedSprite::palettize(const std::array<unsigned int, 4> &palette, bool transparent)
+{
+	unsigned newPalette = (palette[0] << 0) | (palette[1] << 2) | (palette[2] << 4) | (palette[3] << 6);
+
+	if (newPalette == this->palette && transparent == this->transparent)
+		return;
+	this->transparent = transparent;
+	this->palette = newPalette;
+
+	sf::Image img{this->source.getSize()};
+	std::array<sf::Color, 4> pal;
+
+	pal[0] = sf::Color::Transparent;
+	for (size_t i = transparent; i < 4; i++)
+		pal[i] = Gen1Renderer::_getDmgColor(palette[i]);
+	for (unsigned x = 0; x < img.getSize().x; x++)
+		for (unsigned y = 0; y < img.getSize().y; y++) {
+			auto c = this->source.getPixel({x, y});
+
+			if (c.a == 0) img.setPixel({x, y}, sf::Color::Transparent);
+			else if (c.r < 0x40) img.setPixel({x, y}, pal[3]);
+			else if (c.r < 0xA0) img.setPixel({x, y}, pal[2]);
+			else if (c.r < 0xF0) img.setPixel({x, y}, pal[1]);
+			else img.setPixel({x, y}, pal[0]);
+		}
+	(void)this->texture.loadFromImage(img);
+}
+
+void Gen1Renderer::PalettedSprite::init(const std::filesystem::path &path)
+{
+	(void)this->source.loadFromFile(path);
+	(void)this->texture.loadFromImage(this->source);
+}

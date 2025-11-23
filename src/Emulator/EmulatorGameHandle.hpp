@@ -8,7 +8,7 @@
 
 #include <memory>
 #include <map>
-#include "GameEngine/State.hpp"
+#include "GameEngine/Gen1/State.hpp"
 #include "EmulatorHandle.hpp"
 
 #define PING_BYTE 0x60

@@ -1,0 +1,77 @@
+{
+    "frames_p1": [
+            {"palB": [0, 0, 1, 2], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 1, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 1, "p1": [0, 0], "p2": [0, 0], "sprites": []},
+            {"palB": [0, 0, 1, 2], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 10, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": []},
+            {"palB": [0, 0, 1, 2], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 7, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": [
+                {"x": 56, "y": 48, "id": 46, "pal_num": 0, "flip": [true , false], "prio": false},
+                {"x": 8, "y": 48, "id": 46, "pal_num": 0, "flip": [false, false], "prio": false},
+                {"x": 56, "y": 96, "id": 46, "pal_num": 0, "flip": [true , true ], "prio": false},
+                {"x": 8, "y": 96, "id": 46, "pal_num": 0, "flip": [false, true ], "prio": false},
+                {"x": 32, "y": 48, "id": 47, "pal_num": 0, "flip": [true , false], "prio": false},
+                {"x": 32, "y": 96, "id": 47, "pal_num": 0, "flip": [true , true ], "prio": false},
+                {"x": 56, "y": 72, "id": 62, "pal_num": 0, "flip": [true , false], "prio": false},
+                {"x": 8, "y": 72, "id": 62, "pal_num": 0, "flip": [false, false], "prio": false}
+            ]},
+            {"palB": [0, 0, 1, 2], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 7, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": [
+                {"x": 48, "y": 56, "id": 46, "pal_num": 0, "flip": [true , false], "prio": false},
+                {"x": 16, "y": 56, "id": 46, "pal_num": 0, "flip": [false, false], "prio": false},
+                {"x": 48, "y": 88, "id": 46, "pal_num": 0, "flip": [true , true ], "prio": false},
+                {"x": 16, "y": 88, "id": 46, "pal_num": 0, "flip": [false, true ], "prio": false},
+                {"x": 32, "y": 56, "id": 47, "pal_num": 0, "flip": [true , false], "prio": false},
+                {"x": 32, "y": 88, "id": 47, "pal_num": 0, "flip": [true , true ], "prio": false},
+                {"x": 48, "y": 72, "id": 62, "pal_num": 0, "flip": [true , false], "prio": false},
+                {"x": 16, "y": 72, "id": 62, "pal_num": 0, "flip": [false, false], "prio": false}
+            ]},
+            {"palB": [0, 0, 1, 2], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 7, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": [
+                {"x": 40, "y": 64, "id": 46, "pal_num": 0, "flip": [true , false], "prio": false},
+                {"x": 24, "y": 64, "id": 46, "pal_num": 0, "flip": [false, false], "prio": false},
+                {"x": 40, "y": 80, "id": 46, "pal_num": 0, "flip": [true , true ], "prio": false},
+                {"x": 24, "y": 80, "id": 46, "pal_num": 0, "flip": [false, true ], "prio": false},
+                {"x": 32, "y": 64, "id": 47, "pal_num": 0, "flip": [true , false], "prio": false},
+                {"x": 32, "y": 80, "id": 47, "pal_num": 0, "flip": [true , true ], "prio": false},
+                {"x": 40, "y": 72, "id": 62, "pal_num": 0, "flip": [true , false], "prio": false},
+                {"x": 24, "y": 72, "id": 62, "pal_num": 0, "flip": [false, false], "prio": false}
+            ]},
+            {"palB": [3, 2, 1, 0], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 3, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": []},
+            {"palB": [0, 0, 0, 0], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 3, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": []},
+            {"palB": [0, 0, 1, 2], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 1, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": []},
+            {"palB": [0, 1, 2, 3], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 14, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": []}
+    ],
+    "frames_p2": [
+            {"palB": [0, 0, 1, 2], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 11, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": []},
+            {"palB": [0, 0, 1, 2], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 7, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": [
+                {"x": 96, "y": 8, "id": 46, "pal_num": 0, "flip": [false, false], "prio": false},
+                {"x": 144, "y": 8, "id": 46, "pal_num": 0, "flip": [true , false], "prio": false},
+                {"x": 96, "y": 56, "id": 46, "pal_num": 0, "flip": [false, true ], "prio": false},
+                {"x": 144, "y": 56, "id": 46, "pal_num": 0, "flip": [true , true ], "prio": false},
+                {"x": 120, "y": 8, "id": 47, "pal_num": 0, "flip": [false, false], "prio": false},
+                {"x": 120, "y": 56, "id": 47, "pal_num": 0, "flip": [false, true ], "prio": false},
+                {"x": 96, "y": 32, "id": 62, "pal_num": 0, "flip": [false, false], "prio": false},
+                {"x": 144, "y": 32, "id": 62, "pal_num": 0, "flip": [true , false], "prio": false}
+            ]},
+            {"palB": [0, 0, 1, 2], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 7, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": [
+                {"x": 104, "y": 16, "id": 46, "pal_num": 0, "flip": [false, false], "prio": false},
+                {"x": 136, "y": 16, "id": 46, "pal_num": 0, "flip": [true , false], "prio": false},
+                {"x": 104, "y": 48, "id": 46, "pal_num": 0, "flip": [false, true ], "prio": false},
+                {"x": 136, "y": 48, "id": 46, "pal_num": 0, "flip": [true , true ], "prio": false},
+                {"x": 120, "y": 16, "id": 47, "pal_num": 0, "flip": [false, false], "prio": false},
+                {"x": 120, "y": 48, "id": 47, "pal_num": 0, "flip": [false, true ], "prio": false},
+                {"x": 104, "y": 32, "id": 62, "pal_num": 0, "flip": [false, false], "prio": false},
+                {"x": 136, "y": 32, "id": 62, "pal_num": 0, "flip": [true , false], "prio": false}
+            ]},
+            {"palB": [0, 0, 1, 2], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 7, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": [
+                {"x": 112, "y": 24, "id": 46, "pal_num": 0, "flip": [false, false], "prio": false},
+                {"x": 128, "y": 24, "id": 46, "pal_num": 0, "flip": [true , false], "prio": false},
+                {"x": 112, "y": 40, "id": 46, "pal_num": 0, "flip": [false, true ], "prio": false},
+                {"x": 128, "y": 40, "id": 46, "pal_num": 0, "flip": [true , true ], "prio": false},
+                {"x": 120, "y": 24, "id": 47, "pal_num": 0, "flip": [false, false], "prio": false},
+                {"x": 120, "y": 40, "id": 47, "pal_num": 0, "flip": [false, true ], "prio": false},
+                {"x": 112, "y": 32, "id": 62, "pal_num": 0, "flip": [false, false], "prio": false},
+                {"x": 128, "y": 32, "id": 62, "pal_num": 0, "flip": [true , false], "prio": false}
+            ]},
+            {"palB": [3, 2, 1, 0], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 3, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": []},
+            {"palB": [0, 0, 0, 0], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 3, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": []},
+            {"palB": [0, 0, 1, 2], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 1, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": []},
+            {"palB": [0, 1, 2, 3], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 14, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "sprites": []}
+    ]
+}

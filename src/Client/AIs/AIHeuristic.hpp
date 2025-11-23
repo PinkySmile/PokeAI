@@ -6,7 +6,7 @@
 #define POKEAI_AIHEURISTIC_HPP
 
 
-#include "GameEngine/BattleHandler.hpp"
+#include "GameEngine/Gen1/BattleHandler.hpp"
 #include "AI.hpp"
 
 namespace PokemonGen1

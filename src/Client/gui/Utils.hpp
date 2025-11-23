@@ -11,7 +11,7 @@
 #include <filesystem>
 #include <TGUI/TGUI.hpp>
 #include <TGUI/Backend/SFML-Graphics.hpp>
-#include "GameEngine/Utils.hpp"
+#include "GameEngine/Gen1/Utils.hpp"
 
 #ifndef _WIN32
 #define MB_ICONERROR 1

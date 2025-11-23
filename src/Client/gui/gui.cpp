@@ -1050,7 +1050,7 @@ void gui(const std::string &trainerName)
 	auto &state = battleHandler.getBattleState();
 	sf::RenderWindow window{sf::VideoMode{{800, 640}}, trainerName};
 	BattleResources resources;
-	bool ready;
+	bool ready = false;
 
 	state.rng.makeRandomList(9);
 	state.battleLogger = [&battleLog](const std::string &msg){

@@ -22,27 +22,28 @@ endif()
 
 add_library(
 	PokemonGen1Core ${LIBRARY_TYPE}
-	src/GameEngine/BattleHandler.cpp
-	src/GameEngine/BattleHandler.hpp
-	src/GameEngine/Pokemon.cpp
-	src/GameEngine/Pokemon.hpp
-	src/GameEngine/Type.hpp
-	src/GameEngine/Move.cpp
-	src/GameEngine/Move.hpp
-	src/GameEngine/StatusChange.hpp
-	src/GameEngine/StatsChange.cpp
-	src/GameEngine/StatsChange.hpp
-	src/GameEngine/RandomGenerator.cpp
-	src/GameEngine/RandomGenerator.hpp
-	src/GameEngine/StatusChange.cpp
-	src/GameEngine/Type.cpp
-	src/GameEngine/State.hpp
-	src/GameEngine/State.cpp
-	src/GameEngine/Team.cpp
-	src/GameEngine/Team.hpp
-	src/GameEngine/Utils.cpp
-	src/GameEngine/Utils.hpp
-	src/GameEngine/Damage.hpp
+	src/GameEngine/Gen1/BattleHandler.cpp
+	src/GameEngine/Gen1/BattleHandler.hpp
+	src/GameEngine/Gen1/Pokemon.cpp
+	src/GameEngine/Gen1/Pokemon.hpp
+	src/GameEngine/Gen1/Type.hpp
+	src/GameEngine/Gen1/Move.cpp
+	src/GameEngine/Gen1/Move.hpp
+	src/GameEngine/Gen1/StatusChange.hpp
+	src/GameEngine/Gen1/StatsChange.cpp
+	src/GameEngine/Gen1/StatsChange.hpp
+	src/GameEngine/Gen1/RandomGenerator.cpp
+	src/GameEngine/Gen1/RandomGenerator.hpp
+	src/GameEngine/Gen1/StatusChange.cpp
+	src/GameEngine/Gen1/Type.cpp
+	src/GameEngine/Gen1/State.hpp
+	src/GameEngine/Gen1/State.cpp
+	src/GameEngine/Gen1/Team.cpp
+	src/GameEngine/Gen1/Team.hpp
+	src/GameEngine/Gen1/Utils.cpp
+	src/GameEngine/Gen1/Utils.hpp
+	src/GameEngine/Gen1/Damage.hpp
+	src/GameEngine/Event.hpp
 )
 target_link_libraries(
 	PokemonGen1Core
@@ -109,9 +110,29 @@ add_executable(
 	src/Client/gui/Utils.cpp
 	src/Client/gui/Utils.hpp
 	src/Client/gui/battle.cpp
+	src/Client/gui/IRenderer.hpp
+	src/Client/gui/IRenderer.cpp
+	src/Client/gui/Gen1Renderer.cpp
+	src/Client/gui/Gen1Renderer.hpp
 )
 target_link_libraries(
 	PokeAI_gui
+	PokemonGen1Client
+	TGUI::TGUI
+)
+
+add_executable(
+	test_renderer
+	src/Client/gui/test.cpp
+	src/Client/gui/Utils.cpp
+	src/Client/gui/Utils.hpp
+	src/Client/gui/IRenderer.hpp
+	src/Client/gui/IRenderer.cpp
+	src/Client/gui/Gen1Renderer.cpp
+	src/Client/gui/Gen1Renderer.hpp
+)
+target_link_libraries(
+	test_renderer
 	PokemonGen1Client
 	TGUI::TGUI
 )
@@ -129,26 +150,26 @@ target_link_libraries(
 # =========================== Bindings ===========================
 add_library(
 	PokemonGen1CBinding STATIC
-	src/GameEngine/BattleHandler.cpp
-	src/GameEngine/BattleHandler.hpp
-	src/GameEngine/Pokemon.cpp
-	src/GameEngine/Pokemon.hpp
-	src/GameEngine/Type.hpp
-	src/GameEngine/Move.cpp
-	src/GameEngine/Move.hpp
-	src/GameEngine/StatusChange.hpp
-	src/GameEngine/StatsChange.cpp
-	src/GameEngine/StatsChange.hpp
-	src/GameEngine/RandomGenerator.cpp
-	src/GameEngine/RandomGenerator.hpp
-	src/GameEngine/StatusChange.cpp
-	src/GameEngine/Type.cpp
-	src/GameEngine/State.hpp
-	src/GameEngine/State.cpp
-	src/GameEngine/Team.cpp
-	src/GameEngine/Team.hpp
-	src/GameEngine/Utils.cpp
-	src/GameEngine/Utils.hpp
+	src/GameEngine/Gen1/BattleHandler.cpp
+	src/GameEngine/Gen1/BattleHandler.hpp
+	src/GameEngine/Gen1/Pokemon.cpp
+	src/GameEngine/Gen1/Pokemon.hpp
+	src/GameEngine/Gen1/Type.hpp
+	src/GameEngine/Gen1/Move.cpp
+	src/GameEngine/Gen1/Move.hpp
+	src/GameEngine/Gen1/StatusChange.hpp
+	src/GameEngine/Gen1/StatsChange.cpp
+	src/GameEngine/Gen1/StatsChange.hpp
+	src/GameEngine/Gen1/RandomGenerator.cpp
+	src/GameEngine/Gen1/RandomGenerator.hpp
+	src/GameEngine/Gen1/StatusChange.cpp
+	src/GameEngine/Gen1/Type.cpp
+	src/GameEngine/Gen1/State.hpp
+	src/GameEngine/Gen1/State.cpp
+	src/GameEngine/Gen1/Team.cpp
+	src/GameEngine/Gen1/Team.hpp
+	src/GameEngine/Gen1/Utils.cpp
+	src/GameEngine/Gen1/Utils.hpp
 	src/Emulator/EmulatorGameHandle.cpp
 	src/Emulator/EmulatorGameHandle.hpp
 	src/Emulator/EmulatorHandle.hpp
