@@ -112,6 +112,7 @@ def export(checkpoint_path, output_path=None, opset=14):
                 agent,
                 (dummy_obs, dummy_mask),
                 output_path,
+                dynamo=False,
                 export_params=True,
                 opset_version=opset,
                 do_constant_folding=True,
