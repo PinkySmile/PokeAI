@@ -96,6 +96,9 @@ def export(checkpoint_path, output_path=None, opset=14):
     dummy_obs = torch.randn(1, *input_obs_shape)
     dummy_mask = torch.ones(1, input_action_n, dtype=torch.bool)
 
+    move_indices = [35, 37, 39, 41, 78, 80, 82, 84]
+    dummy_obs[:, move_indices] = 1.0
+
     print(f"Exporting to {output_path} (Opset {opset})...")
 
     # Export
