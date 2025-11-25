@@ -387,10 +387,20 @@ namespace PokemonGen1
 		auto &op = this->_state.op.team[this->_state.op.pokemonOnField];
 
 		//TODO: Wrong
-		if (me.hasStatus(STATUS_ASLEEP) || me.hasStatus(STATUS_FROZEN))
+		if (me.hasStatus(STATUS_ASLEEP) || me.hasStatus(STATUS_FROZEN)) {
 			this->_state.me.nextAction = this->_state.me.lastAction;
-		if (op.hasStatus(STATUS_ASLEEP) || op.hasStatus(STATUS_FROZEN))
+			if (Switch1 <= this->_state.me.nextAction && this->_state.me.nextAction <= Switch6)
+				this->_state.me.nextAction = NoAction;
+			if (this->_state.me.nextAction == StruggleMove)
+				this->_state.me.nextAction = NoAction;
+		}
+		if (op.hasStatus(STATUS_ASLEEP) || op.hasStatus(STATUS_FROZEN)) {
 			this->_state.op.nextAction = this->_state.op.lastAction;
+			if (Switch1 <= this->_state.op.nextAction && this->_state.op.nextAction <= Switch6)
+				this->_state.op.nextAction = NoAction;
+			if (this->_state.op.nextAction == StruggleMove)
+				this->_state.op.nextAction = NoAction;
+		}
 		if (this->_state.me.nextAction == EmptyAction || this->_state.op.nextAction == EmptyAction)
 			throw std::runtime_error("No action selected");
 		this->_state.me.discovered[this->_state.op.pokemonOnField].first = true;
