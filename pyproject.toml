@@ -16,5 +16,8 @@ dependencies = [
     "torch>=2.8.0",
     "wandb",
     "scipy-stubs==1.16.1.0",
+    "onnx>=1.19.1",
+    "onnxruntime>=1.23.2",
+    "onnxscript>=0.5.6",
 ]
 

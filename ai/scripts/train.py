@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.distributions.categorical import Categorical
-from torch.utils.checkpoint import checkpoint
 from torch.utils.tensorboard import SummaryWriter
 import random
 import numpy as np
@@ -138,6 +137,9 @@ class Agent(nn.Module):
             layer_init(nn.Linear(1024, 1), std=1.),
         )
 
+    def forward(self, x, mask=None, action=None):
+        return self.get_action_and_value(x, mask=mask, action=None)
+
     def embed_observation(self, x):
         batch_size = x.shape[0]
 
@@ -197,77 +199,6 @@ class Agent(nn.Module):
             action = probs.sample()
 
         return action, probs.log_prob(action), probs.entropy(), self.critic(x_embedded)
-
-
-# class Agent(nn.Module):
-#     def __init__(self, envs):
-#         super(Agent, self).__init__()
-#         obs_dim = int(np.array(envs.single_observation_space.shape).prod())
-#         print(obs_dim)
-#         act_dim = envs.single_action_space.n
-#         self.network = nn.Sequential(
-#
-#         )
-#         self.critic = nn.Sequential(
-#             layer_init(nn.Linear(obs_dim, 1024)),
-#             nn.Tanh(),
-#             layer_init(nn.Linear(1024, 512)),
-#             nn.Tanh(),
-#             layer_init(nn.Linear(512, 1), std=1.),
-#         )
-#         self.actor = nn.Sequential(
-#             layer_init(nn.Linear(obs_dim, 1024)),
-#             nn.Tanh(),
-#             layer_init(nn.Linear(1024, 512)),
-#             nn.Tanh(),
-#             layer_init(nn.Linear(512, act_dim), std=0.01),
-#         )
-#
-#     def get_value(self, x):
-#         return self.critic(x)
-#
-#     def get_action_and_value(self, x, mask=None, action=None):
-#         logits = self.actor(x)
-#         if mask is not None:
-#             logits = logits.masked_fill(mask == 0, float('-inf'))
-#             # print(logits)
-#         probs = Categorical(logits=logits)
-#         if action is None:
-#             action = probs.sample()
-#         # print(probs.probs)
-#         return action, probs.log_prob(action), probs.entropy(), self.critic(x)
-
-# # Share common layers
-# class Agent(nn.Module):
-#     def __init__(self, envs):
-#         super(Agent, self).__init__()
-#         obs_dim = int(np.array(envs.single_observation_space.shape).prod())
-#         act_dim = envs.single_action_space.n
-#
-#         self.network = nn.Sequential(
-#             layer_init(nn.Linear(obs_dim, 2048)),
-#             nn.Tanh(),
-#             layer_init(nn.Linear(2048, 1024)),
-#             nn.Tanh(),
-#         )
-#
-#         self.critic = layer_init(nn.Linear(1024, 1), std=1.)
-#         self.actor = layer_init(nn.Linear(1024, act_dim), std=0.01)
-#
-#     def get_value(self, x):
-#         features = self.network(x)
-#         return self.critic(features)
-#
-#     def get_action_and_value(self, x, mask=None, action=None):
-#         features = self.network(x)
-#         logits = self.actor(features)
-#         # print(f'Action mask: {mask}')
-#         if mask is not None:
-#             logits = logits.masked_fill(mask == 0, float('-inf'))
-#         probs = Categorical(logits=logits)
-#         if action is None:
-#             action = probs.sample()
-#         return action, probs.log_prob(action), probs.entropy(), self.critic(features)
 
 
 # --- Parser ---
@@ -391,17 +322,9 @@ if __name__ == '__main__':
 
     agent = Agent(envs).to(device)
 
-    # try torch.compile for speedups (optional)
-    try:
-        if hasattr(torch, "compile"):
-            agent = torch.compile(agent)
-    except Exception:
-        pass
-
-    optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
-
     # --- Load checkpoint if specified
     start_update = 1
+    checkpoint = None
     if args.resume_checkpoint:
         if os.path.exists(args.resume_checkpoint):
             print(f"Loading checkpoint from {args.resume_checkpoint}")
@@ -411,6 +334,19 @@ if __name__ == '__main__':
             print(f"Resumed from update {checkpoint['update']}")
         else:
             raise FileNotFoundError(f"Checkpoint {args.resume_checkpoint} not found.")
+
+    # try torch.compile for speedups (optional)
+    try:
+        if hasattr(torch, "compile"):
+            agent = torch.compile(agent)
+    except Exception:
+        pass
+
+    optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
+
+    # Load optimizer state if checkpoint exists
+    if checkpoint and "optim_state" in checkpoint:
+        optimizer.load_state_dict(checkpoint["optim_state"])
 
     # --- Training storage (preallocated on device) ---
     obs = torch.zeros((args.num_steps, args.num_envs) + envs.single_observation_space.shape, dtype=torch.float32,
@@ -445,7 +381,7 @@ if __name__ == '__main__':
             dones[step] = next_done
 
             with torch.no_grad():
-                action, logprob, _, value = agent.get_action_and_value(x=next_obs, mask=next_mask)
+                action, logprob, _, value = agent(x=next_obs, mask=next_mask)
                 values[step] = value.view(-1)  # or values[step] = value.flatten() for non contiguous tensor
             actions[step] = action
             logprobs[step] = logprob
@@ -517,9 +453,9 @@ if __name__ == '__main__':
             for start in range(0, batch_size, minibatch_size):
                 end = start + minibatch_size
                 mb_inds = perm[start:end]
-                _, newlogprob, entropy, newvalue = agent.get_action_and_value(b_obs[mb_inds],
-                                                                              mask=b_masks[mb_inds],  # A changer
-                                                                              action=b_actions[mb_inds])
+                _, newlogprob, entropy, newvalue = agent(b_obs[mb_inds],
+                                                         mask=b_masks[mb_inds],  # TODO A changer
+                                                         action=b_actions[mb_inds])
 
                 logratio = newlogprob - b_logprobs[mb_inds]
                 ratio = logratio.exp()
@@ -566,9 +502,11 @@ if __name__ == '__main__':
             if args.target_kl is not None and approx_kl is not None and approx_kl > args.target_kl:
                 break
         if args.save_checkpoint_every > 0 and update % args.save_checkpoint_every == 0:
+            model_to_save = agent._orig_mod if hasattr(agent,
+                                                       '_orig_mod') else agent  # torch.compile wraps the model; save the original (_orig_mod) to avoid serialization issues
             torch.save({
                 "update": update,
-                "model_state": agent.state_dict(),
+                "model_state": model_to_save.state_dict(),
                 "optim_state": optimizer.state_dict(),
             }, os.path.join(checkpoints_dir, f"update{update}.pt"))
 
@@ -591,9 +529,10 @@ if __name__ == '__main__':
         print("SPS:", int(global_step / (time.time() - start_time)))
         writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
 
+    model_to_save = agent._orig_mod if hasattr(agent, '_orig_mod') else agent
     torch.save({
         "update": num_updates,
-        "model_state": agent.state_dict(),
+        "model_state": model_to_save.state_dict(),
         "optim_state": optimizer.state_dict(),
     }, os.path.join(checkpoints_dir, f"final_update{num_updates}.pt"))
 
