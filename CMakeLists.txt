@@ -44,6 +44,7 @@ add_library(
 	src/GameEngine/Gen1/Utils.hpp
 	src/GameEngine/Gen1/Damage.hpp
 	src/GameEngine/Event.hpp
+	src/GameEngine/Gen1/Common.hpp
 )
 target_link_libraries(
 	PokemonGen1Core

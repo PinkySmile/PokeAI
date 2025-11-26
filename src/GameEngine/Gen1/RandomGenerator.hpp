@@ -27,6 +27,8 @@ namespace PokemonGen1
 		void setIndex(unsigned index);
 		void reset();
 		unsigned char operator()();
+		unsigned char peak(unsigned offset);
+		void skip(unsigned offset);
 	};
 }
 

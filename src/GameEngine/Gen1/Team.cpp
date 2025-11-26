@@ -3,8 +3,9 @@
 //
 
 #include <cstring>
-#include "../Exception.hpp"
 #include "Team.hpp"
+#include "State.hpp"
+#include "../Exception.hpp"
 
 namespace PokemonGen1
 {
@@ -78,5 +79,19 @@ namespace PokemonGen1
 		for (size_t i = trainer.second.size(); i < 6; i++)
 			data.resize(data.size() + Pokemon::NICK_SIZE + 1, '\0');
 		return data;
+	}
+
+	void loadScenario(const std::vector<unsigned char> &data, BattleState &state)
+	{
+		if (data.size() != TRAINER_DATA_SIZE * 2)
+			throw InvalidSaveFileException("The data size doesn't match (expected 684B but got " + std::to_string(data.size()) + "B)");
+
+		Trainer p1 = loadTrainer({data.begin(), data.begin() + TRAINER_DATA_SIZE}, state);
+		Trainer p2 = loadTrainer({data.begin() + TRAINER_DATA_SIZE, data.end()}, state);
+
+		state.me.name = p1.first;
+		state.me.team = p1.second;
+		state.op.name = p2.first;
+		state.op.team = p2.second;
 	}
 }

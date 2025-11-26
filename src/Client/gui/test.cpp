@@ -6,32 +6,29 @@
 #include <cstring>
 #include <fstream>
 #include "Gen1Renderer.hpp"
+#include "GameEngine/Gen1/BattleHandler.hpp"
 #include "nlohmann/json.hpp"
+#include "GameEngine/Gen1/Team.hpp"
 
-int main()
+int main(int argc, char **argv)
 {
+	if (argc <= 1) {
+		printf("Usage: %s <replay_path>\n", argv[0]);
+		return 1;
+	}
+	PokemonGen1::BattleHandler handler{false, false};
+	auto &state = handler.getBattleState();
 	Gen1Renderer renderer;
+
+	state.battleLogger = [&renderer](const PkmnCommon::Event &event){ renderer.consumeEvent(event); };
+	handler.loadReplay(argv[1]);
+	handler.start();
+
 	auto size = renderer.getSize();
-	sf::RenderWindow win{sf::VideoMode{{size.x * 4, size.y * 4}}, "test"};
+	sf::RenderWindow win{sf::VideoMode{{size.x * 4, size.y * 4}}, "Play replay"};
 	sf::View view;
 
-	memset((void*)&renderer.state, 0, sizeof(renderer.state));
-
-	renderer.state.p1.spriteId = PokemonGen1::Pikachu;
-	strcpy(renderer.state.p1.team[0].name, "PIKACHU");
-	renderer.state.p1.team[0].id = PokemonGen1::Pikachu;
-	renderer.state.p1.team[0].hp = 50;
-	renderer.state.p1.team[0].maxHp = 75;
-	renderer.state.p1.team[0].level = 75;
-	renderer.state.p1.active = 0;
-
-	renderer.state.p2.spriteId = PokemonGen1::Beedrill;
-	strcpy(renderer.state.p2.team[0].name, "BEEDRILL");
-	renderer.state.p2.team[0].id = PokemonGen1::Beedrill;
-	renderer.state.p2.team[0].hp = 50;
-	renderer.state.p2.team[0].maxHp = 75;
-	renderer.state.p2.team[0].level = 100;
-	renderer.state.p2.active = 0;
+	renderer.state = fromGen1(state);
 
 	view.setCenter({size.x / 2.f, size.y / 2.f});
 	view.setSize(sf::Vector2f(size));
@@ -39,16 +36,8 @@ int main()
 	win.setView(view);
 	renderer.reset();
 
-	std::ifstream stream{"assets/gen1/moves/list.json"};
-	nlohmann::json json;
-	stream >> json;
-	for (auto &id : json) {
-		renderer.consumeEvent(Pokemon::Event(Pokemon::TextEvent{"PIKACHU used " + PokemonGen1::availableMoves[id].getName() + "!"}));
-		renderer.consumeEvent(Pokemon::Event(Pokemon::MoveEvent{id, true}));
-		renderer.consumeEvent(Pokemon::Event(Pokemon::TextEvent{"BEEDRILL used " + PokemonGen1::availableMoves[id].getName() + "!"}));
-		renderer.consumeEvent(Pokemon::Event(Pokemon::MoveEvent{id, false}));
-	}
-
+	while (!handler.isFinished())
+		handler.tick();
 	while (win.isOpen()) {
 		while (auto event = win.pollEvent()) {
 			if (event->is<sf::Event::Closed>())

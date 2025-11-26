@@ -20,7 +20,7 @@
 #define TEXT_LINE_SCROLL 10
 #define TEXT_WAIT_AFTER 40
 
-using namespace Pokemon;
+using namespace PkmnCommon;
 
 void Gen1Renderer::_loadMoveData(Gen1Renderer::MoveData &data, const std::string &id)
 {

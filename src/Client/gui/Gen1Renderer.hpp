@@ -20,7 +20,7 @@ public:
 	void render(sf::RenderTarget &) override;
 	sf::Vector2u getSize() const override;
 	void reset() override;
-	void consumeEvent(const ::Pokemon::Event &event) override;
+	void consumeEvent(const PkmnCommon::Event &event) override;
 	void consumeEvent(const sf::Event &event) override;
 	std::optional<BattleAction> selectAction(bool attackDisabled) override;
 	const sf::Texture &getPkmnFace(unsigned int pkmnId) override;
@@ -123,7 +123,7 @@ private:
 	void _renderMove(sf::RenderTarget &);
 	void _renderText(sf::RenderTarget &);
 
-	void _handleEvent(const ::Pokemon::Event &event);
+	void _handleEvent(const PkmnCommon::Event &event);
 
 	static sf::Color _getDmgColor(unsigned color);
 
@@ -152,7 +152,7 @@ private:
 	sf::SoundBuffer _trainerLand;
 	sf::Sound _moveSound{this->_trainerLand};
 	std::pair<sf::Texture, sf::Texture> _activeMons;
-	std::deque<::Pokemon::Event> _queue;
+	std::deque<PkmnCommon::Event> _queue;
 	std::deque<sf::Event> _sfmlQueue;
 	sf::Font _font;
 	PokemonData _missingno;

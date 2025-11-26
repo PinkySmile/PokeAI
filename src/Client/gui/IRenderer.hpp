@@ -86,7 +86,7 @@ public:
 	virtual void render(sf::RenderTarget &) = 0;
 	virtual sf::Vector2u getSize() const = 0;
 	virtual void reset() = 0;
-	virtual void consumeEvent(const ::Pokemon::Event &event) = 0;
+	virtual void consumeEvent(const PkmnCommon::Event &event) = 0;
 	virtual void consumeEvent(const sf::Event &event) = 0;
 	virtual std::optional<BattleAction> selectAction(bool attackDisabled) = 0;
 	virtual const sf::Texture &getPkmnFace(unsigned pkmnId) = 0;

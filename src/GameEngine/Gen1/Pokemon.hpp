@@ -174,7 +174,6 @@ namespace PokemonGen1
 
 		static const std::pair<unsigned char, unsigned char> _ratios[13];
 
-		void _log(const std::string &msg) const;
 		unsigned int _getUpgradedStat(unsigned short baseValue, char upgradeStage) const;
 
 	public:

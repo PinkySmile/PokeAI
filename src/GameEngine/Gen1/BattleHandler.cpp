@@ -30,6 +30,7 @@ namespace PokemonGen1
 
 	void BattleHandler::start()
 	{
+		this->_state.battleLogger(PkmnCommon::GameStartEvent{});
 		this->logBattle(this->_state.op.name + " wants to fight");
 		this->logBattle(this->_state.op.name + " sent out " + this->_state.op.team[this->_state.op.pokemonOnField].getName(false));
 		this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName() + " go");
@@ -47,7 +48,7 @@ namespace PokemonGen1
 	void BattleHandler::logBattle(const std::string &message)
 	{
 		if (this->_state.battleLogger)
-			this->_state.battleLogger(message + "!");
+			this->_state.battleLogger(PkmnCommon::TextEvent{message + "!"});
 	}
 
 	BattleState &BattleHandler::getBattleState()
@@ -126,11 +127,13 @@ namespace PokemonGen1
 		if (!p1TeamOK) {
 			this->logBattle(this->_state.me.name + " is out of usable pokemon");
 			this->logBattle(this->_state.me.name + " blacked out");
+			this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = false, .p2Won = p2TeamOK});
 			this->_finished = true;
 			return;
 		}
 		if (!p2TeamOK) {
 			this->logBattle(this->_state.me.name + " defeated " + this->_state.op.name);
+			this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = true, .p2Won = false});
 			this->_finished = true;
 			return;
 		}
@@ -144,6 +147,7 @@ namespace PokemonGen1
 			switch (this->_state.me.nextAction) {
 			case Run:
 				this->logBattle("Got away safely");
+				this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = false, .p2Won = this->_state.op.nextAction != Run});
 				this->_finished = true;
 				return;
 			case Switch1:
@@ -161,6 +165,7 @@ namespace PokemonGen1
 				this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName(false) + " go");
 				this->_state.op.discovered[this->_state.me.pokemonOnField].first = true;
 				this->_state.me.team[this->_state.me.pokemonOnField].applyStatusDebuff();
+				this->_state.battleLogger(PkmnCommon::SwitchEvent{.newPkmnId = this->_state.me.pokemonOnField, .player = true});
 				break;
 			case Attack1:
 			case Attack2:
@@ -180,6 +185,7 @@ namespace PokemonGen1
 			switch (this->_state.op.nextAction) {
 			case Run:
 				this->logBattle(this->_state.op.name + " ran");
+				this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = true, .p2Won = false});
 				this->_finished = true;
 				return;
 			case Switch1:
@@ -197,6 +203,7 @@ namespace PokemonGen1
 				this->logBattle(this->_state.op.name + " sent out " + this->_state.op.team[this->_state.op.pokemonOnField].getName(false));
 				this->_state.me.discovered[this->_state.op.pokemonOnField].first = true;
 				this->_state.op.team[this->_state.op.pokemonOnField].applyStatusDebuff();
+				this->_state.battleLogger(PkmnCommon::SwitchEvent{.newPkmnId = this->_state.op.pokemonOnField, .player = false});
 				break;
 			case Attack1:
 			case Attack2:
@@ -224,11 +231,13 @@ namespace PokemonGen1
 		if (!p1TeamOK) {
 			this->logBattle(this->_state.me.name + " is out of usable pokemon");
 			this->logBattle(this->_state.me.name + " blacked out");
+			this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = false, .p2Won = p2TeamOK});
 			this->_finished = true;
 			return;
 		}
 		if (!p2TeamOK){
 			this->logBattle(this->_state.me.name + " defeated " + this->_state.op.name);
+			this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = true, .p2Won = false});
 			this->_finished = true;
 			return;
 		}

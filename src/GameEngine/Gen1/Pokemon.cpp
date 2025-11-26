@@ -54,7 +54,7 @@ namespace PokemonGen1
 		_battleState(&state)
 	{
 		if (this->_nickname.size() > 10) {
-			this->_log("Warning : nickname is too big");
+			// TODO: this->_log("Warning : nickname is too big");
 			this->_nickname = this->_nickname.substr(0, NICK_SIZE);
 		}
 		for (size_t i = moveSet.size(); i < 4; i++)
@@ -315,7 +315,7 @@ namespace PokemonGen1
 			{ STATUS_CONFUSED_FOR_1_TURN, " became confused!" }
 		};
 
-		this->_log(messages[status]);
+		this->_battleState->battleLogger(PkmnCommon::TextEvent{messages[status]});
 		if (status == STATUS_BADLY_POISONED)
 			this->_badPoisonStage = 1;
 		if (status & STATUS_ANY_NON_VOLATILE_STATUS)
@@ -627,11 +627,6 @@ namespace PokemonGen1
 		this->_stopWrapped = true;
 	}
 
-	void Pokemon::_log(const std::string &msg) const
-	{
-		this->_battleState->battleLogger(this->getName() + msg);
-	}
-
 	void Pokemon::setSubstitute()
 	{
 		this->_hasSub = true;
@@ -640,31 +635,36 @@ namespace PokemonGen1
 	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
 	{
 		Move *move;
+		const auto &logger = this->_battleState->battleLogger;
 
 		if (this->_currentStatus & STATUS_ASLEEP) {
 			this->_currentStatus--;
-			if (this->_currentStatus & STATUS_ASLEEP)
-				this->_log(" is fast asleep!");
-			else
-				this->_log(" woke up!");
+			if (this->_currentStatus & STATUS_ASLEEP) {
+				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_ASLEEP, .isGuaranteed = true, .player = !this->isEnemy()});
+				logger(PkmnCommon::TextEvent{this->getName() + " is fast asleep!"});
+			} else
+				logger(PkmnCommon::TextEvent{this->getName() + " woke up!"});
 			return;
 		}
 		if (this->_currentStatus & STATUS_FROZEN) {
-			this->_log(" is frozen solid!");
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_FROZEN, .isGuaranteed = true, .player = !this->isEnemy()});
+			logger(PkmnCommon::TextEvent{this->getName() + " is frozen solid!"});
 			return;
 		}
 		if (moveSlot == 0xD)
 			return;
 		if (this->_wrapped) {
-			this->_log(" can't move!");
+			logger(PkmnCommon::TextEvent{this->getName() + " can't move!"});
 			return;
 		}
 		if (this->_flinched) {
-			this->_log(" flinched!");
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_FLINCHED, .isGuaranteed = true, .player = !this->isEnemy()});
+			logger(PkmnCommon::TextEvent{this->getName() + " flinched!"});
 			return;
 		}
 		if (this->_needsRecharge) {
-			this->_log(" must recharge!");
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_RECHARGE, .isGuaranteed = true, .player = !this->isEnemy()});
+			logger(PkmnCommon::TextEvent{this->getName() + " must recharge!"});
 			this->_needsRecharge = false;
 			return;
 		}
@@ -675,16 +675,17 @@ namespace PokemonGen1
 		if (this->_disableTimer) {
 			this->_disableTimer--;
 			if (!this->_disableTimer)
-				this->_log(" is disabled no more!");
+				logger(PkmnCommon::TextEvent{this->getName() + " is disabled no more!"});
 		}
 
 		if (this->_currentStatus & STATUS_CONFUSED) {
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if ((this->_currentStatus & STATUS_CONFUSED)) {
-				this->_log(" is confused!");
+				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_CONFUSED, .isGuaranteed = true, .player = !this->isEnemy()});
+				logger(PkmnCommon::TextEvent{this->getName() + " is confused!"});
 				if (this->_battleState->rng() >= 0x80) {
 					this->setRecharging(false);
-					this->_battleState->battleLogger("It hurt itself in its confusion!");
+					logger(PkmnCommon::TextEvent{"It hurt itself in its confusion!"});
 					this->takeDamage(target, this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false, true).damage, false, true);
 					// clear bide, thrashing about, charging up, and multi-turn moves such as warp
 					// but NOT rage!
@@ -693,7 +694,7 @@ namespace PokemonGen1
 					return;
 				}
 			} else if (!(this->_currentStatus & STATUS_CONFUSED))
-				this->_log(" is confused no more!");
+				logger(PkmnCommon::TextEvent{this->getName() + " is confused no more!"});
 		}
 
 		if (this->_disableTimer && moveSlot < this->_moveSet.size()) {
@@ -703,13 +704,14 @@ namespace PokemonGen1
 			if (dm.getID() == sm.getID()) {
 				if (this->_lastUsedMove.getID() == AvailableMove::Hyper_Beam)
 					this->_lastUsedMove = availableMoves[0x00];
-				this->_log("'s " + dm.getName() + " is disabled!");
+				logger(PkmnCommon::TextEvent{this->getName() + "'s " + dm.getName() + " is disabled!"});
 				return;
 			}
 		}
 
 		if ((this->_currentStatus & STATUS_PARALYZED) && this->_battleState->rng() < 0x3F) {
-			this->_log("'s fully paralyzed!");
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_PARALYZED, .isGuaranteed = true, .player = !this->isEnemy()});
+			logger(PkmnCommon::TextEvent{this->getName() + "'s fully paralyzed!"});
 			// clear bide, thrashing about, charging up, and multi-turn moves such as warp
 			// but NOT rage!
 			if (this->_lastUsedMove.getID() != AvailableMove::Rage)
@@ -724,7 +726,7 @@ namespace PokemonGen1
 		// Check if using multiturn move
 		// Check if using rage
 		if (moveSlot == 0xE) {
-			this->_log(" has no moves left!");
+			logger(PkmnCommon::TextEvent{this->getName() + " has no moves left!"});
 			this->useMove(availableMoves[Struggle], target);
 		} else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
 			this->_forcedAttack = moveSlot + 1;
@@ -747,21 +749,27 @@ namespace PokemonGen1
 		if (target.getHealth() == 0)
 			return;
 
+		const auto &logger = this->_battleState->battleLogger;
 		auto status = this->_currentStatus;
 
 		if (status & STATUS_BURNED) {
-			this->_log("'s hurt by the burn!");
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_BURN, .isGuaranteed = true, .player = !this->isEnemy()});
+			logger(PkmnCommon::TextEvent{this->getName() + "'s hurt by the burn!"});
 			this->takeDamage(target, this->getMaxHealth() / 16, true, false);
 		} else if (status & STATUS_POISONED) {
-			this->_log("'s hurt by the poison!");
 			damage = this->getMaxHealth() / 16;
-			if (status & STATUS_BAD_POISON)
+			if (status & STATUS_BAD_POISON) {
+				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_BAD_POISON, .isGuaranteed = true, .player = !this->isEnemy()});
 				damage *= this->_badPoisonStage++;
+			} else
+				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_POISON, .isGuaranteed = true, .player = !this->isEnemy()});
+			logger(PkmnCommon::TextEvent{this->getName() + "'s hurt by the poison!"});
 			this->takeDamage(target, damage, true, false);
 		}
 		if (status & STATUS_LEECHED) {
 			// FIXME: If dead from poison, the "X fainted!" message shows before that one. See test `Metronome[26](H*)`.
-			this->_battleState->battleLogger("LEECH SEED saps " + this->getName() + "!");
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_LEECHED, .isGuaranteed = true, .player = !this->isEnemy()});
+			logger(PkmnCommon::TextEvent{"LEECH SEED saps " + this->getName() + "!"});
 			damage = this->getMaxHealth() / 16;
 			if (status & STATUS_BAD_POISON)
 				damage *= this->_badPoisonStage++;
@@ -800,13 +808,15 @@ namespace PokemonGen1
 		if (!nb)
 			return false;
 
+		const auto &logger = this->_battleState->battleLogger;
+
 		statName = statToString(stat);
 		if ((stats[stat] >= 6 && nb > 0) || (stats[stat] <= -6 && nb < 0)) {
-			this->_battleState->battleLogger("Nothing happened!");
+			logger(PkmnCommon::TextEvent{"Nothing happened!"});
 			return false;
 		}
 		if (stat != STATS_EVD && stat != STATS_ACC && cStats[stat] == 999 && nb > 0) {
-			this->_battleState->battleLogger("Nothing happened!");
+			logger(PkmnCommon::TextEvent{"Nothing happened!"});
 			return false;
 		}
 
@@ -822,13 +832,13 @@ namespace PokemonGen1
 				cStats[stat] = fmin(999, cStats[stat]);
 		}
 		if (nb < -1)
-			this->_log("'s " + statName + " greatly fell!");
+			logger(PkmnCommon::TextEvent{this->getName() + "'s " + statName + " greatly fell!"});
 		else if (nb == -1)
-			this->_log("'s " + statName + " fell!");
+			logger(PkmnCommon::TextEvent{this->getName() + "'s " + statName + " fell!"});
 		else if (nb == 1)
-			this->_log("'s " + statName + " rose!");
+			logger(PkmnCommon::TextEvent{this->getName() + "'s " + statName + " rose!"});
 		else if (nb > 1)
-			this->_log("'s " + statName + " greatly rose!");
+			logger(PkmnCommon::TextEvent{this->getName() + "'s " + statName + " greatly rose!"});
 		return true;
 	}
 
@@ -858,6 +868,7 @@ namespace PokemonGen1
 		if (!health)
 			return;
 
+		this->_battleState->battleLogger(PkmnCommon::HealthModEvent{.newHealth = health, .player = !this->isEnemy() });
 		if (this->_computedStats.HP + health > this->_computedStats.maxHP)
 			this->_computedStats.HP = this->_computedStats.maxHP;
 		else
@@ -872,22 +883,25 @@ namespace PokemonGen1
 		if (!damage)
 			return;
 
+		const auto &logger = this->_battleState->battleLogger;
+
 		if (this->_storingDamages)
 			this->_damageStored += damage;
 
 		if (!skipSubstitute && this->_hasSub) {
 			auto &subTarget = swapSide ? target : *this;
 
-			this->_battleState->battleLogger("The SUBSTITUTE took damage for " + subTarget.getName() + "!");
+			logger(PkmnCommon::TextEvent{"The SUBSTITUTE took damage for " + subTarget.getName() + "!"});
 			if (subTarget._subHealth < damage) {
 				subTarget._subHealth = 0;
 				subTarget._hasSub = false;
-				subTarget._log("'s SUBSTITUTE broke!");
+				logger(PkmnCommon::TextEvent{subTarget.getName() + "'s SUBSTITUTE broke!"});
 			} else
 				subTarget._subHealth -= damage;
 			return;
 		}
 
+		logger(PkmnCommon::HealthModEvent{.newHealth = -damage, .player = !this->isEnemy() });
 		if (damage > this->_computedStats.HP)
 			this->_computedStats.HP = 0;
 		else
@@ -895,7 +909,8 @@ namespace PokemonGen1
 
 		if (!this->_computedStats.HP) {
 			this->_currentStatus = STATUS_KO;
-			this->_log(" fainted!");
+			logger(PkmnCommon::TextEvent{this->getName() + " fainted!"});
+			logger(PkmnCommon::DeathEvent{});
 			this->_hasSub = false;
 		}
 	}
@@ -1238,7 +1253,7 @@ namespace PokemonGen1
 	{
 		this->_nickname = nickname;
 		if (this->_nickname.size() > 10) {
-			this->_log(" Warning : nickname is too big");
+			// TODO: printf("Warning: nickname is too big '%s'\n", nickname.c_str());
 			this->_nickname = this->_nickname.substr(0, 10);
 		}
 	}
@@ -1358,7 +1373,7 @@ namespace PokemonGen1
 
 		this->_moveSet[this->_forcedAttack - 1] = move;
 		this->_moveSet[this->_forcedAttack - 1].setPP(pp - 1);
-		this->_battleState->battleLogger(this->getName() + " learned " + Utils::toUpper(move.getName()) + "!");
+		this->_battleState->battleLogger(PkmnCommon::TextEvent{this->getName() + " learned " + Utils::toUpper(move.getName()) + "!"});
 	}
 
 	bool Pokemon::isWrapped() const

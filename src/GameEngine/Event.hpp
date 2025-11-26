@@ -9,18 +9,8 @@
 #include <variant>
 #include <string>
 
-namespace Pokemon {
-	enum EventType {
-		EVENTTYPE_TEXT,
-		EVENTTYPE_MOVE,
-		EVENTTYPE_ANIM,
-		EVENTTYPE_EXTRAANIM,
-		EVENTTYPE_HEALTH,
-		EVENTTYPE_SWITCH,
-		EVENTTYPE_DEATH,
-		EVENTTYPE_HIT,
-	};
-
+namespace PkmnCommon
+{
 	struct TextEvent {
 		std::string message;
 	};
@@ -32,17 +22,31 @@ namespace Pokemon {
 
 	enum SystemAnim {
 		SYSANIM_ASLEEP,
-		SYSANIM_BRUN,
+		SYSANIM_BURN,
+		SYSANIM_FROZEN,
 		SYSANIM_POISON,
 		SYSANIM_BAD_POISON,
 		SYSANIM_CONFUSED,
+		SYSANIM_FLINCHED,
+		SYSANIM_PARALYZED,
 		SYSANIM_CONFUSED_HIT,
-		SYSANIM_LEACHED,
-		SYSANIM_SUB_BREAK
+		SYSANIM_LEECHED,
+
+		SYSANIM_RECHARGE,
+		SYSANIM_SUB_BREAK,
+
+		SYSANIM_NOW_ASLEEP,
+		SYSANIM_NOW_FROZEN,
+		SYSANIM_NOW_BURNED,
+		SYSANIM_NOW_POISONED,
+		SYSANIM_NOW_PARALYZED,
+		SYSANIM_NOW_BADLY_POISONED,
+		SYSANIM_NOW_CONFUSED,
 	};
 
 	struct AnimEvent {
 		unsigned animId;
+		bool isGuaranteed;
 		bool player;
 	};
 
@@ -53,7 +57,7 @@ namespace Pokemon {
 	};
 
 	struct HealthModEvent {
-		unsigned newHealth;
+		int newHealth;
 		bool player;
 	};
 

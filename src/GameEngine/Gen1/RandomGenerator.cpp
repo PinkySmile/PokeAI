@@ -52,6 +52,29 @@ namespace PokemonGen1
 		return value;
 	}
 
+	unsigned char RandomGenerator::peak(unsigned offset)
+	{
+		unsigned index = this->_currentIndex + offset;
+		auto list = this->_numbers;
+
+		while (index >= list.size()) {
+			index -= list.size();
+			for (auto &elem : list)
+				elem = elem * 5 + 1;
+		}
+		return list[index];
+	}
+
+	void RandomGenerator::skip(unsigned int offset)
+	{
+		this->_currentIndex += offset;
+		while (this->_currentIndex >= this->_numbers.size()) {
+			this->_currentIndex -= this->_numbers.size();
+			for (auto &elem : this->_numbers)
+				elem = elem * 5 + 1;
+		}
+	}
+
 	unsigned RandomGenerator::getIndex() const
 	{
 		return this->_currentIndex;

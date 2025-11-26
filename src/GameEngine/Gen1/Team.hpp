@@ -17,6 +17,7 @@ namespace PokemonGen1
 
 	Trainer loadTrainer(const std::vector<unsigned char> &data, BattleState &state);
 	std::vector<unsigned char> saveTrainer(const Trainer &trainer);
+	void loadScenario(const std::vector<unsigned char> &data, BattleState &state);
 }
 
 

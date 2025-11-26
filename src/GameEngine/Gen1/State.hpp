@@ -10,6 +10,7 @@
 #include <vector>
 #include <nlohmann/json_fwd.hpp>
 #include "Pokemon.hpp"
+#include "Common.hpp"
 
 namespace PokemonGen1
 {
@@ -32,10 +33,6 @@ namespace PokemonGen1
 
 	std::string BattleActionToString(BattleAction action);
 
-	typedef std::array<bool, 4> MovesDiscovered;
-	typedef std::pair<bool, MovesDiscovered> PkmnDiscovered;
-	typedef std::function<void (const std::string &message)> BattleLogger;
-
 	enum DesyncPolicy {  // What to do when a move would desyncs
 		DESYNC_MISS,  // Make the move miss
 		DESYNC_THROW, // Throw an exception
@@ -43,7 +40,7 @@ namespace PokemonGen1
 		DESYNC_IGNORE // Apply normal calculations
 	};
 
-	enum BadActionPolicy {    // What to do when an invalid aciton is used
+	enum BadActionPolicy {    // What to do when an invalid action is used
 		BADACTION_IGNORE,  // Perform the action anyway; May crash
 		BADACTION_STRUGGLE,// Replace the action by StruggleMove
 		BADACTION_NOACTION,// Replace the action with NoAction
@@ -71,7 +68,7 @@ namespace PokemonGen1
 		DesyncPolicy desync = DESYNC_INVERT;
 		BadActionPolicy badAction = BADACTION_THROW;
 		unsigned short lastDamage = 0;
-		BattleLogger battleLogger = [](const std::string &){};
+		BattleLogger battleLogger = [](const PkmnCommon::Event &){};
 		std::function<bool ()> onTurnStart;
 		std::function<void ()> onBattleEnd;
 		std::function<void ()> onBattleStart;
