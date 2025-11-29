@@ -59,6 +59,17 @@ IRenderer::GameState fromGen1(const PokemonGen1::BattleState &state)
 		po.def = pi.getRawDefense();
 		po.spd = pi.getRawSpeed();
 		po.spe = pi.getRawSpecial();
+		po.level = pi.getLevel();
+		strcpy(po.name, pi.getName(false).c_str());
+		po.asleep = pi.hasStatus(PokemonGen1::STATUS_ASLEEP);
+		po.frozen = pi.hasStatus(PokemonGen1::STATUS_FROZEN);
+		po.burned = pi.hasStatus(PokemonGen1::STATUS_BURNED);
+		po.poisoned = pi.hasStatus(PokemonGen1::STATUS_POISONED);
+		po.toxicPoisoned = pi.hasStatus(PokemonGen1::STATUS_BAD_POISON);
+		po.paralyzed = pi.hasStatus(PokemonGen1::STATUS_PARALYZED);
+		po.ko = pi.hasStatus(PokemonGen1::STATUS_KO);
+		po.leeched = pi.hasStatus(PokemonGen1::STATUS_LEECHED);
+		po.confused = pi.hasStatus(PokemonGen1::STATUS_CONFUSED);
 		for (unsigned j = 0; j < po.moves.size() && j < moveSet.size(); j++) {
 			po.moves[j].id = moveSet[j].getID();
 			po.moves[j].pp = moveSet[j].getPP();

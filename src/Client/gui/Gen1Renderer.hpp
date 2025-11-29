@@ -33,7 +33,7 @@ private:
 		unsigned char palette = (0 << 0) | (1 << 2) | (2 << 4) | (3 << 6);
 		bool transparent = false;
 
-		void palettize(const std::array<unsigned, 4> &palette, bool transparent);
+		void palettize(const std::array<unsigned, 4> &palette, bool transparent, bool force=false);
 		void init(const std::filesystem::path &path);
 	};
 
@@ -83,6 +83,7 @@ private:
 		EVNTTYPE_HIT,
 		EVNTTYPE_DEATH,
 		EVNTTYPE_SWITCH,
+		EVNTTYPE_WITHDRAW,
 		EVNTTYPE_HEALTH_MOD,
 		EVNTTYPE_EXTRA_ANIM,
 		EVNTTYPE_ANIM,
@@ -97,6 +98,7 @@ private:
 	bool _updateHit();
 	bool _updateDeath();
 	bool _updateSwitch();
+	bool _updateWithdraw();
 	bool _updateHealthMod();
 	bool _updateExtraAnim();
 	bool _updateAnim();
@@ -117,6 +119,7 @@ private:
 	void _renderHit(sf::RenderTarget &);
 	void _renderDeath(sf::RenderTarget &);
 	void _renderSwitch(sf::RenderTarget &);
+	void _renderWithdraw(sf::RenderTarget &);
 	void _renderHealthMod(sf::RenderTarget &);
 	void _renderExtraAnim(sf::RenderTarget &);
 	void _renderAnim(sf::RenderTarget &);
@@ -124,6 +127,7 @@ private:
 	void _renderText(sf::RenderTarget &);
 
 	void _handleEvent(const PkmnCommon::Event &event);
+	void _peakTextEvent();
 
 	static sf::Color _getDmgColor(unsigned color);
 
@@ -150,6 +154,8 @@ private:
 	PalettedSprite _levelSprite;
 	sf::SoundBuffer _hitSounds[3];
 	sf::SoundBuffer _trainerLand;
+	sf::Sound _crySound{this->_trainerLand};
+	sf::Sound _soundLand{this->_trainerLand};
 	sf::Sound _moveSound{this->_trainerLand};
 	std::pair<sf::Texture, sf::Texture> _activeMons;
 	std::deque<PkmnCommon::Event> _queue;

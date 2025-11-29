@@ -18,7 +18,7 @@
 
 #define TEXT_LINE_TIME 40
 #define TEXT_LINE_SCROLL 10
-#define TEXT_WAIT_AFTER 40
+#define TEXT_WAIT_AFTER 120
 
 using namespace PkmnCommon;
 
@@ -174,6 +174,7 @@ bool (Gen1Renderer::*Gen1Renderer::_updates[])() = {
 	&Gen1Renderer::_updateHit,
 	&Gen1Renderer::_updateDeath,
 	&Gen1Renderer::_updateSwitch,
+	&Gen1Renderer::_updateWithdraw,
 	&Gen1Renderer::_updateHealthMod,
 	&Gen1Renderer::_updateExtraAnim,
 	&Gen1Renderer::_updateAnim,
@@ -188,6 +189,7 @@ void (Gen1Renderer::*Gen1Renderer::_renderers[])(sf::RenderTarget &) = {
 	&Gen1Renderer::_renderHit,
 	&Gen1Renderer::_renderDeath,
 	&Gen1Renderer::_renderSwitch,
+	&Gen1Renderer::_renderWithdraw,
 	&Gen1Renderer::_renderHealthMod,
 	&Gen1Renderer::_renderExtraAnim,
 	&Gen1Renderer::_renderAnim,
@@ -281,10 +283,15 @@ static std::string splitText(std::string str)
 
 void Gen1Renderer::_handleEvent(const Event &event)
 {
-	if (auto move = std::get_if<MoveEvent>(&event)) {
+	if (std::get_if<GameStartEvent>(&event)) {
+		this->_currentEvent = EVNTTYPE_GAME_START;
+		this->_animCounter = 0;
+		this->_animMove = 0;
+	} else if (auto move = std::get_if<MoveEvent>(&event)) {
 		this->_currentEvent = EVNTTYPE_MOVE;
-		auto it = this->_moveData.find(move->moveId);
+
 		auto &f = move->player ? this->state.p1 : this->state.p2;
+		auto it = this->_moveData.find(move->moveId);
 		auto it2 = this->_data.find(f.team[f.active].id);
 		auto &pkmn = it2 == this->_data.end() ? this->_missingno : it2->second;
 
@@ -313,13 +320,115 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		throw std::runtime_error("Not implemented");
 }
 
+void Gen1Renderer::_peakTextEvent()
+{
+	if (this->_queue.empty())
+		return;
+
+	auto text = std::get_if<TextEvent>(&this->_queue.front());
+
+	if (!text)
+		return;
+	this->_displayedText.clear();
+	this->_queuedText = splitText(text->message);
+	this->_queue.pop_front();
+}
+
+enum IntroStep {
+	INTROSTEP_VS_PANEL,
+	INTROSTEP_VS_PANEL_BLINK,
+	INTROSTEP_VS_PANEL_OUT,
+	INTROSTEP_VS_PANEL_OUT_WAIT,
+	INTROSTEP_PLAYERS_SLIDE,
+	INTROSTEP_PLAYERS_STARE,
+	INTROSTEP_PLAYERS_STARE_BALLS,
+	INTROSTEP_OPPONENT_SLIDE,
+	INTROSTEP_OPPONENT_SLIDE_WAIT,
+	INTROSTEP_OPPONENT_MON_TEXT,
+	INTROSTEP_OPPONENT_MON_SPAWN,
+	INTROSTEP_OPPONENT_MON_SPAWNED_WAIT,
+	INTROSTEP_PLAYER_SLIDE,
+	INTROSTEP_PLAYER_SLIDE_WAIT,
+	INTROSTEP_PLAYER_MON_TEXT,
+	INTROSTEP_PLAYER_BALL_ANIM,
+	INTROSTEP_PLAYER_MON_SPAWN,
+	INTROSTEP_PLAYER_MON_SPAWNED_WAIT,
+};
+
+static unsigned introAnimCounters[] = {
+	/* INTROSTEP_VS_PANEL                  */ 180,
+	/* INTROSTEP_VS_PANEL_BLINK            */ 120,
+	/* INTROSTEP_VS_PANEL_OUT              */ 1,
+	/* INTROSTEP_VS_PANEL_OUT_WAIT         */ 10,
+	/* INTROSTEP_PLAYERS_SLIDE             */ 90,
+	/* INTROSTEP_PLAYERS_STARE             */ 60,
+	/* INTROSTEP_PLAYERS_STARE_BALLS       */ 90,
+	/* INTROSTEP_OPPONENT_SLIDE            */ 15,
+	/* INTROSTEP_OPPONENT_SLIDE_WAIT       */ 15,
+	/* INTROSTEP_OPPONENT_MON_TEXT         */ 60,
+	/* INTROSTEP_OPPONENT_MON_SPAWN        */ 12,
+	/* INTROSTEP_OPPONENT_MON_SPAWNED_WAIT */ 78,
+	/* INTROSTEP_PLAYER_SLIDE              */ 15,
+	/* INTROSTEP_PLAYER_SLIDE_WAIT         */ 15,
+	/* INTROSTEP_PLAYER_MON_TEXT           */ 30,
+	/* INTROSTEP_PLAYER_BALL_ANIM          */ 1,
+	/* INTROSTEP_PLAYER_MON_SPAWN          */ 12,
+	/* INTROSTEP_PLAYER_MON_SPAWNED_WAIT   */ 60
+};
+
 bool Gen1Renderer::_updateNormal()
 {
 	return false;
 }
 bool Gen1Renderer::_updateGameStart()
 {
-	return false;
+	if (++this->_animCounter >= introAnimCounters[this->_animMove]) {
+		this->_animMove++;
+		this->_animCounter = 0;
+	}
+
+	switch (this->_animMove) {
+	case INTROSTEP_VS_PANEL:
+		if (this->_animCounter == 1)
+			this->_music.play();
+		break;
+	case INTROSTEP_PLAYERS_STARE:
+		if (this->_animCounter == 0)
+			this->_soundLand.play();
+		break;
+	case INTROSTEP_PLAYERS_STARE_BALLS:
+	case INTROSTEP_OPPONENT_MON_TEXT:
+	case INTROSTEP_PLAYER_MON_TEXT:
+		if (this->_animCounter == 0)
+			this->_peakTextEvent();
+		break;
+	case INTROSTEP_OPPONENT_MON_SPAWN:
+		if (this->_animCounter == 10) {
+			auto it = this->_data.find(this->state.p2.spriteId);
+			auto &data = it == this->_data.end() ? this->_missingno : it->second;
+
+			this->_crySound.setBuffer(data.cry);
+			this->_crySound.play();
+		}
+		break;
+	case INTROSTEP_PLAYER_BALL_ANIM:
+		if (this->_animCounter == 0) {
+			// TODO: Play ball SFX
+		}
+		break;
+	case INTROSTEP_PLAYER_MON_SPAWN:
+		if (this->_animCounter == 10) {
+			auto it = this->_data.find(this->state.p1.spriteId);
+			auto &data = it == this->_data.end() ? this->_missingno : it->second;
+
+			this->_crySound.setBuffer(data.cry);
+			this->_crySound.play();
+			this->_displayedText = this->_queuedText;
+		}
+		break;
+	}
+
+	return this->_animMove < std::size(introAnimCounters);
 }
 bool Gen1Renderer::_updateGameEnd()
 {
@@ -334,6 +443,10 @@ bool Gen1Renderer::_updateDeath()
 	return false;
 }
 bool Gen1Renderer::_updateSwitch()
+{
+	return false;
+}
+bool Gen1Renderer::_updateWithdraw()
 {
 	return false;
 }
@@ -402,14 +515,14 @@ bool Gen1Renderer::_updateText()
 {
 	if (this->_queuedText.empty())
 		return false;
-	if (this->_textTimer < 1) {
-		this->_textTimer++;
-		return true;
-	}
 	if (this->_currentCharacter == this->_queuedText.size()) {
 		this->_textTimer++;
 		return this->_textTimer < TEXT_WAIT_AFTER;
 	}
+	//if (this->_textTimer < 4) {
+	//	this->_textTimer++;
+	//	return true;
+	//}
 	if (this->_queuedText[this->_currentCharacter] == '\n' && this->_displayedText.find('\n') != std::string::npos) {
 		this->_textCounter++;
 		if (this->_textCounter == TEXT_LINE_TIME) {
@@ -478,11 +591,11 @@ void Gen1Renderer::_displayMyStats(sf::RenderTarget &target, const Pokemon &pkmn
 	} else {
 		text.setString(std::to_string(pkmn.level));
 		if (pkmn.level < 100) {
-			sprite.setPosition({103, 64});
+			sprite.setPosition({104, 64});
 			this->_levelSprite.palettize(palette, false);
 			sprite.setTexture(this->_levelSprite.texture, true);
 			target.draw(sprite);
-			text.setPosition({111, 64});
+			text.setPosition({112, 64});
 			target.draw(text);
 		} else
 			target.draw(text);
@@ -804,6 +917,329 @@ void Gen1Renderer::_renderNormal(sf::RenderTarget &target)
 }
 void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 {
+	sf::RectangleShape rect;
+	sf::View view{{320, 288}, {640, 576}};
+	sf::Clock clock;
+	sf::Text text{this->_font};
+	sf::Sprite sprite{this->_boxes[0].texture};
+	sf::Sound soundLand{this->_trainerLand};
+
+	text.setCharacterSize(8);
+	text.setFillColor(Gen1Renderer::_getDmgColor(3));
+	text.setLineSpacing(2);
+
+	target.clear(Gen1Renderer::_getDmgColor(0));
+	sprite.setPosition({0, 96});
+	target.draw(sprite);
+	switch (this->_animMove){
+	case INTROSTEP_VS_PANEL:
+		target.clear(Gen1Renderer::_getDmgColor(0));
+
+		sprite.setTexture(this->_boxes[1].texture, true);
+		sprite.setPosition({24, 36});
+		target.draw(sprite);
+
+		text.setString(this->state.p1.name);
+		text.setPosition({36, 48});
+		target.draw(text);
+		for (unsigned i = 0; i < this->state.p1.team.size(); i++) {
+			auto &pkmn = this->state.p1.team[i];
+
+			if (pkmn.id == 0)
+				sprite.setTexture(this->_balls[1], true);
+			else if (pkmn.ko)
+				sprite.setTexture(this->_balls[2], true);
+			else if (pkmn.asleep || pkmn.frozen || pkmn.burned || pkmn.poisoned || pkmn.toxicPoisoned || pkmn.paralyzed)
+				sprite.setTexture(this->_balls[3], true);
+			else
+				sprite.setTexture(this->_balls[0], true);
+			sprite.setPosition({72 + i * 8.f, 58});
+			target.draw(sprite);
+		}
+
+		text.setString(this->state.p2.name);
+		text.setPosition({36, 80});
+		target.draw(text);
+		for (unsigned i = 0; i < state.p2.team.size(); i++) {
+			auto &pkmn = this->state.p2.team[i];
+
+			if (pkmn.id == 0)
+				sprite.setTexture(this->_balls[1], true);
+			else if (pkmn.ko)
+				sprite.setTexture(this->_balls[2], true);
+			else if (pkmn.asleep || pkmn.frozen || pkmn.burned || pkmn.poisoned || pkmn.toxicPoisoned || pkmn.paralyzed)
+				sprite.setTexture(this->_balls[3], true);
+			else
+				sprite.setTexture(this->_balls[0], true);
+			sprite.setPosition({72 + i * 8.f, 88});
+			target.draw(sprite);
+		}
+		break;
+
+	case INTROSTEP_VS_PANEL_BLINK:
+	#define BLINK_STEP 5
+		if (this->_animCounter % (BLINK_STEP * 6) < BLINK_STEP)
+			target.clear(Gen1Renderer::_getDmgColor(0));
+		else if (this->_animCounter % (BLINK_STEP * 6) < BLINK_STEP * 2)
+			target.clear(Gen1Renderer::_getDmgColor(1));
+		else if (this->_animCounter % (BLINK_STEP * 6) < BLINK_STEP * 3)
+			target.clear(Gen1Renderer::_getDmgColor(2));
+		else if (this->_animCounter % (BLINK_STEP * 6) < BLINK_STEP * 4)
+			target.clear(Gen1Renderer::_getDmgColor(3));
+		else if (this->_animCounter % (BLINK_STEP * 6) < BLINK_STEP * 5)
+			target.clear(Gen1Renderer::_getDmgColor(2));
+		else
+			target.clear(Gen1Renderer::_getDmgColor(1));
+		break;
+
+	case INTROSTEP_VS_PANEL_OUT:
+	case INTROSTEP_VS_PANEL_OUT_WAIT:
+		target.clear(Gen1Renderer::_getDmgColor(3));
+		break;
+
+	case INTROSTEP_PLAYERS_SLIDE:
+		this->_trainer[1].palettize({3, 3, 3, 3}, true);
+		this->_trainer[0].palettize({3, 3, 3, 3}, true);
+
+		sprite.setTexture(this->_trainer[1].texture, true);
+		sprite.setPosition({158.f * this->_animCounter / introAnimCounters[INTROSTEP_PLAYERS_SLIDE] - 56, 0});
+		target.draw(sprite);
+
+		sprite.setTexture(this->_trainer[0].texture, true);
+		sprite.setScale({2, 2});
+		sprite.setPosition({160.f * (introAnimCounters[INTROSTEP_PLAYERS_SLIDE] - this->_animCounter) / introAnimCounters[INTROSTEP_PLAYERS_SLIDE] + 8, 40});
+		target.draw(sprite);
+		break;
+
+	case INTROSTEP_PLAYERS_STARE:
+		this->_trainer[1].palettize({0, 1, 2, 3}, true);
+		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+
+		sprite.setTexture(this->_trainer[1].texture, true);
+		sprite.setPosition({102, 0});
+		target.draw(sprite);
+
+		sprite.setScale({2, 2});
+		sprite.setTexture(this->_trainer[0].texture, true);
+		sprite.setPosition({8, 40});
+		target.draw(sprite);
+		break;
+
+	case INTROSTEP_PLAYERS_STARE_BALLS:
+		this->_trainer[1].palettize({0, 1, 2, 3}, true);
+		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+		this->_boxes[2].palettize({0, 1, 2, 3}, true);
+
+		sprite.setTexture(this->_trainer[1].texture, true);
+		sprite.setPosition({102, 0});
+		target.draw(sprite);
+
+		sprite.setScale({2, 2});
+		sprite.setTexture(this->_trainer[0].texture, true);
+		sprite.setPosition({8, 40});
+		target.draw(sprite);
+
+
+		sprite.setScale({1, 1});
+		sprite.setTexture(this->_boxes[2].texture, true);
+		sprite.setPosition({8, 16});
+		target.draw(sprite);
+		for (unsigned i = 0; i < this->state.p2.team.size(); i++) {
+			auto &pkmn = this->state.p2.team[i];
+
+			if (pkmn.id == 0)
+				sprite.setTexture(this->_balls[1], true);
+			else if (pkmn.ko)
+				sprite.setTexture(this->_balls[2], true);
+			else if (pkmn.asleep || pkmn.frozen || pkmn.burned || pkmn.poisoned || pkmn.toxicPoisoned || pkmn.paralyzed)
+				sprite.setTexture(this->_balls[3], true);
+			else
+				sprite.setTexture(this->_balls[0], true);
+			sprite.setPosition({16 + 8.f * (6.f - i), 16});
+			target.draw(sprite);
+		}
+
+		sprite.setTexture(this->_boxes[2].texture, true);
+		sprite.setPosition({152, 80});
+		sprite.setScale({-1, 1});
+		target.draw(sprite);
+		sprite.setScale({1, 1});
+		for (unsigned i = 0; i < this->state.p1.team.size(); i++) {
+			auto &pkmn = this->state.p1.team[i];
+
+			if (pkmn.id == 0)
+				sprite.setTexture(this->_balls[1], true);
+			else if (pkmn.ko)
+				sprite.setTexture(this->_balls[2], true);
+			else if (pkmn.asleep || pkmn.frozen || pkmn.burned || pkmn.poisoned || pkmn.toxicPoisoned || pkmn.paralyzed)
+				sprite.setTexture(this->_balls[3], true);
+			else
+				sprite.setTexture(this->_balls[0], true);
+			sprite.setPosition({88 + 8.f * i, 80});
+			target.draw(sprite);
+		}
+
+		text.setString(this->_queuedText.substr(0, this->_animCounter));
+		text.setPosition({8, 112});
+		target.draw(text);
+		break;
+
+	case INTROSTEP_OPPONENT_SLIDE:
+		this->_trainer[1].palettize({0, 1, 2, 3}, true);
+		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+
+		sprite.setTexture(this->_trainer[1].texture, true);
+		sprite.setPosition({102 + 224 * this->_animCounter / 60.f, 0});
+		target.draw(sprite);
+
+		sprite.setScale({2, 2});
+		sprite.setTexture(this->_trainer[0].texture, true);
+		sprite.setPosition({8, 40});
+		target.draw(sprite);
+		break;
+
+	case INTROSTEP_OPPONENT_SLIDE_WAIT:
+		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+
+		sprite.setScale({2, 2});
+		sprite.setTexture(this->_trainer[0].texture, true);
+		sprite.setPosition({8, 40});
+		target.draw(sprite);
+		break;
+
+	case INTROSTEP_OPPONENT_MON_TEXT:
+		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+
+		sprite.setScale({2, 2});
+		sprite.setTexture(this->_trainer[0].texture, true);
+		sprite.setPosition({8, 40});
+		target.draw(sprite);
+
+		text.setString(this->_queuedText.substr(0, this->_animCounter));
+		text.setPosition({8, 112});
+		target.draw(text);
+		break;
+
+	case INTROSTEP_OPPONENT_MON_SPAWN: {
+		auto it = this->_data.find(this->state.p2.spriteId);
+		auto &data = it == this->_data.end() ? this->_missingno : it->second;
+
+		sf::Vector2f basePos{96, 0};
+		float mul = 5.f * this->_animCounter / 60.f;
+		auto size = data.front.texture.getSize();
+
+		basePos.x += static_cast<int>(56.f - size.x) / 16 * 8;
+		basePos.y += 56 - size.y;
+
+		data.front.palettize({0, 1, 2, 3}, true);
+		sprite.setTexture(data.front.texture, true);
+		sprite.setScale({mul, mul});
+		sprite.setPosition({
+			basePos.x + (size.x - size.x * mul) / 2,
+			basePos.y + size.y - size.y * mul
+		});
+		target.draw(sprite);
+
+		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+
+		sprite.setScale({2, 2});
+		sprite.setTexture(this->_trainer[0].texture, true);
+		sprite.setPosition({8, 40});
+		target.draw(sprite);
+
+		text.setString(this->_queuedText);
+		text.setPosition({8, 112});
+		target.draw(text);
+		break;
+	}
+
+	case INTROSTEP_OPPONENT_MON_SPAWNED_WAIT:
+		this->_displayOpFace(target, this->state.p2.spriteId);
+
+		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+
+		sprite.setScale({2, 2});
+		sprite.setTexture(this->_trainer[0].texture, true);
+		sprite.setPosition({8, 40});
+		target.draw(sprite);
+
+		text.setString(this->_queuedText);
+		text.setPosition({8, 112});
+		target.draw(text);
+		break;
+
+	case INTROSTEP_PLAYER_MON_TEXT:
+		text.setString(this->_queuedText.substr(0, this->_animCounter));
+		text.setPosition({8, 112});
+		target.draw(text);
+
+		this->_displayOpFace(target, this->state.p2.spriteId);
+		this->_displayOpStats(target, this->state.p2.team[this->state.p2.active]);
+		break;
+
+	case INTROSTEP_PLAYER_SLIDE:
+		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+
+		sprite.setScale({2, 2});
+		sprite.setTexture(this->_trainer[0].texture, true);
+		sprite.setPosition({2 - 64 * this->_animCounter * 5 / 60.f, 40});
+		target.draw(sprite);
+
+		this->_displayOpFace(target, this->state.p2.spriteId);
+		this->_displayOpStats(target, this->state.p2.team[this->state.p2.active]);
+
+		text.setString(this->_queuedText);
+		text.setPosition({8, 112});
+		target.draw(text);
+		break;
+
+	case INTROSTEP_PLAYER_SLIDE_WAIT:
+		text.setString(this->_queuedText);
+		text.setPosition({8, 112});
+		target.draw(text);
+
+		this->_displayOpFace(target, this->state.p2.spriteId);
+		this->_displayOpStats(target, this->state.p2.team[this->state.p2.active]);
+		break;
+
+	case INTROSTEP_PLAYER_BALL_ANIM:
+		// TODO: Play ball VFX
+		text.setString(this->_queuedText);
+		text.setPosition({8, 112});
+		target.draw(text);
+
+		this->_displayOpFace(target, this->state.p2.spriteId);
+		this->_displayOpStats(target, this->state.p2.team[this->state.p2.active]);
+		break;
+
+	case INTROSTEP_PLAYER_MON_SPAWN: {
+		auto it = this->_data.find(this->state.p1.spriteId);
+		auto &data = it == this->_data.end() ? this->_missingno : it->second;
+		float mul = 5.f * this->_animCounter / 60.f;
+		auto size = data.back.texture.getSize();
+
+		size.x *= 2;
+		size.y *= 2;
+		data.back.palettize({0, 1, 2, 3}, true);
+		sprite.setTexture(data.back.texture, true);
+		sprite.setScale({mul * 2, mul * 2});
+		sprite.setPosition({
+			8 + (size.x - size.x * mul) / 2,
+			40 + size.y - size.y * mul
+		});
+		target.draw(sprite);
+
+		text.setString(this->_queuedText);
+		text.setPosition({8, 112});
+		target.draw(text);
+
+		this->_displayOpFace(target, this->state.p2.spriteId);
+		this->_displayOpStats(target, this->state.p2.team[this->state.p2.active]);
+		break;
+	}
+	case INTROSTEP_PLAYER_MON_SPAWNED_WAIT:
+		this->_renderNormal(target);
+	}
 }
 void Gen1Renderer::_renderGameEnd(sf::RenderTarget &target)
 {
@@ -815,6 +1251,9 @@ void Gen1Renderer::_renderDeath(sf::RenderTarget &target)
 {
 }
 void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
+{
+}
+void Gen1Renderer::_renderWithdraw(sf::RenderTarget &target)
 {
 }
 void Gen1Renderer::_renderHealthMod(sf::RenderTarget &target)
@@ -995,11 +1434,11 @@ sf::Color Gen1Renderer::_getDmgColor(unsigned int color)
 	}
 }
 
-void Gen1Renderer::PalettedSprite::palettize(const std::array<unsigned int, 4> &palette, bool transparent)
+void Gen1Renderer::PalettedSprite::palettize(const std::array<unsigned int, 4> &palette, bool transparent, bool force)
 {
 	unsigned newPalette = (palette[0] << 0) | (palette[1] << 2) | (palette[2] << 4) | (palette[3] << 6);
 
-	if (newPalette == this->palette && transparent == this->transparent)
+	if (newPalette == this->palette && transparent == this->transparent && !force)
 		return;
 	this->transparent = transparent;
 	this->palette = newPalette;
@@ -1027,4 +1466,5 @@ void Gen1Renderer::PalettedSprite::init(const std::filesystem::path &path)
 {
 	(void)this->source.loadFromFile(path);
 	(void)this->texture.loadFromImage(this->source);
+	this->palettize({0, 1, 2, 3}, false, true);
 }

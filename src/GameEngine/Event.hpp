@@ -66,6 +66,10 @@ namespace PkmnCommon
 		bool player;
 	};
 
+	struct WithdrawEvent {
+		bool player;
+	};
+
 	struct DeathEvent {
 		bool player;
 	};
@@ -84,7 +88,7 @@ namespace PkmnCommon
 		bool p2Won;
 	};
 
-	typedef std::variant<TextEvent, MoveEvent, AnimEvent, ExtraAnimEvent, HealthModEvent, SwitchEvent, DeathEvent, HitEvent, GameStartEvent, GameEndEvent> Event;
+	typedef std::variant<TextEvent, MoveEvent, AnimEvent, ExtraAnimEvent, HealthModEvent, SwitchEvent, WithdrawEvent, DeathEvent, HitEvent, GameStartEvent, GameEndEvent> Event;
 }
 
 

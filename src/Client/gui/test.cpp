@@ -16,6 +16,7 @@ int main(int argc, char **argv)
 		printf("Usage: %s <replay_path>\n", argv[0]);
 		return 1;
 	}
+
 	PokemonGen1::BattleHandler handler{false, false};
 	auto &state = handler.getBattleState();
 	Gen1Renderer renderer;
@@ -25,11 +26,10 @@ int main(int argc, char **argv)
 	handler.start();
 
 	auto size = renderer.getSize();
-	sf::RenderWindow win{sf::VideoMode{{size.x * 4, size.y * 4}}, "Play replay"};
+	sf::RenderWindow win{sf::VideoMode{{size.x * 4, size.y * 4}}, state.me.name + " vs " + state.op.name};
 	sf::View view;
 
 	renderer.state = fromGen1(state);
-
 	view.setCenter({size.x / 2.f, size.y / 2.f});
 	view.setSize(sf::Vector2f(size));
 	win.setFramerateLimit(60);

@@ -46,7 +46,9 @@ def init_battle(self):
 	self.copy_battle_data_to_emulator(state.me, self.symbol("wPartyMons"), self.symbol("wPlayerName"),  self.symbol("wPartyCount"),      self.symbol("wPartyMonNicks"))
 	self.copy_battle_data_to_emulator(state.op, self.symbol("wEnemyMons"), self.symbol("wTrainerName"), self.symbol("wEnemyPartyCount"), self.symbol("wEnemyMonNicks"))
 	self.waiting_text = True
-	for i in range(330):
+	global playing_cry
+	playing_cry = False
+	while not playing_cry:
 		self.tick()
 	fd = wave.open(f"exports/cry_{state.op.team[0].id}.wav", "wb")
 	fd.setnchannels(2)
@@ -68,10 +70,16 @@ state.rng.generate_list(9)
 state.me.name = "0"
 state.op.name = "0"
 
+playing_cry = False
 state.me.team = [Pokemon(state, "0", 100, PokemonBase(PokemonSpecies.Pikachu), [Move(AvailableMove.Razor_Wind)], False)]
+
+def set_playing(_):
+	global playing_cry
+	playing_cry = True
 
 emulator = PyBoyEmulator(has_interface=True, rom=sys.argv[1], sound_volume=0)
 emulator.emulator.set_emulation_speed(0)
+emulator.hook(emulator.symbol("PlayCry"), set_playing)
 for i in PokemonSpecies:
 	state.op.team = [Pokemon(state, "0", 100, PokemonBase(i), [Move(AvailableMove.Razor_Wind)], True)]
 	init_battle(emulator)

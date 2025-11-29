@@ -160,6 +160,7 @@ namespace PokemonGen1
 					this->_state.me.team[this->_state.me.pokemonOnField].switched();
 					this->_state.op.team[this->_state.op.pokemonOnField].opponentSwitched();
 					this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName(false) + " come back");
+					this->_state.battleLogger(PkmnCommon::WithdrawEvent{.player = true});
 				}
 				this->_state.me.pokemonOnField = this->_state.me.nextAction - Switch1;
 				this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName(false) + " go");
@@ -198,6 +199,7 @@ namespace PokemonGen1
 					this->_state.op.team[this->_state.op.pokemonOnField].switched();
 					this->_state.me.team[this->_state.me.pokemonOnField].opponentSwitched();
 					this->logBattle(this->_state.op.name + " withdrew " + this->_state.op.team[this->_state.op.pokemonOnField].getName(false));
+					this->_state.battleLogger(PkmnCommon::WithdrawEvent{.player = false});
 				}
 				this->_state.op.pokemonOnField = this->_state.op.nextAction - Switch1;
 				this->logBattle(this->_state.op.name + " sent out " + this->_state.op.team[this->_state.op.pokemonOnField].getName(false));
