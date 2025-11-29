@@ -70,6 +70,7 @@ public:
 		std::array<Pokemon, 6> team;
 		unsigned active;
 		unsigned spriteId;
+		bool hidden;
 		bool substitute;
 	};
 

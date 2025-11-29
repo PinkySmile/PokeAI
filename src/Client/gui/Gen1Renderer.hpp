@@ -134,13 +134,14 @@ private:
 	static bool (Gen1Renderer::*_updates[EVNTTYPE_COUNT])();
 	static void (Gen1Renderer::*_renderers[EVNTTYPE_COUNT])(sf::RenderTarget &);
 
+	static void _loadMoveFrames(std::vector<MoveAnim> &m, const nlohmann::json &j);
 	static void _loadMoveData(MoveData &data, const std::string &id);
 	static void _loadPokemonData(PokemonData &data, const std::string &folder);
 
 	EventType _currentEvent = EVNTTYPE_NONE;
 
 	bool _hasColor = false;
-	unsigned _gpCounter[6];
+	unsigned _gpCounter[7];
 	std::string _queuedText;
 	std::string _displayedText;
 	sf::Texture _balls[4];
@@ -154,9 +155,12 @@ private:
 	PalettedSprite _levelSprite;
 	sf::SoundBuffer _hitSounds[3];
 	sf::SoundBuffer _trainerLand;
+	sf::SoundBuffer _ballPopSound;
+	std::vector<MoveAnim> _ballPopAnim;
 	sf::Sound _crySound{this->_trainerLand};
 	sf::Sound _soundLand{this->_trainerLand};
 	sf::Sound _moveSound{this->_trainerLand};
+	sf::Sound _ballPop{this->_ballPopSound};
 	std::pair<sf::Texture, sf::Texture> _activeMons;
 	std::deque<PkmnCommon::Event> _queue;
 	std::deque<sf::Event> _sfmlQueue;

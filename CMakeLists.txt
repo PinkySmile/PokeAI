@@ -8,6 +8,11 @@ if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_BUILD_TYPE MATCHES Debug)
 	add_compile_options(-W -Wall -Wextra)
 endif (CMAKE_COMPILER_IS_GNUCC AND CMAKE_BUILD_TYPE MATCHES Debug)
 
+if (ASAN)
+	add_compile_options(-fsanitize=address)
+	add_link_options(-fsanitize=address)
+endif ()
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 find_package(SFML 3 REQUIRED COMPONENTS Graphics Audio Network)
 find_package(TGUI 1 REQUIRED)

@@ -12,17 +12,56 @@
 #define _subCounter _gpCounter[3]
 #define _subSpawnTimer _gpCounter[4]
 #define _subSpawnUnspawn _gpCounter[5]
+#define _waitCounter _gpCounter[6]
 #define _currentCharacter _gpCounter[0]
 #define _textTimer _gpCounter[1]
 #define _textCounter _gpCounter[2]
+#define _currentAnim _gpCounter[4]
 
 #define TEXT_LINE_TIME 40
 #define TEXT_LINE_SCROLL 10
-#define TEXT_WAIT_AFTER 120
+#define MOVE_WAIT_BEFORE 120
+
+#define WITHDRAW_ANIM_LENGTH 60
 
 using namespace PkmnCommon;
 
-void Gen1Renderer::_loadMoveData(Gen1Renderer::MoveData &data, const std::string &id)
+void Gen1Renderer::_loadMoveFrames(std::vector<MoveAnim> &m, const nlohmann::json &json)
+{
+	for (auto &janim : json) {
+		m.emplace_back();
+
+		auto &anim = m.back();
+
+		anim.duration = janim["duration"];
+		anim.tileset = janim["tileset"];
+		if (janim.contains("scx")) {
+			anim.palB = janim["palB"].get<std::array<unsigned, 4>>();
+			anim.pal0 = janim["pal1"].get<std::array<unsigned, 4>>();
+			anim.pal1 = janim["pal2"].get<std::array<unsigned, 4>>();
+			anim.scx = janim["scx"];
+			anim.scy = janim["scy"];
+			anim.wx = janim["wx"];
+			anim.wy = janim["wy"];
+			anim.p1Off = janim["p1"].get<std::optional<std::pair<int, int>>>();
+			anim.p2Off = janim["p2"].get<std::optional<std::pair<int, int>>>();
+		}
+		for (auto &j: janim["sprites"]) {
+			anim.sprites.emplace_back();
+
+			auto &sprite = anim.sprites.back();
+
+			sprite.x = j["x"];
+			sprite.y = j["y"];
+			sprite.id = j["id"];
+			sprite.palNum = j["pal_num"];
+			sprite.flip = j["flip"].get<std::pair<bool, bool>>();
+			sprite.prio = j["prio"];
+		}
+	}
+}
+
+void Gen1Renderer::_loadMoveData(MoveData &data, const std::string &id)
 {
 	std::ifstream stream{"assets/gen1/moves/anims/move_" + id + ".json"};
 	nlohmann::json json;
@@ -32,65 +71,8 @@ void Gen1Renderer::_loadMoveData(Gen1Renderer::MoveData &data, const std::string
 	if (id != "45" && id != "46") // Growl and Roar
 		(void)data.sound.loadFromFile("assets/gen1/moves/sounds/move_" + id + ".ogg");
 
-	for (auto &janim : json["frames_p1"]) {
-		data.animP1.emplace_back();
-
-		auto &anim = data.animP1.back();
-
-		anim.palB = janim["palB"].get<std::array<unsigned, 4>>();
-		anim.pal0 = janim["pal1"].get<std::array<unsigned, 4>>();
-		anim.pal1 = janim["pal2"].get<std::array<unsigned, 4>>();
-		anim.duration = janim["duration"];
-		anim.scx = janim["scx"];
-		anim.scy = janim["scy"];
-		anim.wx = janim["wx"];
-		anim.wy = janim["wy"];
-		anim.tileset = janim["tileset"];
-		anim.p1Off = janim["p1"].get<std::optional<std::pair<int, int>>>();
-		anim.p2Off = janim["p2"].get<std::optional<std::pair<int, int>>>();
-		for (auto &j: janim["sprites"]) {
-			anim.sprites.emplace_back();
-
-			auto &sprite = anim.sprites.back();
-
-			sprite.x = j["x"];
-			sprite.y = j["y"];
-			sprite.id = j["id"];
-			sprite.palNum = j["pal_num"];
-			sprite.flip = j["flip"].get<std::pair<bool, bool>>();
-			sprite.prio = j["prio"];
-		}
-	}
-
-	for (auto &janim : json["frames_p2"]) {
-		data.animP2.emplace_back();
-
-		auto &anim = data.animP2.back();
-
-		anim.palB = janim["palB"].get<std::array<unsigned, 4>>();
-		anim.pal0 = janim["pal1"].get<std::array<unsigned, 4>>();
-		anim.pal1 = janim["pal2"].get<std::array<unsigned, 4>>();
-		anim.duration = janim["duration"];
-		anim.scx = janim["scx"];
-		anim.scy = janim["scy"];
-		anim.wx = janim["wx"];
-		anim.wy = janim["wy"];
-		anim.tileset = janim["tileset"];
-		anim.p1Off = janim["p1"].get<std::optional<std::pair<int, int>>>();
-		anim.p2Off = janim["p2"].get<std::optional<std::pair<int, int>>>();
-		for (auto &j: janim["sprites"]) {
-			anim.sprites.emplace_back();
-
-			auto &sprite = anim.sprites.back();
-
-			sprite.x = j["x"];
-			sprite.y = j["y"];
-			sprite.id = j["id"];
-			sprite.palNum = j["pal_num"];
-			sprite.flip = j["flip"].get<std::pair<bool, bool>>();
-			sprite.prio = j["prio"];
-		}
-	}
+	Gen1Renderer::_loadMoveFrames(data.animP1, json["frames_p1"]);
+	Gen1Renderer::_loadMoveFrames(data.animP2, json["frames_p2"]);
 }
 
 void Gen1Renderer::_loadPokemonData(PokemonData &data, const std::string &folder)
@@ -110,6 +92,7 @@ Gen1Renderer::Gen1Renderer() :
 	std::ifstream streamLoop{"assets/gen1/sounds/battle1_loop.txt"};
 	std::ifstream streamList{"assets/gen1/list.json"};
 	std::ifstream streamListMove{"assets/gen1/moves/list.json"};
+	std::ifstream streamStartAnim{"assets/gen1/start.json"};
 	nlohmann::json json;
 	std::string line;
 
@@ -133,6 +116,7 @@ Gen1Renderer::Gen1Renderer() :
 	(void)this->_hitSounds[1].loadFromFile("assets/gen1/sounds/hit_sound.ogg");
 	(void)this->_hitSounds[2].loadFromFile("assets/gen1/sounds/ve_sound.ogg");
 	(void)this->_trainerLand.loadFromFile("assets/gen1/sounds/trainer_land.ogg");
+	(void)this->_ballPopSound.loadFromFile("assets/gen1/sounds/ball_pop.ogg");
 
 	(void)this->_trainer[0].init("assets/gen1/redb.png");
 	(void)this->_trainer[1].init("assets/gen1/red.png");
@@ -165,6 +149,9 @@ Gen1Renderer::Gen1Renderer() :
 
 		Gen1Renderer::_loadMoveData(this->_moveData[id_], std::to_string(id_));
 	}
+
+	streamStartAnim >> json;
+	Gen1Renderer::_loadMoveFrames(this->_ballPopAnim, json);
 }
 
 bool (Gen1Renderer::*Gen1Renderer::_updates[])() = {
@@ -287,6 +274,8 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		this->_currentEvent = EVNTTYPE_GAME_START;
 		this->_animCounter = 0;
 		this->_animMove = 0;
+		this->_subCounter = 0;
+		this->_currentAnim = 0;
 	} else if (auto move = std::get_if<MoveEvent>(&event)) {
 		this->_currentEvent = EVNTTYPE_MOVE;
 
@@ -303,6 +292,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		this->_subCounter = 0;
 		this->_subSpawnTimer = 0;
 		this->_subSpawnUnspawn = 0;
+		this->_waitCounter = 0;
 		if (move->moveId == 45)
 			this->_moveSound.setBuffer(pkmn.growl);
 		else if (move->moveId == 46)
@@ -316,6 +306,10 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		this->_textCounter = 0;
 		this->_displayedText.clear();
 		this->_queuedText = splitText(text->message);
+	} else if (auto withdraw = std::get_if<WithdrawEvent>(&event)) {
+		this->_currentEvent = EVNTTYPE_WITHDRAW;
+		this->_isPlayer = withdraw->player;
+		this->_animCounter = 0;
 	} else
 		throw std::runtime_error("Not implemented");
 }
@@ -371,7 +365,7 @@ static unsigned introAnimCounters[] = {
 	/* INTROSTEP_PLAYER_SLIDE              */ 15,
 	/* INTROSTEP_PLAYER_SLIDE_WAIT         */ 15,
 	/* INTROSTEP_PLAYER_MON_TEXT           */ 30,
-	/* INTROSTEP_PLAYER_BALL_ANIM          */ 1,
+	/* INTROSTEP_PLAYER_BALL_ANIM          */ 40,
 	/* INTROSTEP_PLAYER_MON_SPAWN          */ 12,
 	/* INTROSTEP_PLAYER_MON_SPAWNED_WAIT   */ 60
 };
@@ -412,9 +406,15 @@ bool Gen1Renderer::_updateGameStart()
 		}
 		break;
 	case INTROSTEP_PLAYER_BALL_ANIM:
-		if (this->_animCounter == 0) {
-			// TODO: Play ball SFX
+		if (this->_currentAnim < this->_ballPopAnim.size()) {
+			this->_subCounter++;
+			if (this->_subCounter >= this->_ballPopAnim[this->_currentAnim].duration) {
+				this->_currentAnim++;
+				this->_subCounter = 0;
+			}
 		}
+		if (this->_animCounter == 0)
+			this->_ballPop.play();
 		break;
 	case INTROSTEP_PLAYER_MON_SPAWN:
 		if (this->_animCounter == 10) {
@@ -448,6 +448,12 @@ bool Gen1Renderer::_updateSwitch()
 }
 bool Gen1Renderer::_updateWithdraw()
 {
+	if (this->_animCounter++ < WITHDRAW_ANIM_LENGTH)
+		return true;
+	if (this->_isPlayer)
+		this->state.p1.hidden = true;
+	else
+		this->state.p2.hidden = true;
 	return false;
 }
 bool Gen1Renderer::_updateHealthMod()
@@ -466,9 +472,15 @@ bool Gen1Renderer::_updateMove()
 {
 	auto it = this->_moveData.find(this->_animMove);
 	auto &state = this->_isPlayer ? this->state.p1 : this->state.p2;
+	if (it == this->_moveData.end())
+		it = this->_moveData.find(1);
 	auto &anim = this->_isPlayer ? it->second.animP1 : it->second.animP2;
 
 	if (this->_animCounter == 0) {
+		if (this->_waitCounter < MOVE_WAIT_BEFORE) {
+			this->_waitCounter++;
+			return true;
+		}
 		if (state.substitute && this->_subSpawnTimer < 16) {
 			this->_subSpawnTimer++;
 			return true;
@@ -479,8 +491,6 @@ bool Gen1Renderer::_updateMove()
 			return this->_subSpawnTimer < 16;
 		}
 	}
-	if (it == this->_moveData.end())
-		it = this->_moveData.find(1);
 
 	if (this->_animCounter == 0 && this->_subCounter == 0)
 		this->_moveSound.play();
@@ -502,6 +512,10 @@ bool Gen1Renderer::_updateMove()
 		}
 	}
 	if (anim.size() == this->_animCounter) {
+		if (this->_isPlayer)
+			this->state.p1.hidden = !anim.back().p1Off.has_value();
+		else
+			this->state.p2.hidden = !anim.back().p2Off.has_value();
 		if (state.substitute && this->_animMove != 164) {
 			this->_subSpawnTimer = 0;
 			this->_subSpawnUnspawn = 1;
@@ -515,10 +529,8 @@ bool Gen1Renderer::_updateText()
 {
 	if (this->_queuedText.empty())
 		return false;
-	if (this->_currentCharacter == this->_queuedText.size()) {
-		this->_textTimer++;
-		return this->_textTimer < TEXT_WAIT_AFTER;
-	}
+	if (this->_currentCharacter == this->_queuedText.size())
+		return false;
 	//if (this->_textTimer < 4) {
 	//	this->_textTimer++;
 	//	return true;
@@ -707,6 +719,9 @@ void Gen1Renderer::_renderScene(sf::RenderTarget &target, const std::array<unsig
 
 void Gen1Renderer::_displayMyFace(sf::RenderTarget &target, unsigned pkmnId, const std::array<unsigned int, 4> &palette, const sf::Vector2i &offset)
 {
+	if (this->state.p1.hidden)
+		return;
+
 	sf::Vector2f basePos{8 + offset.x * 8.f, 40};
 	auto it = this->_data.find(pkmnId);
 	auto &data = it == this->_data.end() ? this->_missingno : it->second;
@@ -730,6 +745,9 @@ void Gen1Renderer::_displayMyFace(sf::RenderTarget &target, unsigned pkmnId, con
 
 void Gen1Renderer::_displayOpFace(sf::RenderTarget &target, unsigned pkmnId, const std::array<unsigned int, 4> &palette, const sf::Vector2i &offset)
 {
+	if (this->state.p2.hidden)
+		return;
+
 	sf::Vector2f basePos{96 + offset.x * 8.f, 0};
 	auto it = this->_data.find(pkmnId);
 	auto &data = it == this->_data.end() ? this->_missingno : it->second;
@@ -917,12 +935,8 @@ void Gen1Renderer::_renderNormal(sf::RenderTarget &target)
 }
 void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 {
-	sf::RectangleShape rect;
-	sf::View view{{320, 288}, {640, 576}};
-	sf::Clock clock;
 	sf::Text text{this->_font};
 	sf::Sprite sprite{this->_boxes[0].texture};
-	sf::Sound soundLand{this->_trainerLand};
 
 	text.setCharacterSize(8);
 	text.setFillColor(Gen1Renderer::_getDmgColor(3));
@@ -1202,15 +1216,34 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		this->_displayOpStats(target, this->state.p2.team[this->state.p2.active]);
 		break;
 
-	case INTROSTEP_PLAYER_BALL_ANIM:
-		// TODO: Play ball VFX
+	case INTROSTEP_PLAYER_BALL_ANIM: {
 		text.setString(this->_queuedText);
 		text.setPosition({8, 112});
 		target.draw(text);
 
 		this->_displayOpFace(target, this->state.p2.spriteId);
 		this->_displayOpStats(target, this->state.p2.team[this->state.p2.active]);
+
+		if (this->_currentAnim >= this->_ballPopAnim.size())
+			break;
+
+		auto &frame = this->_ballPopAnim[this->_currentAnim];
+		auto &tileset = frame.tileset == 1 ? this->_moveTextures[0] : this->_moveTextures[1];
+
+		sprite.setTexture(tileset.texture);
+		sprite.setOrigin({4, 4});
+		tileset.palettize({0, 1, 2, 3}, true);
+		for (auto &s : frame.sprites) {
+			sprite.setTextureRect({
+				{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
+				{8, 8}
+			});
+			sprite.setPosition({s.x + 4.f, s.y + 4.f});
+			sprite.setScale({s.flip.first ? -1.f : 1.f, s.flip.second ? -1.f : 1.f});
+			target.draw(sprite);
+		}
 		break;
+	}
 
 	case INTROSTEP_PLAYER_MON_SPAWN: {
 		auto it = this->_data.find(this->state.p1.spriteId);
@@ -1218,6 +1251,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		float mul = 5.f * this->_animCounter / 60.f;
 		auto size = data.back.texture.getSize();
 
+		size.y -= 4;
 		size.x *= 2;
 		size.y *= 2;
 		data.back.palettize({0, 1, 2, 3}, true);
@@ -1255,6 +1289,52 @@ void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
 }
 void Gen1Renderer::_renderWithdraw(sf::RenderTarget &target)
 {
+	sf::Sprite sprite{this->_boxes[0].texture};
+	float mul = 1 - (5.f * this->_animCounter / 60.f);
+
+	this->_renderScene(target);
+	if (this->_isPlayer) {
+		if (mul > 0) {
+			auto it = this->_data.find(this->state.p1.spriteId);
+			auto &data = it == this->_data.end() ? this->_missingno : it->second;
+			auto size = data.back.texture.getSize();
+
+			size.y -= 4;
+			size.x *= 2;
+			size.y *= 2;
+			data.back.palettize({0, 1, 2, 3}, true);
+			sprite.setTexture(data.back.texture, true);
+			sprite.setScale({mul * 2, mul * 2});
+			sprite.setPosition({
+				8 + (size.x - size.x * mul) / 2,
+				40 + size.y - size.y * mul
+			});
+			target.draw(sprite);
+		}
+
+		this->_displayOpFace(target, this->state.p2.spriteId);
+	} else {
+		if (mul > 0) {
+			auto it = this->_data.find(this->state.p2.spriteId);
+			auto &data = it == this->_data.end() ? this->_missingno : it->second;
+			sf::Vector2f basePos{96, 0};
+			auto size = data.front.texture.getSize();
+
+			basePos.x += static_cast<int>(56.f - size.x) / 16 * 8;
+			basePos.y += 56 - size.y;
+
+			data.front.palettize({0, 1, 2, 3}, true);
+			sprite.setTexture(data.front.texture, true);
+			sprite.setScale({mul, mul});
+			sprite.setPosition({
+				basePos.x + (size.x - size.x * mul) / 2,
+				basePos.y + size.y - size.y * mul
+			});
+			target.draw(sprite);
+		}
+
+		this->_displayMyFace(target, this->state.p1.spriteId);
+	}
 }
 void Gen1Renderer::_renderHealthMod(sf::RenderTarget &target)
 {

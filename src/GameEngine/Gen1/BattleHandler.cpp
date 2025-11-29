@@ -159,11 +159,11 @@ namespace PokemonGen1
 				if (!p1Fainted) {
 					this->_state.me.team[this->_state.me.pokemonOnField].switched();
 					this->_state.op.team[this->_state.op.pokemonOnField].opponentSwitched();
-					this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName(false) + " come back");
+					this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName(false) + " enough! Come back");
 					this->_state.battleLogger(PkmnCommon::WithdrawEvent{.player = true});
 				}
 				this->_state.me.pokemonOnField = this->_state.me.nextAction - Switch1;
-				this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName(false) + " go");
+				this->logBattle("Go! " + this->_state.me.team[this->_state.me.pokemonOnField].getName(false));
 				this->_state.op.discovered[this->_state.me.pokemonOnField].first = true;
 				this->_state.me.team[this->_state.me.pokemonOnField].applyStatusDebuff();
 				this->_state.battleLogger(PkmnCommon::SwitchEvent{.newPkmnId = this->_state.me.pokemonOnField, .player = true});

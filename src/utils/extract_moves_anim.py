@@ -102,6 +102,36 @@ def extract_frame_info(self):
 	return frame
 
 
+def save_frames(data, path):
+	s = "{\n"
+	i = 0
+	for key, value in data.items():
+		if i:
+			s += ",\n"
+		s += f"    {json.dumps(key)}: "
+		if key.startswith("frames"):
+			s += '[\n            '
+			for k, v in enumerate(value):
+				if k:
+					s += ",\n            "
+				content = json.dumps(v)
+				f = '"sprites": ['
+				index = content.index(f) + len(f)
+				x = content[:index]
+				if index == len(content) - 2:
+					x += "]}"
+				else:
+					x += "\n    " + "},\n    ".join(content[index:-2].replace("true", "true ").split("}, ")) + "\n]}"
+				s += "\n            ".join(x.split("\n"))
+			s += '\n    ]'
+		else:
+			s += json.dumps(value)
+		i += 1
+	s += "\n}"
+	with open(path, "w") as fd:
+		fd.write(s)
+
+
 def step(self, move):
 	global in_selection
 	in_selection = False
@@ -158,34 +188,7 @@ def step(self, move):
 		else:
 			last_frame_obj['duration'] += 1
 
-	s = "{\n"
-	i = 0
-	for key, value in data.items():
-		if i:
-			s += ",\n"
-		s += f"    {json.dumps(key)}: "
-		if key.startswith("frames"):
-			s += '[\n            '
-			for k, v in enumerate(value):
-				if k:
-					s += ",\n            "
-				content = json.dumps(v)
-				f = '"sprites": ['
-				index = content.index(f) + len(f)
-				x = content[:index]
-				if index == len(content) - 2:
-					x += "]}"
-				else:
-					x += "\n    " + "},\n    ".join(content[index:-2].replace("true", "true ").split("}, ")) + "\n]}"
-				s += "\n            ".join(x.split("\n"))
-			s += '\n    ]'
-		else:
-			s += json.dumps(value)
-		i += 1
-	s += "\n}"
-	with open(path, "w") as fd:
-		fd.write(s)
-		#json.dump(data, fd, indent=4)
+	save_frames(data, path)
 	self.register_sp = old_sp
 
 	self.waiting_text = False
@@ -223,7 +226,12 @@ def init_battle(self):
 	self.copy_battle_data_to_emulator(state.me, self.symbol("wPartyMons"), self.symbol("wPlayerName"),  self.symbol("wPartyCount"),      self.symbol("wPartyMonNicks"))
 	self.copy_battle_data_to_emulator(state.op, self.symbol("wEnemyMons"), self.symbol("wTrainerName"), self.symbol("wEnemyPartyCount"), self.symbol("wEnemyMonNicks"))
 	self.waiting_text = True
-	self.wait_for_start_turn()
+
+	self.turn_started = False
+	self.wait_input = False
+	self.waiting = False
+	while not self.battle_finished and not self.turn_started and not self.wait_input and not self.waiting:
+		self.tick()
 
 	self.waiting_text = False
 	self.text_buffer = ""
