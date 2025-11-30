@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 
 	PokemonGen1::BattleHandler handler{false, false};
 	auto &state = handler.getBattleState();
-	Gen1Renderer renderer;
+	Gen1Renderer renderer{""};
 
 	state.battleLogger = [&renderer](const PkmnCommon::Event &event){ renderer.consumeEvent(event); };
 	handler.loadReplay(argv[1]);

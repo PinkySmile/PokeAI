@@ -521,14 +521,14 @@ namespace PokemonGen1
 		stream.read(reinterpret_cast<char *>(buffer.data()), TRAINER_DATA_SIZE);
 		if (stream.fail())
 			throw std::runtime_error("Reached EOF early");
-		tmp = loadTrainer(buffer, this->_state);
+		tmp = loadTrainer(buffer, this->_state, false);
 		data.nameP1 = tmp.first;
 		data.teamP1 = tmp.second;
 
 		stream.read(reinterpret_cast<char *>(buffer.data()), TRAINER_DATA_SIZE);
 		if (stream.fail())
 			throw std::runtime_error("Reached EOF early");
-		tmp = loadTrainer(buffer, this->_state);
+		tmp = loadTrainer(buffer, this->_state, true);
 		data.nameP2 = tmp.first;
 		data.teamP2 = tmp.second;
 

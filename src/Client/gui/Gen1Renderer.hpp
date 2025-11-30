@@ -14,7 +14,7 @@
 
 class Gen1Renderer : public IRenderer {
 public:
-	Gen1Renderer();
+	Gen1Renderer(const std::string &variant);
 	~Gen1Renderer() override = default;
 	void update() override;
 	void render(sf::RenderTarget &) override;
@@ -136,7 +136,7 @@ private:
 
 	static void _loadMoveFrames(std::vector<MoveAnim> &m, const nlohmann::json &j);
 	static void _loadMoveData(MoveData &data, const std::string &id);
-	static void _loadPokemonData(PokemonData &data, const std::string &folder);
+	static void _loadPokemonData(PokemonData &data, const std::string &folder, const std::string &variant);
 
 	EventType _currentEvent = EVNTTYPE_NONE;
 

@@ -20,7 +20,8 @@
 
 #define TEXT_LINE_TIME 40
 #define TEXT_LINE_SCROLL 10
-#define MOVE_WAIT_BEFORE 120
+#define TEXT_WAIT_AFTER 90
+#define MOVE_WAIT_BEFORE 60
 
 #define WITHDRAW_ANIM_LENGTH 60
 
@@ -75,9 +76,9 @@ void Gen1Renderer::_loadMoveData(MoveData &data, const std::string &id)
 	Gen1Renderer::_loadMoveFrames(data.animP2, json["frames_p2"]);
 }
 
-void Gen1Renderer::_loadPokemonData(PokemonData &data, const std::string &folder)
+void Gen1Renderer::_loadPokemonData(PokemonData &data, const std::string &folder, const std::string &variant)
 {
-	(void)data.front.init("assets/gen1/pokemons/" + folder + "/front.png");
+	(void)data.front.init("assets/gen1/pokemons/" + folder + "/front" + variant + ".png");
 	(void)data.back.init("assets/gen1/pokemons/" + folder + "/back.png");
 	(void)data.icon.loadFromFile("assets/gen1/pokemons/" + folder + "/icon.png");
 	(void)data.cry.loadFromFile("assets/gen1/pokemons/" + folder + "/cry.ogg");
@@ -85,16 +86,19 @@ void Gen1Renderer::_loadPokemonData(PokemonData &data, const std::string &folder
 	(void)data.growl.loadFromFile("assets/gen1/moves/sounds/move_45/" + folder + ".ogg");
 }
 
-Gen1Renderer::Gen1Renderer() :
-	_font("assets/gen1/font.ttf"),
-	_music("assets/gen1/sounds/battle1.ogg")
+Gen1Renderer::Gen1Renderer(const std::string &variant) :
+	_font("assets/gen1/font.ttf")
 {
-	std::ifstream streamLoop{"assets/gen1/sounds/battle1_loop.txt"};
+	std::string music = "battle0";
+	std::ifstream streamLoop{"assets/gen1/sounds/" + music + "_loop.txt"};
 	std::ifstream streamList{"assets/gen1/list.json"};
 	std::ifstream streamListMove{"assets/gen1/moves/list.json"};
 	std::ifstream streamStartAnim{"assets/gen1/start.json"};
 	nlohmann::json json;
 	std::string line;
+
+	(void)this->_music.openFromFile("assets/gen1/sounds/" + music + ".ogg");
+	this->_music.setVolume(100);
 
 	this->_font.setSmooth(false);
 	std::getline(streamLoop, line);
@@ -136,11 +140,11 @@ Gen1Renderer::Gen1Renderer() :
 	(void)this->_boxes[3].init("assets/gen1/pkmns_border_player_side.png");
 
 	streamList >> json;
-	Gen1Renderer::_loadPokemonData(this->_missingno, "missingno");
+	Gen1Renderer::_loadPokemonData(this->_missingno, "missingno", "");
 	for (auto &id : json) {
 		unsigned id_ = id;
 
-		Gen1Renderer::_loadPokemonData(this->_data[id_], std::to_string(id_));
+		Gen1Renderer::_loadPokemonData(this->_data[id_], std::to_string(id_), variant);
 	}
 
 	streamListMove >> json;
@@ -310,6 +314,23 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		this->_currentEvent = EVNTTYPE_WITHDRAW;
 		this->_isPlayer = withdraw->player;
 		this->_animCounter = 0;
+	} else if (auto switch_ = std::get_if<SwitchEvent>(&event)) {
+		this->_currentEvent = EVNTTYPE_SWITCH;
+		this->_isPlayer = switch_->player;
+		if (switch_->player) {
+			this->state.p1.active = switch_->newPkmnId;
+			this->state.p1.spriteId = this->state.p1.team[switch_->newPkmnId].id;
+			this->state.p1.hidden = false;
+			this->_currentAnim = 0;
+			this->_subCounter = 0;
+			this->_animCounter = 0;
+		} else {
+			this->state.p2.active = switch_->newPkmnId;
+			this->state.p2.spriteId = this->state.p2.team[switch_->newPkmnId].id;
+			this->state.p2.hidden = false;
+			this->_currentAnim = this->_ballPopAnim.size();
+			this->_animCounter = 40;
+		}
 	} else
 		throw std::runtime_error("Not implemented");
 }
@@ -444,7 +465,24 @@ bool Gen1Renderer::_updateDeath()
 }
 bool Gen1Renderer::_updateSwitch()
 {
-	return false;
+	if (this->_currentAnim < this->_ballPopAnim.size()) {
+		this->_subCounter++;
+		if (this->_subCounter >= this->_ballPopAnim[this->_currentAnim].duration) {
+			this->_currentAnim++;
+			this->_subCounter = 0;
+		}
+	}
+	if (this->_animCounter == 0)
+		this->_ballPop.play();
+	if (this->_animCounter == 50) {
+		auto it = this->_data.find(this->state.p1.spriteId);
+		auto &data = it == this->_data.end() ? this->_missingno : it->second;
+
+		this->_crySound.setBuffer(data.cry);
+		this->_crySound.play();
+		this->_displayedText = this->_queuedText;
+	}
+	return this->_animCounter++ < 120;
 }
 bool Gen1Renderer::_updateWithdraw()
 {
@@ -529,8 +567,13 @@ bool Gen1Renderer::_updateText()
 {
 	if (this->_queuedText.empty())
 		return false;
-	if (this->_currentCharacter == this->_queuedText.size())
+	if (this->_currentCharacter == this->_queuedText.size()) {
+		if (!this->_queue.empty() && std::holds_alternative<TextEvent>(this->_queue.front())) {
+			this->_textTimer++;
+			return this->_textTimer < TEXT_WAIT_AFTER;
+		}
 		return false;
+	}
 	//if (this->_textTimer < 4) {
 	//	this->_textTimer++;
 	//	return true;
@@ -547,7 +590,6 @@ bool Gen1Renderer::_updateText()
 	}
 	this->_displayedText += this->_queuedText[this->_currentCharacter];
 	this->_currentCharacter++;
-	this->_textTimer = 0;
 	return true;
 }
 
@@ -1222,6 +1264,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		target.draw(text);
 
 		this->_displayOpFace(target, this->state.p2.spriteId);
+		this->_displayMyStats(target, this->state.p1.team[this->state.p1.active]);
 		this->_displayOpStats(target, this->state.p2.team[this->state.p2.active]);
 
 		if (this->_currentAnim >= this->_ballPopAnim.size())
@@ -1269,6 +1312,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 
 		this->_displayOpFace(target, this->state.p2.spriteId);
 		this->_displayOpStats(target, this->state.p2.team[this->state.p2.active]);
+		this->_displayMyStats(target, this->state.p1.team[this->state.p1.active]);
 		break;
 	}
 	case INTROSTEP_PLAYER_MON_SPAWNED_WAIT:
@@ -1286,6 +1330,75 @@ void Gen1Renderer::_renderDeath(sf::RenderTarget &target)
 }
 void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
 {
+	this->_renderScene(target);
+
+	if (this->_currentAnim < this->_ballPopAnim.size()) {
+		auto &frame = this->_ballPopAnim[this->_currentAnim];
+		auto &tileset = frame.tileset == 1 ? this->_moveTextures[0] : this->_moveTextures[1];
+		sf::Sprite sprite{tileset.texture};
+
+		sprite.setOrigin({4, 4});
+		tileset.palettize({0, 1, 2, 3}, true);
+		for (auto &s : frame.sprites) {
+			sprite.setTextureRect({
+				{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
+				{8, 8}
+			});
+			sprite.setPosition({s.x + 4.f, s.y + 4.f});
+			sprite.setScale({s.flip.first ? -1.f : 1.f, s.flip.second ? -1.f : 1.f});
+			target.draw(sprite);
+		}
+
+		this->_displayOpFace(target, this->state.p2.spriteId);
+		return;
+	}
+
+	float mul = 5.f * (this->_animCounter - 40.f) / 60.f;
+
+	if (mul < 0) {
+		if (this->_isPlayer)
+			this->_displayOpFace(target, this->state.p2.spriteId);
+		else
+			this->_displayMyFace(target, this->state.p1.spriteId);
+	} else if (mul > 1) {
+		this->_displayOpFace(target, this->state.p2.spriteId);
+		this->_displayMyFace(target, this->state.p1.spriteId);
+	} else if (this->_isPlayer) {
+		auto it = this->_data.find(this->state.p1.spriteId);
+		auto &data = it == this->_data.end() ? this->_missingno : it->second;
+		auto size = data.back.texture.getSize();
+		sf::Sprite sprite{data.back.texture};
+
+		size.y -= 4;
+		size.x *= 2;
+		size.y *= 2;
+		data.back.palettize({0, 1, 2, 3}, true);
+		sprite.setScale({mul * 2, mul * 2});
+		sprite.setPosition({
+			8 + (size.x - size.x * mul) / 2,
+			40 + size.y - size.y * mul
+		});
+		target.draw(sprite);
+		this->_displayOpFace(target, this->state.p2.spriteId);
+	} else {
+		auto it = this->_data.find(this->state.p2.spriteId);
+		auto &data = it == this->_data.end() ? this->_missingno : it->second;
+		sf::Vector2f basePos{96, 0};
+		auto size = data.front.texture.getSize();
+		sf::Sprite sprite{data.front.texture};
+
+		basePos.x += static_cast<int>(56.f - size.x) / 16 * 8;
+		basePos.y += 56 - size.y;
+
+		data.front.palettize({0, 1, 2, 3}, true);
+		sprite.setScale({mul, mul});
+		sprite.setPosition({
+			basePos.x + (size.x - size.x * mul) / 2,
+			basePos.y + size.y - size.y * mul
+		});
+		target.draw(sprite);
+		this->_displayMyFace(target, this->state.p1.spriteId);
+	}
 }
 void Gen1Renderer::_renderWithdraw(sf::RenderTarget &target)
 {

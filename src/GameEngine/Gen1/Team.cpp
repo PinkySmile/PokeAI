@@ -9,7 +9,7 @@
 
 namespace PokemonGen1
 {
-	Trainer loadTrainer(const std::vector<unsigned char> &data, BattleState &state)
+	Trainer loadTrainer(const std::vector<unsigned char> &data, BattleState &state, bool enemy)
 	{
 		Trainer result;
 		auto it = data.begin();
@@ -39,7 +39,7 @@ namespace PokemonGen1
 			std::copy(it, it + Pokemon::ENCODED_SIZE, arr.begin());
 			tmp.resize(strlen(tmp.c_str()));
 			it += Pokemon::ENCODED_SIZE;
-			result.second.emplace_back(state, tmp, arr, false);
+			result.second.emplace_back(state, tmp, arr, enemy);
 			names += 11;
 		}
 		return result;
@@ -86,8 +86,8 @@ namespace PokemonGen1
 		if (data.size() != TRAINER_DATA_SIZE * 2)
 			throw InvalidSaveFileException("The data size doesn't match (expected 684B but got " + std::to_string(data.size()) + "B)");
 
-		Trainer p1 = loadTrainer({data.begin(), data.begin() + TRAINER_DATA_SIZE}, state);
-		Trainer p2 = loadTrainer({data.begin() + TRAINER_DATA_SIZE, data.end()}, state);
+		Trainer p1 = loadTrainer({data.begin(), data.begin() + TRAINER_DATA_SIZE}, state, false);
+		Trainer p2 = loadTrainer({data.begin() + TRAINER_DATA_SIZE, data.end()}, state, true);
 
 		state.me.name = p1.first;
 		state.me.team = p1.second;
