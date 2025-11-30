@@ -166,6 +166,7 @@ namespace PokemonGen1
 	}
 
 	Move::Move(const Move &other) :
+		_canHitCallback(other._canHitCallback),
 		_hitCallback(other._hitCallback),
 		_missCallback(other._missCallback),
 		_critChance(other._critChance),
@@ -200,6 +201,7 @@ namespace PokemonGen1
 
 	Move &Move::operator=(const Move &other)
 	{
+		this->_canHitCallback = other._canHitCallback;
 		this->_hitCallback = other._hitCallback;
 		this->_missCallback = other._missCallback;
 		this->_critChance = other._critChance;
@@ -308,6 +310,7 @@ namespace PokemonGen1
 			.isNotVeryEffective = false,
 		};
 		bool first = false;
+		unsigned accuracyByte;
 		auto &rng = owner.getRandomGenerator();
 		bool sub = target.hasSubstitute();
 
@@ -445,31 +448,31 @@ namespace PokemonGen1
 			}
 		}
 
-		if (!this->_skipAccuracyCheck) {
-			unsigned int accuracyByte = target.getEvasion(owner.getAccuracy(this->_accuracy));
-
-			if (accuracyByte > 0xFF)
-				accuracyByte = 0xFF;
-			// !target.hasStatus(STATUS_ASLEEP)
-			if (!target.canGetHit() || (
-				this->_canHitCallback &&
-				this->_canHitCallback(this->getID(), owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger)
-			) || rng() >= accuracyByte) {
-				if (this->getID() != Petal_Dance && this->getID() != Thrash && (this->getID() != Rage || first))
-					this->_nbHit = 0;
-				if (this->_power != 0)
-					logger(PkmnCommon::TextEvent{owner.getName() + "'s attack missed!"});
-				if (this->_missCallback)
-					this->_missCallback(this->getID(), owner, target, this->isFinished(), logger);
-				else if (this->getID() == Leech_Seed)
-					// https://github.com/pret/pokeyellow/blob/d237b01cfb241f417567c964e0df0658cf921570/data/text/text_5.asm#L191
-					logger(PkmnCommon::TextEvent{target.getName() + " evaded attack!"});
-				else if (this->getID() != Substitute);
-				else if (!this->_power)
-					logger(PkmnCommon::TextEvent{"But, it failed!"});
-				owner.getBattleState().lastDamage = 0;
-				return false;
-			}
+		accuracyByte = target.getEvasion(owner.getAccuracy(this->_accuracy));
+		if (accuracyByte > 0xFF)
+			accuracyByte = 0xFF;
+		// !target.hasStatus(STATUS_ASLEEP)
+		if (!target.canGetHit() || (
+			this->_canHitCallback &&
+			!this->_canHitCallback(this->getID(), owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger)
+		) || (
+			!this->_skipAccuracyCheck &&
+			rng() >= accuracyByte
+		)) {
+			if (this->getID() != Petal_Dance && this->getID() != Thrash && (this->getID() != Rage || first))
+				this->_nbHit = 0;
+			if (this->_power != 0)
+				logger(PkmnCommon::TextEvent{owner.getName() + "'s attack missed!"});
+			if (this->_missCallback)
+				this->_missCallback(this->getID(), owner, target, this->isFinished(), logger);
+			else if (this->getID() == Leech_Seed)
+				// https://github.com/pret/pokeyellow/blob/d237b01cfb241f417567c964e0df0658cf921570/data/text/text_5.asm#L191
+				logger(PkmnCommon::TextEvent{target.getName() + " evaded attack!"});
+			else if (this->getID() == Substitute);
+			else if (!this->_power)
+				logger(PkmnCommon::TextEvent{"But, it failed!"});
+			owner.getBattleState().lastDamage = 0;
+			return false;
 		}
 		if (this->_statusChange.status == STATUS_LEECHED && (target.getStatus() & STATUS_LEECHED)) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
@@ -492,7 +495,7 @@ namespace PokemonGen1
 	skipAccuracyAndDamageCheck:
 		logger(PkmnCommon::MoveEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
 		if (this->_power) {
-			logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !owner.isEnemy()});
+			logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !target.isEnemy()});
 			if (this->_power == 255)
 				logger(PkmnCommon::TextEvent{"One-hit KO!"});
 			if (!target.hasSubstitute() && owner.getBattleState().lastDamage > target.getHealth())
@@ -506,7 +509,7 @@ namespace PokemonGen1
 				logger(PkmnCommon::TextEvent{"It's super effective!"});
 			if (target.getHealth() && target.getLastUsedMove().getID() == Rage && !target.getLastUsedMove().isFinished()) {
 				logger(PkmnCommon::TextEvent{target.getName() + "'s RAGE is building!"});
-				if (target.changeStat(STATS_ATK, 1))
+				if (target.changeStat(STATS_ATK, 1, true, !owner.isEnemy()))
 					owner.applyStatusDebuff();
 			}
 			if (sub != target.hasSubstitute())
@@ -528,7 +531,7 @@ namespace PokemonGen1
 		if (this->_power && hits > 1) {
 			for (size_t i = 1; i < hits; i++) {
 				logger(PkmnCommon::MoveEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
-				logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !owner.isEnemy()});
+				logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !target.isEnemy()});
 				target.takeDamage(owner, owner.getBattleState().lastDamage, false, false);
 				if (damage.isNotVeryEffective)
 					logger(PkmnCommon::TextEvent{"It's not very effective!"});
@@ -564,28 +567,39 @@ namespace PokemonGen1
 					)) && rng() < this->_statusChange.cmpVal
 				)
 			) {
+				unsigned anim = -1;
+
 				target.addStatus(this->_statusChange.status);
 				if (this->_statusChange.status == STATUS_FROZEN)
-					logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_NOW_FROZEN, .isGuaranteed = this->_statusChange.cmpVal == 0, .player = !owner.isEnemy()});
+					anim = PkmnCommon::SYSANIM_NOW_FROZEN;
 				else if (this->_statusChange.status == STATUS_BADLY_POISONED)
-					logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_NOW_BADLY_POISONED, .isGuaranteed = this->_statusChange.cmpVal == 0, .player = !owner.isEnemy()});
+					anim = PkmnCommon::SYSANIM_NOW_BADLY_POISONED;
 				else if (this->_statusChange.status == STATUS_BURNED)
-					logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_NOW_BURNED, .isGuaranteed = this->_statusChange.cmpVal == 0, .player = !owner.isEnemy()});
+					anim = PkmnCommon::SYSANIM_NOW_BURNED;
 				else if (this->_statusChange.status == STATUS_PARALYZED)
-					logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_NOW_PARALYZED, .isGuaranteed = this->_statusChange.cmpVal == 0, .player = !owner.isEnemy()});
+					anim = PkmnCommon::SYSANIM_NOW_PARALYZED;
 				else if (this->_statusChange.status == STATUS_POISONED)
-					logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_NOW_POISONED, .isGuaranteed = this->_statusChange.cmpVal == 0, .player = !owner.isEnemy()});
+					anim = PkmnCommon::SYSANIM_NOW_POISONED;
 				else if (this->_statusChange.status == STATUS_ASLEEP)
-					logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_NOW_ASLEEP, .isGuaranteed = this->_statusChange.cmpVal == 0, .player = !owner.isEnemy()});
+					anim = PkmnCommon::SYSANIM_NOW_ASLEEP;
+				else if (this->_statusChange.status == STATUS_CONFUSED)
+					anim = PkmnCommon::SYSANIM_NOW_CONFUSED;
+				if (anim != -1U)
+					logger(PkmnCommon::AnimEvent{
+						.animId = anim,
+						.isGuaranteed = this->_statusChange.cmpVal == 0,
+						.player = !target.isEnemy(),
+						.turn = !owner.isEnemy()
+					});
 			}
 
 		if (!sub)
 			for (const auto &val: this->_foeChange)
 				if (!val.cmpVal || rng() < val.cmpVal)
-					addedStatus |= target.changeStat(val.stat, val.nb);
+					addedStatus |= target.changeStat(val.stat, val.nb, val.cmpVal == 0, !owner.isEnemy());
 		for (const auto &val: this->_ownerChange)
 			if (!val.cmpVal || rng() < val.cmpVal)
-				addedStatus |= owner.changeStat(val.stat, val.nb);
+				addedStatus |= owner.changeStat(val.stat, val.nb, val.cmpVal == 0, !owner.isEnemy());
 		if (addedStatus)
 			target.applyStatusDebuff();
 		if (target.hasStatus(STATUS_FROZEN) && this->getType() == TYPE_FIRE) {

@@ -17,6 +17,13 @@
 #define _textTimer _gpCounter[1]
 #define _textCounter _gpCounter[2]
 #define _currentAnim _gpCounter[4]
+#define _notVeryEffective _gpCounter[1]
+#define _veryEffective _gpCounter[3]
+#define _healthTarget _gpCounter[1]
+#define _crySound _gpSound
+#define _moveSound _gpSound
+#define _hitSound _gpSound
+#define _faintSound _gpSound
 
 #define TEXT_LINE_TIME 40
 #define TEXT_LINE_SCROLL 10
@@ -24,6 +31,12 @@
 #define MOVE_WAIT_BEFORE 60
 
 #define WITHDRAW_ANIM_LENGTH 60
+
+enum AnimationType {
+	ANIMTYPE_DELAY,
+	ANIMTYPE_STAT_LOWER_PLAYER,
+	ANIMTYPE_STAT_LOWER_OPPONENT,
+};
 
 using namespace PkmnCommon;
 
@@ -121,13 +134,15 @@ Gen1Renderer::Gen1Renderer(const std::string &variant) :
 	(void)this->_hitSounds[2].loadFromFile("assets/gen1/sounds/ve_sound.ogg");
 	(void)this->_trainerLand.loadFromFile("assets/gen1/sounds/trainer_land.ogg");
 	(void)this->_ballPopSound.loadFromFile("assets/gen1/sounds/ball_pop.ogg");
+	(void)this->_menuSelect.loadFromFile("assets/gen1/sounds/menu_select.ogg");
+	(void)this->_faint.loadFromFile("assets/gen1/sounds/faint.ogg");
 
 	(void)this->_trainer[0].init("assets/gen1/redb.png");
 	(void)this->_trainer[1].init("assets/gen1/red.png");
 
 	(void)this->_choicesHUD.loadFromFile("assets/gen1/choices.png");
 	(void)this->_attackHUD.loadFromFile("assets/gen1/attacks_overlay.png");
-	(void)this->_waitingHUD.loadFromFile("assets/gen1/wait_overlay.png");
+	(void)this->_waitingHUD.init("assets/gen1/wait_overlay.png");
 	(void)this->_hpOverlay.init("assets/gen1/hp_overlay.png");
 	(void)this->_levelSprite.init("assets/gen1/level_icon.png");
 
@@ -170,6 +185,7 @@ bool (Gen1Renderer::*Gen1Renderer::_updates[])() = {
 	&Gen1Renderer::_updateExtraAnim,
 	&Gen1Renderer::_updateAnim,
 	&Gen1Renderer::_updateMove,
+	&Gen1Renderer::_updateTurnStart,
 	&Gen1Renderer::_updateText
 };
 
@@ -185,6 +201,7 @@ void (Gen1Renderer::*Gen1Renderer::_renderers[])(sf::RenderTarget &) = {
 	&Gen1Renderer::_renderExtraAnim,
 	&Gen1Renderer::_renderAnim,
 	&Gen1Renderer::_renderMove,
+	&Gen1Renderer::_renderTurnStart,
 	&Gen1Renderer::_renderText
 };
 
@@ -274,7 +291,10 @@ static std::string splitText(std::string str)
 
 void Gen1Renderer::_handleEvent(const Event &event)
 {
-	if (std::get_if<GameStartEvent>(&event)) {
+	if (std::get_if<TurnStartEvent>(&event)) {
+		this->_currentEvent = EVNTTYPE_START_TURN;
+		this->_animCounter = 0;
+	} else if (std::get_if<GameStartEvent>(&event)) {
 		this->_currentEvent = EVNTTYPE_GAME_START;
 		this->_animCounter = 0;
 		this->_animMove = 0;
@@ -314,6 +334,10 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		this->_currentEvent = EVNTTYPE_WITHDRAW;
 		this->_isPlayer = withdraw->player;
 		this->_animCounter = 0;
+	} else if (auto death = std::get_if<DeathEvent>(&event)) {
+		this->_currentEvent = EVNTTYPE_DEATH;
+		this->_isPlayer = death->player;
+		this->_animCounter = 0;
 	} else if (auto switch_ = std::get_if<SwitchEvent>(&event)) {
 		this->_currentEvent = EVNTTYPE_SWITCH;
 		this->_isPlayer = switch_->player;
@@ -331,6 +355,30 @@ void Gen1Renderer::_handleEvent(const Event &event)
 			this->_currentAnim = this->_ballPopAnim.size();
 			this->_animCounter = 40;
 		}
+	} else if (auto hit = std::get_if<HitEvent>(&event)) {
+		this->_currentEvent = EVNTTYPE_HIT;
+		this->_isPlayer = hit->player;
+		this->_notVeryEffective = hit->notVeryEffective;
+		this->_veryEffective = hit->veryEffective;
+		this->_animCounter = 0;
+	} else if (auto health = std::get_if<HealthModEvent>(&event)) {
+		this->_currentEvent = EVNTTYPE_HEALTH_MOD;
+		this->_isPlayer = health->player;
+		this->_healthTarget = health->newHealth;
+	} else if (auto anim = std::get_if<AnimEvent>(&event)) {
+		this->_currentEvent = EVNTTYPE_ANIM;
+		this->_animCounter = 0;
+		if (anim->animId >= SYSANIM_ATK_DECREASE_BIG && anim->animId <= SYSANIM_EVD_INCREASE_BIG) {
+			if (!anim->isGuaranteed)
+				this->_currentAnim = ANIMTYPE_DELAY;
+			else if (anim->player && !anim->turn)
+				this->_currentAnim = ANIMTYPE_STAT_LOWER_PLAYER;
+			else if (!anim->player && anim->turn)
+				this->_currentAnim = ANIMTYPE_STAT_LOWER_OPPONENT;
+			else
+				throw std::runtime_error("Stat anim not implemented");
+		} else
+			throw std::runtime_error("Anim not implemented");
 	} else
 		throw std::runtime_error("Not implemented");
 }
@@ -390,10 +438,65 @@ static unsigned introAnimCounters[] = {
 	/* INTROSTEP_PLAYER_MON_SPAWN          */ 12,
 	/* INTROSTEP_PLAYER_MON_SPAWNED_WAIT   */ 60
 };
+static std::array<std::vector<sf::Vector2f>, 6> valuesHit{
+	std::vector<sf::Vector2f>{ // Not very effective - player
+		{8, 0}, {8, 0}, {8, 0}, {8, 0}, {8, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{7, 0}, {7, 0}, {7, 0}, {7, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{6, 0}, {6, 0}, {6, 0}, {6, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{5, 0}, {5, 0}, {5, 0}, {5, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{4, 0}, {4, 0}, {4, 0}, {4, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{3, 0}, {3, 0}, {3, 0}, {3, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{2, 0}, {2, 0}, {2, 0}, {2, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{1, 0}, {1, 0}, {1, 0}, {1, 0}
+	},
+	std::vector<sf::Vector2f>{ // Effective - player
+		{0, 8}, {0, 8}, {0, 8}, {0, 8},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{0, 7}, {0, 7}, {0, 7},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 6}, {0, 6}, {0, 6},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 5}, {0, 5}, {0, 5},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 4}, {0, 4}, {0, 4},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 3}, {0, 3}, {0, 3},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 2}, {0, 2}, {0, 2},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 1}, {0, 1}, {0, 1}, {0, 1}
+	},
+	std::vector<sf::Vector2f>{ // Very effective - player
+	},
+	std::vector<sf::Vector2f>{ // Not very effective - opponent
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+	},
+	std::vector<sf::Vector2f>{ // Effective - opponent
+	},
+	std::vector<sf::Vector2f>{ // Very effective - opponent
+		{2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{1, 0}, {1, 0}, {1, 0}, {1, 0}
+	},
+};
 
 bool Gen1Renderer::_updateNormal()
 {
 	return false;
+}
+bool Gen1Renderer::_updateTurnStart()
+{
+	return this->_animCounter++ < 60;
 }
 bool Gen1Renderer::_updateGameStart()
 {
@@ -457,10 +560,34 @@ bool Gen1Renderer::_updateGameEnd()
 }
 bool Gen1Renderer::_updateHit()
 {
-	return false;
+	if (this->_animCounter == 0) {
+		if (this->_notVeryEffective)
+			this->_hitSound.setBuffer(this->_hitSounds[0]);
+		else if (this->_veryEffective)
+			this->_hitSound.setBuffer(this->_hitSounds[2]);
+		else
+			this->_hitSound.setBuffer(this->_hitSounds[1]);
+		this->_hitSound.play();
+	}
+
+	unsigned index = (!this->_isPlayer * 3) + (this->_veryEffective) + (!this->_notVeryEffective);
+
+	if (valuesHit[index].empty())
+		throw std::runtime_error("Hit not implemented");
+	return this->_animCounter++ < valuesHit[index].size();
 }
 bool Gen1Renderer::_updateDeath()
 {
+	if (this->_animCounter == 40) {
+		this->_faintSound.setBuffer(this->_faint);
+		this->_faintSound.play();
+	}
+	if (this->_animCounter++ < 75)
+		return true;
+	if (this->_isPlayer)
+		this->state.p1.hidden = true;
+	else
+		this->state.p2.hidden = true;
 	return false;
 }
 bool Gen1Renderer::_updateSwitch()
@@ -475,7 +602,7 @@ bool Gen1Renderer::_updateSwitch()
 	if (this->_animCounter == 0)
 		this->_ballPop.play();
 	if (this->_animCounter == 50) {
-		auto it = this->_data.find(this->state.p1.spriteId);
+		auto it = this->_data.find(this->_isPlayer ? this->state.p1.spriteId : this->state.p2.spriteId);
 		auto &data = it == this->_data.end() ? this->_missingno : it->second;
 
 		this->_crySound.setBuffer(data.cry);
@@ -496,7 +623,13 @@ bool Gen1Renderer::_updateWithdraw()
 }
 bool Gen1Renderer::_updateHealthMod()
 {
-	return false;
+	auto &p = (this->_isPlayer ? this->state.p1 : this->state.p2);
+
+	if (p.team[p.active].hp < this->_healthTarget)
+		p.team[p.active].hp++;
+	else if (p.team[p.active].hp > this->_healthTarget)
+		p.team[p.active].hp--;
+	return p.team[p.active].hp != this->_healthTarget;
 }
 bool Gen1Renderer::_updateExtraAnim()
 {
@@ -504,6 +637,14 @@ bool Gen1Renderer::_updateExtraAnim()
 }
 bool Gen1Renderer::_updateAnim()
 {
+	switch (this->_currentAnim) {
+	case ANIMTYPE_DELAY:
+		return this->_animCounter++ < TEXT_WAIT_AFTER;
+	case ANIMTYPE_STAT_LOWER_PLAYER:
+		return this->_animCounter++ < 46;
+	case ANIMTYPE_STAT_LOWER_OPPONENT:
+		return this->_animCounter++ < 22;
+	}
 	return false;
 }
 bool Gen1Renderer::_updateMove()
@@ -617,7 +758,7 @@ void Gen1Renderer::_displayMyStats(sf::RenderTarget &target, const Pokemon &pkmn
 	else
 		healthColor = sf::Color::Red;
 	rect.setFillColor(healthColor);
-	rect.setSize({48 * percent, 4});
+	rect.setSize({std::round(48 * percent), 4});
 	rect.setPosition({95, 73});
 	target.draw(rect);
 
@@ -694,7 +835,7 @@ void Gen1Renderer::_displayOpStats(sf::RenderTarget &target, const Pokemon &pkmn
 	else
 		healthColor = sf::Color::Red;
 	rect.setFillColor(healthColor);
-	rect.setSize({48 * percent, 4});
+	rect.setSize({std::round(48 * percent), 4});
 	rect.setPosition({31, 17});
 	target.draw(rect);
 
@@ -974,6 +1115,25 @@ void Gen1Renderer::_renderNormal(sf::RenderTarget &target)
 				clock.restart();
 		}
 	}*/
+}
+void Gen1Renderer::_renderTurnStart(sf::RenderTarget &target)
+{
+	this->_renderNormal(target);
+	if (this->_animCounter < 20 || this->_animCounter >= 50)
+		return;
+	this->_waitingHUD.palettize({0, 1, 2, 3}, false);
+
+	sf::Sprite sprite{this->_waitingHUD.texture};
+	sf::Text text{this->_font};
+
+	sprite.setPosition({24, 80});
+	target.draw(sprite);
+	text.setString("Waiting...");
+	text.setPosition({32, 88});
+	text.setCharacterSize(8);
+	text.setFillColor(Gen1Renderer::_getDmgColor(3));
+	text.setLineSpacing(2);
+	target.draw(text);
 }
 void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 {
@@ -1324,9 +1484,46 @@ void Gen1Renderer::_renderGameEnd(sf::RenderTarget &target)
 }
 void Gen1Renderer::_renderHit(sf::RenderTarget &target)
 {
+	auto size = this->getSize();
+	sf::RenderTexture rtexture{size};
+	sf::Sprite sprite{rtexture.getTexture()};
+	unsigned index = (!this->_isPlayer * 3) + (this->_veryEffective) + (!this->_notVeryEffective);
+	sf::Vector2f pos = valuesHit[index][this->_animCounter - 1];
+
+	pos.y += size.y;
+	this->_renderScene(rtexture);
+	this->_displayMyFace(rtexture, this->state.p1.spriteId);
+	if (!this->_isPlayer && this->_notVeryEffective) {
+		if (this->_animCounter % 8 < 4)
+			this->_displayOpFace(rtexture, this->state.p2.spriteId);
+	} else
+		this->_displayOpFace(rtexture, this->state.p2.spriteId);
+	sprite.setScale({1, -1});
+	sprite.setPosition(pos);
+	target.clear(Gen1Renderer::_getDmgColor(0));
+	target.draw(sprite);
 }
 void Gen1Renderer::_renderDeath(sf::RenderTarget &target)
 {
+	this->_renderScene(target);
+	if (this->_animCounter > 40) {
+		if (this->_isPlayer)
+			this->_displayOpFace(target, this->state.p2.spriteId);
+		else
+			this->_displayMyFace(target, this->state.p1.spriteId);
+
+		int index = (this->_animCounter - 40) / 2;
+
+		if (index < 7) {
+			if (this->_isPlayer)
+				this->_displayMyFace(target, this->state.p1.spriteId, {0, 1, 2, 3}, {0, index});
+			else
+				this->_displayOpFace(target, this->state.p2.spriteId, {0, 1, 2, 3}, {0, index});
+		}
+	} else {
+		this->_displayMyFace(target, this->state.p1.spriteId);
+		this->_displayOpFace(target, this->state.p2.spriteId);
+	}
 }
 void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
 {
@@ -1451,19 +1648,56 @@ void Gen1Renderer::_renderWithdraw(sf::RenderTarget &target)
 }
 void Gen1Renderer::_renderHealthMod(sf::RenderTarget &target)
 {
+	this->_renderNormal(target);
 }
 void Gen1Renderer::_renderExtraAnim(sf::RenderTarget &target)
 {
 }
 void Gen1Renderer::_renderAnim(sf::RenderTarget &target)
 {
+	switch (this->_currentAnim) {
+	case ANIMTYPE_DELAY:
+		return this->_renderNormal(target);
+	case ANIMTYPE_STAT_LOWER_PLAYER: {
+		auto size = this->getSize();
+		sf::RenderTexture rtexture{size};
+		sf::Sprite sprite{rtexture.getTexture()};
+		std::array<float, 23> values{1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1};
+
+		this->_renderScene(rtexture);
+		this->_displayMyFace(rtexture, this->state.p1.spriteId);
+		this->_displayOpFace(rtexture, this->state.p2.spriteId);
+		sprite.setScale({1, -1});
+		sprite.setPosition({values[(this->_animCounter - 1) / 2], static_cast<float>(size.y)});
+		target.clear(Gen1Renderer::_getDmgColor(0));
+		target.draw(sprite);
+		return;
+	}
+	case ANIMTYPE_STAT_LOWER_OPPONENT: {
+		auto size = this->getSize();
+		sf::RenderTexture rtexture{size};
+		sf::Sprite sprite{rtexture.getTexture()};
+		std::array<float, 11> values{1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1};
+
+		this->_renderScene(rtexture);
+		this->_displayMyFace(rtexture, this->state.p1.spriteId);
+		this->_displayOpFace(rtexture, this->state.p2.spriteId);
+		sprite.setScale({1, -1});
+		sprite.setPosition({values[(this->_animCounter - 1) / 2], static_cast<float>(size.y)});
+		target.clear(Gen1Renderer::_getDmgColor(0));
+		target.draw(sprite);
+		return;
+	}}
 }
 void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 {
+	if (this->_animCounter == 0 && this->_waitCounter < MOVE_WAIT_BEFORE)
+		return this->_renderNormal(target);
+
 	auto size = this->getSize();
 	auto it = this->_moveData.find(this->_animMove);
 
-	target.clear(sf::Color::White);
+	target.clear(Gen1Renderer::_getDmgColor(0));
 	if (it == this->_moveData.end())
 		it = this->_moveData.find(1);
 
@@ -1506,8 +1740,8 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 	}
 
 	sf::RenderTexture rtexture{size};
-	sf::RenderTexture rtexture2{size};
 	sf::Sprite sprite{rtexture.getTexture()};
+	sf::RenderTexture rtexture2{size};
 	sf::Sprite sprite2{rtexture2.getTexture()};
 
 	this->_renderScene(rtexture, frame.palB);
@@ -1610,7 +1844,6 @@ void Gen1Renderer::_renderText(sf::RenderTarget &target)
 
 void Gen1Renderer::consumeEvent(const sf::Event &event)
 {
-
 }
 
 sf::Color Gen1Renderer::_getDmgColor(unsigned int color)

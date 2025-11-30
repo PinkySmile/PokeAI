@@ -315,7 +315,7 @@ namespace PokemonGen1
 			{ STATUS_CONFUSED_FOR_1_TURN, " became confused!" }
 		};
 
-		this->_battleState->battleLogger(PkmnCommon::TextEvent{messages[status]});
+		this->_battleState->battleLogger(PkmnCommon::TextEvent{this->getName() + messages[status]});
 		if (status == STATUS_BADLY_POISONED)
 			this->_badPoisonStage = 1;
 		if (status & STATUS_ANY_NON_VOLATILE_STATUS)
@@ -640,14 +640,14 @@ namespace PokemonGen1
 		if (this->_currentStatus & STATUS_ASLEEP) {
 			this->_currentStatus--;
 			if (this->_currentStatus & STATUS_ASLEEP) {
-				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_ASLEEP, .isGuaranteed = true, .player = !this->isEnemy()});
+				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_ASLEEP, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 				logger(PkmnCommon::TextEvent{this->getName() + " is fast asleep!"});
 			} else
 				logger(PkmnCommon::TextEvent{this->getName() + " woke up!"});
 			return;
 		}
 		if (this->_currentStatus & STATUS_FROZEN) {
-			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_FROZEN, .isGuaranteed = true, .player = !this->isEnemy()});
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_FROZEN, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			logger(PkmnCommon::TextEvent{this->getName() + " is frozen solid!"});
 			return;
 		}
@@ -658,12 +658,12 @@ namespace PokemonGen1
 			return;
 		}
 		if (this->_flinched) {
-			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_FLINCHED, .isGuaranteed = true, .player = !this->isEnemy()});
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_FLINCHED, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			logger(PkmnCommon::TextEvent{this->getName() + " flinched!"});
 			return;
 		}
 		if (this->_needsRecharge) {
-			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_RECHARGE, .isGuaranteed = true, .player = !this->isEnemy()});
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_RECHARGE, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			logger(PkmnCommon::TextEvent{this->getName() + " must recharge!"});
 			this->_needsRecharge = false;
 			return;
@@ -681,11 +681,12 @@ namespace PokemonGen1
 		if (this->_currentStatus & STATUS_CONFUSED) {
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if ((this->_currentStatus & STATUS_CONFUSED)) {
-				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_CONFUSED, .isGuaranteed = true, .player = !this->isEnemy()});
+				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_CONFUSED, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 				logger(PkmnCommon::TextEvent{this->getName() + " is confused!"});
 				if (this->_battleState->rng() >= 0x80) {
 					this->setRecharging(false);
 					logger(PkmnCommon::TextEvent{"It hurt itself in its confusion!"});
+					logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_CONFUSED_HIT, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 					this->takeDamage(target, this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false, true).damage, false, true);
 					// clear bide, thrashing about, charging up, and multi-turn moves such as warp
 					// but NOT rage!
@@ -710,7 +711,7 @@ namespace PokemonGen1
 		}
 
 		if ((this->_currentStatus & STATUS_PARALYZED) && this->_battleState->rng() < 0x3F) {
-			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_PARALYZED, .isGuaranteed = true, .player = !this->isEnemy()});
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_PARALYZED, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			logger(PkmnCommon::TextEvent{this->getName() + "'s fully paralyzed!"});
 			// clear bide, thrashing about, charging up, and multi-turn moves such as warp
 			// but NOT rage!
@@ -753,22 +754,22 @@ namespace PokemonGen1
 		auto status = this->_currentStatus;
 
 		if (status & STATUS_BURNED) {
-			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_BURN, .isGuaranteed = true, .player = !this->isEnemy()});
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_BURN, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			logger(PkmnCommon::TextEvent{this->getName() + "'s hurt by the burn!"});
 			this->takeDamage(target, this->getMaxHealth() / 16, true, false);
 		} else if (status & STATUS_POISONED) {
 			damage = this->getMaxHealth() / 16;
 			if (status & STATUS_BAD_POISON) {
-				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_BAD_POISON, .isGuaranteed = true, .player = !this->isEnemy()});
+				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_BAD_POISON, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 				damage *= this->_badPoisonStage++;
 			} else
-				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_POISON, .isGuaranteed = true, .player = !this->isEnemy()});
+				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_POISON, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			logger(PkmnCommon::TextEvent{this->getName() + "'s hurt by the poison!"});
 			this->takeDamage(target, damage, true, false);
 		}
 		if (status & STATUS_LEECHED) {
 			// FIXME: If dead from poison, the "X fainted!" message shows before that one. See test `Metronome[26](H*)`.
-			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_LEECHED, .isGuaranteed = true, .player = !this->isEnemy()});
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_LEECHED, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			logger(PkmnCommon::TextEvent{"LEECH SEED saps " + this->getName() + "!"});
 			damage = this->getMaxHealth() / 16;
 			if (status & STATUS_BAD_POISON)
@@ -798,7 +799,38 @@ namespace PokemonGen1
 		return this->_lastUsedMove;
 	}
 
-	bool Pokemon::changeStat(StatsChange stat, char nb)
+
+	static unsigned getStatChangeAnim(StatsChange stat, char nb)
+	{
+		unsigned start;
+
+		switch (stat) {
+		case STATS_ATK:
+			start = PkmnCommon::SYSANIM_ATK_DECREASE_BIG;
+			break;
+		case STATS_DEF:
+			start = PkmnCommon::SYSANIM_DEF_DECREASE_BIG;
+			break;
+		case STATS_SPE:
+			start = PkmnCommon::SYSANIM_SPA_DECREASE_BIG; // Masquerade special as special attack
+			break;
+		case STATS_SPD:
+			start = PkmnCommon::SYSANIM_SPE_DECREASE_BIG; // SPE here is for SPEed
+			break;
+		case STATS_ACC:
+			start = PkmnCommon::SYSANIM_ACC_DECREASE_BIG;
+			break;
+		case STATS_EVD:
+			start = PkmnCommon::SYSANIM_EVD_DECREASE_BIG;
+			break;
+		}
+		start += nb > -1;
+		start += nb > 0;
+		start += nb > 1;
+		return start;
+	}
+
+	bool Pokemon::changeStat(StatsChange stat, char nb, bool guaranteed, bool turn)
 	{
 		std::string statName;
 		auto stats = reinterpret_cast<char *>(&this->_upgradedStats);
@@ -831,6 +863,12 @@ namespace PokemonGen1
 			if (nb > 0) // Don't forget to not cap when going down!
 				cStats[stat] = fmin(999, cStats[stat]);
 		}
+		logger(PkmnCommon::AnimEvent{
+			.animId = getStatChangeAnim(stat, nb),
+			.isGuaranteed = guaranteed,
+			.player = !this->isEnemy(),
+			.turn = turn
+		});
 		if (nb < -1)
 			logger(PkmnCommon::TextEvent{this->getName() + "'s " + statName + " greatly fell!"});
 		else if (nb == -1)
@@ -868,11 +906,11 @@ namespace PokemonGen1
 		if (!health)
 			return;
 
-		this->_battleState->battleLogger(PkmnCommon::HealthModEvent{.newHealth = health, .player = !this->isEnemy() });
 		if (this->_computedStats.HP + health > this->_computedStats.maxHP)
 			this->_computedStats.HP = this->_computedStats.maxHP;
 		else
 			this->_computedStats.HP += health;
+		this->_battleState->battleLogger(PkmnCommon::HealthModEvent{.newHealth = this->_computedStats.HP, .player = !this->isEnemy() });
 	}
 
 	void Pokemon::takeDamage(Pokemon &target, unsigned short damage, bool skipSubstitute, bool swapSide)
@@ -896,21 +934,22 @@ namespace PokemonGen1
 				subTarget._subHealth = 0;
 				subTarget._hasSub = false;
 				logger(PkmnCommon::TextEvent{subTarget.getName() + "'s SUBSTITUTE broke!"});
+				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_SUB_BREAK, .isGuaranteed = true, .player = !subTarget.isEnemy(), .turn = !this->isEnemy()});
 			} else
 				subTarget._subHealth -= damage;
 			return;
 		}
 
-		logger(PkmnCommon::HealthModEvent{.newHealth = -damage, .player = !this->isEnemy() });
 		if (damage > this->_computedStats.HP)
 			this->_computedStats.HP = 0;
 		else
 			this->_computedStats.HP -= damage;
+		logger(PkmnCommon::HealthModEvent{.newHealth = this->_computedStats.HP, .player = !this->isEnemy() });
 
 		if (!this->_computedStats.HP) {
 			this->_currentStatus = STATUS_KO;
 			logger(PkmnCommon::TextEvent{this->getName() + " fainted!"});
-			logger(PkmnCommon::DeathEvent{});
+			logger(PkmnCommon::DeathEvent{.player = !this->isEnemy()});
 			this->_hasSub = false;
 		}
 	}

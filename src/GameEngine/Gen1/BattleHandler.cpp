@@ -124,6 +124,7 @@ namespace PokemonGen1
 		bool p1TeamOK = std::any_of(this->_state.me.team.begin(), this->_state.me.team.end(), [](const Pokemon &pkmn){ return pkmn.getHealth() != 0; });
 		bool p2TeamOK = std::any_of(this->_state.op.team.begin(), this->_state.op.team.end(), [](const Pokemon &pkmn){ return pkmn.getHealth() != 0; });
 
+		this->_state.battleLogger(PkmnCommon::TurnStartEvent{});
 		if (!p1TeamOK) {
 			this->logBattle(this->_state.me.name + " is out of usable pokemon");
 			this->logBattle(this->_state.me.name + " blacked out");

@@ -5,6 +5,7 @@
 #include <SFML/Graphics.hpp>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 #include "Gen1Renderer.hpp"
 #include "GameEngine/Gen1/BattleHandler.hpp"
 #include "nlohmann/json.hpp"
@@ -21,7 +22,9 @@ int main(int argc, char **argv)
 	auto &state = handler.getBattleState();
 	Gen1Renderer renderer{""};
 
-	state.battleLogger = [&renderer](const PkmnCommon::Event &event){ renderer.consumeEvent(event); };
+	state.battleLogger = [&renderer](const PkmnCommon::Event &event){
+		renderer.consumeEvent(event);
+	};
 	handler.loadReplay(argv[1]);
 	handler.start();
 
@@ -36,8 +39,12 @@ int main(int argc, char **argv)
 	win.setView(view);
 	renderer.reset();
 
-	while (!handler.isFinished())
-		handler.tick();
+	try {
+		while (!handler.isFinished())
+			handler.tick();
+	} catch (std::exception &e) {
+		std::cerr << "Error during battle: " << e.what() << std::endl;
+	}
 	while (win.isOpen()) {
 		while (auto event = win.pollEvent()) {
 			if (event->is<sf::Event::Closed>())

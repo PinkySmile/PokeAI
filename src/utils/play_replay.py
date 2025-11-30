@@ -27,9 +27,9 @@ trainer = trainer.replace("~", "_M")
 trainer = trainer.replace("`", "_F")
 if trainer.isdigit(): trainer = int(trainer)
 elif hasattr(TrainerClass, trainer): trainer = getattr(TrainerClass, trainer)
-elif trainer == "blue": trainer = TrainerClass.RIVAL1
-elif trainer == "champion": trainer = TrainerClass.RIVAL3
-elif trainer == "red": trainer = TrainerClass.NOBODY
+elif trainer == "BLUE": trainer = TrainerClass.RIVAL1
+elif trainer == "CHAMPION": trainer = TrainerClass.RIVAL3
+elif trainer == "RED": trainer = TrainerClass.NOBODY
 elif trainer != "":
 	print("Invalid trainer class. Valid trainers are:")
 	for f in dir(TrainerClass):

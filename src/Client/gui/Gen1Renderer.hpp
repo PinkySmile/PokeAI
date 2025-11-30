@@ -88,6 +88,7 @@ private:
 		EVNTTYPE_EXTRA_ANIM,
 		EVNTTYPE_ANIM,
 		EVNTTYPE_MOVE,
+		EVNTTYPE_START_TURN,
 		EVNTTYPE_TEXT,
 		EVNTTYPE_COUNT
 	};
@@ -103,6 +104,7 @@ private:
 	bool _updateExtraAnim();
 	bool _updateAnim();
 	bool _updateMove();
+	bool _updateTurnStart();
 	bool _updateText();
 
 	void _displayMyStats(sf::RenderTarget &target, const Pokemon &pkmn, const std::array<unsigned, 4> &palette = {0, 1, 2, 3});
@@ -124,6 +126,7 @@ private:
 	void _renderExtraAnim(sf::RenderTarget &);
 	void _renderAnim(sf::RenderTarget &);
 	void _renderMove(sf::RenderTarget &);
+	void _renderTurnStart(sf::RenderTarget &);
 	void _renderText(sf::RenderTarget &);
 
 	void _handleEvent(const PkmnCommon::Event &event);
@@ -148,7 +151,7 @@ private:
 	sf::Texture _arrows[2];
 	sf::Texture _choicesHUD;
 	sf::Texture _attackHUD;
-	sf::Texture _waitingHUD;
+	PalettedSprite _waitingHUD;
 	PalettedSprite _trainer[2];
 	PalettedSprite _boxes[4];
 	PalettedSprite _hpOverlay;
@@ -156,10 +159,11 @@ private:
 	sf::SoundBuffer _hitSounds[3];
 	sf::SoundBuffer _trainerLand;
 	sf::SoundBuffer _ballPopSound;
+	sf::SoundBuffer _menuSelect;
+	sf::SoundBuffer _faint;
 	std::vector<MoveAnim> _ballPopAnim;
-	sf::Sound _crySound{this->_trainerLand};
+	sf::Sound _gpSound{this->_trainerLand};
 	sf::Sound _soundLand{this->_trainerLand};
-	sf::Sound _moveSound{this->_trainerLand};
 	sf::Sound _ballPop{this->_ballPopSound};
 	std::pair<sf::Texture, sf::Texture> _activeMons;
 	std::deque<PkmnCommon::Event> _queue;

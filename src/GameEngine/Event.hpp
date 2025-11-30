@@ -32,6 +32,35 @@ namespace PkmnCommon
 		SYSANIM_CONFUSED_HIT,
 		SYSANIM_LEECHED,
 
+		SYSANIM_ATK_DECREASE_BIG, // Attack
+		SYSANIM_ATK_DECREASE,
+		SYSANIM_ATK_INCREASE,
+		SYSANIM_ATK_INCREASE_BIG,
+		SYSANIM_DEF_DECREASE_BIG, // Defense
+		SYSANIM_DEF_DECREASE,
+		SYSANIM_DEF_INCREASE,
+		SYSANIM_DEF_INCREASE_BIG,
+		SYSANIM_SPA_DECREASE_BIG, // Special Attack
+		SYSANIM_SPA_DECREASE,
+		SYSANIM_SPA_INCREASE,
+		SYSANIM_SPA_INCREASE_BIG,
+		SYSANIM_SPD_DECREASE_BIG, // Special Defense
+		SYSANIM_SPD_DECREASE,
+		SYSANIM_SPD_INCREASE,
+		SYSANIM_SPD_INCREASE_BIG,
+		SYSANIM_SPE_DECREASE_BIG, // Speed
+		SYSANIM_SPE_DECREASE,
+		SYSANIM_SPE_INCREASE,
+		SYSANIM_SPE_INCREASE_BIG,
+		SYSANIM_ACC_DECREASE_BIG, // Accuracy
+		SYSANIM_ACC_DECREASE,
+		SYSANIM_ACC_INCREASE,
+		SYSANIM_ACC_INCREASE_BIG,
+		SYSANIM_EVD_DECREASE_BIG, // Evade
+		SYSANIM_EVD_DECREASE,
+		SYSANIM_EVD_INCREASE,
+		SYSANIM_EVD_INCREASE_BIG,
+
 		SYSANIM_RECHARGE,
 		SYSANIM_SUB_BREAK,
 
@@ -48,6 +77,7 @@ namespace PkmnCommon
 		unsigned animId;
 		bool isGuaranteed;
 		bool player;
+		bool turn;
 	};
 
 	struct ExtraAnimEvent {
@@ -57,7 +87,7 @@ namespace PkmnCommon
 	};
 
 	struct HealthModEvent {
-		int newHealth;
+		unsigned newHealth;
 		bool player;
 	};
 
@@ -88,7 +118,22 @@ namespace PkmnCommon
 		bool p2Won;
 	};
 
-	typedef std::variant<TextEvent, MoveEvent, AnimEvent, ExtraAnimEvent, HealthModEvent, SwitchEvent, WithdrawEvent, DeathEvent, HitEvent, GameStartEvent, GameEndEvent> Event;
+	struct TurnStartEvent {};
+
+	typedef std::variant<
+	        TextEvent,
+		MoveEvent,
+		AnimEvent,
+		ExtraAnimEvent,
+		HealthModEvent,
+		SwitchEvent,
+		WithdrawEvent,
+		DeathEvent,
+		HitEvent,
+		TurnStartEvent,
+		GameStartEvent,
+		GameEndEvent
+	> Event;
 }
 
 
