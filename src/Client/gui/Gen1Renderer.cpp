@@ -369,11 +369,14 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		this->_currentEvent = EVNTTYPE_ANIM;
 		this->_animCounter = 0;
 		if (anim->animId >= SYSANIM_ATK_DECREASE_BIG && anim->animId <= SYSANIM_EVD_INCREASE_BIG) {
-			if (!anim->isGuaranteed)
+			if (anim->player == anim->turn)
+				this->_currentEvent = EVNTTYPE_NONE;
+			else if (!anim->isGuaranteed)
 				this->_currentAnim = ANIMTYPE_DELAY;
-			else if (anim->player && !anim->turn)
+			// In gen1 you can only lower the stats from your opponent as a side effect, so we assume it was lowered
+			else if (anim->player)
 				this->_currentAnim = ANIMTYPE_STAT_LOWER_PLAYER;
-			else if (!anim->player && anim->turn)
+			else if (!anim->player)
 				this->_currentAnim = ANIMTYPE_STAT_LOWER_OPPONENT;
 			else
 				throw std::runtime_error("Stat anim not implemented");
@@ -474,6 +477,21 @@ static std::array<std::vector<sf::Vector2f>, 6> valuesHit{
 		{0, 1}, {0, 1}, {0, 1}, {0, 1}
 	},
 	std::vector<sf::Vector2f>{ // Very effective - player
+		{0, 8}, {0, 8}, {0, 8}, {0, 8},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{0, 7}, {0, 7}, {0, 7},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 6}, {0, 6}, {0, 6},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 5}, {0, 5}, {0, 5},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 4}, {0, 4}, {0, 4},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 3}, {0, 3}, {0, 3},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 2}, {0, 2}, {0, 2},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 1}, {0, 1}, {0, 1}, {0, 1}
 	},
 	std::vector<sf::Vector2f>{ // Not very effective - opponent
 		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
@@ -482,6 +500,9 @@ static std::array<std::vector<sf::Vector2f>, 6> valuesHit{
 		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
 	},
 	std::vector<sf::Vector2f>{ // Effective - opponent
+		{2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{1, 0}, {1, 0}, {1, 0}, {1, 0}
 	},
 	std::vector<sf::Vector2f>{ // Very effective - opponent
 		{2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0},
@@ -489,6 +510,7 @@ static std::array<std::vector<sf::Vector2f>, 6> valuesHit{
 		{1, 0}, {1, 0}, {1, 0}, {1, 0}
 	},
 };
+// Side effect status as player: 2, 2, -2, -2 (total 8 times)
 
 bool Gen1Renderer::_updateNormal()
 {
