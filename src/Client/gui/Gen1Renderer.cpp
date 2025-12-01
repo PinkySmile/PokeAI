@@ -36,6 +36,8 @@ enum AnimationType {
 	ANIMTYPE_DELAY,
 	ANIMTYPE_STAT_LOWER_PLAYER,
 	ANIMTYPE_STAT_LOWER_OPPONENT,
+	ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_PLAYER,
+	ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_OPPONENT,
 };
 
 using namespace PkmnCommon;
@@ -366,6 +368,9 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		this->_isPlayer = health->player;
 		this->_healthTarget = health->newHealth;
 	} else if (auto anim = std::get_if<AnimEvent>(&event)) {
+		auto &state = anim->player ? this->state.p1 : this->state.p2;
+		auto &pkmn = state.team[state.active];
+
 		this->_currentEvent = EVNTTYPE_ANIM;
 		this->_animCounter = 0;
 		if (anim->animId >= SYSANIM_ATK_DECREASE_BIG && anim->animId <= SYSANIM_EVD_INCREASE_BIG) {
@@ -378,12 +383,85 @@ void Gen1Renderer::_handleEvent(const Event &event)
 				this->_currentAnim = ANIMTYPE_STAT_LOWER_PLAYER;
 			else if (!anim->player)
 				this->_currentAnim = ANIMTYPE_STAT_LOWER_OPPONENT;
+		} else if (anim->animId >= SYSANIM_NOW_ASLEEP && anim->animId < SYSANIM_NOW_CONFUSED) {
+			if (anim->animId != SYSANIM_NOW_CONFUSED) {
+				pkmn.asleep = anim->animId == SYSANIM_NOW_ASLEEP;
+				pkmn.frozen = anim->animId == SYSANIM_NOW_FROZEN;
+				pkmn.burned = anim->animId == SYSANIM_NOW_BURNED;
+				pkmn.poisoned = anim->animId == SYSANIM_NOW_POISONED;
+				pkmn.paralyzed = anim->animId == SYSANIM_NOW_PARALYZED;
+				pkmn.toxicPoisoned = anim->animId == SYSANIM_NOW_BADLY_POISONED;
+			}
+			if (anim->isGuaranteed) {
+				if (anim->player)
+					this->_currentAnim = ANIMTYPE_STAT_LOWER_PLAYER;
+				else
+					this->_currentAnim = ANIMTYPE_STAT_LOWER_OPPONENT;
+			} else if (!anim->player)
+				this->_currentAnim = ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_OPPONENT;
 			else
-				throw std::runtime_error("Stat anim not implemented");
+				throw std::runtime_error("Status anim not implemented: " + std::to_string(anim->animId) + " not guaranteed");
+		} else if (anim->animId >= SYSANIM_ASLEEP && anim->animId <= SYSANIM_LEECHED) {
+			this->_currentEvent = EVNTTYPE_MOVE;
+			this->_isPlayer = anim->player;
+			this->_animCounter = 0;
+			this->_subCounter = 0;
+			this->_subSpawnTimer = 0;
+			this->_subSpawnUnspawn = 0;
+			this->_waitCounter = 0;
+			if (anim->animId == SYSANIM_CONFUSED) {
+				this->_animMove = Amnesia;
+				this->_moveSound.setBuffer(this->_moveData[Amnesia].sound);
+			} else if (anim->animId == SYSANIM_CONFUSED_HIT) {
+				this->_animMove = Pound;
+				this->_moveSound.setBuffer(this->_moveData[Pound].sound);
+				this->_isPlayer = !anim->player;
+			} else if (anim->animId == SYSANIM_ASLEEP) {
+				this->_animMove = Rest;
+				this->_moveSound.setBuffer(this->_moveData[Rest].sound);
+			} else if (anim->animId == SYSANIM_LEECHED) {
+				this->_animMove = Absorb;
+				this->_moveSound.setBuffer(this->_moveData[Absorb].sound);
+			} else if (anim->animId == SYSANIM_POISON || anim->animId == SYSANIM_BURN) {
+				this->_animMove = 186;
+				this->_moveSound.setBuffer(this->_moveData[186].sound);
+			} else {
+				this->_currentAnim = ANIMTYPE_DELAY;
+				this->_currentEvent = EVNTTYPE_ANIM;
+			}
+		} else if (anim->animId == SYSANIM_WAKE_UP) {
+			this->_currentAnim = ANIMTYPE_DELAY;
+			pkmn.asleep = false;
+		} else if (anim->animId == SYSANIM_BACK_TO_SENSE) {
+			this->_currentAnim = ANIMTYPE_DELAY;
+			pkmn.confused = false;
+		} else if (anim->animId == SYSANIM_THAWED) {
+			this->_currentAnim = ANIMTYPE_DELAY;
+			pkmn.frozen = false;
+		} else if (anim->animId == SYSANIM_SUB_BREAK) {
+			this->_currentAnim = ANIMTYPE_DELAY;
+			state.substitute = false;
+		} else if (anim->animId == SYSANIM_RECHARGE || anim->animId == SYSANIM_NOW_CONFUSED)
+			this->_currentEvent = EVNTTYPE_NONE;
+		else
+			throw std::runtime_error("Anim not implemented: " + std::to_string(anim->animId));
+	} else if (auto extraAnim = std::get_if<ExtraAnimEvent>(&event)) {
+		this->_currentEvent = EVNTTYPE_MOVE;
+		this->_isPlayer = extraAnim->player;
+		this->_animCounter = 0;
+		this->_subCounter = 0;
+		this->_subSpawnTimer = 0;
+		this->_subSpawnUnspawn = 0;
+		this->_waitCounter = 0;
+		if (extraAnim->moveId == Take_Down || extraAnim->moveId == Double_Edge || extraAnim->moveId == Submission || extraAnim->moveId == Struggle)
+			this->_currentEvent = EVNTTYPE_NONE;
+		else if (extraAnim->moveId == Skull_Bash) {
+			this->_animMove = Growth;
+			this->_moveSound.setBuffer(this->_noSound);
 		} else
-			throw std::runtime_error("Anim not implemented");
+			throw std::runtime_error("Extra anim not implemented: " + std::to_string(extraAnim->moveId));
 	} else
-		throw std::runtime_error("Not implemented");
+		throw std::runtime_error("Not implemented: " + std::to_string(event.index()));
 }
 
 void Gen1Renderer::_peakTextEvent()
@@ -637,10 +715,13 @@ bool Gen1Renderer::_updateWithdraw()
 {
 	if (this->_animCounter++ < WITHDRAW_ANIM_LENGTH)
 		return true;
-	if (this->_isPlayer)
+	if (this->_isPlayer) {
 		this->state.p1.hidden = true;
-	else
+		this->state.p1.substitute = false;
+	} else {
 		this->state.p2.hidden = true;
+		this->state.p2.substitute = false;
+	}
 	return false;
 }
 bool Gen1Renderer::_updateHealthMod()
@@ -666,6 +747,8 @@ bool Gen1Renderer::_updateAnim()
 		return this->_animCounter++ < 46;
 	case ANIMTYPE_STAT_LOWER_OPPONENT:
 		return this->_animCounter++ < 22;
+	case ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_OPPONENT:
+		return this->_animCounter++ < 32;
 	}
 	return false;
 }
@@ -789,7 +872,7 @@ void Gen1Renderer::_displayMyStats(sf::RenderTarget &target, const Pokemon &pkmn
 	sprite.setPosition({80, 72});
 	target.draw(sprite);
 
-	text.setPosition({103, 64});
+	text.setPosition({112, 64});
 	if (pkmn.burned) {
 		text.setString("BRN");
 		target.draw(text);
@@ -1514,12 +1597,12 @@ void Gen1Renderer::_renderHit(sf::RenderTarget &target)
 
 	pos.y += size.y;
 	this->_renderScene(rtexture);
-	this->_displayMyFace(rtexture, this->state.p1.spriteId);
+	this->_displayMyFace(rtexture, this->state.p1.substitute ? 256 : this->state.p1.spriteId);
 	if (!this->_isPlayer && this->_notVeryEffective) {
 		if (this->_animCounter % 8 < 4)
-			this->_displayOpFace(rtexture, this->state.p2.spriteId);
+			this->_displayOpFace(rtexture, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 	} else
-		this->_displayOpFace(rtexture, this->state.p2.spriteId);
+		this->_displayOpFace(rtexture, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 	sprite.setScale({1, -1});
 	sprite.setPosition(pos);
 	target.clear(Gen1Renderer::_getDmgColor(0));
@@ -1687,8 +1770,8 @@ void Gen1Renderer::_renderAnim(sf::RenderTarget &target)
 		std::array<float, 23> values{1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1};
 
 		this->_renderScene(rtexture);
-		this->_displayMyFace(rtexture, this->state.p1.spriteId);
-		this->_displayOpFace(rtexture, this->state.p2.spriteId);
+		this->_displayMyFace(rtexture, this->state.p1.substitute ? 256 : this->state.p1.spriteId);
+		this->_displayOpFace(rtexture, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 		sprite.setScale({1, -1});
 		sprite.setPosition({values[(this->_animCounter - 1) / 2], static_cast<float>(size.y)});
 		target.clear(Gen1Renderer::_getDmgColor(0));
@@ -1702,12 +1785,45 @@ void Gen1Renderer::_renderAnim(sf::RenderTarget &target)
 		std::array<float, 11> values{1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1};
 
 		this->_renderScene(rtexture);
-		this->_displayMyFace(rtexture, this->state.p1.spriteId);
-		this->_displayOpFace(rtexture, this->state.p2.spriteId);
+		this->_displayMyFace(rtexture, this->state.p1.substitute ? 256 : this->state.p1.spriteId);
+		this->_displayOpFace(rtexture, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 		sprite.setScale({1, -1});
 		sprite.setPosition({values[(this->_animCounter - 1) / 2], static_cast<float>(size.y)});
 		target.clear(Gen1Renderer::_getDmgColor(0));
 		target.draw(sprite);
+		return;
+	}
+	case ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_OPPONENT: {
+		auto size = this->getSize();
+		sf::RenderTexture rtexture{size};
+		sf::Sprite sprite2{rtexture.getTexture()};
+		sf::Text text{this->_font};
+		sf::Sprite sprite{this->_boxes[0].texture};
+
+		rtexture.clear(Gen1Renderer::_getDmgColor(0));
+		this->_displayOpStats(rtexture, this->state.p2.team[this->state.p2.active]);
+		this->_displayOpFace(rtexture, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
+
+
+		sprite2.setScale({1, -1});
+		sprite2.setPosition({(this->_animCounter / 2) % 2 == 0 ? 2.f : -2.f, static_cast<float>(size.y)});
+		target.clear(Gen1Renderer::_getDmgColor(0));
+		target.draw(sprite2);
+
+		this->_boxes[0].palettize({0, 1, 2, 3}, false);
+		sprite.setPosition({0, 96});
+		target.draw(sprite);
+
+		this->_displayMyStats(target, this->state.p1.team[this->state.p1.active]);
+		this->_displayMyFace(target, this->state.p1.substitute ? 256 : this->state.p1.spriteId);
+
+		text.setCharacterSize(8);
+		text.setOutlineThickness(0);
+		text.setFillColor(Gen1Renderer::_getDmgColor(3));
+		text.setString(this->_displayedText);
+		text.setPosition({8, 112});
+		text.setLineSpacing(2);
+		target.draw(text);
 		return;
 	}}
 }

@@ -340,6 +340,11 @@ namespace PokemonGen1
 			logger(PkmnCommon::TextEvent{target.getName() + " is unaffected!"});
 			return false;
 		}
+		if (this->getID() == Teleport) {
+			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
+			logger(PkmnCommon::TextEvent{"But, it failed!"});
+			return false;
+		}
 
 		if (!this->_nbHit) {
 			first = true;
@@ -569,7 +574,6 @@ namespace PokemonGen1
 			) {
 				unsigned anim = -1;
 
-				target.addStatus(this->_statusChange.status);
 				if (this->_statusChange.status == STATUS_FROZEN)
 					anim = PkmnCommon::SYSANIM_NOW_FROZEN;
 				else if (this->_statusChange.status == STATUS_BADLY_POISONED)
@@ -591,6 +595,7 @@ namespace PokemonGen1
 						.player = !target.isEnemy(),
 						.turn = !owner.isEnemy()
 					});
+				target.addStatus(this->_statusChange.status);
 			}
 
 		if (!sub)
@@ -604,6 +609,7 @@ namespace PokemonGen1
 			target.applyStatusDebuff();
 		if (target.hasStatus(STATUS_FROZEN) && this->getType() == TYPE_FIRE) {
 			logger(PkmnCommon::TextEvent("Fire defrosted " + target.getName() + "!"));
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_THAWED, .isGuaranteed = true, .player = !target.isEnemy(), .turn = !owner.isEnemy()});
 			target.setNonVolatileStatus(STATUS_NONE);
 		}
 

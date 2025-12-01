@@ -174,8 +174,10 @@ namespace PokemonGen1
 			case Attack3:
 			case Attack4:
 			case StruggleMove:
-			case NoAction:
 				p1Attack = true;
+				break;
+			case NoAction:
+				p1Attack = false;
 				break;
 			default:
 				this->_log("Warning: Invalid P1 move " + std::to_string(this->_state.me.nextAction));
@@ -213,8 +215,10 @@ namespace PokemonGen1
 			case Attack3:
 			case Attack4:
 			case StruggleMove:
-			case NoAction:
 				p2Attack = true;
+				break;
+			case NoAction:
+				p2Attack = false;
 				break;
 			default:
 				this->_log("Warning: Invalid p2 move " + std::to_string(this->_state.op.nextAction));

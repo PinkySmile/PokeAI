@@ -640,15 +640,17 @@ namespace PokemonGen1
 		if (this->_currentStatus & STATUS_ASLEEP) {
 			this->_currentStatus--;
 			if (this->_currentStatus & STATUS_ASLEEP) {
-				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_ASLEEP, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 				logger(PkmnCommon::TextEvent{this->getName() + " is fast asleep!"});
-			} else
+				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_ASLEEP, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
+			} else {
 				logger(PkmnCommon::TextEvent{this->getName() + " woke up!"});
+				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_WAKE_UP, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
+			}
 			return;
 		}
 		if (this->_currentStatus & STATUS_FROZEN) {
-			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_FROZEN, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			logger(PkmnCommon::TextEvent{this->getName() + " is frozen solid!"});
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_FROZEN, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			return;
 		}
 		if (moveSlot == 0xD)
@@ -658,13 +660,13 @@ namespace PokemonGen1
 			return;
 		}
 		if (this->_flinched) {
-			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_FLINCHED, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			logger(PkmnCommon::TextEvent{this->getName() + " flinched!"});
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_FLINCHED, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			return;
 		}
 		if (this->_needsRecharge) {
-			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_RECHARGE, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			logger(PkmnCommon::TextEvent{this->getName() + " must recharge!"});
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_RECHARGE, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			this->_needsRecharge = false;
 			return;
 		}
@@ -681,8 +683,8 @@ namespace PokemonGen1
 		if (this->_currentStatus & STATUS_CONFUSED) {
 			this->_currentStatus -= STATUS_CONFUSED_FOR_1_TURN;
 			if ((this->_currentStatus & STATUS_CONFUSED)) {
-				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_CONFUSED, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 				logger(PkmnCommon::TextEvent{this->getName() + " is confused!"});
+				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_CONFUSED, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 				if (this->_battleState->rng() >= 0x80) {
 					this->setRecharging(false);
 					logger(PkmnCommon::TextEvent{"It hurt itself in its confusion!"});
@@ -694,8 +696,10 @@ namespace PokemonGen1
 						this->_lastUsedMove = availableMoves[0x00];
 					return;
 				}
-			} else if (!(this->_currentStatus & STATUS_CONFUSED))
+			} else if (!(this->_currentStatus & STATUS_CONFUSED)) {
 				logger(PkmnCommon::TextEvent{this->getName() + " is confused no more!"});
+				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_BACK_TO_SENSE, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
+			}
 		}
 
 		if (this->_disableTimer && moveSlot < this->_moveSet.size()) {
@@ -711,8 +715,8 @@ namespace PokemonGen1
 		}
 
 		if ((this->_currentStatus & STATUS_PARALYZED) && this->_battleState->rng() < 0x3F) {
-			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_PARALYZED, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			logger(PkmnCommon::TextEvent{this->getName() + "'s fully paralyzed!"});
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_PARALYZED, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			// clear bide, thrashing about, charging up, and multi-turn moves such as warp
 			// but NOT rage!
 			if (this->_lastUsedMove.getID() != AvailableMove::Rage)

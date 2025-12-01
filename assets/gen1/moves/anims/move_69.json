@@ -157,24 +157,6 @@
                 {"x": 120, "y": 40, "id": 35, "pal_num": 0, "flip": [true , true ], "prio": false},
                 {"x": 128, "y": 40, "id": 34, "pal_num": 0, "flip": [true , true ], "prio": false}
             ]},
-            {"palB": [0, 1, 2, 3], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 1, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [-5, 5], "p2": null, "sprites": [
-                {"x": 104, "y": 16, "id": 34, "pal_num": 0, "flip": [false, false], "prio": false},
-                {"x": 112, "y": 16, "id": 59, "pal_num": 0, "flip": [false, false], "prio": false},
-                {"x": 120, "y": 16, "id": 35, "pal_num": 0, "flip": [true , false], "prio": false},
-                {"x": 128, "y": 16, "id": 34, "pal_num": 0, "flip": [true , false], "prio": false},
-                {"x": 104, "y": 24, "id": 50, "pal_num": 0, "flip": [false, false], "prio": false},
-                {"x": 112, "y": 24, "id": 67, "pal_num": 0, "flip": [false, false], "prio": false},
-                {"x": 120, "y": 24, "id": 67, "pal_num": 0, "flip": [true , false], "prio": false},
-                {"x": 128, "y": 24, "id": 50, "pal_num": 0, "flip": [true , false], "prio": false},
-                {"x": 104, "y": 32, "id": 50, "pal_num": 0, "flip": [false, true ], "prio": false},
-                {"x": 112, "y": 32, "id": 67, "pal_num": 0, "flip": [false, true ], "prio": false},
-                {"x": 120, "y": 32, "id": 67, "pal_num": 0, "flip": [true , true ], "prio": false},
-                {"x": 128, "y": 32, "id": 50, "pal_num": 0, "flip": [true , true ], "prio": false},
-                {"x": 104, "y": 40, "id": 34, "pal_num": 0, "flip": [false, true ], "prio": false},
-                {"x": 112, "y": 40, "id": 35, "pal_num": 0, "flip": [false, true ], "prio": false},
-                {"x": 120, "y": 40, "id": 35, "pal_num": 0, "flip": [true , true ], "prio": false},
-                {"x": 128, "y": 40, "id": 34, "pal_num": 0, "flip": [true , true ], "prio": false}
-            ]},
             {"palB": [0, 1, 2, 3], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 18, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": null, "p2": null, "sprites": [
                 {"x": 104, "y": 16, "id": 34, "pal_num": 0, "flip": [false, false], "prio": false},
                 {"x": 112, "y": 16, "id": 59, "pal_num": 0, "flip": [false, false], "prio": false},

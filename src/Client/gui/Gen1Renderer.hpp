@@ -160,6 +160,7 @@ private:
 	sf::SoundBuffer _trainerLand;
 	sf::SoundBuffer _ballPopSound;
 	sf::SoundBuffer _menuSelect;
+	sf::SoundBuffer _noSound;
 	sf::SoundBuffer _faint;
 	std::vector<MoveAnim> _ballPopAnim;
 	sf::Sound _gpSound{this->_trainerLand};

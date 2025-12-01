@@ -27,7 +27,7 @@ PokemonGen1::BattleAction basic_opponent(PokemonGen1::PlayerState &me, PokemonGe
 	for (size_t i = 0; i < moveSet.size(); i++) {
 		auto &move = moveSet[i];
 
-		if (move.getID() != 0 && move.getPP() != 0 && i != pkmn.getMoveDisabled())
+		if (move.getID() != 0 && move.getPP() != 0 && i + 1 != pkmn.getMoveDisabled())
 			return static_cast<PokemonGen1::BattleAction>(PokemonGen1::Attack1 + i);
 	}
 	return PokemonGen1::StruggleMove;
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	std::string replay;
 	bool argsDisabled = false;
 
-	for (int index = 1; index > argc && replay.empty(); index++) {
+	for (int index = 1; index < argc && replay.empty(); index++) {
 		if (!argsDisabled && argv[index][0] == '-') {
 			if (strcmp(argv[index], "--") == 0) {
 				argsDisabled = true;
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 			} else if (strcmp(argv[index], "-r") == 0) {
 				version = "r";
 				continue;
-			} else if (strcmp(argv[index], "-r") == 0) {
+			} else if (strcmp(argv[index], "-g") == 0) {
 				version = "rg";
 				continue;
 			}
@@ -64,6 +64,8 @@ int main(int argc, char **argv)
 	Gen1Renderer renderer{version};
 
 	state.battleLogger = [&renderer](const PkmnCommon::Event &event){
+		if (auto text = std::get_if<PkmnCommon::TextEvent>(&event))
+			puts(text->message.c_str());
 		renderer.consumeEvent(event);
 	};
 	if (replay.empty()) {
@@ -78,6 +80,7 @@ int main(int argc, char **argv)
 				continue;
 			valid.emplace_back(base.first);
 		}
+
 		std::random_device dev;
 		std::uniform_int_distribution<size_t> dist{0, valid.size() - 1};
 
@@ -86,7 +89,7 @@ int main(int argc, char **argv)
 				state,
 				"Pkmn" + std::to_string(i),
 				100,
-				PokemonGen1::pokemonList.at(valid[dist(dev)]),
+				PokemonGen1::pokemonList.at(valid.at(dist(dev))),
 				std::vector<PokemonGen1::Move>{
 					PokemonGen1::availableMoves[PokemonGen1::Metronome],
 					PokemonGen1::availableMoves[PokemonGen1::Metronome],
@@ -100,7 +103,7 @@ int main(int argc, char **argv)
 				state,
 				"Pkmn" + std::to_string(i),
 				100,
-				PokemonGen1::pokemonList.at(valid[dist(dev)]),
+				PokemonGen1::pokemonList.at(valid.at(dist(dev))),
 				std::vector<PokemonGen1::Move>{
 					PokemonGen1::availableMoves[PokemonGen1::Metronome],
 					PokemonGen1::availableMoves[PokemonGen1::Metronome],
@@ -110,20 +113,11 @@ int main(int argc, char **argv)
 				true
 			);
 	} else
-		handler.loadReplay(argv[1]);
+		handler.loadReplay(replay);
 	handler.start();
-
-	auto size = renderer.getSize();
-	sf::RenderWindow win{sf::VideoMode{{size.x * 4, size.y * 4}}, state.me.name + " vs " + state.op.name};
-	sf::View view;
-
 	renderer.state = fromGen1(state);
-	view.setCenter({size.x / 2.f, size.y / 2.f});
-	view.setSize(sf::Vector2f(size));
-	win.setFramerateLimit(60);
-	win.setView(view);
-	renderer.reset();
 
+	puts("START");
 	try {
 		while (!handler.isFinished()) {
 			if (replay.empty()) {
@@ -135,6 +129,19 @@ int main(int argc, char **argv)
 	} catch (std::exception &e) {
 		std::cerr << "Error during battle: " << e.what() << std::endl;
 	}
+
+	auto size = renderer.getSize();
+	sf::RenderWindow win{sf::VideoMode{{size.x * 4, size.y * 4}}, state.me.name + " vs " + state.op.name};
+	sf::View view;
+
+	puts("CONVERT");
+	view.setCenter({size.x / 2.f, size.y / 2.f});
+	view.setSize(sf::Vector2f(size));
+	win.setFramerateLimit(60);
+	win.setView(view);
+	renderer.reset();
+
+	puts("START renderer");
 	try {
 		while (win.isOpen()) {
 			while (auto event = win.pollEvent()) {
