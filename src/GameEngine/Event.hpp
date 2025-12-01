@@ -120,6 +120,10 @@ namespace PkmnCommon
 
 	struct TurnStartEvent {};
 
+	struct StatusClearedEvent {
+		bool player;
+	};
+
 	typedef std::variant<
 	        TextEvent,
 		MoveEvent,
@@ -130,6 +134,7 @@ namespace PkmnCommon
 		WithdrawEvent,
 		DeathEvent,
 		HitEvent,
+		StatusClearedEvent,
 		TurnStartEvent,
 		GameStartEvent,
 		GameEndEvent

@@ -107,7 +107,7 @@ def basic_opponent(state: BattleState, rng: Generator):
 	if pkmn.wrapped:
 		return BattleAction.NoAction
 	for i, move in enumerate(pkmn.move_set):
-		if move.id != 0 and move.pp != 0 or i == pkmn.move_disabled:
+		if move.id != 0 and move.pp != 0 and i != pkmn.move_disabled:
 			return BattleAction.Attack1 + i
 	return BattleAction.StruggleMove
 
