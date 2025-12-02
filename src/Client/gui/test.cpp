@@ -38,6 +38,7 @@ int main(int argc, char **argv)
 	std::string version;
 	bool colors = false;
 	std::string replay;
+	unsigned turn = 0;
 	bool argsDisabled = false;
 
 	for (int index = 1; index < argc && replay.empty(); index++) {
@@ -54,6 +55,17 @@ int main(int argc, char **argv)
 			} else if (strcmp(argv[index], "-g") == 0) {
 				version = "rg";
 				continue;
+			} else if (strcmp(argv[index], "-t") == 0) {
+				index++;
+				if (index > argc) {
+					puts("Expected argument for option -t");
+					return 1;
+				}
+				turn = std::stoul(argv[index]);
+				continue;
+			} else {
+				printf("Unknown option %s\n", argv[index]);
+				return 1;
 			}
 		}
 		replay = argv[index];
@@ -140,6 +152,10 @@ int main(int argc, char **argv)
 	win.setFramerateLimit(60);
 	win.setView(view);
 	renderer.reset();
+	renderer.goToTurn(turn);
+
+	bool paused = false;
+	bool ok = false;
 
 	puts("START renderer");
 	try {
@@ -147,9 +163,21 @@ int main(int argc, char **argv)
 			while (auto event = win.pollEvent()) {
 				if (event->is<sf::Event::Closed>())
 					win.close();
+				if (auto key = event->getIf<sf::Event::KeyPressed>()) {
+					if (key->code == sf::Keyboard::Key::Space)
+						paused = !paused;
+					if (key->code == sf::Keyboard::Key::Enter)
+						ok = true;
+					if (key->code == sf::Keyboard::Key::Right)
+						renderer.nextTurn();
+					if (key->code == sf::Keyboard::Key::Left)
+						renderer.previousTurn();
+				}
 				renderer.consumeEvent(*event);
 			}
-			renderer.update();
+			if (!paused || ok)
+				renderer.update();
+			ok = false;
 			renderer.render(win);
 			win.display();
 		}

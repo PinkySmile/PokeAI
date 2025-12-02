@@ -79,6 +79,8 @@ public:
 		PlayerState p2;
 	};
 
+	bool soundDisabled = false;
+	bool musicDisabled = false;
 	bool waiting = false;
 	GameState state;
 
@@ -92,6 +94,13 @@ public:
 	virtual std::optional<BattleAction> selectAction(bool attackDisabled) = 0;
 	virtual const sf::Texture &getPkmnFace(unsigned pkmnId) = 0;
 	virtual const sf::SoundBuffer &getPkmnCry(unsigned int pkmnId) = 0;
+	virtual void previousTurn() = 0;
+	virtual void nextTurn() = 0;
+	void goToTurn(unsigned turn);
+	unsigned getTurn();
+
+protected:
+	unsigned _currentTurn = 0;
 };
 
 IRenderer::GameState fromGen1(const PokemonGen1::BattleState &state);

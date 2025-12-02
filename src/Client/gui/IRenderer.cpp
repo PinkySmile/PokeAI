@@ -5,6 +5,19 @@
 #include <cstring>
 #include "IRenderer.hpp"
 
+unsigned IRenderer::getTurn()
+{
+	return this->_currentTurn;
+}
+
+void IRenderer::goToTurn(unsigned int turn)
+{
+	while (this->_currentTurn < turn)
+		this->nextTurn();
+	while (this->_currentTurn > turn)
+		this->previousTurn();
+}
+
 IRenderer::GameState fromGen1(const PokemonGen1::BattleState &state)
 {
 	IRenderer::GameState result;

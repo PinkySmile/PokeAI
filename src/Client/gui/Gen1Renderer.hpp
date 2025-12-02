@@ -25,6 +25,8 @@ public:
 	std::optional<BattleAction> selectAction(bool attackDisabled) override;
 	const sf::Texture &getPkmnFace(unsigned int pkmnId) override;
 	const sf::SoundBuffer &getPkmnCry(unsigned int pkmnId) override;
+	void previousTurn() override;
+	void nextTurn() override;
 
 private:
 	struct PalettedSprite {
@@ -144,6 +146,7 @@ private:
 	EventType _currentEvent = EVNTTYPE_NONE;
 
 	bool _hasColor = false;
+	bool _skipping = false;
 	unsigned _gpCounter[7];
 	std::string _queuedText;
 	std::string _displayedText;

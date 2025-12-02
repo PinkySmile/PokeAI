@@ -221,6 +221,16 @@ void Gen1Renderer::update()
 void Gen1Renderer::render(sf::RenderTarget &target)
 {
 	(this->*Gen1Renderer::_renderers[this->_currentEvent])(target);
+
+	sf::Text text{this->_font};
+
+	text.setCharacterSize(8);
+	text.setOutlineThickness(1);
+	text.setFillColor(Gen1Renderer::_getDmgColor(3));
+	text.setOutlineColor(Gen1Renderer::_getDmgColor(0));
+	text.setString("Turn " + std::to_string(this->_currentTurn));
+	text.setPosition({160.f - text.getString().getSize() * 8, 136});
+	target.draw(text);
 }
 
 void Gen1Renderer::consumeEvent(const Event &event)
@@ -304,14 +314,14 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		this->_currentAnim = 0;
 	} else if (auto move = std::get_if<MoveEvent>(&event)) {
 		this->_currentEvent = EVNTTYPE_MOVE;
+		if (move->moveId > 165)
+			throw std::runtime_error("Move not implemented");
 
 		auto &f = move->player ? this->state.p1 : this->state.p2;
 		auto it = this->_moveData.find(move->moveId);
 		auto it2 = this->_data.find(f.team[f.active].id);
 		auto &pkmn = it2 == this->_data.end() ? this->_missingno : it2->second;
 
-		if (it == this->_moveData.end())
-			it = this->_moveData.find(1);
 		this->_isPlayer = move->player;
 		this->_animMove = move->moveId;
 		this->_animCounter = 0;
@@ -453,11 +463,25 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		this->_subSpawnTimer = 0;
 		this->_subSpawnUnspawn = 0;
 		this->_waitCounter = 0;
-		if (extraAnim->moveId == Take_Down || extraAnim->moveId == Double_Edge || extraAnim->moveId == Submission || extraAnim->moveId == Struggle)
-			this->_currentEvent = EVNTTYPE_NONE;
-		else if (extraAnim->moveId == Skull_Bash) {
+		if (
+			extraAnim->moveId == Take_Down ||
+			extraAnim->moveId == Double_Edge ||
+			extraAnim->moveId == Submission ||
+			extraAnim->moveId == Struggle ||
+			extraAnim->moveId == Hi_Jump_Kick ||
+			extraAnim->moveId == Jump_Kick
+		) {
+			this->_currentEvent = EVNTTYPE_ANIM;
+			this->_currentAnim = ANIMTYPE_DELAY;
+		} else if (extraAnim->moveId == Skull_Bash || extraAnim->moveId == Solarbeam || extraAnim->moveId == Sky_Attack) {
 			this->_animMove = Growth;
 			this->_moveSound.setBuffer(this->_noSound);
+		} else if (extraAnim->moveId == Fly) {
+			this->_animMove = Teleport;
+			this->_moveSound.setBuffer(this->_moveData[Teleport].sound);
+		} else if (extraAnim->moveId == Dig) {
+			this->_animMove = 192;
+			this->_moveSound.setBuffer(this->_moveData[192].sound);
 		} else
 			throw std::runtime_error("Extra anim not implemented: " + std::to_string(extraAnim->moveId));
 	} else
@@ -596,10 +620,18 @@ bool Gen1Renderer::_updateNormal()
 }
 bool Gen1Renderer::_updateTurnStart()
 {
-	return this->_animCounter++ < 60;
+	if (this->_animCounter++ < 60)
+		return true;
+	this->_currentTurn++;
+	return false;
 }
 bool Gen1Renderer::_updateGameStart()
 {
+	if (this->_skipping) {
+		this->_music.setPlayingOffset(this->_music.getLoopPoints().offset);
+		this->_music.play();
+		return false;
+	}
 	if (++this->_animCounter >= introAnimCounters[this->_animMove]) {
 		this->_animMove++;
 		this->_animCounter = 0;
@@ -607,11 +639,11 @@ bool Gen1Renderer::_updateGameStart()
 
 	switch (this->_animMove) {
 	case INTROSTEP_VS_PANEL:
-		if (this->_animCounter == 1)
+		if (this->_animCounter == 1 && !this->musicDisabled)
 			this->_music.play();
 		break;
 	case INTROSTEP_PLAYERS_STARE:
-		if (this->_animCounter == 0)
+		if (this->_animCounter == 0 && !this->soundDisabled)
 			this->_soundLand.play();
 		break;
 	case INTROSTEP_PLAYERS_STARE_BALLS:
@@ -626,7 +658,8 @@ bool Gen1Renderer::_updateGameStart()
 			auto &data = it == this->_data.end() ? this->_missingno : it->second;
 
 			this->_crySound.setBuffer(data.cry);
-			this->_crySound.play();
+			if (!this->soundDisabled)
+				this->_crySound.play();
 		}
 		break;
 	case INTROSTEP_PLAYER_BALL_ANIM:
@@ -637,7 +670,7 @@ bool Gen1Renderer::_updateGameStart()
 				this->_subCounter = 0;
 			}
 		}
-		if (this->_animCounter == 0)
+		if (this->_animCounter == 0 && !this->soundDisabled)
 			this->_ballPop.play();
 		break;
 	case INTROSTEP_PLAYER_MON_SPAWN:
@@ -646,7 +679,8 @@ bool Gen1Renderer::_updateGameStart()
 			auto &data = it == this->_data.end() ? this->_missingno : it->second;
 
 			this->_crySound.setBuffer(data.cry);
-			this->_crySound.play();
+			if (!this->soundDisabled)
+				this->_crySound.play();
 			this->_displayedText = this->_queuedText;
 		}
 		break;
@@ -667,7 +701,8 @@ bool Gen1Renderer::_updateHit()
 			this->_hitSound.setBuffer(this->_hitSounds[2]);
 		else
 			this->_hitSound.setBuffer(this->_hitSounds[1]);
-		this->_hitSound.play();
+		if (!this->soundDisabled)
+			this->_hitSound.play();
 	}
 
 	unsigned index = (!this->_isPlayer * 3) + (this->_veryEffective) + (!this->_notVeryEffective);
@@ -680,7 +715,8 @@ bool Gen1Renderer::_updateDeath()
 {
 	if (this->_animCounter == 40) {
 		this->_faintSound.setBuffer(this->_faint);
-		this->_faintSound.play();
+		if (!this->soundDisabled)
+			this->_faintSound.play();
 	}
 	if (this->_animCounter++ < 75)
 		return true;
@@ -699,14 +735,15 @@ bool Gen1Renderer::_updateSwitch()
 			this->_subCounter = 0;
 		}
 	}
-	if (this->_animCounter == 0)
+	if (this->_animCounter == 0 && !this->soundDisabled)
 		this->_ballPop.play();
 	if (this->_animCounter == 50) {
 		auto it = this->_data.find(this->_isPlayer ? this->state.p1.spriteId : this->state.p2.spriteId);
 		auto &data = it == this->_data.end() ? this->_missingno : it->second;
 
 		this->_crySound.setBuffer(data.cry);
-		this->_crySound.play();
+		if (!this->soundDisabled)
+			this->_crySound.play();
 		this->_displayedText = this->_queuedText;
 	}
 	return this->_animCounter++ < 120;
@@ -756,8 +793,6 @@ bool Gen1Renderer::_updateMove()
 {
 	auto it = this->_moveData.find(this->_animMove);
 	auto &state = this->_isPlayer ? this->state.p1 : this->state.p2;
-	if (it == this->_moveData.end())
-		it = this->_moveData.find(1);
 	auto &anim = this->_isPlayer ? it->second.animP1 : it->second.animP2;
 
 	if (this->_animCounter == 0) {
@@ -776,7 +811,7 @@ bool Gen1Renderer::_updateMove()
 		}
 	}
 
-	if (this->_animCounter == 0 && this->_subCounter == 0)
+	if (this->_animCounter == 0 && this->_subCounter == 0 && !this->soundDisabled)
 		this->_moveSound.play();
 	this->_subCounter++;
 	if (this->_subCounter == anim[this->_animCounter].duration) {
@@ -876,7 +911,7 @@ void Gen1Renderer::_displayMyStats(sf::RenderTarget &target, const Pokemon &pkmn
 	if (pkmn.burned) {
 		text.setString("BRN");
 		target.draw(text);
-	} else if (pkmn.poisoned) {
+	} else if (pkmn.poisoned || pkmn.toxicPoisoned) {
 		text.setString("PSN");
 		target.draw(text);
 	} else if (pkmn.frozen) {
@@ -953,7 +988,7 @@ void Gen1Renderer::_displayOpStats(sf::RenderTarget &target, const Pokemon &pkmn
 	if (pkmn.burned) {
 		text.setString("BRN");
 		target.draw(text);
-	} else if (pkmn.poisoned) {
+	} else if (pkmn.poisoned || pkmn.toxicPoisoned) {
 		text.setString("PSN");
 		target.draw(text);
 	} else if (pkmn.frozen) {
@@ -1836,8 +1871,6 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 	auto it = this->_moveData.find(this->_animMove);
 
 	target.clear(Gen1Renderer::_getDmgColor(0));
-	if (it == this->_moveData.end())
-		it = this->_moveData.find(1);
 
 	auto &anim = this->_isPlayer ? it->second.animP1 : it->second.animP2;
 	auto &state = this->_isPlayer ? this->state.p1 : this->state.p2;
@@ -1996,6 +2029,24 @@ sf::Color Gen1Renderer::_getDmgColor(unsigned int color)
 	default:
 		return sf::Color{0x00, 0x00, 0x00, 255};
 	}
+}
+
+void Gen1Renderer::previousTurn()
+{
+	throw std::runtime_error("not implemented");
+}
+
+void Gen1Renderer::nextTurn()
+{
+	auto old = this->soundDisabled;
+	auto oldT = this->_currentTurn;
+
+	this->soundDisabled = true;
+	this->_skipping = true;
+	while (oldT == this->_currentTurn)
+		this->update();
+	this->_skipping = false;
+	this->soundDisabled = old;
 }
 
 void Gen1Renderer::PalettedSprite::palettize(const std::array<unsigned int, 4> &palette, bool transparent, bool force)

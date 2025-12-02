@@ -9,6 +9,417 @@
 #include "Utils.hpp"
 #include "State.hpp"
 
+
+#define DEFAULT_MOVE(id) Move{id, "Move "#id, TYPE_INVALID, STATUS, 0, 0, 0, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, nullptr, nullptr, "This move is invalid and will cause desync when used"}
+#define ONE_RUN DEFAULT_HITS, ""
+#define TWO_TO_FIVE_HITS {2, 5}
+#define NO_LOADING false, ""
+#define NEED_LOADING(msg) true, msg
+
+#define NO_CALLBACK nullptr, ""
+#define NOT_IMPLEMENTED nullptr, "Not implemented"
+
+//Miss callbacks
+#define GLITCH_HYPER_BEAM [](unsigned, Pokemon &, Pokemon &target, bool, const BattleLogger &){\
+	target.setRecharging(false);\
+	return true;\
+}, "Removes the opponent recharge state and will make the target use it's move once more"
+
+#define SUICIDE_MISS [](unsigned id, Pokemon &owner, Pokemon &target, bool, const BattleLogger &logger){\
+	logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy()});\
+	owner.takeDamage(target, owner.getHealth(), true, false);\
+	return true;\
+}, "Kills user"
+
+#define TAKE_1DAMAGE [](unsigned id, Pokemon &owner, Pokemon &target, bool, const BattleLogger &logger){\
+	logger(PkmnCommon::TextEvent{owner.getName() + " kept going and crashed!"});\
+	logger(PkmnCommon::ExtraAnimEvent{.moveId = id, .index = 0, .player = !owner.isEnemy()});\
+	owner.takeDamage(target, 1, false, false);\
+	return true;\
+}, "Take 1 damage"
+
+#define CONFUSE_ON_LAST_DESC "Confuse the user on last run"
+#define CONFUSE_ON_LAST_MISS nullptr, CONFUSE_ON_LAST_DESC
+
+// Can hit callback
+#define ALWAYS_HIT [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &){ return true; }
+
+#define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_CHECK [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &){\
+	unsigned char multipliedLevel = owner.getLevel() * 1.5;\
+	unsigned char r;\
+	unsigned int index = 0;\
+	auto &rng = owner.getRandomGenerator();\
+	auto desyncPolicy = owner.getBattleState().desync;\
+\
+	/* In the base game, Psywave can deal: */\
+	/*  - [0, 1.5*lvl) damage when used on the player (by the opponent). */\
+	/*  - [1, 1.5*lvl) damage when used on the opponent (by the player). */\
+	/* In link battle, rolling a 0 in the loop will desync, because on one end the loop */\
+	/* will continue rolling RNG, and the other won't and make the move deal 0 damage. */\
+	/* Adjust what we do based on the desync policy: */\
+	/*  - DESYNC_IGNORE -> Just run the calculation as if done by the base game, and let ourselves be desynced if in link battle. */\
+	/*  - DESYNC_INVERT -> Invert the calculation logic, to match the link battle opponent's one and stay in sync (default). */\
+	/*  - DESYNC_THROW  -> Throw a DesyncException when 0 is rolled. */\
+	/*  - DESYNC_MISS   -> Make the move miss if a 0 is rolled. This is to mimic the Desync Cause in Pokémon Showdown. */\
+	if (desyncPolicy == DESYNC_THROW) {\
+		do {\
+			r = rng.peak(index++);\
+			if (r == 0) {\
+				rng.skip(index);\
+				throw DesyncException("Psywave rolled 0");\
+			}\
+		} while (r >= multipliedLevel);\
+	} else if (desyncPolicy == DESYNC_MISS) {\
+		do {\
+			r = rng.peak(index++);\
+			if (r == 0) {\
+				rng.skip(index);\
+				return false;\
+			}\
+		} while (r >= multipliedLevel);\
+	}\
+	return true;\
+}
+
+#define HEALTH_CHECK [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &){\
+        unsigned h = owner.getHealth();\
+        unsigned m = owner.getMaxHealth();\
+	return (h & 0xFF) - (m & 0xFF) - ((h >> 8) < (m >> 8)) != 0;\
+}
+
+#define USE_LAST_FOE_MOVE_CHECK [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &){\
+	return target.getLastUsedMove().getID() != 0;\
+}
+
+#define CREATE_SUBSTITUTE_CHECK [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){ \
+	if (owner.hasSubstitute()) {\
+		logger(PkmnCommon::TextEvent{owner.getName() + " has a SUBSTITUTE!"});\
+		return false;\
+	}\
+	unsigned hp = owner.getMaxHealth() / 4;\
+	if (owner.getHealth() < hp) {/* Apparently you can die if you have exactly the right HP!? */\
+		logger(PkmnCommon::TextEvent{"Too weak to make a SUBSTITUTE!"});\
+		return false;\
+	}\
+	return true;\
+}
+
+#define REFLECT_CHECK [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &){ \
+        return !owner.hasReflectUp();\
+}
+
+#define LIGHT_SCREEN_CHECK [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &){ \
+        return !owner.hasLightScreenUp();\
+}
+
+#define MIST_CHECK [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &){ \
+        return !owner.isMisted();\
+}
+
+#define DISABLE_CHECK [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &){\
+	if (target.getMoveDisabled() != 0)\
+		return false;\
+\
+	auto &moveSet = target.getMoveSet();\
+	auto &rng = target.getRandomGenerator();\
+	const Move *move = nullptr;\
+	unsigned index = 0;\
+	size_t slot;\
+\
+	do {\
+		do {\
+			slot = rng.peak(index++) & 3;\
+			if (slot < moveSet.size())\
+				move = &moveSet[slot];\
+		} while (move && move->getID() == None);\
+		if (std::ranges::all_of(moveSet.begin(), moveSet.end(), [](const Move &m){ return m.getPP() == 0; }))\
+			return false;\
+	} while (move->getPP() == 0);\
+	return true;\
+}
+
+
+//Hit callbacks
+#define OHKO_DESC "Kills in one hit if the user's speed is higher than the foe's"
+#define ONE_HIT_KO_HANDLE nullptr, OHKO_DESC
+
+#define QU_RECOIL_DESC "Take a quarter of the damage dealt as recoil"
+#define TAKE_QUARTER_MOVE_DAMAGE [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger){\
+	logger(PkmnCommon::ExtraAnimEvent{.moveId = id, .index = 0, .player = !owner.isEnemy()});\
+	if (damage <= 3)\
+		owner.takeDamage(target, 1, true, false);\
+	else\
+		owner.takeDamage(target, damage / 4, true, false);\
+	logger(PkmnCommon::TextEvent{owner.getName() + "'s hits with recoil!"});\
+	return true;\
+}, QU_RECOIL_DESC
+
+#define TRANSFORM_DESC "Transform the user into the foe, copying stats, types and sprite"
+#define TRANSFORM [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
+	owner.transform(target);\
+	logger(PkmnCommon::TextEvent{owner.getName() + " transformed into " + target.getSpeciesName() + "!"});\
+	return true;\
+}, TRANSFORM_DESC
+
+#define TAKE_HALF_MOVE_DAMAGE_DESC "Take half dealt damage as recoil"
+#define TAKE_HALF_MOVE_DAMAGE [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger){ \
+	logger(PkmnCommon::ExtraAnimEvent{.moveId = id, .index = 0, .player = !owner.isEnemy()});\
+	if (damage == 1)\
+		owner.takeDamage(target, 1, true, false);\
+	else\
+		owner.takeDamage(target, damage / 2, true, false);\
+	logger(PkmnCommon::TextEvent{owner.getName() + "'s hits with recoil!"});\
+	return true;\
+}, TAKE_HALF_MOVE_DAMAGE_DESC
+
+#define WRAP_TARGET_DESC "Set the foe in the wrapped state for all the move duration"
+#define WRAP_TARGET [](unsigned, Pokemon &, Pokemon &target, unsigned, bool last, const BattleLogger &){\
+	if (!last)\
+		target.setWrapped(true);\
+	return true;\
+}, WRAP_TARGET_DESC
+
+#define CONFUSE_ON_LAST nullptr, CONFUSE_ON_LAST_DESC
+
+#define DEAL_20_DAMAGE_DESC "Deal 20 damage"
+#define DEAL_20_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
+	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy()});\
+	target.takeDamage(owner, 20, false, false);\
+	target.getBattleState().lastDamage = 20;\
+	return true;\
+}, DEAL_20_DAMAGE_DESC
+
+#define DEAL_40_DAMAGE_DESC "Deal 40 damage"
+#define DEAL_40_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
+	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy()});\
+	target.takeDamage(owner, 40, false, false);\
+	target.getBattleState().lastDamage = 40;\
+	return true;\
+}, DEAL_40_DAMAGE_DESC
+
+#define DEAL_LVL_AS_DAMAGE_DESC "Deal the user's level as raw damage"
+#define DEAL_LVL_AS_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
+	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy()});\
+	target.takeDamage(owner, owner.getLevel(), false, false);\
+	target.getBattleState().lastDamage = owner.getLevel();\
+	return true;\
+}, DEAL_LVL_AS_DAMAGE_DESC
+
+#define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_DESC "Deal between 1 damage and 1.5 times the user's level as damage"
+#define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
+	unsigned char multipliedLevel = owner.getLevel() * 1.5;\
+\
+	if (!multipliedLevel)\
+		throw OpponentCrashedException(owner.getName() + " used PSY_WAVE, but (level * 1.5 % 256) is 0 causing both games to go in an infinite loop.");\
+	if (multipliedLevel == 1 && owner.isEnemy())\
+		throw OpponentCrashedException(owner.getName() + " used PSY_WAVE, but (level * 1.5 % 256) is 1 causing opponent games to go in an infinite loop.");\
+\
+	unsigned char r = 0;\
+	auto &rng = owner.getRandomGenerator();\
+	auto desyncPolicy = owner.getBattleState().desync;\
+\
+	/* In the base game, Psywave can deal: */\
+	/*  - [0, 1.5*lvl) damage when used on the player (by the opponent). */\
+	/*  - [1, 1.5*lvl) damage when used on the opponent (by the player). */\
+	/* In link battle, rolling a 0 in the loop will desync, because on one end the loop */\
+	/* will continue rolling RNG, and the other won't and make the move deal 0 damage. */\
+	/* Adjust what we do based on the desync policy: */\
+	/*  - DESYNC_IGNORE -> Just run the calculation as if done by the base game, and let ourselves be desynced if in link battle. */\
+	/*  - DESYNC_INVERT -> Invert the calculation logic, to match the link battle opponent's one and stay in sync (default). */\
+	/*  - DESYNC_THROW  -> Throw a DesyncException when 0 is rolled. */\
+	/*  - DESYNC_MISS   -> Make the move miss if a 0 is rolled. This is to mimic the Desync Cause in Pokémon Showdown. */\
+	if (desyncPolicy == DESYNC_INVERT || desyncPolicy == DESYNC_IGNORE) {\
+		bool allowZero = desyncPolicy == DESYNC_IGNORE ? !target.isEnemy() : target.isEnemy();\
+\
+		do {\
+                        r = rng();\
+                } while ((!allowZero && r == 0) || r >= multipliedLevel);\
+        } else if (desyncPolicy == DESYNC_THROW || desyncPolicy == DESYNC_MISS) {\
+		do {\
+                        r = rng();\
+                } while (r >= multipliedLevel);\
+        }\
+\
+	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy()});\
+	target.getBattleState().lastDamage = r;\
+	target.takeDamage(owner, r, false, false);\
+	return true;\
+}, DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_DESC
+
+#define ABSORB_HALF_DAMAGE_DESC "Absorb half dealt damage"
+#define ABSORB_HALF_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger){\
+	if (damage == 1)\
+		owner.heal(1);\
+	else\
+		owner.heal(damage / 2);\
+	logger(PkmnCommon::TextEvent{"Sucked health from " + target.getName() + "!"});\
+	return true;\
+}, ABSORB_HALF_DAMAGE_DESC
+
+#define HEAL_HALF_HEALTH_DESC "Heal half max HP"
+#define HEAL_HALF_HEALTH [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){\
+	owner.heal(owner.getMaxHealth() / 2);\
+	logger(PkmnCommon::TextEvent{owner.getName() + " regained health!"});\
+	return true;\
+}, HEAL_HALF_HEALTH_DESC
+
+#define HEAL_ALL_HEALTH_AND_SLEEP_DESC "Heal all lost HP and sleep for 2 turns"
+#define HEAL_ALL_HEALTH_AND_SLEEP [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){\
+	owner.heal(owner.getMaxHealth());\
+	owner.setNonVolatileStatus(STATUS_ASLEEP_FOR_2_TURN);\
+	logger(PkmnCommon::TextEvent{owner.getName() + " started sleeping!"});\
+	logger(PkmnCommon::TextEvent{owner.getName() + " regained health!"});\
+	return true;\
+}, HEAL_ALL_HEALTH_AND_SLEEP_DESC
+
+#define CANCEL_STATS_CHANGE_DESC "Resets all stats, status, crit chance multiplier and special effects"
+#define CANCEL_STATS_CHANGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
+	owner.resetStatsChanges();\
+	owner.setStatus(STATUS_NONE);\
+	owner.setGlobalCritRatio(1);\
+	owner.setReflectUp(false);\
+	owner.setLightScreenUp(false);\
+	if (target.hasStatus(STATUS_ASLEEP) || target.hasStatus(STATUS_FROZEN))\
+		target.getMyState().nextAction = NoAction;\
+	target.resetStatsChanges();\
+	target.setStatus(STATUS_NONE);\
+	target.setGlobalCritRatio(1);\
+	target.setReflectUp(false);\
+	target.setLightScreenUp(false);\
+	logger(PkmnCommon::TextEvent{"All STATUS changes are eliminated!"});\
+	return true;\
+}, CANCEL_STATS_CHANGE_DESC
+
+#define SET_USER_CRIT_RATIO_TO_1_QUARTER_DESC "User has 4 times less chance to crit"
+#define SET_USER_CRIT_RATIO_TO_1_QUARTER [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){\
+	logger(PkmnCommon::TextEvent{owner.getName() + "'s getting pumped!"});\
+	owner.setGlobalCritRatio(0.25);\
+	return true;\
+}, SET_USER_CRIT_RATIO_TO_1_QUARTER_DESC
+
+#define STORE_DAMAGES_DESC "Store damage"
+#define STORE_DAMAGES [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool last, const BattleLogger &logger){\
+	if (last) {\
+		logger(PkmnCommon::TextEvent{owner.getName() + " unleashes energy!"});\
+		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy()});\
+		target.takeDamage(owner, owner.getDamagesStored() * 2, false, false);\
+	}\
+	owner.storeDamages(!last);\
+	return true;\
+}, STORE_DAMAGES_DESC
+
+#define USE_RANDOM_MOVE_DESC "Use a randomly chosen move"
+#define USE_RANDOM_MOVE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){\
+	unsigned index;\
+\
+	do {\
+		index = owner.getRandomGenerator()();\
+	} while (!index || index >= 0xA5);\
+	owner.useMove(availableMoves[index], target);\
+	return true;\
+}, USE_RANDOM_MOVE_DESC
+
+#define USE_LAST_FOE_MOVE_DESC "Use last foe's used move"
+#define USE_LAST_FOE_MOVE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){\
+	owner.useMove(availableMoves[target.getLastUsedMove().getID()], target);\
+	return true;\
+}, USE_LAST_FOE_MOVE_DESC
+
+#define SUICIDE_DESC "Kill user"
+#define SUICIDE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){\
+	owner.takeDamage(target, owner.getHealth(), true, false);\
+	return true;\
+}, SUICIDE_DESC
+
+#define CONVERSION_DESC "Copy foe's types"
+#define CONVERSION [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
+	logger(PkmnCommon::TextEvent{"Converted type to " + target.getName() + "'s!"});\
+	owner.setTypes(target.getTypes());\
+	return true;\
+}, CONVERSION_DESC
+
+#define DEAL_HALF_HP_DAMAGE_DESC "Deal half foe's HP"
+#define DEAL_HALF_HP_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
+	target.getBattleState().lastDamage = target.getHealth() / 2;\
+	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy()});\
+	target.takeDamage(owner, target.getHealth() / 2, false, false); /* TODO: Check how it interacts with SUBSTITUTE */\
+	return true;\
+}, DEAL_HALF_HP_DAMAGE_DESC
+
+#define DO_NOTHING_DESC "No effect"
+#define DO_NOTHING [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &logger){\
+	logger(PkmnCommon::TextEvent{"No effect!"});\
+	return true;\
+}, DO_NOTHING_DESC
+
+#define CREATE_SUBSTITUTE_DESC "Creates a substitute"
+#define CREATE_SUBSTITUTE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){ \
+	unsigned hp = owner.getMaxHealth() / 4;\
+	owner.setSubstituteHealth(hp);\
+	owner.takeDamage(target, hp, true, false);\
+	logger(PkmnCommon::TextEvent{"It created a SUBSTITUTE!"});\
+	return true;\
+}, CREATE_SUBSTITUTE_DESC
+
+#define REFLECT_DESC "Doubles active pokemon physical defense"
+#define REFLECT [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){ \
+	logger(PkmnCommon::TextEvent{owner.getName() + " gained armor!"});\
+	owner.setReflectUp(true);\
+	return true;\
+}, REFLECT_DESC
+
+#define LIGHT_SCREEN_DESC "Doubles active pokemon special defense"
+#define LIGHT_SCREEN [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){ \
+	logger(PkmnCommon::TextEvent{owner.getName() + "'s protected against special attacks!"});\
+	owner.setLightScreenUp(true);\
+	return true;\
+}, LIGHT_SCREEN_DESC
+
+#define MIST_DESC "Make stat reducing status moves miss"
+#define MIST [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){ \
+	logger(PkmnCommon::TextEvent{owner.getName() + "'s shrouded in mist!"});\
+	owner.setMisted(true);\
+	return true;\
+}, MIST_DESC
+
+#define COUNTER_DESC "Deal double the last damage dealt"
+#define COUNTER nullptr, COUNTER_DESC
+
+#define PAY_DAY_DESC "Gain extra money at the end of the match"
+#define PAY_DAY [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &logger){ \
+	logger(PkmnCommon::TextEvent{"Coins scattered everywhere!"});\
+	return true;\
+}, PAY_DAY_DESC
+
+#define COPY_RANDOM_MOVE_DESC "Copy a random move from opponent's"
+#define COPY_RANDOM_MOVE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){ \
+	auto &moves = target.getMoveSet();\
+	auto &rng = target.getRandomGenerator();\
+	size_t id = rng() & 3;\
+\
+	while (id >= moves.size() || moves[id].getID() == 0) id = rng() & 3;\
+	owner.learnMove(moves[id]);\
+	return true;\
+}, COPY_RANDOM_MOVE_DESC
+
+#define DISABLE_DESC "Disable a random move from foe"
+#define DISABLE [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
+	auto &moveSet = target.getMoveSet();\
+	auto &rng = target.getRandomGenerator();\
+	const Move *move = nullptr;\
+	size_t slot;\
+\
+	do {\
+		slot = rng() & 3;\
+		if (slot < moveSet.size())\
+			move = &moveSet[slot];\
+	} while ((move && move->getID() == None) || move->getPP() == 0);\
+	logger(PkmnCommon::TextEvent{target.getName() + "'s " + Utils::toUpper(move->getName()) + " was disabled!"});\
+	target.setMoveDisabled(slot);\
+	return true;\
+}, DISABLE_DESC
+
+
 namespace PokemonGen1
 {
 	static std::map<StatusChange, std::string> messages = {
