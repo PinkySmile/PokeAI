@@ -12,10 +12,40 @@ unsigned IRenderer::getTurn()
 
 void IRenderer::goToTurn(unsigned int turn)
 {
-	while (this->_currentTurn < turn)
+	while (this->_currentTurn < turn && !this->_queue.empty())
 		this->nextTurn();
 	while (this->_currentTurn > turn)
 		this->previousTurn();
+}
+
+void IRenderer::previousTurn()
+{
+	auto &snapshot = this->_snapshots.back();
+
+	this->_currentTurn = snapshot.turn;
+	this->_queue = snapshot.queue;
+	this->state = snapshot.state;
+	this->_snapshots.pop_back();
+}
+
+void IRenderer::nextTurn()
+{
+	auto old = this->soundDisabled;
+	auto oldT = this->_currentTurn;
+
+	this->soundDisabled = true;
+	this->_skipping = true;
+	while (oldT == this->_currentTurn && !this->_queue.empty())
+		this->update();
+	this->_skipping = false;
+	this->soundDisabled = old;
+}
+
+void IRenderer::consumeEvent(const PkmnCommon::Event &event)
+{
+	this->_queue.push_back(event);
+	for (auto &state : this->_snapshots)
+		state.queue.push_back(event);
 }
 
 IRenderer::GameState fromGen1(const PokemonGen1::BattleState &state)

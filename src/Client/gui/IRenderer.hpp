@@ -8,12 +8,14 @@
 
 #include <variant>
 #include <string>
+#include <vector>
+#include <deque>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
 #include <SFML/Window/Event.hpp>
-#include "GameEngine/Event.hpp"
 #include "GameEngine/Gen1/State.hpp"
+#include "GameEngine/Event.hpp"
 
 class IRenderer {
 public:
@@ -70,6 +72,7 @@ public:
 		std::array<Pokemon, 6> team;
 		unsigned active;
 		unsigned spriteId;
+		bool acidArmor;
 		bool hidden;
 		bool substitute;
 	};
@@ -89,17 +92,26 @@ public:
 	virtual void render(sf::RenderTarget &) = 0;
 	virtual sf::Vector2u getSize() const = 0;
 	virtual void reset() = 0;
-	virtual void consumeEvent(const PkmnCommon::Event &event) = 0;
+	virtual void consumeEvent(const PkmnCommon::Event &event);
 	virtual void consumeEvent(const sf::Event &event) = 0;
 	virtual std::optional<BattleAction> selectAction(bool attackDisabled) = 0;
 	virtual const sf::Texture &getPkmnFace(unsigned pkmnId) = 0;
 	virtual const sf::SoundBuffer &getPkmnCry(unsigned int pkmnId) = 0;
-	virtual void previousTurn() = 0;
-	virtual void nextTurn() = 0;
+	virtual void previousTurn();
+	virtual void nextTurn();
 	void goToTurn(unsigned turn);
 	unsigned getTurn();
 
 protected:
+	struct SavedState {
+		GameState state;
+		std::deque<PkmnCommon::Event> queue;
+		unsigned turn;
+	};
+
+	bool _skipping = false;
+	std::vector<SavedState> _snapshots;
+	std::deque<PkmnCommon::Event> _queue;
 	unsigned _currentTurn = 0;
 };
 

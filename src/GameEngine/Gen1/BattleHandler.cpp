@@ -126,15 +126,15 @@ namespace PokemonGen1
 
 		this->_state.battleLogger(PkmnCommon::TurnStartEvent{});
 		if (!p1TeamOK) {
+			this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = false, .p2Won = p2TeamOK, .p1Ran = false, .p2Ran = false});
 			this->logBattle(this->_state.me.name + " is out of usable pokemon");
 			this->logBattle(this->_state.me.name + " blacked out");
-			this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = false, .p2Won = p2TeamOK});
 			this->_finished = true;
 			return;
 		}
 		if (!p2TeamOK) {
+			this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = true, .p2Won = false, .p1Ran = false, .p2Ran = false});
 			this->logBattle(this->_state.me.name + " defeated " + this->_state.op.name);
-			this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = true, .p2Won = false});
 			this->_finished = true;
 			return;
 		}
@@ -147,8 +147,8 @@ namespace PokemonGen1
 		if (p1Fainted || !p2Fainted)
 			switch (this->_state.me.nextAction) {
 			case Run:
+				this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = false, .p2Won = this->_state.op.nextAction != Run, .p1Ran = true, .p2Ran = this->_state.op.nextAction != Run});
 				this->logBattle("Got away safely");
-				this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = false, .p2Won = this->_state.op.nextAction != Run});
 				this->_finished = true;
 				return;
 			case Switch1:
@@ -188,8 +188,8 @@ namespace PokemonGen1
 		if (p2Fainted || !p1Fainted)
 			switch (this->_state.op.nextAction) {
 			case Run:
+				this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = true, .p2Won = false, .p1Ran = false, .p2Ran = true});
 				this->logBattle(this->_state.op.name + " ran");
-				this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = true, .p2Won = false});
 				this->_finished = true;
 				return;
 			case Switch1:
@@ -236,15 +236,15 @@ namespace PokemonGen1
 		p1TeamOK = std::any_of(this->_state.me.team.begin(), this->_state.me.team.end(), [](const Pokemon &pkmn){ return pkmn.getHealth() != 0; });
 		p2TeamOK = std::any_of(this->_state.op.team.begin(), this->_state.op.team.end(), [](const Pokemon &pkmn){ return pkmn.getHealth() != 0; });
 		if (!p1TeamOK) {
+			this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = false, .p2Won = p2TeamOK, .p1Ran = false, .p2Ran = false});
 			this->logBattle(this->_state.me.name + " is out of usable pokemon");
 			this->logBattle(this->_state.me.name + " blacked out");
-			this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = false, .p2Won = p2TeamOK});
 			this->_finished = true;
 			return;
 		}
 		if (!p2TeamOK){
+			this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = true, .p2Won = false, .p1Ran = false, .p2Ran = false});
 			this->logBattle(this->_state.me.name + " defeated " + this->_state.op.name);
-			this->_state.battleLogger(PkmnCommon::GameEndEvent{.p1Won = true, .p2Won = false});
 			this->_finished = true;
 			return;
 		}

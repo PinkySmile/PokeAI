@@ -288,6 +288,8 @@ namespace PkmnCommon
 	struct GameEndEvent {
 		bool p1Won;
 		bool p2Won;
+		bool p1Ran;
+		bool p2Ran;
 	};
 
 	struct TurnStartEvent {};

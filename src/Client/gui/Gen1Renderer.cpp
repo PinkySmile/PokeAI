@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <variant>
 #include "Gen1Renderer.hpp"
 
 #define _isPlayer _gpCounter[0]
@@ -20,6 +21,7 @@
 #define _notVeryEffective _gpCounter[1]
 #define _veryEffective _gpCounter[3]
 #define _healthTarget _gpCounter[1]
+#define _gameResult _gpCounter[6]
 #define _crySound _gpSound
 #define _moveSound _gpSound
 #define _hitSound _gpSound
@@ -210,11 +212,17 @@ void (Gen1Renderer::*Gen1Renderer::_renderers[])(sf::RenderTarget &) = {
 void Gen1Renderer::update()
 {
 	while (!(this->*Gen1Renderer::_updates[this->_currentEvent])()) {
+		if (this->_currentEvent == EVNTTYPE_GAME_END) {
+			this->_queue.clear();
+			break;
+		}
 		this->_currentEvent = EVNTTYPE_NONE;
 		if (this->_queue.empty())
 			break;
 		this->_handleEvent(this->_queue.front());
 		this->_queue.pop_front();
+		if (this->_skipping)
+			break;
 	}
 }
 
@@ -233,11 +241,6 @@ void Gen1Renderer::render(sf::RenderTarget &target)
 	target.draw(text);
 }
 
-void Gen1Renderer::consumeEvent(const Event &event)
-{
-	this->_queue.push_back(event);
-}
-
 std::optional<IRenderer::BattleAction> Gen1Renderer::selectAction(bool attackDisabled)
 {
 	return {};
@@ -245,6 +248,18 @@ std::optional<IRenderer::BattleAction> Gen1Renderer::selectAction(bool attackDis
 
 void Gen1Renderer::reset()
 {
+	this->_currentTurn = 0;
+	this->state.p1.spriteId = this->state.p1.team[this->state.p1.active].id;
+	this->state.p2.spriteId = this->state.p2.team[this->state.p2.active].id;
+	this->state.p1.hidden = false;
+	this->state.p2.hidden = false;
+	this->state.p1.acidArmor = false;
+	this->state.p2.acidArmor = false;
+	this->_snapshots.push_back({
+		.state = this->state,
+		.queue = this->_queue,
+		.turn = 0
+	});
 }
 
 const sf::Texture &Gen1Renderer::getPkmnFace(unsigned int pkmnId)
@@ -301,17 +316,36 @@ static std::string splitText(std::string str)
 	return result;
 }
 
+enum OutroStep {
+	OUTROSTEP_BLACK_OUT,
+	OUTROSTEP_WIN,
+	OUTROSTEP_RUN,
+	OUTROSTEP_VS_PANEL,
+	OUTROSTEP_VS_PANEL_RESULT,
+};
+
 void Gen1Renderer::_handleEvent(const Event &event)
 {
-	if (std::get_if<TurnStartEvent>(&event)) {
+	if (std::holds_alternative<TurnStartEvent>(event)) {
 		this->_currentEvent = EVNTTYPE_START_TURN;
 		this->_animCounter = 0;
-	} else if (std::get_if<GameStartEvent>(&event)) {
+	} else if (std::holds_alternative<GameStartEvent>(event)) {
 		this->_currentEvent = EVNTTYPE_GAME_START;
 		this->_animCounter = 0;
 		this->_animMove = 0;
 		this->_subCounter = 0;
 		this->_currentAnim = 0;
+	} else if (auto end = std::get_if<GameEndEvent>(&event)) {
+		this->_currentEvent = EVNTTYPE_GAME_END;
+		this->_animCounter = this->_queuedText.size();
+		this->_gameResult = end->p1Won | (end->p2Won << 1);
+		this->_displayedText.clear();
+		if (end->p1Ran)
+			this->_currentAnim = OUTROSTEP_RUN;
+		else if (!end->p1Won)
+			this->_currentAnim = OUTROSTEP_BLACK_OUT;
+		else
+			this->_currentAnim = OUTROSTEP_WIN;
 	} else if (auto move = std::get_if<MoveEvent>(&event)) {
 		this->_currentEvent = EVNTTYPE_MOVE;
 		if (move->moveId > 165)
@@ -347,6 +381,9 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		this->_isPlayer = withdraw->player;
 		this->_animCounter = 0;
 	} else if (auto death = std::get_if<DeathEvent>(&event)) {
+		auto &state = death->player ? this->state.p1 : this->state.p2;
+
+		state.team[state.active].ko = true;
 		this->_currentEvent = EVNTTYPE_DEATH;
 		this->_isPlayer = death->player;
 		this->_animCounter = 0;
@@ -357,6 +394,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 			this->state.p1.active = switch_->newPkmnId;
 			this->state.p1.spriteId = this->state.p1.team[switch_->newPkmnId].id;
 			this->state.p1.hidden = false;
+			this->state.p1.acidArmor = false;
 			this->_currentAnim = 0;
 			this->_subCounter = 0;
 			this->_animCounter = 0;
@@ -364,6 +402,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 			this->state.p2.active = switch_->newPkmnId;
 			this->state.p2.spriteId = this->state.p2.team[switch_->newPkmnId].id;
 			this->state.p2.hidden = false;
+			this->state.p2.acidArmor = false;
 			this->_currentAnim = this->_ballPopAnim.size();
 			this->_animCounter = 40;
 		}
@@ -488,18 +527,19 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		throw std::runtime_error("Not implemented: " + std::to_string(event.index()));
 }
 
-void Gen1Renderer::_peakTextEvent()
+bool Gen1Renderer::_peakTextEvent()
 {
 	if (this->_queue.empty())
-		return;
+		return false;
 
 	auto text = std::get_if<TextEvent>(&this->_queue.front());
 
 	if (!text)
-		return;
+		return false;
 	this->_displayedText.clear();
 	this->_queuedText = splitText(text->message);
 	this->_queue.pop_front();
+	return true;
 }
 
 enum IntroStep {
@@ -620,16 +660,23 @@ bool Gen1Renderer::_updateNormal()
 }
 bool Gen1Renderer::_updateTurnStart()
 {
+	if (this->_animCounter == 0)
+		this->_currentTurn++;
 	if (this->_animCounter++ < 60)
 		return true;
-	this->_currentTurn++;
+	this->_snapshots.push_back({
+		.state = this->state,
+		.queue = this->_queue,
+		.turn = this->_currentTurn
+	});
 	return false;
 }
 bool Gen1Renderer::_updateGameStart()
 {
 	if (this->_skipping) {
+		if (this->_music.getStatus() != sf::Music::Status::Playing)
+			this->_music.play();
 		this->_music.setPlayingOffset(this->_music.getLoopPoints().offset);
-		this->_music.play();
 		return false;
 	}
 	if (++this->_animCounter >= introAnimCounters[this->_animMove]) {
@@ -690,6 +737,28 @@ bool Gen1Renderer::_updateGameStart()
 }
 bool Gen1Renderer::_updateGameEnd()
 {
+	switch (this->_currentAnim) {
+	case OUTROSTEP_RUN:
+	case OUTROSTEP_BLACK_OUT:
+	case OUTROSTEP_WIN:
+		if (this->_animCounter++ >= 90) {
+			bool has = this->_peakTextEvent();
+
+			this->_animCounter = 0;
+			if (has)
+				return true;
+			this->_currentAnim = OUTROSTEP_VS_PANEL;
+		}
+		return true;
+	case OUTROSTEP_VS_PANEL:
+		if (this->_animCounter++ >= 120) {
+			this->_currentAnim = OUTROSTEP_VS_PANEL_RESULT;
+			this->_animCounter = 0;
+		}
+		return true;
+	case OUTROSTEP_VS_PANEL_RESULT:
+		return this->_animCounter++ < 240;
+	}
 	return false;
 }
 bool Gen1Renderer::_updateHit()
@@ -819,23 +888,26 @@ bool Gen1Renderer::_updateMove()
 
 		this->_subCounter = 0;
 		this->_animCounter++;
-		if (this->_animMove == 164) { // Substitute
+		if (this->_animMove == Substitute) {
 			if (this->_animCounter == anim.size() - 2)
 				state.substitute = true;
-		} else if (this->_animMove == 107) { // Minimize
+		} else if (this->_animMove == Minimize) {
 			if (this->_animCounter == anim.size() - 3)
 				state.spriteId = 257;
-		} else if (this->_animMove == 144) { // Transform
+		} else if (this->_animMove == Transform) {
 			if (this->_animCounter == anim.size() - 2)
 				state.spriteId = ostate.team[ostate.active].id;
+		} else if (this->_animMove == Acid_Armor) {
+			if (this->_animCounter == anim.size() - 2)
+				state.acidArmor = true;
 		}
 	}
 	if (anim.size() == this->_animCounter) {
 		if (this->_isPlayer)
-			this->state.p1.hidden = !anim.back().p1Off.has_value();
+			this->state.p1.hidden = !anim.back().p1Off.has_value() || this->state.p1.acidArmor;
 		else
-			this->state.p2.hidden = !anim.back().p2Off.has_value();
-		if (state.substitute && this->_animMove != 164) {
+			this->state.p2.hidden = !anim.back().p2Off.has_value() || this->state.p2.acidArmor;
+		if (state.substitute && this->_animMove != Substitute) {
 			this->_subSpawnTimer = 0;
 			this->_subSpawnUnspawn = 1;
 			return true;
@@ -1621,6 +1693,91 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 }
 void Gen1Renderer::_renderGameEnd(sf::RenderTarget &target)
 {
+	sf::Text text{this->_font};
+	sf::Sprite sprite{this->_boxes[1].texture};
+	std::array<unsigned, 4> palette{0, 1, 2, 3};
+
+	text.setCharacterSize(8);
+	text.setFillColor(Gen1Renderer::_getDmgColor(3));
+	text.setLineSpacing(2);
+
+	target.clear(Gen1Renderer::_getDmgColor(0));
+
+	switch (this->_currentAnim) {
+	case OUTROSTEP_BLACK_OUT:
+		palette[1] = 3;
+		palette[2] = 3;
+		__attribute__((fallthrough));
+	case OUTROSTEP_RUN:
+	case OUTROSTEP_WIN:
+		this->_renderScene(target, palette);
+		this->_displayMyFace(target, this->state.p1.spriteId, palette);
+		this->_displayOpFace(target, this->state.p2.spriteId, palette);
+		text.setString(this->_queuedText.substr(0, this->_animCounter));
+		text.setPosition({8, 112});
+		target.draw(text);
+		break;
+	case OUTROSTEP_VS_PANEL:
+	case OUTROSTEP_VS_PANEL_RESULT:
+		sprite.setTexture(this->_boxes[1].texture, true);
+		sprite.setPosition({24, 36});
+		target.draw(sprite);
+
+		if (this->_currentAnim == OUTROSTEP_VS_PANEL_RESULT) {
+			sf::RectangleShape shape;
+
+			shape.setFillColor(Gen1Renderer::_getDmgColor(0));
+			shape.setOutlineThickness(0);
+			shape.setPosition({72, 68});
+			shape.setSize({32, 8});
+			target.draw(shape);
+
+			if (this->_gameResult == 0)
+				text.setString("DRAW");
+			else if (this->_gameResult == 1)
+				text.setString(" WIN");
+			else if (this->_gameResult == 2)
+				text.setString("LOSE");
+			text.setPosition({64, 68});
+			target.draw(text);
+		}
+
+		text.setString(this->state.p1.name);
+		text.setPosition({36, 48});
+		target.draw(text);
+		for (unsigned i = 0; i < this->state.p1.team.size(); i++) {
+			auto &pkmn = this->state.p1.team[i];
+
+			if (pkmn.id == 0)
+				sprite.setTexture(this->_balls[1], true);
+			else if (pkmn.ko)
+				sprite.setTexture(this->_balls[2], true);
+			else if (pkmn.asleep || pkmn.frozen || pkmn.burned || pkmn.poisoned || pkmn.toxicPoisoned || pkmn.paralyzed)
+				sprite.setTexture(this->_balls[3], true);
+			else
+				sprite.setTexture(this->_balls[0], true);
+			sprite.setPosition({72 + i * 8.f, 58});
+			target.draw(sprite);
+		}
+
+		text.setString(this->state.p2.name);
+		text.setPosition({36, 80});
+		target.draw(text);
+		for (unsigned i = 0; i < state.p2.team.size(); i++) {
+			auto &pkmn = this->state.p2.team[i];
+
+			if (pkmn.id == 0)
+				sprite.setTexture(this->_balls[1], true);
+			else if (pkmn.ko)
+				sprite.setTexture(this->_balls[2], true);
+			else if (pkmn.asleep || pkmn.frozen || pkmn.burned || pkmn.poisoned || pkmn.toxicPoisoned || pkmn.paralyzed)
+				sprite.setTexture(this->_balls[3], true);
+			else
+				sprite.setTexture(this->_balls[0], true);
+			sprite.setPosition({72 + i * 8.f, 88});
+			target.draw(sprite);
+		}
+	}
 }
 void Gen1Renderer::_renderHit(sf::RenderTarget &target)
 {
@@ -2017,6 +2174,12 @@ void Gen1Renderer::consumeEvent(const sf::Event &event)
 {
 }
 
+void Gen1Renderer::previousTurn()
+{
+	IRenderer::previousTurn();
+	this->_currentEvent = EVNTTYPE_NONE;
+}
+
 sf::Color Gen1Renderer::_getDmgColor(unsigned int color)
 {
 	switch (color) {
@@ -2029,24 +2192,6 @@ sf::Color Gen1Renderer::_getDmgColor(unsigned int color)
 	default:
 		return sf::Color{0x00, 0x00, 0x00, 255};
 	}
-}
-
-void Gen1Renderer::previousTurn()
-{
-	throw std::runtime_error("not implemented");
-}
-
-void Gen1Renderer::nextTurn()
-{
-	auto old = this->soundDisabled;
-	auto oldT = this->_currentTurn;
-
-	this->soundDisabled = true;
-	this->_skipping = true;
-	while (oldT == this->_currentTurn)
-		this->update();
-	this->_skipping = false;
-	this->soundDisabled = old;
 }
 
 void Gen1Renderer::PalettedSprite::palettize(const std::array<unsigned int, 4> &palette, bool transparent, bool force)

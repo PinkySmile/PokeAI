@@ -20,13 +20,12 @@ public:
 	void render(sf::RenderTarget &) override;
 	sf::Vector2u getSize() const override;
 	void reset() override;
-	void consumeEvent(const PkmnCommon::Event &event) override;
+	using IRenderer::consumeEvent;
 	void consumeEvent(const sf::Event &event) override;
 	std::optional<BattleAction> selectAction(bool attackDisabled) override;
 	const sf::Texture &getPkmnFace(unsigned int pkmnId) override;
 	const sf::SoundBuffer &getPkmnCry(unsigned int pkmnId) override;
 	void previousTurn() override;
-	void nextTurn() override;
 
 private:
 	struct PalettedSprite {
@@ -132,7 +131,7 @@ private:
 	void _renderText(sf::RenderTarget &);
 
 	void _handleEvent(const PkmnCommon::Event &event);
-	void _peakTextEvent();
+	bool _peakTextEvent();
 
 	static sf::Color _getDmgColor(unsigned color);
 
@@ -146,7 +145,6 @@ private:
 	EventType _currentEvent = EVNTTYPE_NONE;
 
 	bool _hasColor = false;
-	bool _skipping = false;
 	unsigned _gpCounter[7];
 	std::string _queuedText;
 	std::string _displayedText;
@@ -170,7 +168,6 @@ private:
 	sf::Sound _soundLand{this->_trainerLand};
 	sf::Sound _ballPop{this->_ballPopSound};
 	std::pair<sf::Texture, sf::Texture> _activeMons;
-	std::deque<PkmnCommon::Event> _queue;
 	std::deque<sf::Event> _sfmlQueue;
 	sf::Font _font;
 	PokemonData _missingno;
