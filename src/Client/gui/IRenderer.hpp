@@ -73,6 +73,7 @@ public:
 		unsigned active;
 		unsigned spriteId;
 		bool acidArmor;
+		bool exploded;
 		bool hidden;
 		bool substitute;
 	};

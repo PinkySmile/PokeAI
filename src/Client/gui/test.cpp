@@ -129,7 +129,6 @@ int main(int argc, char **argv)
 	handler.start();
 	renderer.state = fromGen1(state);
 
-	puts("START");
 	try {
 		while (!handler.isFinished()) {
 			if (replay.empty()) {
@@ -146,7 +145,6 @@ int main(int argc, char **argv)
 	sf::RenderWindow win{sf::VideoMode{{size.x * 4, size.y * 4}}, state.me.name + " vs " + state.op.name};
 	sf::View view;
 
-	puts("CONVERT");
 	view.setCenter({size.x / 2.f, size.y / 2.f});
 	view.setSize(sf::Vector2f(size));
 	win.setFramerateLimit(60);
@@ -157,7 +155,6 @@ int main(int argc, char **argv)
 	bool paused = false;
 	bool ok = false;
 
-	puts("START renderer");
 	try {
 		while (win.isOpen()) {
 			while (auto event = win.pollEvent()) {
@@ -172,6 +169,10 @@ int main(int argc, char **argv)
 						renderer.nextTurn();
 					if (key->code == sf::Keyboard::Key::Left)
 						renderer.previousTurn();
+					if (key->code == sf::Keyboard::Key::Home)
+						renderer.goToTurn(0);
+					if (key->code == sf::Keyboard::Key::End)
+						renderer.goToTurn(-1);
 				}
 				renderer.consumeEvent(*event);
 			}
@@ -181,6 +182,8 @@ int main(int argc, char **argv)
 			renderer.render(win);
 			win.display();
 		}
+		if (replay.empty())
+			handler.saveReplay("result.replay");
 	} catch (...) {
 		handler.saveReplay("error.replay");
 		throw;

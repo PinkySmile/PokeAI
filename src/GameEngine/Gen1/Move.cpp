@@ -26,7 +26,8 @@
 }, "Removes the opponent recharge state and will make the target use it's move once more"
 
 #define SUICIDE_MISS [](unsigned id, Pokemon &owner, Pokemon &target, bool, const BattleLogger &logger){\
-	logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy()});\
+	logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy(), .hideSubstitute = true});\
+	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy()});\
 	owner.takeDamage(target, owner.getHealth(), true, false);\
 	return true;\
 }, "Kills user"
@@ -264,11 +265,18 @@
 }, HEAL_HALF_HEALTH_DESC
 
 #define HEAL_ALL_HEALTH_AND_SLEEP_DESC "Heal all lost HP and sleep for 2 turns"
-#define HEAL_ALL_HEALTH_AND_SLEEP [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){\
-	owner.heal(owner.getMaxHealth());\
+#define HEAL_ALL_HEALTH_AND_SLEEP [](unsigned id, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){\
 	owner.setNonVolatileStatus(STATUS_ASLEEP_FOR_2_TURN);\
 	logger(PkmnCommon::TextEvent{owner.getName() + " started sleeping!"});\
+	logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy(), .hideSubstitute = false});\
+	owner.heal(owner.getMaxHealth());\
 	logger(PkmnCommon::TextEvent{owner.getName() + " regained health!"});\
+	logger(PkmnCommon::AnimEvent{\
+		.animId = PkmnCommon::SYSANIM_NOW_ASLEEP,\
+		.isGuaranteed = true,\
+		.player = !owner.isEnemy(),\
+		.turn = !owner.isEnemy()\
+	});\
 	return true;\
 }, HEAL_ALL_HEALTH_AND_SLEEP_DESC
 
@@ -298,9 +306,10 @@
 }, SET_USER_CRIT_RATIO_TO_1_QUARTER_DESC
 
 #define STORE_DAMAGES_DESC "Store damage"
-#define STORE_DAMAGES [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool last, const BattleLogger &logger){\
+#define STORE_DAMAGES [](unsigned id, Pokemon &owner, Pokemon &target, unsigned, bool last, const BattleLogger &logger){\
 	if (last) {\
 		logger(PkmnCommon::TextEvent{owner.getName() + " unleashes energy!"});\
+		logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy(), .hideSubstitute = true});\
 		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy()});\
 		target.takeDamage(owner, owner.getDamagesStored() * 2, false, false);\
 	}\
@@ -759,6 +768,8 @@ namespace PokemonGen1
 
 		if (!this->_nbHit) {
 			first = true;
+			if (this->getID() == Thrash || this->getID() == Petal_Dance)
+				logger(PkmnCommon::ExtraAnimEvent{.moveId = this->getID(), .index = 0, .player = !owner.isEnemy()});
 			if (this->_nbRuns.second == this->_nbRuns.first)
 				this->_nbHit = this->_nbRuns.first;
 			else if (this->_nbRuns.second - 1 == this->_nbRuns.first)
@@ -824,7 +835,7 @@ namespace PokemonGen1
 		}
 
 		if (this->isFinished() && (this->getID() == Petal_Dance || this->getID() == Thrash))
-			owner.addStatus(STATUS_CONFUSED);
+			owner.addStatusSilent(STATUS_CONFUSED);
 		if (this->_power == 255) {
 			rng(); // Crit-check, but result doesn't matter
 			if (owner.getSpeed() < target.getSpeed()) {
@@ -909,7 +920,21 @@ namespace PokemonGen1
 		}
 
 	skipAccuracyAndDamageCheck:
-		logger(PkmnCommon::MoveEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
+		if (this->getID() == Rest || this->getID() == Mirror_Move);
+		else if (this->getID() == Thrash || this->getID() == Petal_Dance) {
+			if (first)
+				logger(PkmnCommon::MoveEvent{.moveId = this->getID(), .player = !owner.isEnemy(), .hideSubstitute = true});
+			else
+				logger(PkmnCommon::MoveEvent{.moveId = Thrash, .player = !owner.isEnemy(), .hideSubstitute = true});
+		} else if (this->getID() == Explosion || this->getID() == Self_Destruct) {
+			logger(PkmnCommon::MoveEvent{.moveId = this->getID(), .player = !owner.isEnemy(), .hideSubstitute = true});
+			logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy()});
+			logger(PkmnCommon::ExtraAnimEvent{.moveId = this->getID(), .index = 0, .player = !owner.isEnemy()});
+		} else if (this->getID() == Bide) {
+			if (first)
+				logger(PkmnCommon::ExtraAnimEvent{.moveId = this->getID(), .index = 0, .player = !owner.isEnemy()});
+		} else
+			logger(PkmnCommon::MoveEvent{.moveId = this->getID(), .player = !owner.isEnemy(), .hideSubstitute = this->_category != STATUS});
 		if (this->_power) {
 			logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !target.isEnemy()});
 			if (this->_power == 255)
@@ -946,7 +971,7 @@ namespace PokemonGen1
 
 		if (this->_power && hits > 1) {
 			for (size_t i = 1; i < hits; i++) {
-				logger(PkmnCommon::MoveEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
+				logger(PkmnCommon::MoveEvent{.moveId = this->getID(), .player = !owner.isEnemy(), .hideSubstitute = true});
 				logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !target.isEnemy()});
 				target.takeDamage(owner, owner.getBattleState().lastDamage, false, false);
 				if (damage.isNotVeryEffective)
@@ -967,14 +992,21 @@ namespace PokemonGen1
 		bool addedStatus = false;
 
 		if (this->_statusChange.status == STATUS_CONFUSED && this->_power != 0) {
-			if (rng() < this->_statusChange.cmpVal && target.canHaveStatus(STATUS_CONFUSED))
+			if (rng() < this->_statusChange.cmpVal && target.canHaveStatus(STATUS_CONFUSED)) {
+				logger(PkmnCommon::AnimEvent{
+					.animId = PkmnCommon::SYSANIM_NOW_CONFUSED,
+					.isGuaranteed = this->_statusChange.cmpVal == 0,
+					.player = !target.isEnemy(),
+					.turn = !owner.isEnemy()
+				});
 				target.addStatus(this->_statusChange.status);
+			}
 		} else if (!sub || (this->_category == STATUS && (
 			this->_statusChange.status == STATUS_ASLEEP ||
 			this->_statusChange.status == STATUS_LEECHED ||
 			this->_statusChange.status == STATUS_PARALYZED
 		)))
-			if (
+			if (this->_statusChange.status != STATUS_NONE && (
 				this->_statusChange.cmpVal == 0 || (
 					(this->_statusChange.status == STATUS_FLINCHED || (
 						target.getTypes().first != this->_type &&
@@ -982,7 +1014,7 @@ namespace PokemonGen1
 						target.canHaveStatus(this->_statusChange.status)
 					)) && rng() < this->_statusChange.cmpVal
 				)
-			) {
+			)) {
 				unsigned anim = -1;
 
 				if (this->_statusChange.status == STATUS_FROZEN)
@@ -1026,7 +1058,6 @@ namespace PokemonGen1
 
 		if (this->_hitCallback)
 			return this->_hitCallback(this->getID(), owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger);
-			//logger(PkmnCommon::MoveEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
 		return true;
 	}
 

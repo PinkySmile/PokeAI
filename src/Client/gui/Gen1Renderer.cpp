@@ -22,6 +22,8 @@
 #define _veryEffective _gpCounter[3]
 #define _healthTarget _gpCounter[1]
 #define _gameResult _gpCounter[6]
+#define _nextAnim _gpCounter[7]
+#define _hideSubstitute _gpCounter[8]
 #define _crySound _gpSound
 #define _moveSound _gpSound
 #define _hitSound _gpSound
@@ -29,7 +31,7 @@
 
 #define TEXT_LINE_TIME 40
 #define TEXT_LINE_SCROLL 10
-#define TEXT_WAIT_AFTER 90
+#define TEXT_WAIT_AFTER 60
 #define MOVE_WAIT_BEFORE 60
 
 #define WITHDRAW_ANIM_LENGTH 60
@@ -356,6 +358,8 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		auto it2 = this->_data.find(f.team[f.active].id);
 		auto &pkmn = it2 == this->_data.end() ? this->_missingno : it2->second;
 
+		this->_nextAnim = 0;
+		this->_hideSubstitute = move->hideSubstitute;
 		this->_isPlayer = move->player;
 		this->_animMove = move->moveId;
 		this->_animCounter = 0;
@@ -395,6 +399,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 			this->state.p1.spriteId = this->state.p1.team[switch_->newPkmnId].id;
 			this->state.p1.hidden = false;
 			this->state.p1.acidArmor = false;
+			this->state.p1.exploded = false;
 			this->_currentAnim = 0;
 			this->_subCounter = 0;
 			this->_animCounter = 0;
@@ -403,6 +408,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 			this->state.p2.spriteId = this->state.p2.team[switch_->newPkmnId].id;
 			this->state.p2.hidden = false;
 			this->state.p2.acidArmor = false;
+			this->state.p2.exploded = false;
 			this->_currentAnim = this->_ballPopAnim.size();
 			this->_animCounter = 40;
 		}
@@ -421,28 +427,34 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		auto &pkmn = state.team[state.active];
 
 		this->_currentEvent = EVNTTYPE_ANIM;
+		this->_onAnimEnd = nullptr;
 		this->_animCounter = 0;
 		if (anim->animId >= SYSANIM_ATK_DECREASE_BIG && anim->animId <= SYSANIM_EVD_INCREASE_BIG) {
 			if (anim->player == anim->turn)
 				this->_currentEvent = EVNTTYPE_NONE;
 			else if (!anim->isGuaranteed)
 				this->_currentAnim = ANIMTYPE_DELAY;
-			// In gen1 you can only lower the stats from your opponent as a side effect, so we assume it was lowered
+			else if (anim->animId % 4 == SYSANIM_ATK_INCREASE % 4 || anim->animId % 4 == SYSANIM_ATK_INCREASE_BIG % 4)
+				; // Ignore increases when it's opponent's turn
 			else if (anim->player)
 				this->_currentAnim = ANIMTYPE_STAT_LOWER_PLAYER;
 			else if (!anim->player)
 				this->_currentAnim = ANIMTYPE_STAT_LOWER_OPPONENT;
-		} else if (anim->animId >= SYSANIM_NOW_ASLEEP && anim->animId < SYSANIM_NOW_CONFUSED) {
-			if (anim->animId != SYSANIM_NOW_CONFUSED) {
-				pkmn.asleep = anim->animId == SYSANIM_NOW_ASLEEP;
-				pkmn.frozen = anim->animId == SYSANIM_NOW_FROZEN;
-				pkmn.burned = anim->animId == SYSANIM_NOW_BURNED;
-				pkmn.poisoned = anim->animId == SYSANIM_NOW_POISONED;
-				pkmn.paralyzed = anim->animId == SYSANIM_NOW_PARALYZED;
-				pkmn.toxicPoisoned = anim->animId == SYSANIM_NOW_BADLY_POISONED;
-			}
+		} else if (anim->animId >= SYSANIM_NOW_ASLEEP && anim->animId <= SYSANIM_NOW_CONFUSED) {
+			this->_onAnimEnd = [&pkmn, anim=*anim]{
+				if (anim.animId != SYSANIM_NOW_CONFUSED) {
+					pkmn.asleep = anim.animId == SYSANIM_NOW_ASLEEP;
+					pkmn.frozen = anim.animId == SYSANIM_NOW_FROZEN;
+					pkmn.burned = anim.animId == SYSANIM_NOW_BURNED;
+					pkmn.poisoned = anim.animId == SYSANIM_NOW_POISONED;
+					pkmn.paralyzed = anim.animId == SYSANIM_NOW_PARALYZED;
+					pkmn.toxicPoisoned = anim.animId == SYSANIM_NOW_BADLY_POISONED;
+				}
+			};
 			if (anim->isGuaranteed) {
-				if (anim->player)
+				if (anim->turn == anim->player)
+					this->_onAnimEnd();
+				else if (anim->player)
 					this->_currentAnim = ANIMTYPE_STAT_LOWER_PLAYER;
 				else
 					this->_currentAnim = ANIMTYPE_STAT_LOWER_OPPONENT;
@@ -453,6 +465,8 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		} else if (anim->animId >= SYSANIM_ASLEEP && anim->animId <= SYSANIM_LEECHED) {
 			this->_currentEvent = EVNTTYPE_MOVE;
 			this->_isPlayer = anim->player;
+			this->_nextAnim = 0;
+			this->_hideSubstitute = false;
 			this->_animCounter = 0;
 			this->_subCounter = 0;
 			this->_subSpawnTimer = 0;
@@ -471,12 +485,13 @@ void Gen1Renderer::_handleEvent(const Event &event)
 			} else if (anim->animId == SYSANIM_LEECHED) {
 				this->_animMove = Absorb;
 				this->_moveSound.setBuffer(this->_moveData[Absorb].sound);
-			} else if (anim->animId == SYSANIM_POISON || anim->animId == SYSANIM_BURN) {
+			} else if (anim->animId == SYSANIM_BAD_POISON || anim->animId == SYSANIM_POISON || anim->animId == SYSANIM_BURN) {
 				this->_animMove = 186;
 				this->_moveSound.setBuffer(this->_moveData[186].sound);
 			} else {
 				this->_currentAnim = ANIMTYPE_DELAY;
 				this->_currentEvent = EVNTTYPE_ANIM;
+				this->_onAnimEnd = nullptr;
 			}
 		} else if (anim->animId == SYSANIM_WAKE_UP) {
 			this->_currentAnim = ANIMTYPE_DELAY;
@@ -490,13 +505,15 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		} else if (anim->animId == SYSANIM_SUB_BREAK) {
 			this->_currentAnim = ANIMTYPE_DELAY;
 			state.substitute = false;
-		} else if (anim->animId == SYSANIM_RECHARGE || anim->animId == SYSANIM_NOW_CONFUSED)
-			this->_currentEvent = EVNTTYPE_NONE;
+		} else if (anim->animId == SYSANIM_RECHARGE)
+			this->_currentAnim = ANIMTYPE_DELAY;
 		else
 			throw std::runtime_error("Anim not implemented: " + std::to_string(anim->animId));
 	} else if (auto extraAnim = std::get_if<ExtraAnimEvent>(&event)) {
 		this->_currentEvent = EVNTTYPE_MOVE;
 		this->_isPlayer = extraAnim->player;
+		this->_nextAnim = 0;
+		this->_hideSubstitute = false;
 		this->_animCounter = 0;
 		this->_subCounter = 0;
 		this->_subSpawnTimer = 0;
@@ -512,15 +529,35 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		) {
 			this->_currentEvent = EVNTTYPE_ANIM;
 			this->_currentAnim = ANIMTYPE_DELAY;
+			this->_onAnimEnd = nullptr;
 		} else if (extraAnim->moveId == Skull_Bash || extraAnim->moveId == Solarbeam || extraAnim->moveId == Sky_Attack) {
 			this->_animMove = Growth;
 			this->_moveSound.setBuffer(this->_noSound);
+			this->_hideSubstitute = true;
+		} else if (extraAnim->moveId == Bide) {
+			this->_animMove = Growth;
+			this->_moveSound.setBuffer(this->_noSound);
+			if (!extraAnim->player)
+				this->_nextAnim = ANIMTYPE_STAT_LOWER_PLAYER;
+			else
+				this->_nextAnim = ANIMTYPE_STAT_LOWER_OPPONENT;
 		} else if (extraAnim->moveId == Fly) {
 			this->_animMove = Teleport;
 			this->_moveSound.setBuffer(this->_moveData[Teleport].sound);
 		} else if (extraAnim->moveId == Dig) {
 			this->_animMove = 192;
 			this->_moveSound.setBuffer(this->_moveData[192].sound);
+			this->_hideSubstitute = true;
+		} else if (extraAnim->moveId == Explosion || extraAnim->moveId == Self_Destruct) {
+			this->_animMove = Mega_Punch;
+			this->_moveSound.setBuffer(this->_moveData[Mega_Punch].sound);
+		} else if (extraAnim->moveId == Thrash || extraAnim->moveId == Petal_Dance) {
+			this->_animMove = Meditate;
+			this->_moveSound.setBuffer(this->_noSound);
+			if (!extraAnim->player)
+				this->_nextAnim = ANIMTYPE_STAT_LOWER_PLAYER;
+			else
+				this->_nextAnim = ANIMTYPE_STAT_LOWER_OPPONENT;
 		} else
 			throw std::runtime_error("Extra anim not implemented: " + std::to_string(extraAnim->moveId));
 	} else
@@ -782,6 +819,10 @@ bool Gen1Renderer::_updateHit()
 }
 bool Gen1Renderer::_updateDeath()
 {
+	auto &p = this->_isPlayer ? this->state.p1 : this->state.p2;
+
+	if (p.exploded)
+		return false;
 	if (this->_animCounter == 40) {
 		this->_faintSound.setBuffer(this->_faint);
 		if (!this->soundDisabled)
@@ -790,13 +831,15 @@ bool Gen1Renderer::_updateDeath()
 	if (this->_animCounter++ < 75)
 		return true;
 	if (this->_isPlayer)
-		this->state.p1.hidden = true;
+		p.hidden = true;
 	else
-		this->state.p2.hidden = true;
+		p.hidden = true;
 	return false;
 }
 bool Gen1Renderer::_updateSwitch()
 {
+	auto &p = this->_isPlayer ? this->state.p1 : this->state.p2;
+
 	if (this->_currentAnim < this->_ballPopAnim.size()) {
 		this->_subCounter++;
 		if (this->_subCounter >= this->_ballPopAnim[this->_currentAnim].duration) {
@@ -807,7 +850,7 @@ bool Gen1Renderer::_updateSwitch()
 	if (this->_animCounter == 0 && !this->soundDisabled)
 		this->_ballPop.play();
 	if (this->_animCounter == 50) {
-		auto it = this->_data.find(this->_isPlayer ? this->state.p1.spriteId : this->state.p2.spriteId);
+		auto it = this->_data.find(p.spriteId);
 		auto &data = it == this->_data.end() ? this->_missingno : it->second;
 
 		this->_crySound.setBuffer(data.cry);
@@ -819,21 +862,20 @@ bool Gen1Renderer::_updateSwitch()
 }
 bool Gen1Renderer::_updateWithdraw()
 {
+	auto &p = this->_isPlayer ? this->state.p1 : this->state.p2;
+
 	if (this->_animCounter++ < WITHDRAW_ANIM_LENGTH)
 		return true;
-	if (this->_isPlayer) {
-		this->state.p1.hidden = true;
-		this->state.p1.substitute = false;
-	} else {
-		this->state.p2.hidden = true;
-		this->state.p2.substitute = false;
-	}
+	p.hidden = true;
+	p.substitute = false;
 	return false;
 }
 bool Gen1Renderer::_updateHealthMod()
 {
 	auto &p = (this->_isPlayer ? this->state.p1 : this->state.p2);
 
+	if (p.exploded)
+		return false;
 	if (p.team[p.active].hp < this->_healthTarget)
 		p.team[p.active].hp++;
 	else if (p.team[p.active].hp > this->_healthTarget)
@@ -846,17 +888,24 @@ bool Gen1Renderer::_updateExtraAnim()
 }
 bool Gen1Renderer::_updateAnim()
 {
+	bool notDone = false;
 	switch (this->_currentAnim) {
 	case ANIMTYPE_DELAY:
-		return this->_animCounter++ < TEXT_WAIT_AFTER;
+		notDone = this->_animCounter++ < TEXT_WAIT_AFTER;
+		break;
 	case ANIMTYPE_STAT_LOWER_PLAYER:
-		return this->_animCounter++ < 46;
+		notDone = this->_animCounter++ < 46;
+		break;
 	case ANIMTYPE_STAT_LOWER_OPPONENT:
-		return this->_animCounter++ < 22;
+		notDone = this->_animCounter++ < 22;
+		break;
 	case ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_OPPONENT:
-		return this->_animCounter++ < 32;
+		notDone = this->_animCounter++ < 62;
+		break;
 	}
-	return false;
+	if (!notDone && this->_onAnimEnd)
+		this->_onAnimEnd();
+	return notDone;
 }
 bool Gen1Renderer::_updateMove()
 {
@@ -869,12 +918,12 @@ bool Gen1Renderer::_updateMove()
 			this->_waitCounter++;
 			return true;
 		}
-		if (state.substitute && this->_subSpawnTimer < 16) {
+		if (!state.hidden && this->_hideSubstitute && state.substitute && this->_subSpawnTimer < 16) {
 			this->_subSpawnTimer++;
 			return true;
 		}
 	} else if (anim.size() == this->_animCounter) {
-		if (state.substitute && this->_subSpawnTimer < 16) {
+		if (!state.hidden && this->_hideSubstitute && state.substitute && this->_subSpawnTimer < 16) {
 			this->_subSpawnTimer++;
 			return this->_subSpawnTimer < 16;
 		}
@@ -900,16 +949,26 @@ bool Gen1Renderer::_updateMove()
 		} else if (this->_animMove == Acid_Armor) {
 			if (this->_animCounter == anim.size() - 2)
 				state.acidArmor = true;
+		} else if (this->_animMove == Explosion || this->_animMove == Self_Destruct) {
+			if (this->_animCounter == anim.size() - 2)
+				state.exploded = true;
 		}
 	}
 	if (anim.size() == this->_animCounter) {
 		if (this->_isPlayer)
-			this->state.p1.hidden = !anim.back().p1Off.has_value() || this->state.p1.acidArmor;
+			this->state.p1.hidden = !anim.back().p1Off.has_value() || this->state.p1.acidArmor || this->state.p1.exploded;
 		else
-			this->state.p2.hidden = !anim.back().p2Off.has_value() || this->state.p2.acidArmor;
-		if (state.substitute && this->_animMove != Substitute) {
+			this->state.p2.hidden = !anim.back().p2Off.has_value() || this->state.p2.acidArmor || this->state.p2.exploded;
+		if (!state.hidden && this->_hideSubstitute && state.substitute && this->_animMove != Substitute) {
 			this->_subSpawnTimer = 0;
 			this->_subSpawnUnspawn = 1;
+			return true;
+		}
+		if (this->_nextAnim) {
+			this->_currentEvent = EVNTTYPE_ANIM;
+			this->_onAnimEnd = nullptr;
+			this->_animCounter = 1;
+			this->_currentAnim = this->_nextAnim;
 			return true;
 		}
 		return false;
@@ -1135,7 +1194,8 @@ void Gen1Renderer::_displayMyFace(sf::RenderTarget &target, unsigned pkmnId, con
 	if (pkmnId < 256)
 		sprite.setScale({2, 2});
 	sprite.setPosition(basePos);
-	target.draw(sprite);
+	if (sprite.getTextureRect().size.y > 0)
+		target.draw(sprite);
 }
 
 void Gen1Renderer::_displayOpFace(sf::RenderTarget &target, unsigned pkmnId, const std::array<unsigned int, 4> &palette, const sf::Vector2i &offset)
@@ -1161,7 +1221,8 @@ void Gen1Renderer::_displayOpFace(sf::RenderTarget &target, unsigned pkmnId, con
 	basePos.y += 56 - size.y;
 	data.front.palettize(palette, true);
 	sprite.setPosition(basePos);
-	target.draw(sprite);
+	if (sprite.getTextureRect().size.y > 0)
+		target.draw(sprite);
 }
 
 void Gen1Renderer::_displayMyShrunkFace(sf::RenderTarget &target, unsigned int pkmnId, const std::array<unsigned int, 4> &palette, unsigned int current, unsigned int max)
@@ -1986,6 +2047,9 @@ void Gen1Renderer::_renderAnim(sf::RenderTarget &target)
 		return;
 	}
 	case ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_OPPONENT: {
+		if (this->_animCounter < 30)
+			return this->_renderNormal(target);
+
 		auto size = this->getSize();
 		sf::RenderTexture rtexture{size};
 		sf::Sprite sprite2{rtexture.getTexture()};
@@ -2031,18 +2095,18 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 
 	auto &anim = this->_isPlayer ? it->second.animP1 : it->second.animP2;
 	auto &state = this->_isPlayer ? this->state.p1 : this->state.p2;
-	auto p1s = this->state.p1.substitute && (this->_animMove == 164 || !this->_isPlayer) ? 256 : this->state.p1.spriteId;
-	auto p2s = this->state.p2.substitute && (this->_animMove == 164 || this->_isPlayer)  ? 256 : this->state.p2.spriteId;
+	auto p1s = this->state.p1.substitute && (!this->_hideSubstitute || this->_animMove == 164 || !this->_isPlayer) ? 256 : this->state.p1.spriteId;
+	auto p2s = this->state.p2.substitute && (!this->_hideSubstitute || this->_animMove == 164 || this->_isPlayer)  ? 256 : this->state.p2.spriteId;
 
 	if (this->_animCounter == 0) {
-		if (state.substitute && this->_subSpawnTimer < 16) {
+		if (!state.hidden && this->_hideSubstitute && state.substitute && this->_subSpawnTimer < 16) {
 			this->_renderScene(target, {0, 1, 2, 3});
 			this->_displayMyFace(target, this->_isPlayer  ? 256 : p1s, {0, 1, 2, 3}, this->_isPlayer ? sf::Vector2i{-static_cast<int>(this->_subSpawnTimer / 2), 0} : sf::Vector2i{0, 0});
 			this->_displayOpFace(target, !this->_isPlayer ? 256 : p2s, {0, 1, 2, 3}, !this->_isPlayer ? sf::Vector2i{static_cast<int>(this->_subSpawnTimer / 2), 0} : sf::Vector2i{0, 0});
 			return;
 		}
 	} else if (anim.size() == this->_animCounter) {
-		if (state.substitute && this->_subSpawnTimer < 16) {
+		if (!state.hidden && this->_hideSubstitute && state.substitute && this->_subSpawnTimer < 16) {
 			this->_renderScene(target, {0, 1, 2, 3});
 			this->_displayMyFace(target, this->_isPlayer  ? this->state.p1.spriteId : p1s, {0, 1, 2, 3}, this->_isPlayer ? sf::Vector2i{-static_cast<int>(this->_subSpawnTimer / 2), 0} : sf::Vector2i{0, 0});
 			this->_displayOpFace(target, !this->_isPlayer ? this->state.p2.spriteId : p2s, {0, 1, 2, 3}, !this->_isPlayer ? sf::Vector2i{static_cast<int>(this->_subSpawnTimer / 2), 0} : sf::Vector2i{0, 0});

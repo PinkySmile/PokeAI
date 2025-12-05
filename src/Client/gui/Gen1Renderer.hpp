@@ -145,7 +145,8 @@ private:
 	EventType _currentEvent = EVNTTYPE_NONE;
 
 	bool _hasColor = false;
-	unsigned _gpCounter[7];
+	unsigned _gpCounter[10];
+	std::function<void()> _onAnimEnd;
 	std::string _queuedText;
 	std::string _displayedText;
 	sf::Texture _balls[4];

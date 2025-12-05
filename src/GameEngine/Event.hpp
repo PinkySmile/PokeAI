@@ -187,6 +187,7 @@ namespace PkmnCommon
 	struct MoveEvent {
 		unsigned moveId;
 		bool player;
+		bool hideSubstitute;
 	};
 
 	enum SystemAnim {

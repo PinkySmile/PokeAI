@@ -295,7 +295,26 @@ namespace PokemonGen1
 		}
 	}
 
-	bool Pokemon::addStatus(StatusChange status, unsigned duration)
+	bool Pokemon::addStatusSilent(StatusChange status)
+	{
+		unsigned char randomVal = 0;
+
+		if (status == STATUS_NONE)
+			return true;
+
+		switch (status) {
+		case STATUS_ASLEEP:
+			while (!randomVal)
+				randomVal = this->_battleState->rng() & 7;
+			return this->addStatus(STATUS_ASLEEP_FOR_1_TURN, randomVal, true);
+		case STATUS_CONFUSED:
+			return this->addStatus(STATUS_CONFUSED_FOR_1_TURN, (this->_battleState->rng() & 3) + 2, true);
+		default:
+			return this->addStatus(status, 1, true);
+		}
+	}
+
+	bool Pokemon::addStatus(StatusChange status, unsigned duration, bool silent)
 	{
 		if (status & STATUS_ASLEEP)
 			this->_needsRecharge = false;
@@ -315,7 +334,8 @@ namespace PokemonGen1
 			{ STATUS_CONFUSED_FOR_1_TURN, " became confused!" }
 		};
 
-		this->_battleState->battleLogger(PkmnCommon::TextEvent{this->getName() + messages[status]});
+		if (!silent)
+			this->_battleState->battleLogger(PkmnCommon::TextEvent{this->getName() + messages[status]});
 		if (status == STATUS_BADLY_POISONED)
 			this->_badPoisonStage = 1;
 		if (status & STATUS_ANY_NON_VOLATILE_STATUS)
@@ -759,23 +779,23 @@ namespace PokemonGen1
 		auto status = this->_currentStatus;
 
 		if (status & STATUS_BURNED) {
-			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_BURN, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			logger(PkmnCommon::TextEvent{this->getName() + "'s hurt by the burn!"});
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_BURN, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			this->takeDamage(target, this->getMaxHealth() / 16, true, false);
 		} else if (status & STATUS_POISONED) {
 			damage = this->getMaxHealth() / 16;
+			logger(PkmnCommon::TextEvent{this->getName() + "'s hurt by the poison!"});
 			if (status & STATUS_BAD_POISON) {
 				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_BAD_POISON, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 				damage *= this->_badPoisonStage++;
 			} else
 				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_POISON, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
-			logger(PkmnCommon::TextEvent{this->getName() + "'s hurt by the poison!"});
 			this->takeDamage(target, damage, true, false);
 		}
 		if (status & STATUS_LEECHED) {
 			// FIXME: If dead from poison, the "X fainted!" message shows before that one. See test `Metronome[26](H*)`.
-			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_LEECHED, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			logger(PkmnCommon::TextEvent{"LEECH SEED saps " + this->getName() + "!"});
+			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_LEECHED, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 			damage = this->getMaxHealth() / 16;
 			if (status & STATUS_BAD_POISON)
 				damage *= this->_badPoisonStage++;

@@ -193,7 +193,8 @@ namespace PokemonGen1
 		void setStatus(StatusChange status);
 		void setNonVolatileStatus(StatusChange status);
 		bool addStatus(StatusChange status);
-		bool addStatus(StatusChange status, unsigned duration);
+		bool addStatus(StatusChange status, unsigned duration, bool silent = false);
+		bool addStatusSilent(StatusChange status);
 		void resetStatsChanges();
 		bool changeStat(enum StatsChange stat, char nb, bool guaranteed, bool turn);
 		bool useMove(const Move &move, Pokemon &target);
