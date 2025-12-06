@@ -21,6 +21,8 @@
 #define DEFAULT_HITS {1, 1}
 #define DEFAULT_CRIT_CHANCE (1)
 
+#define WRAP_TARGET_DESC "Set the foe in the wrapped state for all the move duration"
+
 namespace PokemonGen1
 {
 	class Pokemon;

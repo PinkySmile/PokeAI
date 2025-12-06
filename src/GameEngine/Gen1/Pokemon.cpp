@@ -506,8 +506,8 @@ namespace PokemonGen1
 	void Pokemon::opponentSwitched()
 	{
 		// TODO:
-		//if (this->_lastUsedMove.getHitCallBackDescription() == WRAP_TARGET_DESC && !this->_lastUsedMove.isFinished())
-		//	this->_lastUsedMove = availableMoves[0x00];
+		if (this->_lastUsedMove.getHitCallBackDescription() == WRAP_TARGET_DESC && !this->_lastUsedMove.isFinished())
+			this->_lastUsedMove = availableMoves[0x00];
 		this->_wrapped = false;
 	}
 

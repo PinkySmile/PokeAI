@@ -281,6 +281,7 @@ namespace PkmnCommon
 		bool veryEffective;
 		bool notVeryEffective;
 		bool player;
+		bool hasEffect;
 	};
 
 	struct GameStartEvent {

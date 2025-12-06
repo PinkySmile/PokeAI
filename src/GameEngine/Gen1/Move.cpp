@@ -27,7 +27,7 @@
 
 #define SUICIDE_MISS [](unsigned id, Pokemon &owner, Pokemon &target, bool, const BattleLogger &logger){\
 	logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy(), .hideSubstitute = true});\
-	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy()});\
+	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy(), .hasEffect = true});\
 	owner.takeDamage(target, owner.getHealth(), true, false);\
 	return true;\
 }, "Kills user"
@@ -117,6 +117,10 @@
         return !owner.isMisted();\
 }
 
+#define SLEEP_CHECK [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &){ \
+        return target.hasStatus(STATUS_ASLEEP);\
+}
+
 #define DISABLE_CHECK [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &){\
 	if (target.getMoveDisabled() != 0)\
 		return false;\
@@ -173,7 +177,6 @@
 	return true;\
 }, TAKE_HALF_MOVE_DAMAGE_DESC
 
-#define WRAP_TARGET_DESC "Set the foe in the wrapped state for all the move duration"
 #define WRAP_TARGET [](unsigned, Pokemon &, Pokemon &target, unsigned, bool last, const BattleLogger &){\
 	if (!last)\
 		target.setWrapped(true);\
@@ -184,7 +187,7 @@
 
 #define DEAL_20_DAMAGE_DESC "Deal 20 damage"
 #define DEAL_20_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
-	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy()});\
+	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});\
 	target.takeDamage(owner, 20, false, false);\
 	target.getBattleState().lastDamage = 20;\
 	return true;\
@@ -192,7 +195,7 @@
 
 #define DEAL_40_DAMAGE_DESC "Deal 40 damage"
 #define DEAL_40_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
-	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy()});\
+	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});\
 	target.takeDamage(owner, 40, false, false);\
 	target.getBattleState().lastDamage = 40;\
 	return true;\
@@ -200,7 +203,7 @@
 
 #define DEAL_LVL_AS_DAMAGE_DESC "Deal the user's level as raw damage"
 #define DEAL_LVL_AS_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
-	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy()});\
+	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy(), .hasEffect = true});\
 	target.takeDamage(owner, owner.getLevel(), false, false);\
 	target.getBattleState().lastDamage = owner.getLevel();\
 	return true;\
@@ -241,7 +244,7 @@
                 } while (r >= multipliedLevel);\
         }\
 \
-	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy()});\
+	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});\
 	target.getBattleState().lastDamage = r;\
 	target.takeDamage(owner, r, false, false);\
 	return true;\
@@ -310,7 +313,7 @@
 	if (last) {\
 		logger(PkmnCommon::TextEvent{owner.getName() + " unleashes energy!"});\
 		logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy(), .hideSubstitute = true});\
-		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy()});\
+		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});\
 		target.takeDamage(owner, owner.getDamagesStored() * 2, false, false);\
 	}\
 	owner.storeDamages(!last);\
@@ -323,7 +326,7 @@
 \
 	do {\
 		index = owner.getRandomGenerator()();\
-	} while (!index || index >= 0xA5);\
+	} while (!index || index >= Struggle || index == Metronome);\
 	owner.useMove(availableMoves[index], target);\
 	return true;\
 }, USE_RANDOM_MOVE_DESC
@@ -350,7 +353,7 @@
 #define DEAL_HALF_HP_DAMAGE_DESC "Deal half foe's HP"
 #define DEAL_HALF_HP_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
 	target.getBattleState().lastDamage = target.getHealth() / 2;\
-	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy()});\
+	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});\
 	target.takeDamage(owner, target.getHealth() / 2, false, false); /* TODO: Check how it interacts with SUBSTITUTE */\
 	return true;\
 }, DEAL_HALF_HP_DAMAGE_DESC
@@ -768,8 +771,6 @@ namespace PokemonGen1
 
 		if (!this->_nbHit) {
 			first = true;
-			if (this->getID() == Thrash || this->getID() == Petal_Dance)
-				logger(PkmnCommon::ExtraAnimEvent{.moveId = this->getID(), .index = 0, .player = !owner.isEnemy()});
 			if (this->_nbRuns.second == this->_nbRuns.first)
 				this->_nbHit = this->_nbRuns.first;
 			else if (this->_nbRuns.second - 1 == this->_nbRuns.first)
@@ -789,6 +790,8 @@ namespace PokemonGen1
 			}
 			this->_nbHit--;
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
+			if (this->getID() == Thrash || this->getID() == Petal_Dance)
+				logger(PkmnCommon::ExtraAnimEvent{.moveId = this->getID(), .index = 0, .player = !owner.isEnemy()});
 		} else if (this->_hitCallBackDescription == WRAP_TARGET_DESC) {
 			this->_nbHit--;
 			if (!this->_keepGoingMsg.empty())
@@ -878,8 +881,10 @@ namespace PokemonGen1
 		accuracyByte = target.getEvasion(owner.getAccuracy(this->_accuracy));
 		if (accuracyByte > 0xFF)
 			accuracyByte = 0xFF;
-		// !target.hasStatus(STATUS_ASLEEP)
-		if (!target.canGetHit() || (
+		if ((
+			!target.canGetHit() &&
+			!this->_skipAccuracyCheck
+		) || (
 			this->_canHitCallback &&
 			!this->_canHitCallback(this->getID(), owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger)
 		) || (
@@ -928,7 +933,7 @@ namespace PokemonGen1
 				logger(PkmnCommon::MoveEvent{.moveId = Thrash, .player = !owner.isEnemy(), .hideSubstitute = true});
 		} else if (this->getID() == Explosion || this->getID() == Self_Destruct) {
 			logger(PkmnCommon::MoveEvent{.moveId = this->getID(), .player = !owner.isEnemy(), .hideSubstitute = true});
-			logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy()});
+			logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !target.isEnemy(), .hasEffect = true});
 			logger(PkmnCommon::ExtraAnimEvent{.moveId = this->getID(), .index = 0, .player = !owner.isEnemy()});
 		} else if (this->getID() == Bide) {
 			if (first)
@@ -936,7 +941,17 @@ namespace PokemonGen1
 		} else
 			logger(PkmnCommon::MoveEvent{.moveId = this->getID(), .player = !owner.isEnemy(), .hideSubstitute = this->_category != STATUS});
 		if (this->_power) {
-			logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !target.isEnemy()});
+			bool hasEffect = !this->_foeChange.empty() ||
+				!this->_ownerChange.empty() ||
+				this->_nbHits.first != 1 ||
+				this->_nbHits.second != 1 ||
+				this->_nbRuns.first != 1 ||
+				this->_nbRuns.second != 1 ||
+				this->_statusChange.status != STATUS_NONE ||
+				!this->_hitCallBackDescription.empty() ||
+				!this->_missCallBackDescription.empty();
+
+			logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !target.isEnemy(), .hasEffect = hasEffect});
 			if (this->_power == 255)
 				logger(PkmnCommon::TextEvent{"One-hit KO!"});
 			if (!target.hasSubstitute() && owner.getBattleState().lastDamage > target.getHealth())
@@ -972,14 +987,17 @@ namespace PokemonGen1
 		if (this->_power && hits > 1) {
 			for (size_t i = 1; i < hits; i++) {
 				logger(PkmnCommon::MoveEvent{.moveId = this->getID(), .player = !owner.isEnemy(), .hideSubstitute = true});
-				logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !target.isEnemy()});
+				logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !target.isEnemy(), .hasEffect = true});
 				target.takeDamage(owner, owner.getBattleState().lastDamage, false, false);
 				if (damage.isNotVeryEffective)
 					logger(PkmnCommon::TextEvent{"It's not very effective!"});
 				if (damage.isVeryEffective)
 					logger(PkmnCommon::TextEvent{"It's super effective!"});
 			}
-			logger(PkmnCommon::TextEvent{"Hit the enemy " + std::to_string(hits) + " times!"});
+			if (target.isEnemy())
+				logger(PkmnCommon::TextEvent{"Hit the enemy " + std::to_string(hits) + " times!"});
+			else
+				logger(PkmnCommon::TextEvent{"Hit " + std::to_string(hits) + " times!"});
 		}
 
 		if (!target.getHealth() || sub != target.hasSubstitute()) {
@@ -1181,7 +1199,7 @@ namespace PokemonGen1
 		Move{0x0A, "Scratch"     , TYPE_NORMAL  , PHYSICAL,  40, 100, 35},
 		Move{0x0B, "ViceGrip"    , TYPE_NORMAL  , PHYSICAL,  55, 100, 30},
 		Move{0x0C, "Guillotine"  , TYPE_NORMAL  , PHYSICAL, 255,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, ONE_HIT_KO_HANDLE},
-		Move{0x0D, "Razor Wind"  , TYPE_NORMAL  , PHYSICAL,  80,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("whipped up a whirlwind!")},
+		Move{0x0D, "Razor Wind"  , TYPE_NORMAL  , PHYSICAL,  80,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("made a whirlwind!")},
 		Move{0x0E, "Swords Dance", TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, {{STATS_ATK, 2, 0}}},
 		Move{0x0F, "Cut"         , TYPE_NORMAL  , PHYSICAL,  50,  95, 30},
 		Move{0x10, "Gust"        , TYPE_NORMAL  , PHYSICAL,  40, 100, 35},
@@ -1306,7 +1324,7 @@ namespace PokemonGen1
 		Move{0x87, "SoftBoiled"  , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEALTH_CHECK, HEAL_HALF_HEALTH},
 		Move{0x88, "Hi Jump Kick", TYPE_FIGHTING, PHYSICAL,  85,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, NO_CALLBACK, TAKE_1DAMAGE},
 		Move{0x89, "Glare"       , TYPE_NORMAL  , STATUS  ,   0,  75, 30, {STATUS_PARALYZED, 0}},
-		Move{0x8A, "Dream Eater" , TYPE_PSYCHIC , SPECIAL , 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, ABSORB_HALF_DAMAGE},
+		Move{0x8A, "Dream Eater" , TYPE_PSYCHIC , SPECIAL , 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SLEEP_CHECK, ABSORB_HALF_DAMAGE},
 		Move{0x8B, "Poison Gas"  , TYPE_POISON  , STATUS  ,   0,  55, 40, {STATUS_POISONED, 0}},
 		Move{0x8C, "Barrage"     , TYPE_NORMAL  , PHYSICAL,  15,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x8D, "Leech Life"  , TYPE_BUG     , PHYSICAL,  20, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, ABSORB_HALF_DAMAGE},

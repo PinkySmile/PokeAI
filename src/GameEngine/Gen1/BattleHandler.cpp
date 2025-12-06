@@ -157,9 +157,9 @@ namespace PokemonGen1
 			case Switch4:
 			case Switch5:
 			case Switch6:
+				this->_state.me.team[this->_state.me.pokemonOnField].switched();
+				this->_state.op.team[this->_state.op.pokemonOnField].opponentSwitched();
 				if (!p1Fainted) {
-					this->_state.me.team[this->_state.me.pokemonOnField].switched();
-					this->_state.op.team[this->_state.op.pokemonOnField].opponentSwitched();
 					this->logBattle(this->_state.me.team[this->_state.me.pokemonOnField].getName(false) + " enough! Come back");
 					this->_state.battleLogger(PkmnCommon::WithdrawEvent{.player = true});
 				}
@@ -198,9 +198,9 @@ namespace PokemonGen1
 			case Switch4:
 			case Switch5:
 			case Switch6:
+				this->_state.op.team[this->_state.op.pokemonOnField].switched();
+				this->_state.me.team[this->_state.me.pokemonOnField].opponentSwitched();
 				if (!p2Fainted) {
-					this->_state.op.team[this->_state.op.pokemonOnField].switched();
-					this->_state.me.team[this->_state.me.pokemonOnField].opponentSwitched();
 					this->logBattle(this->_state.op.name + " withdrew " + this->_state.op.team[this->_state.op.pokemonOnField].getName(false));
 					this->_state.battleLogger(PkmnCommon::WithdrawEvent{.player = false});
 				}

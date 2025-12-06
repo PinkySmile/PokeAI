@@ -417,6 +417,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		this->_isPlayer = hit->player;
 		this->_notVeryEffective = hit->notVeryEffective;
 		this->_veryEffective = hit->veryEffective;
+		this->_currentAnim = (hit->player * 2) + hit->hasEffect;
 		this->_animCounter = 0;
 	} else if (auto health = std::get_if<HealthModEvent>(&event)) {
 		this->_currentEvent = EVNTTYPE_HEALTH_MOD;
@@ -440,28 +441,32 @@ void Gen1Renderer::_handleEvent(const Event &event)
 				this->_currentAnim = ANIMTYPE_STAT_LOWER_PLAYER;
 			else if (!anim->player)
 				this->_currentAnim = ANIMTYPE_STAT_LOWER_OPPONENT;
-		} else if (anim->animId >= SYSANIM_NOW_ASLEEP && anim->animId <= SYSANIM_NOW_CONFUSED) {
+		} else if (anim->animId >= SYSANIM_NOW_ASLEEP && anim->animId < SYSANIM_NOW_CONFUSED) {
 			this->_onAnimEnd = [&pkmn, anim=*anim]{
-				if (anim.animId != SYSANIM_NOW_CONFUSED) {
-					pkmn.asleep = anim.animId == SYSANIM_NOW_ASLEEP;
-					pkmn.frozen = anim.animId == SYSANIM_NOW_FROZEN;
-					pkmn.burned = anim.animId == SYSANIM_NOW_BURNED;
-					pkmn.poisoned = anim.animId == SYSANIM_NOW_POISONED;
-					pkmn.paralyzed = anim.animId == SYSANIM_NOW_PARALYZED;
-					pkmn.toxicPoisoned = anim.animId == SYSANIM_NOW_BADLY_POISONED;
-				}
+				pkmn.asleep = anim.animId == SYSANIM_NOW_ASLEEP;
+				pkmn.frozen = anim.animId == SYSANIM_NOW_FROZEN;
+				pkmn.burned = anim.animId == SYSANIM_NOW_BURNED;
+				pkmn.poisoned = anim.animId == SYSANIM_NOW_POISONED;
+				pkmn.paralyzed = anim.animId == SYSANIM_NOW_PARALYZED;
+				pkmn.toxicPoisoned = anim.animId == SYSANIM_NOW_BADLY_POISONED;
 			};
 			if (anim->isGuaranteed) {
-				if (anim->turn == anim->player)
-					this->_onAnimEnd();
+				this->_onAnimEnd();
+				this->_currentEvent = EVNTTYPE_NONE;
+			} else if (!anim->player)
+				this->_currentAnim = ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_OPPONENT;
+			else
+				this->_currentAnim = ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_PLAYER;
+		} else if (anim->animId == SYSANIM_NOW_CONFUSED) {
+			this->_onAnimEnd = nullptr;
+			if (anim->isGuaranteed) {
+				if (anim->turn == anim->player);
 				else if (anim->player)
 					this->_currentAnim = ANIMTYPE_STAT_LOWER_PLAYER;
 				else
 					this->_currentAnim = ANIMTYPE_STAT_LOWER_OPPONENT;
 			} else if (!anim->player)
-				this->_currentAnim = ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_OPPONENT;
-			else
-				throw std::runtime_error("Status anim not implemented: " + std::to_string(anim->animId) + " not guaranteed");
+				this->_currentAnim = ANIMTYPE_DELAY;
 		} else if (anim->animId >= SYSANIM_ASLEEP && anim->animId <= SYSANIM_LEECHED) {
 			this->_currentEvent = EVNTTYPE_MOVE;
 			this->_isPlayer = anim->player;
@@ -530,7 +535,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 			this->_currentEvent = EVNTTYPE_ANIM;
 			this->_currentAnim = ANIMTYPE_DELAY;
 			this->_onAnimEnd = nullptr;
-		} else if (extraAnim->moveId == Skull_Bash || extraAnim->moveId == Solarbeam || extraAnim->moveId == Sky_Attack) {
+		} else if (extraAnim->moveId == Skull_Bash || extraAnim->moveId == Solarbeam || extraAnim->moveId == Sky_Attack || extraAnim->moveId == Razor_Wind) {
 			this->_animMove = Growth;
 			this->_moveSound.setBuffer(this->_noSound);
 			this->_hideSubstitute = true;
@@ -620,8 +625,36 @@ static unsigned introAnimCounters[] = {
 	/* INTROSTEP_PLAYER_MON_SPAWN          */ 12,
 	/* INTROSTEP_PLAYER_MON_SPAWNED_WAIT   */ 60
 };
-static std::array<std::vector<sf::Vector2f>, 6> valuesHit{
-	std::vector<sf::Vector2f>{ // Not very effective - player
+static std::array<std::vector<sf::Vector2f>, 4> valuesHit{
+	std::vector<sf::Vector2f>{ // No side effect move - opponent
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+	},
+	std::vector<sf::Vector2f>{ // With side effect move - opponent
+		{2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{1, 0}, {1, 0}, {1, 0}, {1, 0},
+	},
+	std::vector<sf::Vector2f>{ // No side effect move - player
+		{0, 8}, {0, 8}, {0, 8}, {0, 8},
+		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
+		{0, 7}, {0, 7}, {0, 7},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 6}, {0, 6}, {0, 6},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 5}, {0, 5}, {0, 5},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 4}, {0, 4}, {0, 4},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 3}, {0, 3}, {0, 3},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 2}, {0, 2}, {0, 2},
+		{0, 0}, {0, 0}, {0, 0},
+		{0, 1}, {0, 1}, {0, 1}, {0, 1},
+	},
+	std::vector<sf::Vector2f>{ // With side effect move - player
 		{8, 0}, {8, 0}, {8, 0}, {8, 0}, {8, 0},
 		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
 		{7, 0}, {7, 0}, {7, 0}, {7, 0},
@@ -636,59 +669,50 @@ static std::array<std::vector<sf::Vector2f>, 6> valuesHit{
 		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
 		{2, 0}, {2, 0}, {2, 0}, {2, 0},
 		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-		{1, 0}, {1, 0}, {1, 0}, {1, 0}
-	},
-	std::vector<sf::Vector2f>{ // Effective - player
-		{0, 8}, {0, 8}, {0, 8}, {0, 8},
-		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-		{0, 7}, {0, 7}, {0, 7},
-		{0, 0}, {0, 0}, {0, 0},
-		{0, 6}, {0, 6}, {0, 6},
-		{0, 0}, {0, 0}, {0, 0},
-		{0, 5}, {0, 5}, {0, 5},
-		{0, 0}, {0, 0}, {0, 0},
-		{0, 4}, {0, 4}, {0, 4},
-		{0, 0}, {0, 0}, {0, 0},
-		{0, 3}, {0, 3}, {0, 3},
-		{0, 0}, {0, 0}, {0, 0},
-		{0, 2}, {0, 2}, {0, 2},
-		{0, 0}, {0, 0}, {0, 0},
-		{0, 1}, {0, 1}, {0, 1}, {0, 1}
-	},
-	std::vector<sf::Vector2f>{ // Very effective - player
-		{0, 8}, {0, 8}, {0, 8}, {0, 8},
-		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-		{0, 7}, {0, 7}, {0, 7},
-		{0, 0}, {0, 0}, {0, 0},
-		{0, 6}, {0, 6}, {0, 6},
-		{0, 0}, {0, 0}, {0, 0},
-		{0, 5}, {0, 5}, {0, 5},
-		{0, 0}, {0, 0}, {0, 0},
-		{0, 4}, {0, 4}, {0, 4},
-		{0, 0}, {0, 0}, {0, 0},
-		{0, 3}, {0, 3}, {0, 3},
-		{0, 0}, {0, 0}, {0, 0},
-		{0, 2}, {0, 2}, {0, 2},
-		{0, 0}, {0, 0}, {0, 0},
-		{0, 1}, {0, 1}, {0, 1}, {0, 1}
-	},
-	std::vector<sf::Vector2f>{ // Not very effective - opponent
-		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-	},
-	std::vector<sf::Vector2f>{ // Effective - opponent
-		{2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0},
-		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-		{1, 0}, {1, 0}, {1, 0}, {1, 0}
-	},
-	std::vector<sf::Vector2f>{ // Very effective - opponent
-		{2, 0}, {2, 0}, {2, 0}, {2, 0}, {2, 0},
-		{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0},
-		{1, 0}, {1, 0}, {1, 0}, {1, 0}
+		{1, 0}, {1, 0}, {1, 0}, {1, 0},
 	},
 };
+std::array<float, 118> valuesSideEffect = {
+	8, 8, 8, 8, 8,
+	0, 0, 0, 0, 0, 0, 0, 0, 0,
+	7, 7, 7, 7,
+	0, 0, 0, 0, 0,
+	6, 6, 6, 6,
+	0, 0, 0, 0, 0,
+	5, 5, 5, 5,
+	0, 0, 0, 0, 0,
+	4, 4, 4, 4,
+	0, 0, 0, 0, 0,
+	3, 3, 3, 3,
+	0, 0, 0, 0, 0,
+	2, 2, 2, 2,
+	0, 0, 0, 0, 0,
+	1, 1, 1, 1,
+	1, 1,
+	2, 2,
+	3, 3,
+	4, 4,
+	5, 5,
+	6, 6,
+	5, 5,
+	4, 4,
+	3, 3,
+	2, 2,
+	1, 1,
+	0, 0,
+	1, 1,
+	2, 2,
+	3, 3,
+	4, 4,
+	5, 5,
+	6, 6,
+	5, 5,
+	4, 4,
+	3, 3,
+	2, 2,
+	1, 1,
+};
+
 // Side effect status as player: 2, 2, -2, -2 (total 8 times)
 
 bool Gen1Renderer::_updateNormal()
@@ -810,12 +834,9 @@ bool Gen1Renderer::_updateHit()
 		if (!this->soundDisabled)
 			this->_hitSound.play();
 	}
-
-	unsigned index = (!this->_isPlayer * 3) + (this->_veryEffective) + (!this->_notVeryEffective);
-
-	if (valuesHit[index].empty())
+	if (valuesHit[this->_currentAnim].empty())
 		throw std::runtime_error("Hit not implemented");
-	return this->_animCounter++ < valuesHit[index].size();
+	return this->_animCounter++ < valuesHit[this->_currentAnim].size();
 }
 bool Gen1Renderer::_updateDeath()
 {
@@ -830,10 +851,7 @@ bool Gen1Renderer::_updateDeath()
 	}
 	if (this->_animCounter++ < 75)
 		return true;
-	if (this->_isPlayer)
-		p.hidden = true;
-	else
-		p.hidden = true;
+	p.hidden = true;
 	return false;
 }
 bool Gen1Renderer::_updateSwitch()
@@ -901,6 +919,9 @@ bool Gen1Renderer::_updateAnim()
 		break;
 	case ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_OPPONENT:
 		notDone = this->_animCounter++ < 62;
+		break;
+	case ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_PLAYER:
+		notDone = this->_animCounter++ < valuesSideEffect.size();
 		break;
 	}
 	if (!notDone && this->_onAnimEnd)
@@ -986,10 +1007,6 @@ bool Gen1Renderer::_updateText()
 		}
 		return false;
 	}
-	//if (this->_textTimer < 4) {
-	//	this->_textTimer++;
-	//	return true;
-	//}
 	if (this->_queuedText[this->_currentCharacter] == '\n' && this->_displayedText.find('\n') != std::string::npos) {
 		this->_textCounter++;
 		if (this->_textCounter == TEXT_LINE_TIME) {
@@ -1845,16 +1862,12 @@ void Gen1Renderer::_renderHit(sf::RenderTarget &target)
 	auto size = this->getSize();
 	sf::RenderTexture rtexture{size};
 	sf::Sprite sprite{rtexture.getTexture()};
-	unsigned index = (!this->_isPlayer * 3) + (this->_veryEffective) + (!this->_notVeryEffective);
-	sf::Vector2f pos = valuesHit[index][this->_animCounter - 1];
+	sf::Vector2f pos = valuesHit[this->_currentAnim][this->_animCounter - 1];
 
 	pos.y += size.y;
 	this->_renderScene(rtexture);
 	this->_displayMyFace(rtexture, this->state.p1.substitute ? 256 : this->state.p1.spriteId);
-	if (!this->_isPlayer && this->_notVeryEffective) {
-		if (this->_animCounter % 8 < 4)
-			this->_displayOpFace(rtexture, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
-	} else
+	if (this->_currentAnim != 0 || this->_animCounter % 8 >= 4)
 		this->_displayOpFace(rtexture, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 	sprite.setScale({1, -1});
 	sprite.setPosition(pos);
@@ -2081,6 +2094,22 @@ void Gen1Renderer::_renderAnim(sf::RenderTarget &target)
 		text.setLineSpacing(2);
 		target.draw(text);
 		return;
+	}
+	case ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_PLAYER: {
+		auto size = this->getSize();
+		sf::RenderTexture rtexture{size};
+		sf::Sprite sprite{rtexture.getTexture()};
+		sf::Vector2f pos = { valuesSideEffect[this->_animCounter - 1], 0 };
+
+		pos.y += size.y;
+		this->_renderScene(rtexture);
+		this->_displayMyFace(rtexture, this->state.p1.substitute ? 256 : this->state.p1.spriteId);
+		this->_displayOpFace(rtexture, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
+		sprite.setScale({1, -1});
+		sprite.setPosition(pos);
+		target.clear(Gen1Renderer::_getDmgColor(0));
+		target.draw(sprite);
+		return;
 	}}
 }
 void Gen1Renderer::_renderMove(sf::RenderTarget &target)
@@ -2144,7 +2173,7 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 		this->_displayMyFace(rtexture, p1s, frame.palB);
 		this->_displayOpFace(rtexture, p2s, frame.palB);
 		for (size_t i = 0; i < size.y; i++) {
-			sprite.setPosition({x, static_cast<float>(size.y - i - 1)});
+			sprite.setPosition({x, static_cast<float>(round(size.y - i - 1))});
 			sprite.setTextureRect({
 				{ 0, static_cast<int>(i) },
 				{ static_cast<int>(size.x), 1 }
@@ -2180,7 +2209,7 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 			{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
 			{8, 8}
 		});
-		sprite.setPosition({s.x + 4.f, s.y + 4.f});
+		sprite.setPosition({static_cast<float>(round(s.x + 4.f)), static_cast<float>(round(s.y + 4.f))});
 		sprite.setScale({s.flip.first ? -1.f : 1.f, s.flip.second ? -1.f : 1.f});
 		target.draw(sprite);
 	}
