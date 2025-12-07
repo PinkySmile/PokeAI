@@ -25,10 +25,6 @@
 #define _nextAnim _gpCounter[7]
 #define _hideSubstitute _gpCounter[8]
 #define _isMoveAnim _gpCounter[9]
-#define _crySound _gpSound
-#define _moveSound _gpSound
-#define _hitSound _gpSound
-#define _faintSound _gpSound
 
 #define TEXT_LINE_TIME 40
 #define TEXT_LINE_SCROLL 10
@@ -501,6 +497,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 				state.hidden = state.acidArmor || state.exploded;
 			} else if (anim->animId == SYSANIM_LEECHED) {
 				this->_animMove = Absorb;
+				this->_isPlayer = !anim->player;
 				this->_moveSound.setBuffer(this->_moveData[Absorb].sound);
 			} else if (anim->animId == SYSANIM_BAD_POISON || anim->animId == SYSANIM_POISON || anim->animId == SYSANIM_BURN) {
 				this->_animMove = 186;
@@ -858,7 +855,16 @@ bool Gen1Renderer::_updateDeath()
 	auto &p = this->_isPlayer ? this->state.p1 : this->state.p2;
 
 	if (this->_animCounter == 40) {
-		this->_faintSound.setBuffer(this->_faint);
+		if (this->_isPlayer) {
+			auto it = this->_data.find(p.team[p.active].id);
+			auto &data = it == this->_data.end() ? this->_missingno : it->second;
+
+			this->_faintSound.setBuffer(data.cry);
+			this->_faintSound.setPitch(0.95);
+		} else {
+			this->_faintSound.setBuffer(this->_faint);
+			this->_faintSound.setPitch(1);
+		}
 		if (!this->soundDisabled)
 			this->_faintSound.play();
 	}
@@ -1894,21 +1900,21 @@ void Gen1Renderer::_renderDeath(sf::RenderTarget &target)
 	this->_renderScene(target);
 	if (this->_animCounter > 40) {
 		if (this->_isPlayer)
-			this->_displayOpFace(target, this->state.p2.spriteId);
+			this->_displayOpFace(target, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 		else
-			this->_displayMyFace(target, this->state.p1.spriteId);
+			this->_displayMyFace(target, this->state.p1.substitute ? 256 : this->state.p1.spriteId);
 
 		int index = (this->_animCounter - 40) / 2;
 
 		if (index < 7) {
 			if (this->_isPlayer)
-				this->_displayMyFace(target, this->state.p1.spriteId, {0, 1, 2, 3}, {0, index});
+				this->_displayMyFace(target, this->state.p1.substitute ? 256 : this->state.p1.spriteId, {0, 1, 2, 3}, {0, index});
 			else
-				this->_displayOpFace(target, this->state.p2.spriteId, {0, 1, 2, 3}, {0, index});
+				this->_displayOpFace(target, this->state.p2.substitute ? 256 : this->state.p2.spriteId, {0, 1, 2, 3}, {0, index});
 		}
 	} else {
-		this->_displayMyFace(target, this->state.p1.spriteId);
-		this->_displayOpFace(target, this->state.p2.spriteId);
+		this->_displayMyFace(target, this->state.p1.substitute ? 256 : this->state.p1.spriteId);
+		this->_displayOpFace(target, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 	}
 }
 void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
@@ -1932,7 +1938,7 @@ void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
 			target.draw(sprite);
 		}
 
-		this->_displayOpFace(target, this->state.p2.spriteId);
+		this->_displayOpFace(target, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 		return;
 	}
 
@@ -1940,12 +1946,12 @@ void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
 
 	if (mul < 0) {
 		if (this->_isPlayer)
-			this->_displayOpFace(target, this->state.p2.spriteId);
+			this->_displayOpFace(target, this->state.p2.substitute ? 256 :this->state.p2.spriteId);
 		else
-			this->_displayMyFace(target, this->state.p1.spriteId);
+			this->_displayMyFace(target, this->state.p1.substitute ? 256 :this->state.p1.spriteId);
 	} else if (mul > 1) {
-		this->_displayOpFace(target, this->state.p2.spriteId);
-		this->_displayMyFace(target, this->state.p1.spriteId);
+		this->_displayOpFace(target, this->state.p2.substitute ? 256 :this->state.p2.spriteId);
+		this->_displayMyFace(target, this->state.p1.substitute ? 256 :this->state.p1.spriteId);
 	} else if (this->_isPlayer) {
 		auto it = this->_data.find(this->state.p1.spriteId);
 		auto &data = it == this->_data.end() ? this->_missingno : it->second;
@@ -1962,7 +1968,7 @@ void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
 			40 + size.y - size.y * mul
 		});
 		target.draw(sprite);
-		this->_displayOpFace(target, this->state.p2.spriteId);
+		this->_displayOpFace(target, this->state.p2.substitute ? 256 :this->state.p2.spriteId);
 	} else {
 		auto it = this->_data.find(this->state.p2.spriteId);
 		auto &data = it == this->_data.end() ? this->_missingno : it->second;
@@ -1980,7 +1986,7 @@ void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
 			basePos.y + size.y - size.y * mul
 		});
 		target.draw(sprite);
-		this->_displayMyFace(target, this->state.p1.spriteId);
+		this->_displayMyFace(target, this->state.p1.substitute ? 256 :this->state.p1.spriteId);
 	}
 }
 void Gen1Renderer::_renderWithdraw(sf::RenderTarget &target)

@@ -165,9 +165,12 @@ private:
 	sf::SoundBuffer _noSound;
 	sf::SoundBuffer _faint;
 	std::vector<MoveAnim> _ballPopAnim;
-	sf::Sound _gpSound{this->_trainerLand};
 	sf::Sound _soundLand{this->_trainerLand};
 	sf::Sound _ballPop{this->_ballPopSound};
+	sf::Sound _faintSound{this->_faint};
+	sf::Sound _moveSound{this->_trainerLand};
+	sf::Sound _crySound{this->_trainerLand};
+	sf::Sound _hitSound{this->_trainerLand};
 	std::pair<sf::Texture, sf::Texture> _activeMons;
 	std::deque<sf::Event> _sfmlQueue;
 	sf::Font _font;
