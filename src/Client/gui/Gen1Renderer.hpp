@@ -153,10 +153,10 @@ private:
 	std::function<void()> _onAnimEnd;
 	std::string _queuedText;
 	std::string _displayedText;
-	sf::Texture _balls[4];
 	sf::Texture _arrows[2];
 	sf::Texture _choicesHUD;
 	sf::Texture _attackHUD;
+	PalettedSprite _balls[4];
 	PalettedSprite _waitingHUD;
 	PalettedSprite _trainer[2];
 	PalettedSprite _boxes[4];
