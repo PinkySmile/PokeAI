@@ -65,6 +65,7 @@ private:
 		std::array<unsigned, 4> pal0;
 		std::array<unsigned, 4> pal1;
 		unsigned duration;
+		unsigned tileset;
 		int scx;
 		int scy;
 		int wx;
@@ -72,7 +73,7 @@ private:
 		std::optional<std::pair<int, int>> p1Off;
 		std::optional<std::pair<int, int>> p2Off;
 		std::vector<MoveSprite> sprites;
-		unsigned tileset;
+		std::vector<std::pair<unsigned, std::array<sf::Color, 4>>> pals;
 	};
 
 	struct MoveData {

@@ -20,6 +20,9 @@ void IRenderer::goToTurn(unsigned int turn)
 
 void IRenderer::previousTurn()
 {
+	if (this->_snapshots.empty())
+		return;
+
 	auto &snapshot = this->_snapshots.back();
 
 	this->_currentTurn = snapshot.turn;

@@ -90,6 +90,41 @@ void Gen1Renderer::_loadMoveFrames(std::vector<MoveAnim> &m, const nlohmann::jso
 			anim.p1Off = janim["p1"].get<std::optional<std::pair<int, int>>>();
 			anim.p2Off = janim["p2"].get<std::optional<std::pair<int, int>>>();
 		}
+		for (auto &j: janim["pals"]) {
+			std::pair<unsigned, std::array<sf::Color, 4>> pals;
+			std::array<std::array<unsigned short, 4>, 4> defaultColors{
+				std::array<unsigned short, 4>{0x7FFF, 0x03FF, 0x025F, 0x0C63},
+				std::array<unsigned short, 4>{0x7FFF, 0x03FF, 0x03E0, 0x0C63},
+				std::array<unsigned short, 4>{0x7FFF, 0x03FF, 0x01DC, 0x0C63},
+				std::array<unsigned short, 4>{0x7FFF, 0x49FF, 0x181F, 0x0C63}
+			};
+			std::array<bool, 4> comp = {true, true, true, true};
+
+			for (size_t i = 0; i < 4; i++) {
+				unsigned gbc_color = j[i];
+				auto &result = pals.second[i];
+
+				result.r = ((gbc_color >> 0U) & 0x1FU) * 255 / 31;
+				result.g = ((gbc_color >> 5U) & 0x1FU) * 255 / 31;
+				result.b = ((gbc_color >> 10U) & 0x1FU) * 255 / 31;
+
+				comp[0] &= gbc_color == defaultColors[0][i];
+				comp[1] &= gbc_color == defaultColors[1][i];
+				comp[2] &= gbc_color == defaultColors[2][i];
+				comp[3] &= gbc_color == defaultColors[3][i];
+			}
+			if (comp[0])
+				pals.first = 0;
+			else if (comp[1])
+				pals.first = 1;
+			else if (comp[2])
+				pals.first = 2;
+			else if (comp[3])
+				pals.first = 3;
+			else
+				pals.first = 4;
+			anim.pals.push_back(pals);
+		}
 		for (auto &j: janim["sprites"]) {
 			anim.sprites.emplace_back();
 
@@ -1105,36 +1140,29 @@ void Gen1Renderer::_displayMyStats(sf::RenderTarget &target, const Pokemon &pkmn
 	sf::RectangleShape rect;
 	sf::Color healthColor;
 	sf::Text text{this->_font};
-	auto it2 = this->_data.find(this->state.p1.team[this->state.p1.active].id);
-	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
+	std::array<sf::Color, 4> pal = _trainerColors;
 
-	palettizeSprite(this->_boxes[3], _defaultPalette, data2.palette, false);
+	if (percent >= 0.5)
+		pal[2] = sf::Color::Green;
+	else if (percent >= 0.1)
+		pal[2] = sf::Color{255, 128, 0, 255};
+	else
+		pal[2] = sf::Color::Red;
+
+	palettizeSprite(this->_boxes[3], palette, pal, false);
 	text.setCharacterSize(8);
 	text.setOutlineThickness(0);
 
-	getColorCall(text.setFillColor, palette[3], data2.palette);
+	getColorCall(text.setFillColor, palette[3], pal);
 	sprite.setPosition({72, 72});
 	target.draw(sprite);
 
-	if (this->_hasColor) {
-		if (palette[2] == 0 || palette[2] == 3)
-			healthColor = data2.palette[palette[2]];
-		else if (palette[2] == 1)
-			healthColor = sf::Color::Yellow;
-		else if (percent >= 0.5)
-			healthColor = sf::Color::Green;
-		else if (percent >= 0.1)
-			healthColor = sf::Color{255, 128, 0, 255};
-		else
-			healthColor = sf::Color::Red;
-	} else
-		healthColor = Gen1Renderer::_getDmgColor(palette[2]);
-	rect.setFillColor(healthColor);
+	getColorCall(rect.setFillColor, palette[2], pal);
 	rect.setSize({std::round(48 * percent), 4});
 	rect.setPosition({95, 73});
 	target.draw(rect);
 
-	palettizeSprite(this->_hpOverlay, palette, data2.palette, false);
+	palettizeSprite(this->_hpOverlay, palette, pal, false);
 	sprite.setTexture(this->_hpOverlay.texture, true);
 	sprite.setPosition({80, 72});
 	target.draw(sprite);
@@ -1159,7 +1187,7 @@ void Gen1Renderer::_displayMyStats(sf::RenderTarget &target, const Pokemon &pkmn
 		text.setString(std::to_string(pkmn.level));
 		if (pkmn.level < 100) {
 			sprite.setPosition({104, 64});
-			palettizeSprite(this->_levelSprite, palette, data2.palette, false);
+			palettizeSprite(this->_levelSprite, palette, pal, false);
 			sprite.setTexture(this->_levelSprite.texture, true);
 			target.draw(sprite);
 			text.setPosition({112, 64});
@@ -1190,35 +1218,27 @@ void Gen1Renderer::_displayOpStats(sf::RenderTarget &target, const Pokemon &pkmn
 	sf::RectangleShape rect;
 	sf::Color healthColor;
 	sf::Text text{this->_font};
-	auto it2 = this->_data.find(this->state.p2.team[this->state.p2.active].id);
-	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
+	std::array<sf::Color, 4> pal = _trainerColors;
 
-	palettizeSprite(this->_boxes[2], palette, data2.palette, true);
+	if (percent >= 0.5)
+		pal[2] = sf::Color::Green;
+	else if (percent >= 0.1)
+		pal[2] = sf::Color{255, 128, 0, 255};
+	else
+		pal[2] = sf::Color::Red;
+
+	palettizeSprite(this->_boxes[2], palette, pal, true);
 	text.setCharacterSize(8);
 	text.setOutlineThickness(0);
-	getColorCall(text.setFillColor, palette[3], data2.palette);
+	getColorCall(text.setFillColor, palette[3], pal);
 	sprite.setPosition({8, 16});
 	target.draw(sprite);
-
-	if (this->_hasColor) {
-		if (palette[2] == 0 || palette[2] == 3)
-			healthColor = data2.palette[palette[2]];
-		else if (palette[2] == 1)
-			healthColor = sf::Color::Yellow;
-		else if (percent >= 0.5)
-			healthColor = sf::Color::Green;
-		else if (percent >= 0.1)
-			healthColor = sf::Color{255, 128, 0, 255};
-		else
-			healthColor = sf::Color::Red;
-	} else
-		healthColor = Gen1Renderer::_getDmgColor(palette[2]);
-	rect.setFillColor(healthColor);
+	getColorCall(rect.setFillColor, palette[2], pal);
 	rect.setSize({std::round(48 * percent), 4});
 	rect.setPosition({31, 17});
 	target.draw(rect);
 
-	palettizeSprite(this->_hpOverlay, palette, data2.palette, false);
+	palettizeSprite(this->_hpOverlay, palette, pal, false);
 	sprite.setTexture(this->_hpOverlay.texture, true);
 	sprite.setPosition({16, 16});
 	target.draw(sprite);
@@ -1243,7 +1263,7 @@ void Gen1Renderer::_displayOpStats(sf::RenderTarget &target, const Pokemon &pkmn
 		text.setString(std::to_string(pkmn.level));
 		if (pkmn.level < 100) {
 			sprite.setPosition({32, 8});
-			palettizeSprite(this->_levelSprite, palette, data2.palette, true);
+			palettizeSprite(this->_levelSprite, palette, pal, true);
 			sprite.setTexture(this->_levelSprite.texture, true);
 			target.draw(sprite);
 			text.setPosition({40, 8});
@@ -2316,14 +2336,49 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 	sprite.setScale({1, -1});
 	target.draw(sprite);
 
+	auto &pkmn = state.team[state.active];
 	auto &tileset = frame.tileset == 1 ? this->_moveTextures[0] : this->_moveTextures[1];
+	auto it2 = this->_data.find(pkmn.id);
+	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
+	auto &ostate = !this->_isPlayer ? this->state.p1 : this->state.p2;
+	auto &opkmn = ostate.team[ostate.active];
+	auto it3 = this->_data.find(opkmn.id);
+	auto &data3 = it3 == this->_data.end() ? this->_missingno : it3->second;
+
+	std::array<sf::Color, 4> pal1 = _trainerColors;
+	float percent1 = static_cast<float>(pkmn.hp) / pkmn.maxHp;
+	std::array<sf::Color, 4> pal2 = _trainerColors;
+	float percent2 = static_cast<float>(opkmn.hp) / opkmn.maxHp;
+
+	if (percent1 >= 0.5)
+		pal1[2] = sf::Color::Green;
+	else if (percent1 >= 0.1)
+		pal1[2] = sf::Color{255, 128, 0, 255};
+	else
+		pal1[2] = sf::Color::Red;
+	if (percent2 >= 0.5)
+		pal2[2] = sf::Color::Green;
+	else if (percent2 >= 0.1)
+		pal2[2] = sf::Color{255, 128, 0, 255};
+	else
+		pal2[2] = sf::Color::Red;
+
+	std::array<std::array<sf::Color, 4> *, 4> pals = {
+		&pal1, &pal2,
+		&data2.palette, &data3.palette,
+	};
 
 	sprite.setTexture(tileset.texture);
 	sprite.setOrigin({4, 4});
 	for (auto &s : frame.sprites) {
 		if (!s.prio)
 			continue;
-		palettizeSprite(tileset, s.palNum == 0 ? frame.pal0 : frame.pal1, _defaultObjColor, true);
+		if (this->_hasColor) {
+			auto &pal = frame.pals[s.palNum];
+
+			tileset.palettize(_defaultPalette, pal.first == 4 ? pal.second : *pals[pal.first], true);
+		} else
+			tileset.palettize(s.palNum == 0 ? frame.pal0 : frame.pal1, true);
 		sprite.setTextureRect({
 			{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
 			{8, 8}
@@ -2345,7 +2400,12 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 	for (auto &s : frame.sprites) {
 		if (s.prio)
 			continue;
-		palettizeSprite(tileset, s.palNum == 0 ? frame.pal0 : frame.pal1, _defaultObjColor, true);
+		if (this->_hasColor) {
+			auto &pal = frame.pals[s.palNum];
+
+			tileset.palettize(_defaultPalette, pal.first == 4 ? pal.second : *pals[pal.first], true);
+		} else
+			tileset.palettize(s.palNum == 0 ? frame.pal0 : frame.pal1, true);
 		sprite.setTextureRect({
 			{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
 			{8, 8}
@@ -2388,6 +2448,9 @@ void Gen1Renderer::consumeEvent(const sf::Event &event)
 
 void Gen1Renderer::previousTurn()
 {
+	if (this->_snapshots.empty())
+		return;
+
 	IRenderer::previousTurn();
 	this->_currentEvent = EVNTTYPE_NONE;
 }
