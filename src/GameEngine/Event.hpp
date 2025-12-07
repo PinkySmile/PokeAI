@@ -190,6 +190,11 @@ namespace PkmnCommon
 		bool hideSubstitute;
 	};
 
+	struct MoveMissEvent {
+		unsigned moveId;
+		bool player;
+	};
+
 	enum SystemAnim {
 		SYSANIM_ASLEEP,
 		SYSANIM_BURN,
@@ -312,6 +317,7 @@ namespace PkmnCommon
 		HitEvent,
 		StatusClearedEvent,
 		TurnStartEvent,
+		MoveMissEvent,
 		GameStartEvent,
 		GameEndEvent
 	> Event;

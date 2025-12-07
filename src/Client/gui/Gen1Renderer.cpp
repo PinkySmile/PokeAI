@@ -24,6 +24,7 @@
 #define _gameResult _gpCounter[6]
 #define _nextAnim _gpCounter[7]
 #define _hideSubstitute _gpCounter[8]
+#define _isMoveAnim _gpCounter[9]
 #define _crySound _gpSound
 #define _moveSound _gpSound
 #define _hitSound _gpSound
@@ -337,6 +338,12 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		this->_animMove = 0;
 		this->_subCounter = 0;
 		this->_currentAnim = 0;
+	} else if (auto miss = std::get_if<MoveMissEvent>(&event)) {
+		auto &p = miss->player ? this->state.p1 : this->state.p2;
+
+		p.hidden = p.acidArmor || p.exploded;
+		this->_currentEvent = EVNTTYPE_ANIM;
+		this->_currentAnim = ANIMTYPE_DELAY;
 	} else if (auto end = std::get_if<GameEndEvent>(&event)) {
 		this->_currentEvent = EVNTTYPE_GAME_END;
 		this->_animCounter = this->_queuedText.size();
@@ -358,6 +365,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		auto it2 = this->_data.find(f.team[f.active].id);
 		auto &pkmn = it2 == this->_data.end() ? this->_missingno : it2->second;
 
+		this->_isMoveAnim = true;
 		this->_nextAnim = 0;
 		this->_hideSubstitute = move->hideSubstitute;
 		this->_isPlayer = move->player;
@@ -388,6 +396,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		auto &state = death->player ? this->state.p1 : this->state.p2;
 
 		state.team[state.active].ko = true;
+		state.team[state.active].hp = 0;
 		this->_currentEvent = EVNTTYPE_DEATH;
 		this->_isPlayer = death->player;
 		this->_animCounter = 0;
@@ -436,7 +445,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 			else if (!anim->isGuaranteed)
 				this->_currentAnim = ANIMTYPE_DELAY;
 			else if (anim->animId % 4 == SYSANIM_ATK_INCREASE % 4 || anim->animId % 4 == SYSANIM_ATK_INCREASE_BIG % 4)
-				; // Ignore increases when it's opponent's turn
+				this->_currentEvent = EVNTTYPE_NONE; // Ignore increases when it's opponent's turn
 			else if (anim->player)
 				this->_currentAnim = ANIMTYPE_STAT_LOWER_PLAYER;
 			else if (!anim->player)
@@ -452,7 +461,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 			};
 			if (anim->isGuaranteed) {
 				this->_onAnimEnd();
-				this->_currentEvent = EVNTTYPE_NONE;
+				this->_currentAnim = ANIMTYPE_DELAY;
 			} else if (!anim->player)
 				this->_currentAnim = ANIMTYPE_STATUS_SIDE_EFFECT_LOWER_OPPONENT;
 			else
@@ -469,6 +478,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 				this->_currentAnim = ANIMTYPE_DELAY;
 		} else if (anim->animId >= SYSANIM_ASLEEP && anim->animId <= SYSANIM_LEECHED) {
 			this->_currentEvent = EVNTTYPE_MOVE;
+			this->_isMoveAnim = false;
 			this->_isPlayer = anim->player;
 			this->_nextAnim = 0;
 			this->_hideSubstitute = false;
@@ -482,11 +492,13 @@ void Gen1Renderer::_handleEvent(const Event &event)
 				this->_moveSound.setBuffer(this->_moveData[Amnesia].sound);
 			} else if (anim->animId == SYSANIM_CONFUSED_HIT) {
 				this->_animMove = Pound;
+				this->_isMoveAnim = true;
 				this->_moveSound.setBuffer(this->_moveData[Pound].sound);
 				this->_isPlayer = !anim->player;
 			} else if (anim->animId == SYSANIM_ASLEEP) {
 				this->_animMove = Rest;
 				this->_moveSound.setBuffer(this->_moveData[Rest].sound);
+				state.hidden = state.acidArmor || state.exploded;
 			} else if (anim->animId == SYSANIM_LEECHED) {
 				this->_animMove = Absorb;
 				this->_moveSound.setBuffer(this->_moveData[Absorb].sound);
@@ -497,6 +509,8 @@ void Gen1Renderer::_handleEvent(const Event &event)
 				this->_currentAnim = ANIMTYPE_DELAY;
 				this->_currentEvent = EVNTTYPE_ANIM;
 				this->_onAnimEnd = nullptr;
+				if (anim->animId == SYSANIM_FROZEN || anim->animId == SYSANIM_PARALYZED)
+					state.hidden = state.acidArmor || state.exploded;
 			}
 		} else if (anim->animId == SYSANIM_WAKE_UP) {
 			this->_currentAnim = ANIMTYPE_DELAY;
@@ -516,6 +530,7 @@ void Gen1Renderer::_handleEvent(const Event &event)
 			throw std::runtime_error("Anim not implemented: " + std::to_string(anim->animId));
 	} else if (auto extraAnim = std::get_if<ExtraAnimEvent>(&event)) {
 		this->_currentEvent = EVNTTYPE_MOVE;
+		this->_isMoveAnim = true;
 		this->_isPlayer = extraAnim->player;
 		this->_nextAnim = 0;
 		this->_hideSubstitute = false;
@@ -842,8 +857,6 @@ bool Gen1Renderer::_updateDeath()
 {
 	auto &p = this->_isPlayer ? this->state.p1 : this->state.p2;
 
-	if (p.exploded)
-		return false;
 	if (this->_animCounter == 40) {
 		this->_faintSound.setBuffer(this->_faint);
 		if (!this->soundDisabled)
@@ -976,10 +989,12 @@ bool Gen1Renderer::_updateMove()
 		}
 	}
 	if (anim.size() == this->_animCounter) {
-		if (this->_isPlayer)
-			this->state.p1.hidden = !anim.back().p1Off.has_value() || this->state.p1.acidArmor || this->state.p1.exploded;
-		else
-			this->state.p2.hidden = !anim.back().p2Off.has_value() || this->state.p2.acidArmor || this->state.p2.exploded;
+		if (this->_isMoveAnim) {
+			if (this->_isPlayer)
+				this->state.p1.hidden = !anim.back().p1Off.has_value() || this->state.p1.acidArmor || this->state.p1.exploded;
+			else
+				this->state.p2.hidden = !anim.back().p2Off.has_value() || this->state.p2.acidArmor || this->state.p2.exploded;
+		}
 		if (!state.hidden && this->_hideSubstitute && state.substitute && this->_animMove != Substitute) {
 			this->_subSpawnTimer = 0;
 			this->_subSpawnUnspawn = 1;

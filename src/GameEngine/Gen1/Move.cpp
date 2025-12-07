@@ -740,6 +740,7 @@ namespace PokemonGen1
 		if (this->_category == STATUS && !this->_foeChange.empty() && target.isMisted()) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
 			logger(PkmnCommon::TextEvent{"But, it failed!"});
+			logger(PkmnCommon::MoveMissEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
 			return false;
 		}
 
@@ -756,16 +757,19 @@ namespace PokemonGen1
 		))) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
 			logger(PkmnCommon::TextEvent{"But, it failed!"});
+			logger(PkmnCommon::MoveMissEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
 			return false;
 		}
 		if (this->getID() == Whirlwind || this->getID() == Roar) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
 			logger(PkmnCommon::TextEvent{target.getName() + " is unaffected!"});
+			logger(PkmnCommon::MoveMissEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
 			return false;
 		}
 		if (this->getID() == Teleport) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
 			logger(PkmnCommon::TextEvent{"But, it failed!"});
+			logger(PkmnCommon::MoveMissEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
 			return false;
 		}
 
@@ -815,14 +819,18 @@ namespace PokemonGen1
 			this->_statusChange.status != STATUS_CONFUSED &&
 			this->_statusChange.status != STATUS_LEECHED
 		) {
-			auto s = messages[this->_statusChange.status];
-			auto pos = s.find("<TARGET>");
+			if (target.hasStatus(this->_statusChange.status)) {
+				auto s = messages[this->_statusChange.status];
+				auto pos = s.find("<TARGET>");
 
-			if (pos != std::string::npos)
-				s.replace(pos, 8, target.getName());
-			logger(PkmnCommon::TextEvent{s});
+				if (pos != std::string::npos)
+					s.replace(pos, 8, target.getName());
+				logger(PkmnCommon::TextEvent{s});
+			} else
+				logger(PkmnCommon::TextEvent{"It didn't affect " + target.getName() + "!"});
 			if (this->_missCallback)
 				this->_missCallback(this->getID(), owner, target, this->isFinished(), logger);
+			logger(PkmnCommon::MoveMissEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
 			return false;
 		}
 		if ((this->_category != STATUS || this->_type == TYPE_ELECTRIC) && getAttackDamageMultiplier(this->_type, target.getTypes()) == 0) {
@@ -834,6 +842,7 @@ namespace PokemonGen1
 			logger(PkmnCommon::TextEvent{"It didn't affect " + target.getName() + "!"});
 			if (this->_missCallback)
 				this->_missCallback(this->getID(), owner, target, this->isFinished(), logger);
+			logger(PkmnCommon::MoveMissEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
 			return false;
 		}
 
@@ -843,6 +852,7 @@ namespace PokemonGen1
 			rng(); // Crit-check, but result doesn't matter
 			if (owner.getSpeed() < target.getSpeed()) {
 				logger(PkmnCommon::TextEvent{target.getName() + " is unaffected!"});
+				logger(PkmnCommon::MoveMissEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
 				return false;
 			}
 			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, false, true, false, false);
@@ -874,6 +884,7 @@ namespace PokemonGen1
 				owner.getBattleState().lastDamage == 0
 			) {
 				logger(PkmnCommon::TextEvent{owner.getName() + "'s attack missed!"});
+				logger(PkmnCommon::MoveMissEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
 				return false;
 			}
 		}
@@ -904,12 +915,14 @@ namespace PokemonGen1
 			else if (!this->_power)
 				logger(PkmnCommon::TextEvent{"But, it failed!"});
 			owner.getBattleState().lastDamage = 0;
+			logger(PkmnCommon::MoveMissEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
 			return false;
 		}
 		if (this->_statusChange.status == STATUS_LEECHED && (target.getStatus() & STATUS_LEECHED)) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
 			// https://github.com/pret/pokeyellow/blob/d237b01cfb241f417567c964e0df0658cf921570/data/text/text_5.asm#L191
 			logger(PkmnCommon::TextEvent{target.getName() + " evaded attack!"});
+			logger(PkmnCommon::MoveMissEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
 			return false;
 		}
 
@@ -921,6 +934,7 @@ namespace PokemonGen1
 			logger(PkmnCommon::TextEvent{messages[this->_statusChange.status]});
 			if (this->_missCallback)
 				this->_missCallback(this->getID(), owner, target, this->isFinished(), logger);
+			logger(PkmnCommon::MoveMissEvent{.moveId = this->getID(), .player = !owner.isEnemy()});
 			return false;
 		}
 
