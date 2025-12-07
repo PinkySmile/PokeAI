@@ -6,10 +6,13 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <random>
 #include "Gen1Renderer.hpp"
 #include "GameEngine/Gen1/BattleHandler.hpp"
 #include "nlohmann/json.hpp"
 #include "GameEngine/Gen1/Team.hpp"
+
+std::random_device dev;
 
 PokemonGen1::BattleAction basic_opponent(PokemonGen1::PlayerState &me, PokemonGen1::PlayerState &op)
 {
@@ -33,10 +36,22 @@ PokemonGen1::BattleAction basic_opponent(PokemonGen1::PlayerState &me, PokemonGe
 	return PokemonGen1::StruggleMove;
 }
 
+/*typedef std::map<PokemonGen1::BattleAction, unsigned> (*AILayer)(PokemonGen1::PlayerState &me, PokemonGen1::PlayerState &op)
+
+std::map<PokemonGen1::BattleAction, unsigned> basic_layer(PokemonGen1::PlayerState &me, PokemonGen1::PlayerState &op)
+{
+	
+}
+
+PokemonGen1::BattleAction layered_ai(PokemonGen1::PlayerState &me, PokemonGen1::PlayerState &op, std::vector<AILayer> layers)
+{
+
+}*/
+
 int main(int argc, char **argv)
 {
 	std::string version;
-	bool colors = false;
+	bool colors = true;
 	std::string replay;
 	unsigned turn = 0;
 	bool argsDisabled = false;
@@ -47,7 +62,7 @@ int main(int argc, char **argv)
 				argsDisabled = true;
 				continue;
 			} else if (strcmp(argv[index], "-c") == 0) {
-				colors = true;
+				colors = false;
 				continue;
 			} else if (strcmp(argv[index], "-r") == 0) {
 				version = "r";
@@ -73,7 +88,7 @@ int main(int argc, char **argv)
 
 	PokemonGen1::BattleHandler handler{false, false};
 	auto &state = handler.getBattleState();
-	Gen1Renderer renderer{version};
+	Gen1Renderer renderer{version, colors};
 
 	state.battleLogger = [&renderer](const PkmnCommon::Event &event){
 		if (auto text = std::get_if<PkmnCommon::TextEvent>(&event))
@@ -93,7 +108,6 @@ int main(int argc, char **argv)
 			valid.emplace_back(base.first);
 		}
 
-		std::random_device dev;
 		std::uniform_int_distribution<size_t> dist{0, valid.size() - 1};
 
 		for (int i = 0; i < 6; i++)

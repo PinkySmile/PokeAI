@@ -14,7 +14,7 @@
 
 class Gen1Renderer : public IRenderer {
 public:
-	Gen1Renderer(const std::string &variant);
+	Gen1Renderer(const std::string &variant, bool hasColors);
 	~Gen1Renderer() override = default;
 	void update() override;
 	void render(sf::RenderTarget &) override;
@@ -32,9 +32,12 @@ private:
 		sf::Texture texture;
 		sf::Image source;
 		unsigned char palette = (0 << 0) | (1 << 2) | (2 << 4) | (3 << 6);
+		std::array<sf::Color, 4> paletteColors;
+		bool useColors = false;
 		bool transparent = false;
 
 		void palettize(const std::array<unsigned, 4> &palette, bool transparent, bool force=false);
+		void palettize(const std::array<unsigned, 4> &colors, const std::array<sf::Color, 4> &palette, bool transparent, bool force=false);
 		void init(const std::filesystem::path &path);
 	};
 
@@ -45,6 +48,7 @@ private:
 		PalettedSprite front;
 		PalettedSprite back;
 		sf::Texture icon;
+		std::array<sf::Color, 4> palette;
 	};
 
 	struct MoveSprite {

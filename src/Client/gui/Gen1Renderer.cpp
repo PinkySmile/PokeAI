@@ -5,6 +5,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <variant>
+#include <iostream>
 #include "Gen1Renderer.hpp"
 
 #define _isPlayer _gpCounter[0]
@@ -100,9 +101,42 @@ void Gen1Renderer::_loadPokemonData(PokemonData &data, const std::string &folder
 	(void)data.cry.loadFromFile("assets/gen1/pokemons/" + folder + "/cry.ogg");
 	(void)data.roar.loadFromFile("assets/gen1/moves/sounds/move_46/" + folder + ".ogg");
 	(void)data.growl.loadFromFile("assets/gen1/moves/sounds/move_45/" + folder + ".ogg");
+	
+	std::string path = "assets/gen1/pokemons/" + folder + "/color.pal";
+	std::ifstream stream{path, std::fstream::binary};
+	std::array<unsigned short, 4> pal;
+
+	if (!stream) {
+		std::cerr << "Failed to load " << path << std::endl;
+		return;
+	}
+	stream.read(reinterpret_cast<char *>(pal.data()), 8);
+	if (!stream) {
+		std::cerr << "Failed to load " << path << std::endl;
+		return;
+	}
+
+	for (size_t i = 0; i < 4; i++) {
+		auto gbc_color = pal[i];
+		auto &result = data.palette[i];
+
+		result.r = ((gbc_color >> 0U)  & 0x1FU) * 255 / 31;
+		result.g = ((gbc_color >> 5U)  & 0x1FU) * 255 / 31;
+		result.b = ((gbc_color >> 10U) & 0x1FU) * 255 / 31;
+
+		int f = (result.g * 3 + result.b) / 4;
+
+		if (f < 0)
+			result.g = 0;
+		else if (f > 255)
+			result.g = 255;
+		else
+			result.g = f;
+	}
 }
 
-Gen1Renderer::Gen1Renderer(const std::string &variant) :
+Gen1Renderer::Gen1Renderer(const std::string &variant, bool hasColors) :
+	_hasColor(hasColors),
 	_font("assets/gen1/font.ttf")
 {
 	std::string music = "battle0";
@@ -266,10 +300,16 @@ const sf::Texture &Gen1Renderer::getPkmnFace(unsigned int pkmnId)
 	auto it = this->_data.find(pkmnId);
 
 	if (it == this->_data.end()) {
-		this->_missingno.front.palettize({0, 1, 2, 3}, false);
+		if (this->_hasColor)
+			this->_missingno.front.palettize({0, 1, 2, 3}, this->_missingno.palette, false);
+		else
+			this->_missingno.front.palettize({0, 1, 2, 3}, false);
 		return this->_missingno.front.texture;
 	}
-	it->second.front.palettize({0, 1, 2, 3}, false);
+	if (this->_hasColor)
+		it->second.front.palettize({0, 1, 2, 3}, it->second.palette, false);
+	else
+		it->second.front.palettize({0, 1, 2, 3}, false);
 	return it->second.front.texture;
 }
 
@@ -1220,6 +1260,9 @@ void Gen1Renderer::_displayMyFace(sf::RenderTarget &target, unsigned pkmnId, con
 	sf::Sprite sprite{data.back.texture};
 	auto size = data.back.texture.getSize();
 
+	auto it2 = this->_data.find(this->state.p1.team[this->state.p1.active].id);
+	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
+
 	if (offset.y > 0) {
 		basePos.y += offset.y * 8.f;
 		sprite.setTextureRect({{0, 0}, {static_cast<int>(size.x), static_cast<int>(size.y) - offset.y * 4 - 4}});
@@ -1228,7 +1271,10 @@ void Gen1Renderer::_displayMyFace(sf::RenderTarget &target, unsigned pkmnId, con
 			{0, static_cast<int>(-offset.y * 4.f)},
 			{static_cast<int>(size.x), static_cast<int>(size.y) + offset.y * 4}
 		});
-	data.back.palettize(palette, true);
+	if (this->_hasColor)
+		data.back.palettize(palette, data2.palette, true);
+	else
+		data.back.palettize(palette, true);
 	if (pkmnId < 256)
 		sprite.setScale({2, 2});
 	sprite.setPosition(basePos);
@@ -1247,6 +1293,9 @@ void Gen1Renderer::_displayOpFace(sf::RenderTarget &target, unsigned pkmnId, con
 	sf::Sprite sprite{data.front.texture};
 	auto size = data.front.source.getSize();
 
+	auto it2 = this->_data.find(this->state.p2.team[this->state.p2.active].id);
+	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
+
 	if (offset.y > 0) {
 		basePos.y += offset.y * 8.f;
 		sprite.setTextureRect({{0, 0}, {static_cast<int>(size.x), static_cast<int>(size.y) - offset.y * 8}});
@@ -1257,7 +1306,10 @@ void Gen1Renderer::_displayOpFace(sf::RenderTarget &target, unsigned pkmnId, con
 		});
 	basePos.x += static_cast<int>(56.f - size.x) / 16 * 8;
 	basePos.y += 56 - size.y;
-	data.front.palettize(palette, true);
+	if (this->_hasColor)
+		data.front.palettize(palette, data2.palette, true);
+	else
+		data.front.palettize(palette, true);
 	sprite.setPosition(basePos);
 	if (sprite.getTextureRect().size.y > 0)
 		target.draw(sprite);
@@ -1274,8 +1326,13 @@ void Gen1Renderer::_displayMyShrunkFace(sf::RenderTarget &target, unsigned int p
 	sf::Sprite sprite{data.back.texture};
 	auto size = data.back.texture.getSize();
 	auto realSize = size;
+	auto it2 = this->_data.find(this->state.p1.team[this->state.p1.active].id);
+	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
-	data.back.palettize(palette, true);
+	if (this->_hasColor)
+		data.back.palettize(palette, data2.palette, true);
+	else
+		data.back.palettize(palette, true);
 	if (pkmnId < 256) {
 		sprite.setScale({2, 2});
 		realSize.x *= 2;
@@ -1316,10 +1373,16 @@ void Gen1Renderer::_displayOpShrunkFace(sf::RenderTarget &target, unsigned int p
 	sf::Sprite sprite{data.front.texture};
 	auto size = data.front.source.getSize();
 	auto realSize = size;
+	auto it2 = this->_data.find(this->state.p2.team[this->state.p2.active].id);
+	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
+
+	if (this->_hasColor)
+		data.front.palettize(palette, data2.palette, true);
+	else
+		data.front.palettize(palette, true);
 
 	basePos.x += static_cast<int>(56.f - size.x) / 16 * 8;
 	basePos.y += 56 - size.y;
-	data.front.palettize(palette, true);
 	if (current < max / 2) {
 		sprite.setTextureRect({
 			{0, 0},
@@ -1658,7 +1721,14 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		basePos.x += static_cast<int>(56.f - size.x) / 16 * 8;
 		basePos.y += 56 - size.y;
 
-		data.front.palettize({0, 1, 2, 3}, true);
+		auto it2 = this->_data.find(this->state.p2.team[this->state.p2.active].id);
+		auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
+
+		if (this->_hasColor)
+			data.front.palettize({0, 1, 2, 3}, data2.palette, true);
+		else
+			data.front.palettize({0, 1, 2, 3}, true);
+
 		sprite.setTexture(data.front.texture, true);
 		sprite.setScale({mul, mul});
 		sprite.setPosition({
@@ -1764,11 +1834,17 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		auto &data = it == this->_data.end() ? this->_missingno : it->second;
 		float mul = 5.f * this->_animCounter / 60.f;
 		auto size = data.back.texture.getSize();
+		auto it2 = this->_data.find(this->state.p1.team[this->state.p1.active].id);
+		auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
+
+		if (this->_hasColor)
+			data.back.palettize({0, 1, 2, 3}, data2.palette, true);
+		else
+			data.back.palettize({0, 1, 2, 3}, true);
 
 		size.y -= 4;
 		size.x *= 2;
 		size.y *= 2;
-		data.back.palettize({0, 1, 2, 3}, true);
 		sprite.setTexture(data.back.texture, true);
 		sprite.setScale({mul * 2, mul * 2});
 		sprite.setPosition({
@@ -1957,11 +2033,16 @@ void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
 		auto &data = it == this->_data.end() ? this->_missingno : it->second;
 		auto size = data.back.texture.getSize();
 		sf::Sprite sprite{data.back.texture};
+		auto it2 = this->_data.find(this->state.p1.team[this->state.p1.active].id);
+		auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
+		if (this->_hasColor)
+			data.back.palettize({0, 1, 2, 3}, data2.palette, true);
+		else
+			data.back.palettize({0, 1, 2, 3}, true);
 		size.y -= 4;
 		size.x *= 2;
 		size.y *= 2;
-		data.back.palettize({0, 1, 2, 3}, true);
 		sprite.setScale({mul * 2, mul * 2});
 		sprite.setPosition({
 			8 + (size.x - size.x * mul) / 2,
@@ -1975,11 +2056,16 @@ void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
 		sf::Vector2f basePos{96, 0};
 		auto size = data.front.texture.getSize();
 		sf::Sprite sprite{data.front.texture};
+		auto it2 = this->_data.find(this->state.p2.team[this->state.p2.active].id);
+		auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
+		if (this->_hasColor)
+			data.front.palettize({0, 1, 2, 3}, data2.palette, true);
+		else
+			data.front.palettize({0, 1, 2, 3}, true);
 		basePos.x += static_cast<int>(56.f - size.x) / 16 * 8;
 		basePos.y += 56 - size.y;
 
-		data.front.palettize({0, 1, 2, 3}, true);
 		sprite.setScale({mul, mul});
 		sprite.setPosition({
 			basePos.x + (size.x - size.x * mul) / 2,
@@ -2312,26 +2398,63 @@ void Gen1Renderer::PalettedSprite::palettize(const std::array<unsigned int, 4> &
 {
 	unsigned newPalette = (palette[0] << 0) | (palette[1] << 2) | (palette[2] << 4) | (palette[3] << 6);
 
-	if (newPalette == this->palette && transparent == this->transparent && !force)
+	if (newPalette == this->palette && transparent == this->transparent && !force && !this->useColors)
 		return;
 	this->transparent = transparent;
 	this->palette = newPalette;
+	this->useColors = false;
 
 	sf::Image img{this->source.getSize()};
-	std::array<sf::Color, 4> pal;
 
-	pal[0] = sf::Color::Transparent;
+	this->paletteColors[0] = sf::Color::Transparent;
 	for (size_t i = transparent; i < 4; i++)
-		pal[i] = Gen1Renderer::_getDmgColor(palette[i]);
+		this->paletteColors[i] = Gen1Renderer::_getDmgColor(palette[i]);
 	for (unsigned x = 0; x < img.getSize().x; x++)
 		for (unsigned y = 0; y < img.getSize().y; y++) {
 			auto c = this->source.getPixel({x, y});
 
 			if (c.a == 0) img.setPixel({x, y}, sf::Color::Transparent);
-			else if (c.r < 0x40) img.setPixel({x, y}, pal[3]);
-			else if (c.r < 0xA0) img.setPixel({x, y}, pal[2]);
-			else if (c.r < 0xF0) img.setPixel({x, y}, pal[1]);
-			else img.setPixel({x, y}, pal[0]);
+			else if (c.r < 0x40) img.setPixel({x, y}, this->paletteColors[3]);
+			else if (c.r < 0xA0) img.setPixel({x, y}, this->paletteColors[2]);
+			else if (c.r < 0xF0) img.setPixel({x, y}, this->paletteColors[1]);
+			else img.setPixel({x, y}, this->paletteColors[0]);
+		}
+	(void)this->texture.loadFromImage(img);
+}
+
+void Gen1Renderer::PalettedSprite::palettize(const std::array<unsigned, 4> &color, const std::array<sf::Color, 4> &palette, bool transparent, bool force)
+{
+	if (
+		this->paletteColors[0] == palette[color[0]] &&
+		this->paletteColors[1] == palette[color[1]] &&
+		this->paletteColors[2] == palette[color[2]] &&
+		this->paletteColors[3] == palette[color[3]] &&
+		transparent == this->transparent &&
+		!force &&
+		this->useColors
+	)
+		return;
+	this->transparent = transparent;
+	this->useColors = true;
+
+	sf::Image img{this->source.getSize()};
+
+	this->paletteColors[0] = palette[color[0]];
+	this->paletteColors[1] = palette[color[1]];
+	this->paletteColors[2] = palette[color[2]];
+	this->paletteColors[3] = palette[color[3]];
+
+	if (transparent)
+		this->paletteColors[0] = sf::Color::Transparent;
+	for (unsigned x = 0; x < img.getSize().x; x++)
+		for (unsigned y = 0; y < img.getSize().y; y++) {
+			auto c = this->source.getPixel({x, y});
+
+			if (c.a == 0) img.setPixel({x, y}, sf::Color::Transparent);
+			else if (c.r < 0x40) img.setPixel({x, y}, this->paletteColors[3]);
+			else if (c.r < 0xA0) img.setPixel({x, y}, this->paletteColors[2]);
+			else if (c.r < 0xF0) img.setPixel({x, y}, this->paletteColors[1]);
+			else img.setPixel({x, y}, this->paletteColors[0]);
 		}
 	(void)this->texture.loadFromImage(img);
 }
