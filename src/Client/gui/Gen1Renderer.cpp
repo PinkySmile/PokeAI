@@ -2368,6 +2368,18 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 		&data2.palette, &data3.palette,
 	};
 
+	if (this->_isPlayer) {
+		pals[0] = &pal1;
+		pals[1] = &pal2;
+		pals[2] = &data2.palette;
+		pals[3] = &data3.palette;
+	} else {
+		pals[0] = &pal2;
+		pals[1] = &pal1;
+		pals[2] = &data3.palette;
+		pals[3] = &data2.palette;
+	}
+
 	sprite.setTexture(tileset.texture);
 	sprite.setOrigin({4, 4});
 	for (auto &s : frame.sprites) {
