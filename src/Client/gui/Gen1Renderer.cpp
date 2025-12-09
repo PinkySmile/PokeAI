@@ -190,6 +190,7 @@ void Gen1Renderer::_loadPokemonData(PokemonData &data, const std::string &folder
 
 Gen1Renderer::Gen1Renderer(const std::string &variant, bool hasColors) :
 	_hasColor(hasColors),
+	_lastFrame(Gen1Renderer::getSize()),
 	_font("assets/gen1/font.ttf")
 {
 	std::string music = "battle0";
@@ -318,7 +319,15 @@ void Gen1Renderer::update()
 
 void Gen1Renderer::render(sf::RenderTarget &target)
 {
+	sf::Sprite sprite{this->_lastFrame.getTexture()};
+
 	(this->*Gen1Renderer::_renderers[this->_currentEvent])(target);
+	sprite.setColor(sf::Color{0xFF, 0xFF, 0xFF, 0x80});
+	sprite.setScale({1, -1});
+	sprite.setPosition({0, 144});
+	target.draw(sprite);
+
+	(this->*Gen1Renderer::_renderers[this->_currentEvent])(this->_lastFrame);
 
 	sf::Text text{this->_font};
 

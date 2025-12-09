@@ -197,6 +197,6 @@
                 {"x": 8, "y": 80, "id": 24, "pal_num": 0, "flip": [false, false], "prio": false},
                 {"x": 16, "y": 80, "id": 25, "pal_num": 0, "flip": [false, false], "prio": false}
             ]},
-            {"palB": [0, 1, 2, 3], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 13, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "pals": [], "sprites": []}
+            {"palB": [0, 1, 2, 3], "pal1": [0, 1, 2, 3], "pal2": [0, 3, 2, 1], "duration": 16, "scx": 2, "scy": 0, "wx": 0, "wy": 0, "tileset": 2, "p1": [0, 0], "p2": [0, 0], "pals": [], "sprites": []}
     ]
 }

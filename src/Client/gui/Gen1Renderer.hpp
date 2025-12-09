@@ -157,6 +157,7 @@ private:
 	sf::Texture _arrows[2];
 	sf::Texture _choicesHUD;
 	sf::Texture _attackHUD;
+	sf::RenderTexture _lastFrame;
 	PalettedSprite _balls[4];
 	PalettedSprite _waitingHUD;
 	PalettedSprite _trainer[2];

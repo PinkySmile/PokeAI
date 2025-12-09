@@ -60,6 +60,8 @@ IRenderer::GameState fromGen1(const PokemonGen1::BattleState &state)
 	result.p1.active = state.me.pokemonOnField;
 	result.p1.spriteId = state.me.team[state.me.pokemonOnField].getID();
 	result.p1.hidden = false;
+	result.p1.acidArmor = false;
+	result.p1.exploded = false;
 	for (unsigned i = 0; i < result.p1.team.size() && i < state.me.team.size(); i++) {
 		auto &po = result.p1.team[i];
 		auto &pi = state.me.team[i];
@@ -95,6 +97,8 @@ IRenderer::GameState fromGen1(const PokemonGen1::BattleState &state)
 	result.p2.active = state.op.pokemonOnField;
 	result.p2.spriteId = state.op.team[state.me.pokemonOnField].getID();
 	result.p2.hidden = false;
+	result.p2.acidArmor = false;
+	result.p2.exploded = false;
 	for (unsigned i = 0; i < result.p2.team.size() && i < state.op.team.size(); i++) {
 		auto &po = result.p2.team[i];
 		auto &pi = state.op.team[i];
