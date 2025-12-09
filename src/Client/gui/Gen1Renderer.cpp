@@ -2442,7 +2442,7 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 			{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
 			{8, 8}
 		});
-		sprite.setPosition({s.x + 4.f, s.y + 4.f});
+		sprite.setPosition({static_cast<float>(round(s.x + 4.f)), static_cast<float>(round(s.y + 4.f))});
 		sprite.setScale({s.flip.first ? -1.f : 1.f, s.flip.second ? -1.f : 1.f});
 		target.draw(sprite);
 	}
