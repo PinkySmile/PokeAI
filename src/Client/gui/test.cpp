@@ -52,6 +52,7 @@ int main(int argc, char **argv)
 {
 	std::string version;
 	bool colors = true;
+	bool testMoves = false;
 	std::string replay;
 	unsigned turn = 0;
 	bool argsDisabled = false;
@@ -63,6 +64,9 @@ int main(int argc, char **argv)
 				continue;
 			} else if (strcmp(argv[index], "-c") == 0) {
 				colors = false;
+				continue;
+			} else if (strcmp(argv[index], "-m") == 0) {
+				testMoves = true;
 				continue;
 			} else if (strcmp(argv[index], "-r") == 0) {
 				version = "r";
@@ -95,7 +99,23 @@ int main(int argc, char **argv)
 			puts(text->message.c_str());
 		renderer.consumeEvent(event);
 	};
-	if (replay.empty()) {
+	if (testMoves) {
+		memset((void*)&renderer.state, 0, sizeof(renderer.state));
+		renderer.state.p1.spriteId = PokemonGen1::Pikachu;
+		strcpy(renderer.state.p1.team[0].name, "PIKACHU");
+		renderer.state.p1.team[0].id = PokemonGen1::Pikachu;
+		renderer.state.p1.team[0].hp = 50;
+		renderer.state.p1.team[0].maxHp = 75;
+		renderer.state.p1.team[0].level = 75;
+		renderer.state.p1.active = 0;
+		renderer.state.p2.spriteId = PokemonGen1::Clefairy;
+		strcpy(renderer.state.p2.team[0].name, "CLEFAIRY");
+		renderer.state.p2.team[0].id = PokemonGen1::Clefairy;
+		renderer.state.p2.team[0].hp = 50;
+		renderer.state.p2.team[0].maxHp = 75;
+		renderer.state.p2.team[0].level = 100;
+		renderer.state.p2.active = 0;
+	} else if (replay.empty()) {
 		state.me.name = "Player 1";
 		state.op.name = "Player 2";
 		state.rng.makeRandomList(9);
@@ -140,10 +160,26 @@ int main(int argc, char **argv)
 			);
 	} else
 		handler.loadReplay(replay);
-	handler.start();
-	renderer.state = fromGen1(state);
 
-	try {
+	if (testMoves) {
+		std::ifstream stream{"assets/gen1/moves/list.json"};
+		nlohmann::json json;
+
+		stream >> json;
+		for (auto &id : json) {
+			renderer.consumeEvent(PkmnCommon::Event(PkmnCommon::TurnStartEvent{}));
+			renderer.consumeEvent(PkmnCommon::Event(PkmnCommon::TextEvent{"PIKACHU used " + PokemonGen1::availableMoves[id].getName() + "!"}));
+			renderer.consumeEvent(PkmnCommon::Event(PkmnCommon::MoveEvent{id, true, false}));
+			if (id == PkmnCommon::Explosion || id == PkmnCommon::Self_Destruct)
+				renderer.consumeEvent(PkmnCommon::Event(PkmnCommon::SwitchEvent{0, true}));
+			renderer.consumeEvent(PkmnCommon::Event(PkmnCommon::TextEvent{"CLEFAIRY used " + PokemonGen1::availableMoves[id].getName() + "!"}));
+			renderer.consumeEvent(PkmnCommon::Event(PkmnCommon::MoveEvent{id, false, false}));
+			if (id == PkmnCommon::Explosion || id == PkmnCommon::Self_Destruct)
+				renderer.consumeEvent(PkmnCommon::Event(PkmnCommon::SwitchEvent{0, false}));
+		}
+	} else try {
+		handler.start();
+		renderer.state = fromGen1(state);
 		while (!handler.isFinished()) {
 			if (replay.empty()) {
 				state.me.nextAction = basic_opponent(state.me, state.op);
@@ -168,6 +204,8 @@ int main(int argc, char **argv)
 
 	bool paused = false;
 	bool ok = false;
+	unsigned div = 1;
+	unsigned mul = 1;
 
 	try {
 		while (win.isOpen()) {
@@ -183,6 +221,24 @@ int main(int argc, char **argv)
 						renderer.nextTurn();
 					if (key->code == sf::Keyboard::Key::Left)
 						renderer.previousTurn();
+					if (key->code == sf::Keyboard::Key::Up) {
+						if (div == 1) {
+							mul++;
+							win.setFramerateLimit(60 * mul);
+						} else {
+							div--;
+							win.setFramerateLimit(60 / div);
+						}
+					}
+					if (key->code == sf::Keyboard::Key::Down) {
+						if (mul == 1) {
+							div++;
+							win.setFramerateLimit(60 / div);
+						} else {
+							mul--;
+							win.setFramerateLimit(60 * mul);
+						}
+					}
 					if (key->code == sf::Keyboard::Key::Home)
 						renderer.goToTurn(0);
 					if (key->code == sf::Keyboard::Key::End)

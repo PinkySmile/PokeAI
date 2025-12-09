@@ -137,6 +137,7 @@ void Gen1Renderer::_loadMoveFrames(std::vector<MoveAnim> &m, const nlohmann::jso
 			sprite.flip = j["flip"].get<std::pair<bool, bool>>();
 			sprite.prio = j["prio"];
 		}
+		assert(!anim.pals.empty() || anim.sprites.empty());
 	}
 }
 
@@ -1314,13 +1315,23 @@ void Gen1Renderer::_displayMyFace(sf::RenderTarget &target, unsigned pkmnId, con
 	auto it2 = this->_data.find(this->state.p1.team[this->state.p1.active].id);
 	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
-	if (offset.y > 0) {
+	if (pkmnId < 256) {
+		sprite.setScale({2, 2});
+		if (offset.y > 0) {
+			basePos.y += offset.y * 8.f;
+			sprite.setTextureRect({{0, 0}, {static_cast<int>(size.x), static_cast<int>(size.y) - offset.y * 4 - 4}});
+		} else if (offset.y < 0)
+			sprite.setTextureRect({
+				{0, static_cast<int>(-offset.y * 4.f)},
+				{static_cast<int>(size.x), static_cast<int>(size.y) + offset.y * 4}
+			});
+	} else if (offset.y > 0) {
 		basePos.y += offset.y * 8.f;
-		sprite.setTextureRect({{0, 0}, {static_cast<int>(size.x), static_cast<int>(size.y) - offset.y * 4 - 4}});
+		sprite.setTextureRect({{0, 0}, {static_cast<int>(size.x), static_cast<int>(size.y) - offset.y * 8 - 8}});
 	} else if (offset.y < 0)
 		sprite.setTextureRect({
-			{0, static_cast<int>(-offset.y * 4.f)},
-			{static_cast<int>(size.x), static_cast<int>(size.y) + offset.y * 4}
+			{0, static_cast<int>(-offset.y * 8.f)},
+			{static_cast<int>(size.x), static_cast<int>(size.y) + offset.y * 8 - 8}
 		});
 	palettizeSprite(data.back, palette, data2.palette, true);
 	if (pkmnId < 256)

@@ -42,7 +42,7 @@ public:
 		unsigned maxPp = 0;
 		unsigned power;
 		unsigned acc;
-		std::string desc;
+		char desc[256];
 	};
 
 	struct Pokemon {
