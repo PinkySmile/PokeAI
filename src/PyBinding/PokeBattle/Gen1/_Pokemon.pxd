@@ -7,6 +7,7 @@ from libcpp.pair cimport pair
 from libcpp.string cimport string
 from libcpp.functional cimport function
 from libcpp.set cimport set
+from libcpp.variant import variant, get
 
 from ._Damage cimport DamageResult
 from ._Type cimport Type
@@ -15,6 +16,7 @@ from ._Move cimport Move, AvailableMove, MoveCategory
 from ._StatsChange cimport StatsChange
 from ._StatusChange cimport StatusChange
 from ._RandomGenerator cimport RandomGenerator
+from ._Event cimport Event
 
 
 cdef extern from "<array>" namespace "std" nogil:
@@ -23,9 +25,9 @@ cdef extern from "<array>" namespace "std" nogil:
 		unsigned char &operator[](size_t)
 
 
-cdef extern from "<GameEngine/Pokemon.hpp>" namespace "PokemonGen1":
+cdef extern from "<GameEngine/Gen1/Pokemon.hpp>" namespace "PokemonGen1":
 	cdef cppclass Pokemon:
-		ctypedef function[void (const string &)] Logger
+		ctypedef function[void (const Event &)] Logger
 
 		struct BaseStats:
 			unsigned       HP
@@ -74,7 +76,7 @@ cdef extern from "<GameEngine/Pokemon.hpp>" namespace "PokemonGen1":
 		bool addStatus(StatusChange status)
 		bool addStatus(StatusChange status, unsigned duration)
 		void resetStatsChanges()
-		bool changeStat(StatsChange stat, char nb)
+		bool changeStat(StatsChange stat, char nb, bool guarenteed, bool turn)
 		void useMove(const Move &move, Pokemon &target)
 		void storeDamages(bool active)
 		bool hasStatus(StatusChange status) const
@@ -303,10 +305,6 @@ cdef extern from "<GameEngine/Pokemon.hpp>" namespace "PokemonGen1":
 		Victreebel,
 		Missingno
 
-	cdef Pokemon.Logger pythonLoggerLambda(void *python_function, void (*eval)(void *, const string &))
+	cdef Pokemon.Logger pythonLoggerLambda(void *python_function, void (*eval)(void *, const Event &))
 
 	const map[unsigned char, Pokemon.Base] pokemonList
-
-cdef inline void evalLogger(void *func_p, const string &msg) noexcept:
-	f: bytes = msg
-	(<object> func_p)(f.decode('ASCII'))

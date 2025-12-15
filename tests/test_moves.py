@@ -1066,6 +1066,8 @@ debug = args.debug
 jobs = 1 if debug else int(args.jobs)
 
 tests_ran = 0
+tests_f = 0
+tests_s = 0
 if args.test is None:
 	tests_to_run = tests
 else:
@@ -1079,10 +1081,16 @@ else:
 
 def run_tests(offset: int, count: int):
 	global tests_ran
+	global tests_s
+	global tests_f
 	emulator = PyBoyEmulator(has_interface=args.display_emulator and offset == 0, sound_volume=args.volume if debug and offset == 0 else 0, save_frames=False, debug=args.emu_debug, rom=args.rom)
 	for test_object in tests_to_run[offset::count]:
 		errors, extra = run_test(test_object, emulator)
 		tests_ran += 1
+		if errors:
+			tests_f += 1
+		else:
+			tests_s += 1
 		results.append({
 			'name': test_object['name'],
 			'errors': errors,
@@ -1103,7 +1111,7 @@ else:
 		b = False
 		for thread in threads:
 			b = b or thread.is_alive()
-		print(f"{tests_ran}/{len(tests_to_run)}\n", end="\033[A")
+		print(f"{tests_ran}/{len(tests_to_run)} (\033[32mPassed\033[0m: {tests_s}, \033[31mFailed\033[0m: {tests_f})\n", end="\033[A")
 		time.sleep(0.1)
 
 

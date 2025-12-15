@@ -7,9 +7,10 @@ from libcpp.pair cimport pair
 from libcpp.functional cimport function
 
 from ._Pokemon cimport Pokemon
+from ._Event cimport Event
 from ._RandomGenerator cimport RandomGenerator
 
-cdef extern from "<GameEngine/State.hpp>" namespace "PokemonGen1":
+cdef extern from "<GameEngine/Gen1/State.hpp>" namespace "PokemonGen1":
 	ctypedef enum BattleAction:
 		EmptyAction,
 		Attack1,
@@ -58,7 +59,7 @@ cdef extern from "<GameEngine/State.hpp>" namespace "PokemonGen1":
 		RandomGenerator rng
 		DesyncPolicy desync
 		BadActionPolicy badAction
-		function[void(const string &)] battleLogger
+		function[void(const Event &)] battleLogger
 		function[unsigned char ()] onTurnStart
 		function[void ()] onBattleEnd
 		function[void ()] onBattleStart

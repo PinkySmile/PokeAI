@@ -77,7 +77,7 @@ namespace PokemonGen1
 			char get(StatsChange stat) const;
 		};
 
-		typedef std::function<void (const std::string &)> Logger;
+		typedef std::function<void (const PkmnCommon::Event &)> Logger;
 
 		enum PacketElems {
 			PACK_SPECIES,
@@ -284,9 +284,9 @@ namespace PokemonGen1
 	};
 
 #ifdef __PYX_EXTERN_C
-	inline Pokemon::Logger pythonLoggerLambda(void *python_function, std::function<void (void *, const std::string &msg)> eval)
+	inline Pokemon::Logger pythonLoggerLambda(void *python_function, std::function<void (void *, const PkmnCommon::Event &msg)> eval)
 	{
-		return [=](const std::string &x) { return eval(python_function, x); };
+		return [=](const PkmnCommon::Event &x) { return eval(python_function, x); };
 	}
 #endif
 

@@ -9,6 +9,8 @@
 #include <variant>
 #include <string>
 
+#define __DBG_PRINT(s)
+
 namespace PkmnCommon
 {
 	struct TextEvent {
@@ -321,6 +323,92 @@ namespace PkmnCommon
 		GameStartEvent,
 		GameEndEvent
 	> Event;
+	
+#ifdef __PYX_EXTERN_C
+	inline TextEvent getTextEvent(const Event &e)
+	{
+		__DBG_PRINT("TextEvent");
+		return std::get<TextEvent>(e);
+	}
+
+	inline MoveEvent getMoveEvent(const Event &e)
+	{
+		__DBG_PRINT("MoveEvent");
+		return std::get<MoveEvent>(e);
+	}
+
+	inline AnimEvent getAnimEvent(const Event &e)
+	{
+		__DBG_PRINT("AnimEvent");
+		return std::get<AnimEvent>(e);
+	}
+
+	inline ExtraAnimEvent getExtraAnimEvent(const Event &e)
+	{
+		__DBG_PRINT("ExtraAnimEvent");
+		return std::get<ExtraAnimEvent>(e);
+	}
+
+	inline HealthModEvent getHealthModEvent(const Event &e)
+	{
+		__DBG_PRINT("HealthModEvent");
+		return std::get<HealthModEvent>(e);
+	}
+
+	inline SwitchEvent getSwitchEvent(const Event &e)
+	{
+		__DBG_PRINT("SwitchEvent");
+		return std::get<SwitchEvent>(e);
+	}
+
+	inline WithdrawEvent getWithdrawEvent(const Event &e)
+	{
+		__DBG_PRINT("WithdrawEvent");
+		return std::get<WithdrawEvent>(e);
+	}
+
+	inline DeathEvent getDeathEvent(const Event &e)
+	{
+		__DBG_PRINT("DeathEvent");
+		return std::get<DeathEvent>(e);
+	}
+
+	inline HitEvent getHitEvent(const Event &e)
+	{
+		__DBG_PRINT("HitEvent");
+		return std::get<HitEvent>(e);
+	}
+
+	inline StatusClearedEvent getStatusClearedEvent(const Event &e)
+	{
+		__DBG_PRINT("StatusClearedEvent");
+		return std::get<StatusClearedEvent>(e);
+	}
+
+	inline TurnStartEvent getTurnStartEvent(const Event &e)
+	{
+		__DBG_PRINT("TurnStartEvent");
+		return std::get<TurnStartEvent>(e);
+	}
+
+	inline MoveMissEvent getMoveMissEvent(const Event &e)
+	{
+		__DBG_PRINT("MoveMissEvent");
+		return std::get<MoveMissEvent>(e);
+	}
+
+	inline GameStartEvent getGameStartEvent(const Event &e)
+	{
+		__DBG_PRINT("GameStartEvent");
+		return std::get<GameStartEvent>(e);
+	}
+
+	inline GameEndEvent getGameEndEvent(const Event &e)
+	{
+		__DBG_PRINT("GameEndEvent");
+		return std::get<GameEndEvent>(e);
+	}
+#endif
 }
 
 

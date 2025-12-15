@@ -2,7 +2,7 @@
 
 from libcpp.string cimport string
 
-cdef extern from "<GameEngine/StatusChange.hpp>" namespace "PokemonGen1":
+cdef extern from "<GameEngine/Gen1/StatusChange.hpp>" namespace "PokemonGen1":
 	ctypedef enum StatusChange:
 		STATUS_NONE,
 		STATUS_ASLEEP_FOR_1_TURN,

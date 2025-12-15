@@ -1,5 +1,7 @@
 # distutils: language = c++
 
+from libcpp cimport bool
+
 from cython.operator cimport dereference
 from ._Pokemon cimport Pokemon as __Pokemon
 from ._Team cimport loadTrainer as __loadTrainer, saveTrainer as __saveTrainer, Trainer
@@ -8,8 +10,8 @@ from .State cimport BattleState
 
 from .Pokemon import Pokemon
 
-def load_trainer(data, BattleState state):
-	trainer = __loadTrainer(data, dereference(state.__instance))
+def load_trainer(data, BattleState state, bool enemy):
+	trainer = __loadTrainer(data, dereference(state.__instance), enemy)
 	result = []
 	for index in range(trainer.second.size()):
 		p = <PyPokemon>Pokemon()
