@@ -34,6 +34,32 @@
 
 #define WITHDRAW_ANIM_LENGTH 60
 
+#define palettizeSprite(s, c, p, t) do { if (this->_hasColor) (s).palettize(c, p, t); else (s).palettize(c, t); } while (false)
+#define getColor(f, c, p) do { if (this->_hasColor) f = p[c]; else f = Gen1Renderer::_getDmgColor(c); } while (false)
+#define getColorCall(f, c, p) do { if (this->_hasColor) f(p[c]); else f(Gen1Renderer::_getDmgColor(c)); } while (false)
+
+static const std::array<unsigned int, 4> _defaultPalette{0, 1, 2, 3};
+static const std::array<unsigned int, 4> _darkPalette{3, 3, 3, 3};
+static const std::array<unsigned int, 4> _defaultObjPal{0, 0, 3, 3};
+const std::array<sf::Color, 4> _ballColors = {
+	sf::Color::White,
+	sf::Color::Yellow,
+	sf::Color::Green,
+	sf::Color{24, 24, 24},
+};
+const std::array<sf::Color, 4> _trainerColors = {
+	sf::Color::White,
+	sf::Color::Yellow,
+	sf::Color{255, 26, 8},
+	sf::Color{24, 24, 24},
+};
+const std::array<sf::Color, 4> _defaultObjColor = {
+	sf::Color::White,
+	sf::Color::White,
+	sf::Color::Black,
+	sf::Color::Black,
+};
+
 enum AnimationType {
 	ANIMTYPE_DELAY,
 	ANIMTYPE_STAT_LOWER_PLAYER,
@@ -64,6 +90,41 @@ void Gen1Renderer::_loadMoveFrames(std::vector<MoveAnim> &m, const nlohmann::jso
 			anim.p1Off = janim["p1"].get<std::optional<std::pair<int, int>>>();
 			anim.p2Off = janim["p2"].get<std::optional<std::pair<int, int>>>();
 		}
+		for (auto &j: janim["pals"]) {
+			std::pair<unsigned, std::array<sf::Color, 4>> pals;
+			std::array<std::array<unsigned short, 4>, 4> defaultColors{
+				std::array<unsigned short, 4>{0x7FFF, 0x03FF, 0x025F, 0x0C63},
+				std::array<unsigned short, 4>{0x7FFF, 0x03FF, 0x03E0, 0x0C63},
+				std::array<unsigned short, 4>{0x7FFF, 0x03FF, 0x01DC, 0x0C63},
+				std::array<unsigned short, 4>{0x7FFF, 0x49FF, 0x181F, 0x0C63}
+			};
+			std::array<bool, 4> comp = {true, true, true, true};
+
+			for (size_t i = 0; i < 4; i++) {
+				unsigned gbc_color = j[i];
+				auto &result = pals.second[i];
+
+				result.r = ((gbc_color >> 0U) & 0x1FU) * 255 / 31;
+				result.g = ((gbc_color >> 5U) & 0x1FU) * 255 / 31;
+				result.b = ((gbc_color >> 10U) & 0x1FU) * 255 / 31;
+
+				comp[0] &= gbc_color == defaultColors[0][i];
+				comp[1] &= gbc_color == defaultColors[1][i];
+				comp[2] &= gbc_color == defaultColors[2][i];
+				comp[3] &= gbc_color == defaultColors[3][i];
+			}
+			if (comp[0])
+				pals.first = 0;
+			else if (comp[1])
+				pals.first = 1;
+			else if (comp[2])
+				pals.first = 2;
+			else if (comp[3])
+				pals.first = 3;
+			else
+				pals.first = 4;
+			anim.pals.push_back(pals);
+		}
 		for (auto &j: janim["sprites"]) {
 			anim.sprites.emplace_back();
 
@@ -76,6 +137,7 @@ void Gen1Renderer::_loadMoveFrames(std::vector<MoveAnim> &m, const nlohmann::jso
 			sprite.flip = j["flip"].get<std::pair<bool, bool>>();
 			sprite.prio = j["prio"];
 		}
+		assert(!anim.pals.empty() || anim.sprites.empty());
 	}
 }
 
@@ -123,20 +185,12 @@ void Gen1Renderer::_loadPokemonData(PokemonData &data, const std::string &folder
 		result.r = ((gbc_color >> 0U)  & 0x1FU) * 255 / 31;
 		result.g = ((gbc_color >> 5U)  & 0x1FU) * 255 / 31;
 		result.b = ((gbc_color >> 10U) & 0x1FU) * 255 / 31;
-
-		int f = (result.g * 3 + result.b) / 4;
-
-		if (f < 0)
-			result.g = 0;
-		else if (f > 255)
-			result.g = 255;
-		else
-			result.g = f;
 	}
 }
 
 Gen1Renderer::Gen1Renderer(const std::string &variant, bool hasColors) :
 	_hasColor(hasColors),
+	_lastFrame(Gen1Renderer::getSize()),
 	_font("assets/gen1/font.ttf")
 {
 	std::string music = "battle0";
@@ -161,10 +215,14 @@ Gen1Renderer::Gen1Renderer(const std::string &variant, bool hasColors) :
 	(void)this->_moveTextures[0].init("assets/gen1/moves/tilemap1.png");
 	(void)this->_moveTextures[1].init("assets/gen1/moves/tilemap2.png");
 
-	(void)this->_balls[0].loadFromFile("assets/gen1/pokeballs/pkmnOK.png");
-	(void)this->_balls[1].loadFromFile("assets/gen1/pokeballs/pkmnNO.png");
-	(void)this->_balls[2].loadFromFile("assets/gen1/pokeballs/pkmnFNT.png");
-	(void)this->_balls[3].loadFromFile("assets/gen1/pokeballs/pkmnSTATUS.png");
+	(void)this->_balls[0].init("assets/gen1/pokeballs/pkmnOK.png");
+	palettizeSprite(this->_balls[0], _defaultPalette, _ballColors, true);
+	(void)this->_balls[1].init("assets/gen1/pokeballs/pkmnNO.png");
+	palettizeSprite(this->_balls[1], _defaultPalette, _ballColors, true);
+	(void)this->_balls[2].init("assets/gen1/pokeballs/pkmnFNT.png");
+	palettizeSprite(this->_balls[2], _defaultPalette, _ballColors, true);
+	(void)this->_balls[3].init("assets/gen1/pokeballs/pkmnSTATUS.png");
+	palettizeSprite(this->_balls[3], _defaultPalette, _ballColors, true);
 
 	(void)this->_hitSounds[0].loadFromFile("assets/gen1/sounds/ne_sound.ogg");
 	(void)this->_hitSounds[1].loadFromFile("assets/gen1/sounds/hit_sound.ogg");
@@ -261,14 +319,22 @@ void Gen1Renderer::update()
 
 void Gen1Renderer::render(sf::RenderTarget &target)
 {
+	sf::Sprite sprite{this->_lastFrame.getTexture()};
+
 	(this->*Gen1Renderer::_renderers[this->_currentEvent])(target);
+	sprite.setColor(sf::Color{0xFF, 0xFF, 0xFF, 0x80});
+	sprite.setScale({1, -1});
+	sprite.setPosition({0, 144});
+	target.draw(sprite);
+
+	(this->*Gen1Renderer::_renderers[this->_currentEvent])(this->_lastFrame);
 
 	sf::Text text{this->_font};
 
 	text.setCharacterSize(8);
 	text.setOutlineThickness(1);
-	text.setFillColor(Gen1Renderer::_getDmgColor(3));
-	text.setOutlineColor(Gen1Renderer::_getDmgColor(0));
+	text.setFillColor(sf::Color::Black);
+	text.setOutlineColor(sf::Color::White);
 	text.setString("Turn " + std::to_string(this->_currentTurn));
 	text.setPosition({160.f - text.getString().getSize() * 8, 136});
 	target.draw(text);
@@ -300,16 +366,10 @@ const sf::Texture &Gen1Renderer::getPkmnFace(unsigned int pkmnId)
 	auto it = this->_data.find(pkmnId);
 
 	if (it == this->_data.end()) {
-		if (this->_hasColor)
-			this->_missingno.front.palettize({0, 1, 2, 3}, this->_missingno.palette, false);
-		else
-			this->_missingno.front.palettize({0, 1, 2, 3}, false);
+		palettizeSprite(this->_missingno.front, _defaultPalette, this->_missingno.palette, false);
 		return this->_missingno.front.texture;
 	}
-	if (this->_hasColor)
-		it->second.front.palettize({0, 1, 2, 3}, it->second.palette, false);
-	else
-		it->second.front.palettize({0, 1, 2, 3}, false);
+	palettizeSprite(it->second.front, _defaultPalette, it->second.palette, false);
 	return it->second.front.texture;
 }
 
@@ -1090,28 +1150,29 @@ void Gen1Renderer::_displayMyStats(sf::RenderTarget &target, const Pokemon &pkmn
 	sf::RectangleShape rect;
 	sf::Color healthColor;
 	sf::Text text{this->_font};
+	std::array<sf::Color, 4> pal = _trainerColors;
 
-	this->_boxes[3].palettize(palette, false);
+	if (percent >= 0.5)
+		pal[2] = sf::Color::Green;
+	else if (percent >= 0.1)
+		pal[2] = sf::Color{255, 128, 0, 255};
+	else
+		pal[2] = sf::Color::Red;
+
+	palettizeSprite(this->_boxes[3], palette, pal, false);
 	text.setCharacterSize(8);
 	text.setOutlineThickness(0);
-	text.setFillColor(Gen1Renderer::_getDmgColor(palette[3]));
+
+	getColorCall(text.setFillColor, palette[3], pal);
 	sprite.setPosition({72, 72});
 	target.draw(sprite);
 
-	if (!this->_hasColor)
-		healthColor = Gen1Renderer::_getDmgColor(palette[2]);
-	else if (percent >= 0.5)
-		healthColor = sf::Color::Green;
-	else if (percent >= 0.1)
-		healthColor = sf::Color{255, 128, 0, 255};
-	else
-		healthColor = sf::Color::Red;
-	rect.setFillColor(healthColor);
+	getColorCall(rect.setFillColor, palette[2], pal);
 	rect.setSize({std::round(48 * percent), 4});
 	rect.setPosition({95, 73});
 	target.draw(rect);
 
-	this->_hpOverlay.palettize(palette, false);
+	palettizeSprite(this->_hpOverlay, palette, pal, false);
 	sprite.setTexture(this->_hpOverlay.texture, true);
 	sprite.setPosition({80, 72});
 	target.draw(sprite);
@@ -1136,7 +1197,7 @@ void Gen1Renderer::_displayMyStats(sf::RenderTarget &target, const Pokemon &pkmn
 		text.setString(std::to_string(pkmn.level));
 		if (pkmn.level < 100) {
 			sprite.setPosition({104, 64});
-			this->_levelSprite.palettize(palette, false);
+			palettizeSprite(this->_levelSprite, palette, pal, false);
 			sprite.setTexture(this->_levelSprite.texture, true);
 			target.draw(sprite);
 			text.setPosition({112, 64});
@@ -1167,28 +1228,27 @@ void Gen1Renderer::_displayOpStats(sf::RenderTarget &target, const Pokemon &pkmn
 	sf::RectangleShape rect;
 	sf::Color healthColor;
 	sf::Text text{this->_font};
+	std::array<sf::Color, 4> pal = _trainerColors;
 
-	this->_boxes[2].palettize(palette, false);
+	if (percent >= 0.5)
+		pal[2] = sf::Color::Green;
+	else if (percent >= 0.1)
+		pal[2] = sf::Color{255, 128, 0, 255};
+	else
+		pal[2] = sf::Color::Red;
+
+	palettizeSprite(this->_boxes[2], palette, pal, true);
 	text.setCharacterSize(8);
 	text.setOutlineThickness(0);
-	text.setFillColor(Gen1Renderer::_getDmgColor(palette[3]));
+	getColorCall(text.setFillColor, palette[3], pal);
 	sprite.setPosition({8, 16});
 	target.draw(sprite);
-
-	if (!this->_hasColor)
-		healthColor = Gen1Renderer::_getDmgColor(palette[2]);
-	else if (percent >= 0.5)
-		healthColor = sf::Color::Green;
-	else if (percent >= 0.1)
-		healthColor = sf::Color{255, 128, 0, 255};
-	else
-		healthColor = sf::Color::Red;
-	rect.setFillColor(healthColor);
+	getColorCall(rect.setFillColor, palette[2], pal);
 	rect.setSize({std::round(48 * percent), 4});
 	rect.setPosition({31, 17});
 	target.draw(rect);
 
-	this->_hpOverlay.palettize(palette, false);
+	palettizeSprite(this->_hpOverlay, palette, pal, false);
 	sprite.setTexture(this->_hpOverlay.texture, true);
 	sprite.setPosition({16, 16});
 	target.draw(sprite);
@@ -1213,7 +1273,7 @@ void Gen1Renderer::_displayOpStats(sf::RenderTarget &target, const Pokemon &pkmn
 		text.setString(std::to_string(pkmn.level));
 		if (pkmn.level < 100) {
 			sprite.setPosition({32, 8});
-			this->_levelSprite.palettize(palette, false);
+			palettizeSprite(this->_levelSprite, palette, pal, true);
 			sprite.setTexture(this->_levelSprite.texture, true);
 			target.draw(sprite);
 			text.setPosition({40, 8});
@@ -1231,18 +1291,20 @@ void Gen1Renderer::_renderScene(sf::RenderTarget &target, const std::array<unsig
 {
 	sf::Text text{this->_font};
 	sf::Sprite sprite{this->_boxes[0].texture};
+	auto it2 = this->_data.find(this->state.p1.team[this->state.p1.active].id);
+	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
-	target.clear(Gen1Renderer::_getDmgColor(palette[0]));
+	getColorCall(target.clear, palette[0], data2.palette);
 	this->_displayMyStats(target, this->state.p1.team[this->state.p1.active], palette);
 	this->_displayOpStats(target, this->state.p2.team[this->state.p2.active], palette);
 
-	this->_boxes[0].palettize(palette, false);
+	palettizeSprite(this->_boxes[0], palette, data2.palette, false);
 	sprite.setPosition({0, 96});
 	target.draw(sprite);
 
 	text.setCharacterSize(8);
 	text.setOutlineThickness(0);
-	text.setFillColor(Gen1Renderer::_getDmgColor(palette[3]));
+	getColorCall(text.setFillColor, palette[3], data2.palette);
 	text.setString(this->_displayedText);
 	text.setPosition({8, 112});
 	text.setLineSpacing(2);
@@ -1259,22 +1321,28 @@ void Gen1Renderer::_displayMyFace(sf::RenderTarget &target, unsigned pkmnId, con
 	auto &data = it == this->_data.end() ? this->_missingno : it->second;
 	sf::Sprite sprite{data.back.texture};
 	auto size = data.back.texture.getSize();
-
 	auto it2 = this->_data.find(this->state.p1.team[this->state.p1.active].id);
 	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
-	if (offset.y > 0) {
+	if (pkmnId < 256) {
+		sprite.setScale({2, 2});
+		if (offset.y > 0) {
+			basePos.y += offset.y * 8.f;
+			sprite.setTextureRect({{0, 0}, {static_cast<int>(size.x), static_cast<int>(size.y) - offset.y * 4 - 4}});
+		} else if (offset.y < 0)
+			sprite.setTextureRect({
+				{0, static_cast<int>(-offset.y * 4.f)},
+				{static_cast<int>(size.x), static_cast<int>(size.y) + offset.y * 4}
+			});
+	} else if (offset.y > 0) {
 		basePos.y += offset.y * 8.f;
-		sprite.setTextureRect({{0, 0}, {static_cast<int>(size.x), static_cast<int>(size.y) - offset.y * 4 - 4}});
+		sprite.setTextureRect({{0, 0}, {static_cast<int>(size.x), static_cast<int>(size.y) - offset.y * 8 - 8}});
 	} else if (offset.y < 0)
 		sprite.setTextureRect({
-			{0, static_cast<int>(-offset.y * 4.f)},
-			{static_cast<int>(size.x), static_cast<int>(size.y) + offset.y * 4}
+			{0, static_cast<int>(-offset.y * 8.f)},
+			{static_cast<int>(size.x), static_cast<int>(size.y) + offset.y * 8 - 8}
 		});
-	if (this->_hasColor)
-		data.back.palettize(palette, data2.palette, true);
-	else
-		data.back.palettize(palette, true);
+	palettizeSprite(data.back, palette, data2.palette, true);
 	if (pkmnId < 256)
 		sprite.setScale({2, 2});
 	sprite.setPosition(basePos);
@@ -1292,7 +1360,6 @@ void Gen1Renderer::_displayOpFace(sf::RenderTarget &target, unsigned pkmnId, con
 	auto &data = it == this->_data.end() ? this->_missingno : it->second;
 	sf::Sprite sprite{data.front.texture};
 	auto size = data.front.source.getSize();
-
 	auto it2 = this->_data.find(this->state.p2.team[this->state.p2.active].id);
 	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
@@ -1306,10 +1373,7 @@ void Gen1Renderer::_displayOpFace(sf::RenderTarget &target, unsigned pkmnId, con
 		});
 	basePos.x += static_cast<int>(56.f - size.x) / 16 * 8;
 	basePos.y += 56 - size.y;
-	if (this->_hasColor)
-		data.front.palettize(palette, data2.palette, true);
-	else
-		data.front.palettize(palette, true);
+	palettizeSprite(data.front, palette, data2.palette, true);
 	sprite.setPosition(basePos);
 	if (sprite.getTextureRect().size.y > 0)
 		target.draw(sprite);
@@ -1329,10 +1393,7 @@ void Gen1Renderer::_displayMyShrunkFace(sf::RenderTarget &target, unsigned int p
 	auto it2 = this->_data.find(this->state.p1.team[this->state.p1.active].id);
 	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
-	if (this->_hasColor)
-		data.back.palettize(palette, data2.palette, true);
-	else
-		data.back.palettize(palette, true);
+	palettizeSprite(data.back, palette, data2.palette, true);
 	if (pkmnId < 256) {
 		sprite.setScale({2, 2});
 		realSize.x *= 2;
@@ -1376,11 +1437,7 @@ void Gen1Renderer::_displayOpShrunkFace(sf::RenderTarget &target, unsigned int p
 	auto it2 = this->_data.find(this->state.p2.team[this->state.p2.active].id);
 	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
-	if (this->_hasColor)
-		data.front.palettize(palette, data2.palette, true);
-	else
-		data.front.palettize(palette, true);
-
+	palettizeSprite(data.front, palette, data2.palette, true);
 	basePos.x += static_cast<int>(56.f - size.x) / 16 * 8;
 	basePos.y += 56 - size.y;
 	if (current < max / 2) {
@@ -1495,7 +1552,7 @@ void Gen1Renderer::_renderTurnStart(sf::RenderTarget &target)
 	this->_renderNormal(target);
 	if (this->_animCounter < 20 || this->_animCounter >= 50)
 		return;
-	this->_waitingHUD.palettize({0, 1, 2, 3}, false);
+	palettizeSprite(this->_waitingHUD, _defaultPalette, _trainerColors, false);
 
 	sf::Sprite sprite{this->_waitingHUD.texture};
 	sf::Text text{this->_font};
@@ -1505,7 +1562,7 @@ void Gen1Renderer::_renderTurnStart(sf::RenderTarget &target)
 	text.setString("Waiting...");
 	text.setPosition({32, 88});
 	text.setCharacterSize(8);
-	text.setFillColor(Gen1Renderer::_getDmgColor(3));
+	getColorCall(text.setFillColor, 3, _trainerColors);
 	text.setLineSpacing(2);
 	target.draw(text);
 }
@@ -1515,15 +1572,15 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 	sf::Sprite sprite{this->_boxes[0].texture};
 
 	text.setCharacterSize(8);
-	text.setFillColor(Gen1Renderer::_getDmgColor(3));
+	getColorCall(text.setFillColor, 3, _trainerColors);
 	text.setLineSpacing(2);
 
-	target.clear(Gen1Renderer::_getDmgColor(0));
+	getColorCall(target.clear, 0, _trainerColors);
 	sprite.setPosition({0, 96});
 	target.draw(sprite);
 	switch (this->_animMove){
 	case INTROSTEP_VS_PANEL:
-		target.clear(Gen1Renderer::_getDmgColor(0));
+		getColorCall(target.clear, 0, _trainerColors);
 
 		sprite.setTexture(this->_boxes[1].texture, true);
 		sprite.setPosition({24, 36});
@@ -1536,13 +1593,13 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 			auto &pkmn = this->state.p1.team[i];
 
 			if (pkmn.id == 0)
-				sprite.setTexture(this->_balls[1], true);
+				sprite.setTexture(this->_balls[1].texture, true);
 			else if (pkmn.ko)
-				sprite.setTexture(this->_balls[2], true);
+				sprite.setTexture(this->_balls[2].texture, true);
 			else if (pkmn.asleep || pkmn.frozen || pkmn.burned || pkmn.poisoned || pkmn.toxicPoisoned || pkmn.paralyzed)
-				sprite.setTexture(this->_balls[3], true);
+				sprite.setTexture(this->_balls[3].texture, true);
 			else
-				sprite.setTexture(this->_balls[0], true);
+				sprite.setTexture(this->_balls[0].texture, true);
 			sprite.setPosition({72 + i * 8.f, 58});
 			target.draw(sprite);
 		}
@@ -1554,13 +1611,13 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 			auto &pkmn = this->state.p2.team[i];
 
 			if (pkmn.id == 0)
-				sprite.setTexture(this->_balls[1], true);
+				sprite.setTexture(this->_balls[1].texture, true);
 			else if (pkmn.ko)
-				sprite.setTexture(this->_balls[2], true);
+				sprite.setTexture(this->_balls[2].texture, true);
 			else if (pkmn.asleep || pkmn.frozen || pkmn.burned || pkmn.poisoned || pkmn.toxicPoisoned || pkmn.paralyzed)
-				sprite.setTexture(this->_balls[3], true);
+				sprite.setTexture(this->_balls[3].texture, true);
 			else
-				sprite.setTexture(this->_balls[0], true);
+				sprite.setTexture(this->_balls[0].texture, true);
 			sprite.setPosition({72 + i * 8.f, 88});
 			target.draw(sprite);
 		}
@@ -1584,12 +1641,12 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 
 	case INTROSTEP_VS_PANEL_OUT:
 	case INTROSTEP_VS_PANEL_OUT_WAIT:
-		target.clear(Gen1Renderer::_getDmgColor(3));
+		getColorCall(target.clear, 3, _trainerColors);
 		break;
 
 	case INTROSTEP_PLAYERS_SLIDE:
-		this->_trainer[1].palettize({3, 3, 3, 3}, true);
-		this->_trainer[0].palettize({3, 3, 3, 3}, true);
+		palettizeSprite(this->_trainer[1], _darkPalette, _trainerColors, true);
+		palettizeSprite(this->_trainer[0], _darkPalette, _trainerColors, true);
 
 		sprite.setTexture(this->_trainer[1].texture, true);
 		sprite.setPosition({158.f * this->_animCounter / introAnimCounters[INTROSTEP_PLAYERS_SLIDE] - 56, 0});
@@ -1602,8 +1659,8 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		break;
 
 	case INTROSTEP_PLAYERS_STARE:
-		this->_trainer[1].palettize({0, 1, 2, 3}, true);
-		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+		palettizeSprite(this->_trainer[1], _defaultPalette, _trainerColors, true);
+		palettizeSprite(this->_trainer[0], _defaultPalette, _trainerColors, true);
 
 		sprite.setTexture(this->_trainer[1].texture, true);
 		sprite.setPosition({102, 0});
@@ -1616,9 +1673,9 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		break;
 
 	case INTROSTEP_PLAYERS_STARE_BALLS:
-		this->_trainer[1].palettize({0, 1, 2, 3}, true);
-		this->_trainer[0].palettize({0, 1, 2, 3}, true);
-		this->_boxes[2].palettize({0, 1, 2, 3}, true);
+		palettizeSprite(this->_trainer[1], _defaultPalette, _trainerColors, true);
+		palettizeSprite(this->_trainer[0], _defaultPalette, _trainerColors, true);
+		palettizeSprite(this->_boxes[2], _defaultPalette, _trainerColors, true);
 
 		sprite.setTexture(this->_trainer[1].texture, true);
 		sprite.setPosition({102, 0});
@@ -1638,13 +1695,13 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 			auto &pkmn = this->state.p2.team[i];
 
 			if (pkmn.id == 0)
-				sprite.setTexture(this->_balls[1], true);
+				sprite.setTexture(this->_balls[1].texture, true);
 			else if (pkmn.ko)
-				sprite.setTexture(this->_balls[2], true);
+				sprite.setTexture(this->_balls[2].texture, true);
 			else if (pkmn.asleep || pkmn.frozen || pkmn.burned || pkmn.poisoned || pkmn.toxicPoisoned || pkmn.paralyzed)
-				sprite.setTexture(this->_balls[3], true);
+				sprite.setTexture(this->_balls[3].texture, true);
 			else
-				sprite.setTexture(this->_balls[0], true);
+				sprite.setTexture(this->_balls[0].texture, true);
 			sprite.setPosition({16 + 8.f * (6.f - i), 16});
 			target.draw(sprite);
 		}
@@ -1658,13 +1715,13 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 			auto &pkmn = this->state.p1.team[i];
 
 			if (pkmn.id == 0)
-				sprite.setTexture(this->_balls[1], true);
+				sprite.setTexture(this->_balls[1].texture, true);
 			else if (pkmn.ko)
-				sprite.setTexture(this->_balls[2], true);
+				sprite.setTexture(this->_balls[2].texture, true);
 			else if (pkmn.asleep || pkmn.frozen || pkmn.burned || pkmn.poisoned || pkmn.toxicPoisoned || pkmn.paralyzed)
-				sprite.setTexture(this->_balls[3], true);
+				sprite.setTexture(this->_balls[3].texture, true);
 			else
-				sprite.setTexture(this->_balls[0], true);
+				sprite.setTexture(this->_balls[0].texture, true);
 			sprite.setPosition({88 + 8.f * i, 80});
 			target.draw(sprite);
 		}
@@ -1675,8 +1732,8 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		break;
 
 	case INTROSTEP_OPPONENT_SLIDE:
-		this->_trainer[1].palettize({0, 1, 2, 3}, true);
-		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+		palettizeSprite(this->_trainer[1], _defaultPalette, _trainerColors, true);
+		palettizeSprite(this->_trainer[0], _defaultPalette, _trainerColors, true);
 
 		sprite.setTexture(this->_trainer[1].texture, true);
 		sprite.setPosition({102 + 224 * this->_animCounter / 60.f, 0});
@@ -1689,7 +1746,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		break;
 
 	case INTROSTEP_OPPONENT_SLIDE_WAIT:
-		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+		palettizeSprite(this->_trainer[0], _defaultPalette, _trainerColors, true);
 
 		sprite.setScale({2, 2});
 		sprite.setTexture(this->_trainer[0].texture, true);
@@ -1698,7 +1755,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		break;
 
 	case INTROSTEP_OPPONENT_MON_TEXT:
-		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+		palettizeSprite(this->_trainer[0], _defaultPalette, _trainerColors, true);
 
 		sprite.setScale({2, 2});
 		sprite.setTexture(this->_trainer[0].texture, true);
@@ -1724,10 +1781,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		auto it2 = this->_data.find(this->state.p2.team[this->state.p2.active].id);
 		auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
-		if (this->_hasColor)
-			data.front.palettize({0, 1, 2, 3}, data2.palette, true);
-		else
-			data.front.palettize({0, 1, 2, 3}, true);
+		palettizeSprite(data.front, _defaultPalette, data2.palette, true);
 
 		sprite.setTexture(data.front.texture, true);
 		sprite.setScale({mul, mul});
@@ -1737,7 +1791,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		});
 		target.draw(sprite);
 
-		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+		palettizeSprite(this->_trainer[0], _defaultPalette, _trainerColors, true);
 
 		sprite.setScale({2, 2});
 		sprite.setTexture(this->_trainer[0].texture, true);
@@ -1753,7 +1807,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 	case INTROSTEP_OPPONENT_MON_SPAWNED_WAIT:
 		this->_displayOpFace(target, this->state.p2.spriteId);
 
-		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+		palettizeSprite(this->_trainer[0], _defaultPalette, _trainerColors, true);
 
 		sprite.setScale({2, 2});
 		sprite.setTexture(this->_trainer[0].texture, true);
@@ -1775,7 +1829,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		break;
 
 	case INTROSTEP_PLAYER_SLIDE:
-		this->_trainer[0].palettize({0, 1, 2, 3}, true);
+		palettizeSprite(this->_trainer[0], _defaultPalette, _trainerColors, true);
 
 		sprite.setScale({2, 2});
 		sprite.setTexture(this->_trainer[0].texture, true);
@@ -1816,7 +1870,8 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 
 		sprite.setTexture(tileset.texture);
 		sprite.setOrigin({4, 4});
-		tileset.palettize({0, 1, 2, 3}, true);
+		palettizeSprite(this->_trainer[0], _defaultObjPal, _trainerColors, true);
+		palettizeSprite(tileset, _defaultPalette, _defaultObjColor, true);
 		for (auto &s : frame.sprites) {
 			sprite.setTextureRect({
 				{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
@@ -1837,10 +1892,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		auto it2 = this->_data.find(this->state.p1.team[this->state.p1.active].id);
 		auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
-		if (this->_hasColor)
-			data.back.palettize({0, 1, 2, 3}, data2.palette, true);
-		else
-			data.back.palettize({0, 1, 2, 3}, true);
+		palettizeSprite(data.back, _defaultPalette, data2.palette, true);
 
 		size.y -= 4;
 		size.x *= 2;
@@ -1873,10 +1925,10 @@ void Gen1Renderer::_renderGameEnd(sf::RenderTarget &target)
 	std::array<unsigned, 4> palette{0, 1, 2, 3};
 
 	text.setCharacterSize(8);
-	text.setFillColor(Gen1Renderer::_getDmgColor(3));
+	getColorCall(text.setFillColor, 3, _trainerColors);
 	text.setLineSpacing(2);
 
-	target.clear(Gen1Renderer::_getDmgColor(0));
+	getColorCall(target.clear, 0, _trainerColors);
 
 	switch (this->_currentAnim) {
 	case OUTROSTEP_BLACK_OUT:
@@ -1901,7 +1953,7 @@ void Gen1Renderer::_renderGameEnd(sf::RenderTarget &target)
 		if (this->_currentAnim == OUTROSTEP_VS_PANEL_RESULT) {
 			sf::RectangleShape shape;
 
-			shape.setFillColor(Gen1Renderer::_getDmgColor(0));
+			getColorCall(shape.setFillColor, 0, _trainerColors);
 			shape.setOutlineThickness(0);
 			shape.setPosition({72, 68});
 			shape.setSize({32, 8});
@@ -1924,13 +1976,13 @@ void Gen1Renderer::_renderGameEnd(sf::RenderTarget &target)
 			auto &pkmn = this->state.p1.team[i];
 
 			if (pkmn.id == 0)
-				sprite.setTexture(this->_balls[1], true);
+				sprite.setTexture(this->_balls[1].texture, true);
 			else if (pkmn.ko)
-				sprite.setTexture(this->_balls[2], true);
+				sprite.setTexture(this->_balls[2].texture, true);
 			else if (pkmn.asleep || pkmn.frozen || pkmn.burned || pkmn.poisoned || pkmn.toxicPoisoned || pkmn.paralyzed)
-				sprite.setTexture(this->_balls[3], true);
+				sprite.setTexture(this->_balls[3].texture, true);
 			else
-				sprite.setTexture(this->_balls[0], true);
+				sprite.setTexture(this->_balls[0].texture, true);
 			sprite.setPosition({72 + i * 8.f, 58});
 			target.draw(sprite);
 		}
@@ -1942,13 +1994,13 @@ void Gen1Renderer::_renderGameEnd(sf::RenderTarget &target)
 			auto &pkmn = this->state.p2.team[i];
 
 			if (pkmn.id == 0)
-				sprite.setTexture(this->_balls[1], true);
+				sprite.setTexture(this->_balls[1].texture, true);
 			else if (pkmn.ko)
-				sprite.setTexture(this->_balls[2], true);
+				sprite.setTexture(this->_balls[2].texture, true);
 			else if (pkmn.asleep || pkmn.frozen || pkmn.burned || pkmn.poisoned || pkmn.toxicPoisoned || pkmn.paralyzed)
-				sprite.setTexture(this->_balls[3], true);
+				sprite.setTexture(this->_balls[3].texture, true);
 			else
-				sprite.setTexture(this->_balls[0], true);
+				sprite.setTexture(this->_balls[0].texture, true);
 			sprite.setPosition({72 + i * 8.f, 88});
 			target.draw(sprite);
 		}
@@ -1968,7 +2020,7 @@ void Gen1Renderer::_renderHit(sf::RenderTarget &target)
 		this->_displayOpFace(rtexture, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 	sprite.setScale({1, -1});
 	sprite.setPosition(pos);
-	target.clear(Gen1Renderer::_getDmgColor(0));
+	getColorCall(target.clear, 0, _trainerColors);
 	target.draw(sprite);
 }
 void Gen1Renderer::_renderDeath(sf::RenderTarget &target)
@@ -2003,7 +2055,7 @@ void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
 		sf::Sprite sprite{tileset.texture};
 
 		sprite.setOrigin({4, 4});
-		tileset.palettize({0, 1, 2, 3}, true);
+		palettizeSprite(tileset, _defaultPalette, _defaultObjColor, true);
 		for (auto &s : frame.sprites) {
 			sprite.setTextureRect({
 				{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
@@ -2036,10 +2088,7 @@ void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
 		auto it2 = this->_data.find(this->state.p1.team[this->state.p1.active].id);
 		auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
-		if (this->_hasColor)
-			data.back.palettize({0, 1, 2, 3}, data2.palette, true);
-		else
-			data.back.palettize({0, 1, 2, 3}, true);
+		palettizeSprite(data.back, _defaultPalette, data2.palette, true);
 		size.y -= 4;
 		size.x *= 2;
 		size.y *= 2;
@@ -2059,10 +2108,7 @@ void Gen1Renderer::_renderSwitch(sf::RenderTarget &target)
 		auto it2 = this->_data.find(this->state.p2.team[this->state.p2.active].id);
 		auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
-		if (this->_hasColor)
-			data.front.palettize({0, 1, 2, 3}, data2.palette, true);
-		else
-			data.front.palettize({0, 1, 2, 3}, true);
+		palettizeSprite(data.front, _defaultPalette, data2.palette, true);
 		basePos.x += static_cast<int>(56.f - size.x) / 16 * 8;
 		basePos.y += 56 - size.y;
 
@@ -2086,11 +2132,13 @@ void Gen1Renderer::_renderWithdraw(sf::RenderTarget &target)
 			auto it = this->_data.find(this->state.p1.spriteId);
 			auto &data = it == this->_data.end() ? this->_missingno : it->second;
 			auto size = data.back.texture.getSize();
+			auto it2 = this->_data.find(this->state.p1.team[this->state.p1.active].id);
+			auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
 			size.y -= 4;
 			size.x *= 2;
 			size.y *= 2;
-			data.back.palettize({0, 1, 2, 3}, true);
+			palettizeSprite(data.back, _defaultPalette, data2.palette, true);
 			sprite.setTexture(data.back.texture, true);
 			sprite.setScale({mul * 2, mul * 2});
 			sprite.setPosition({
@@ -2107,11 +2155,13 @@ void Gen1Renderer::_renderWithdraw(sf::RenderTarget &target)
 			auto &data = it == this->_data.end() ? this->_missingno : it->second;
 			sf::Vector2f basePos{96, 0};
 			auto size = data.front.texture.getSize();
+			auto it2 = this->_data.find(this->state.p2.team[this->state.p2.active].id);
+			auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
 			basePos.x += static_cast<int>(56.f - size.x) / 16 * 8;
 			basePos.y += 56 - size.y;
 
-			data.front.palettize({0, 1, 2, 3}, true);
+			palettizeSprite(data.front, _defaultPalette, data2.palette, true);
 			sprite.setTexture(data.front.texture, true);
 			sprite.setScale({mul, mul});
 			sprite.setPosition({
@@ -2147,7 +2197,7 @@ void Gen1Renderer::_renderAnim(sf::RenderTarget &target)
 		this->_displayOpFace(rtexture, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 		sprite.setScale({1, -1});
 		sprite.setPosition({values[(this->_animCounter - 1) / 2], static_cast<float>(size.y)});
-		target.clear(Gen1Renderer::_getDmgColor(0));
+		getColorCall(target.clear, 0, _trainerColors);
 		target.draw(sprite);
 		return;
 	}
@@ -2162,7 +2212,7 @@ void Gen1Renderer::_renderAnim(sf::RenderTarget &target)
 		this->_displayOpFace(rtexture, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 		sprite.setScale({1, -1});
 		sprite.setPosition({values[(this->_animCounter - 1) / 2], static_cast<float>(size.y)});
-		target.clear(Gen1Renderer::_getDmgColor(0));
+		getColorCall(target.clear, 0, _trainerColors);
 		target.draw(sprite);
 		return;
 	}
@@ -2175,18 +2225,20 @@ void Gen1Renderer::_renderAnim(sf::RenderTarget &target)
 		sf::Sprite sprite2{rtexture.getTexture()};
 		sf::Text text{this->_font};
 		sf::Sprite sprite{this->_boxes[0].texture};
+		auto it2 = this->_data.find(this->state.p1.team[this->state.p1.active].id);
+		auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
 
-		rtexture.clear(Gen1Renderer::_getDmgColor(0));
+		getColorCall(rtexture.clear, 0, _trainerColors);
 		this->_displayOpStats(rtexture, this->state.p2.team[this->state.p2.active]);
 		this->_displayOpFace(rtexture, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 
 
 		sprite2.setScale({1, -1});
 		sprite2.setPosition({(this->_animCounter / 2) % 2 == 0 ? 2.f : -2.f, static_cast<float>(size.y)});
-		target.clear(Gen1Renderer::_getDmgColor(0));
+		getColorCall(target.clear, 0, _trainerColors);
 		target.draw(sprite2);
 
-		this->_boxes[0].palettize({0, 1, 2, 3}, false);
+		palettizeSprite(this->_boxes[0], _defaultPalette, data2.palette, true);
 		sprite.setPosition({0, 96});
 		target.draw(sprite);
 
@@ -2195,7 +2247,7 @@ void Gen1Renderer::_renderAnim(sf::RenderTarget &target)
 
 		text.setCharacterSize(8);
 		text.setOutlineThickness(0);
-		text.setFillColor(Gen1Renderer::_getDmgColor(3));
+		getColorCall(text.setFillColor, 3, _trainerColors);
 		text.setString(this->_displayedText);
 		text.setPosition({8, 112});
 		text.setLineSpacing(2);
@@ -2214,7 +2266,7 @@ void Gen1Renderer::_renderAnim(sf::RenderTarget &target)
 		this->_displayOpFace(rtexture, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 		sprite.setScale({1, -1});
 		sprite.setPosition(pos);
-		target.clear(Gen1Renderer::_getDmgColor(0));
+		getColorCall(target.clear, 0, _trainerColors);
 		target.draw(sprite);
 		return;
 	}}
@@ -2227,7 +2279,7 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 	auto size = this->getSize();
 	auto it = this->_moveData.find(this->_animMove);
 
-	target.clear(Gen1Renderer::_getDmgColor(0));
+	getColorCall(target.clear, 0, _trainerColors);
 
 	auto &anim = this->_isPlayer ? it->second.animP1 : it->second.animP2;
 	auto &state = this->_isPlayer ? this->state.p1 : this->state.p2;
@@ -2304,14 +2356,61 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 	sprite.setScale({1, -1});
 	target.draw(sprite);
 
+	auto &pkmn = state.team[state.active];
 	auto &tileset = frame.tileset == 1 ? this->_moveTextures[0] : this->_moveTextures[1];
+	auto it2 = this->_data.find(pkmn.id);
+	auto &data2 = it2 == this->_data.end() ? this->_missingno : it2->second;
+	auto &ostate = !this->_isPlayer ? this->state.p1 : this->state.p2;
+	auto &opkmn = ostate.team[ostate.active];
+	auto it3 = this->_data.find(opkmn.id);
+	auto &data3 = it3 == this->_data.end() ? this->_missingno : it3->second;
+
+	std::array<sf::Color, 4> pal1 = _trainerColors;
+	float percent1 = static_cast<float>(pkmn.hp) / pkmn.maxHp;
+	std::array<sf::Color, 4> pal2 = _trainerColors;
+	float percent2 = static_cast<float>(opkmn.hp) / opkmn.maxHp;
+
+	if (percent1 >= 0.5)
+		pal1[2] = sf::Color::Green;
+	else if (percent1 >= 0.1)
+		pal1[2] = sf::Color{255, 128, 0, 255};
+	else
+		pal1[2] = sf::Color::Red;
+	if (percent2 >= 0.5)
+		pal2[2] = sf::Color::Green;
+	else if (percent2 >= 0.1)
+		pal2[2] = sf::Color{255, 128, 0, 255};
+	else
+		pal2[2] = sf::Color::Red;
+
+	std::array<std::array<sf::Color, 4> *, 4> pals = {
+		&pal1, &pal2,
+		&data2.palette, &data3.palette,
+	};
+
+	if (this->_isPlayer) {
+		pals[0] = &pal1;
+		pals[1] = &pal2;
+		pals[2] = &data2.palette;
+		pals[3] = &data3.palette;
+	} else {
+		pals[0] = &pal2;
+		pals[1] = &pal1;
+		pals[2] = &data3.palette;
+		pals[3] = &data2.palette;
+	}
 
 	sprite.setTexture(tileset.texture);
 	sprite.setOrigin({4, 4});
 	for (auto &s : frame.sprites) {
 		if (!s.prio)
 			continue;
-		tileset.palettize(s.palNum == 0 ? frame.pal0 : frame.pal1, true);
+		if (this->_hasColor) {
+			auto &pal = frame.pals[s.palNum];
+
+			tileset.palettize(_defaultPalette, pal.first == 4 ? pal.second : *pals[pal.first], true);
+		} else
+			tileset.palettize(s.palNum == 0 ? frame.pal0 : frame.pal1, true);
 		sprite.setTextureRect({
 			{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
 			{8, 8}
@@ -2333,12 +2432,17 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 	for (auto &s : frame.sprites) {
 		if (s.prio)
 			continue;
-		tileset.palettize(s.palNum == 0 ? frame.pal0 : frame.pal1, true);
+		if (this->_hasColor) {
+			auto &pal = frame.pals[s.palNum];
+
+			tileset.palettize(_defaultPalette, pal.first == 4 ? pal.second : *pals[pal.first], true);
+		} else
+			tileset.palettize(s.palNum == 0 ? frame.pal0 : frame.pal1, true);
 		sprite.setTextureRect({
 			{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
 			{8, 8}
 		});
-		sprite.setPosition({s.x + 4.f, s.y + 4.f});
+		sprite.setPosition({static_cast<float>(round(s.x + 4.f)), static_cast<float>(round(s.y + 4.f))});
 		sprite.setScale({s.flip.first ? -1.f : 1.f, s.flip.second ? -1.f : 1.f});
 		target.draw(sprite);
 	}
@@ -2348,17 +2452,17 @@ void Gen1Renderer::_renderText(sf::RenderTarget &target)
 	sf::Text text{this->_font};
 	sf::Sprite sprite{this->_boxes[0].texture};
 
-	target.clear(Gen1Renderer::_getDmgColor(0));
+	getColorCall(target.clear, 0, _trainerColors);
 	this->_displayMyStats(target, this->state.p1.team[this->state.p1.active]);
 	this->_displayOpStats(target, this->state.p2.team[this->state.p2.active]);
 
-	this->_boxes[0].palettize({0, 1, 2, 3}, false);
+	palettizeSprite(this->_boxes[0], _defaultPalette, _trainerColors, true);
 	sprite.setPosition({0, 96});
 	target.draw(sprite);
 
 	text.setCharacterSize(8);
 	text.setOutlineThickness(0);
-	text.setFillColor(Gen1Renderer::_getDmgColor(3));
+	getColorCall(text.setFillColor, 3, _trainerColors);
 	text.setString(this->_displayedText);
 	if (this->_textCounter > TEXT_LINE_TIME - TEXT_LINE_SCROLL)
 		text.setPosition({8, 104});
@@ -2376,6 +2480,9 @@ void Gen1Renderer::consumeEvent(const sf::Event &event)
 
 void Gen1Renderer::previousTurn()
 {
+	if (this->_snapshots.empty())
+		return;
+
 	IRenderer::previousTurn();
 	this->_currentEvent = EVNTTYPE_NONE;
 }

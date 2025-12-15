@@ -1,12 +1,14 @@
 import sys
 import json
+
+from PokeBattle.Gen1.EmulatorGameHandle import EmulatorGameHandle
 from PokeBattle.Gen1.Env import load_scenario
 from PokeBattle.Gen1.BattleHandler import BattleHandler
 from PokeBattle.Gen1.Move import Move, AvailableMove
 from PokeBattle.Gen1.Pokemon import Pokemon, PokemonBase, PokemonSpecies
 from PokeBattle.Gen1.PyBoyEmulator import PyBoyEmulator
 from PokeBattle.Gen1.State import BattleAction
-from PokeBattle.Gen1.YellowEmulator import TrainerClass, GBAddress, LINK_STATE_BATTLING
+from PokeBattle.Gen1.YellowEmulator import TrainerClass, GBAddress, LINK_STATE_BATTLING, CHAR_END
 
 op_start_addr_vram = 0x9C0C
 me_start_addr_vram = 0x9CC1
@@ -28,6 +30,8 @@ p2_corners = [
 	0x9CCC, # X 0C, Y 06
 	0x9CD2, # X 12, Y 06
 ]
+OBPI = GBAddress(0xFF6A)
+OBPD = GBAddress(0xFF6B)
 
 
 def a(_):
@@ -86,6 +90,25 @@ def extract_frame_info(self):
 			frame['p2'][0] = (0x30 - p2_c[3]) // 7
 			frame['p2'][1] = (0x30 - p2_c[3]) % 7
 
+	pals_used = set()
+	for i in range(40):
+		sprite = self.emulator.get_sprite(i)
+		if not sprite.on_screen:
+			continue
+		pals_used.add(sprite.attr_palette_number)
+	pals_map = dict()
+	pals_index = dict()
+	for index, pal_index in enumerate(pals_used):
+		pal = []
+		for i in range(4):
+			self.write(OBPI, (0x80 | (pal_index * 8)) + i * 2)
+			color = self.read(OBPD)
+			self.write(OBPI, (0x80 | (pal_index * 8)) + i * 2 + 1)
+			color |= self.read(OBPD) << 8
+			pal.append(color)
+		pals_map[pal_index] = pal
+		pals_index[pal_index] = index
+	frame['pals'] = list(pals_map.values())
 	frame['sprites'] = sprites
 	for i in range(40):
 		sprite = self.emulator.get_sprite(i)
@@ -95,7 +118,7 @@ def extract_frame_info(self):
 			'x': sprite.x,
 			'y': sprite.y,
 			'id': sprite.tile_identifier - 0x31,
-			'pal_num': sprite.attr_palette_number,
+			'pal_num': pals_index[sprite.attr_palette_number],
 			'flip': [sprite.attr_x_flip, sprite.attr_y_flip],
 			'prio': sprite.attr_obj_bg_priority
 		})
@@ -223,7 +246,35 @@ def init_battle(self):
 	for i in range(9):
 		self.write(self.symbol("wLinkBattleRandomNumberList") + i, rng_list[i])
 	self.last_frames = []
-	self.copy_battle_data_to_emulator(state.me, self.symbol("wPartyMons"), self.symbol("wPlayerName"),  self.symbol("wPartyCount"),      self.symbol("wPartyMonNicks"))
+
+
+	species_array = self.symbol("wPartyCount")
+	team_base_address = self.symbol("wPartyMons")
+	name_list_address = self.symbol("wPartyMonNicks")
+	name_address = self.symbol("wPlayerName")
+	self.write(species_array, len(state.me.team))
+	for i, pkmn in enumerate(state.me.team):
+		self.write(species_array + i + 1, pkmn.id)
+		data = bytearray(pkmn.encode())
+		f = ((data[1] << 8) | data[2]) // 4
+		data[1] = f >> 8
+		data[2] = f & 0xFF
+		for k, b in enumerate(data):
+			self.write(team_base_address + i * len(data) + k, b)
+		data = EmulatorGameHandle.convert_string(pkmn.get_name(False))
+		for j in range(11):
+			if j < len(data):
+				self.write(name_list_address + i * 11 + j, data[j])
+			else:
+				self.write(name_list_address + i * 11 + j, CHAR_END)
+	self.write(species_array + len(state.me.team) + 1, 0xFF)
+	data = EmulatorGameHandle.convert_string(state.me.name)
+	for j in range(11):
+		if j < len(data):
+			self.write(name_address + j, data[j])
+		else:
+			self.write(name_address + j, CHAR_END)
+
 	self.copy_battle_data_to_emulator(state.op, self.symbol("wEnemyMons"), self.symbol("wTrainerName"), self.symbol("wEnemyPartyCount"), self.symbol("wEnemyMonNicks"))
 	self.waiting_text = True
 
@@ -253,12 +304,6 @@ extra_anims = [
 	ENEMY_HUD_SHAKE_ANIM,
 	SHRINKING_SQUARE_ANIM,
 	BURN_PSN_ANIM,
-	SLP_PLAYER_ANIM,
-	SLP_ANIM,
-	CONF_PLAYER_ANIM,
-	CONF_ANIM,
-	SLIDE_DOWN_ANIM,
-	HIDEPIC_ANIM
 ]
 
 battle = BattleHandler(False, False)
@@ -267,10 +312,12 @@ state = battle.state
 state.me.name = "0"
 state.op.name = "0"
 
-state.me.team = [Pokemon(state, "0", 100, PokemonBase(PokemonSpecies.Pikachu), [Move(AvailableMove.Pound)], False)]
-state.op.team = [Pokemon(state, "0", 100, PokemonBase(PokemonSpecies.Pikachu), [Move(AvailableMove.Pound)], False)]
+o = Pokemon(state, "0", 100, PokemonBase(PokemonSpecies.Clefairy), [Move(AvailableMove.Pound)], True)
+p = Pokemon(state, "0", 100, PokemonBase(PokemonSpecies.Pikachu), [Move(AvailableMove.Pound)], False)
+state.me.team = [p]
+state.op.team = [o]
 
-emulator = PyBoyEmulator(has_interface=True, rom=sys.argv[1], sound_volume=0, cgb=False)
+emulator = PyBoyEmulator(has_interface=True, rom=sys.argv[1], sound_volume=0)
 state.rng.generate_list(9)
 emulator.emulator.set_emulation_speed(0)
 init_battle(emulator)

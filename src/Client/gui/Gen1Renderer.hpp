@@ -65,6 +65,7 @@ private:
 		std::array<unsigned, 4> pal0;
 		std::array<unsigned, 4> pal1;
 		unsigned duration;
+		unsigned tileset;
 		int scx;
 		int scy;
 		int wx;
@@ -72,7 +73,7 @@ private:
 		std::optional<std::pair<int, int>> p1Off;
 		std::optional<std::pair<int, int>> p2Off;
 		std::vector<MoveSprite> sprites;
-		unsigned tileset;
+		std::vector<std::pair<unsigned, std::array<sf::Color, 4>>> pals;
 	};
 
 	struct MoveData {
@@ -153,10 +154,11 @@ private:
 	std::function<void()> _onAnimEnd;
 	std::string _queuedText;
 	std::string _displayedText;
-	sf::Texture _balls[4];
 	sf::Texture _arrows[2];
 	sf::Texture _choicesHUD;
 	sf::Texture _attackHUD;
+	sf::RenderTexture _lastFrame;
+	PalettedSprite _balls[4];
 	PalettedSprite _waitingHUD;
 	PalettedSprite _trainer[2];
 	PalettedSprite _boxes[4];
