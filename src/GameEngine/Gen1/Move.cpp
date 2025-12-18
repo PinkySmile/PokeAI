@@ -121,9 +121,11 @@
         return target.hasStatus(STATUS_ASLEEP);\
 }
 
-#define DISABLE_CHECK [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &){\
-	if (target.getMoveDisabled() != 0)\
+#define DISABLE_CHECK [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){\
+	if (target.getMoveDisabled() != 0) {\
+		owner.getRandomGenerator().skip(1);\
 		return false;\
+	}\
 \
 	auto &moveSet = target.getMoveSet();\
 	auto &rng = target.getRandomGenerator();\
@@ -137,8 +139,10 @@
 			if (slot < moveSet.size())\
 				move = &moveSet[slot];\
 		} while (move && move->getID() == None);\
-		if (std::ranges::all_of(moveSet.begin(), moveSet.end(), [](const Move &m){ return m.getPP() == 0; }))\
+		if (std::ranges::all_of(moveSet.begin(), moveSet.end(), [](const Move &m){ return m.getPP() == 0; })) {\
+			owner.getRandomGenerator().skip(1);\
 			return false;\
+		}\
 	} while (move->getPP() == 0);\
 	return true;\
 }
