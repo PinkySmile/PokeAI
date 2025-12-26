@@ -63,24 +63,24 @@ cdef class Gen1Renderer :
 		return bytes(self.__buffer)
 
 	@property
-	def soundDisabled(self):
+	def sound_disabled(self):
 		return self.__instance.soundDisabled
-	@soundDisabled.setter
-	def soundDisabled(self, v):
+	@sound_disabled.setter
+	def sound_disabled(self, v):
 		self.__instance.soundDisabled = v
 
 	@property
-	def displayTurn(self):
+	def display_turn(self):
 		return self.__instance.displayTurn
-	@displayTurn.setter
-	def displayTurn(self, v):
+	@display_turn.setter
+	def display_turn(self, v):
 		self.__instance.displayTurn = v
 
 	@property
-	def musicDisabled(self):
+	def music_disabled(self):
 		return self.__instance.musicDisabled
-	@musicDisabled.setter
-	def musicDisabled(self, v):
+	@music_disabled.setter
+	def music_disabled(self, v):
 		self.__instance.musicDisabled = v
 
 	@property

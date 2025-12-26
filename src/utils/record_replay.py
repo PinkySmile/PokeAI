@@ -1,6 +1,5 @@
 import os
 import sys
-import ffmpeg
 import subprocess
 from argparse import ArgumentParser
 from PokeBattle.Gen1.BattleHandler import BattleHandler
@@ -53,9 +52,9 @@ handler.load_replay(replay)
 renderer = cls(*rargs)
 handler.state.logger = lambda d: renderer.consume_event(d)
 renderer.state = handler.state
-renderer.soundDisabled = True
-renderer.musicDisabled = True
-renderer.displayTurn = False
+renderer.sound_disabled = True
+renderer.music_disabled = True
+renderer.display_turn = False
 index = 0
 process = start_ffmpeg_process(output, *renderer.size)
 handler.start()

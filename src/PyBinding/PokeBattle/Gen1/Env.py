@@ -1,26 +1,39 @@
 import os
 from collections.abc import Callable
 
-from PokeBattle.Gen1.BadActionPolicy import BadActionPolicy
-from PokeBattle.Gen1.State import DesyncPolicy
 from gymnasium import Env, register
 from gymnasium.spaces import Discrete, Box
-from numpy import array, int16, float32, int8
+from numpy import array, float32, int8
 from numpy.random import Generator
 
 from .PyBoyEmulator import PyBoyEmulator
 from .BattleHandler import BattleHandler
 from .Move import AvailableMove, MoveCategory, Move
-from .State import BattleAction, BattleState, PlayerState
+from .State import BattleAction, BattleState, PlayerState, DesyncPolicy
 from .StatusChange import StatusChange, status_to_string
 from .Pokemon import Pokemon, PokemonBase
 from .Team import load_trainer as _load_trainer
 from .Type import Type, type_to_string_short, get_attack_damage_multiplier
 from .YellowEmulator import TrainerClass
+from .Gen1Renderer import Gen1Renderer
+from .BadActionPolicy import BadActionPolicy
+
+
+renderers = {
+	'yellow':           (Gen1Renderer, ("",   True)),
+	'yellow_colorless': (Gen1Renderer, ("",   False)),
+	'red':              (Gen1Renderer, ("r",  True)),
+	'red_colorless':    (Gen1Renderer, ("r",  False)),
+	'green':            (Gen1Renderer, ("rg", True)),
+	'green_colorless':  (Gen1Renderer, ("rg", False)),
+}
 
 banned_moves = [ # These moves aren't implemented properly in the engine
-	# Some errors still occur with metronomes
+	AvailableMove.Fly,
+	AvailableMove.Dig,
 	AvailableMove.Metronome,
+	AvailableMove.Rage,
+	AvailableMove.Bide,
 ]
 
 
