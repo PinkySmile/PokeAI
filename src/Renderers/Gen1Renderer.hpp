@@ -16,7 +16,7 @@ namespace PkmnRenderer
 {
 	class Gen1Renderer : public IRenderer {
 	public:
-		Gen1Renderer(const std::string &variant, bool hasColors);
+		Gen1Renderer(const std::string &variant, bool hasColors, bool loadSound=true);
 		~Gen1Renderer() override = default;
 		void update() override;
 		void render(sf::RenderTarget &) override;
@@ -37,6 +37,7 @@ namespace PkmnRenderer
 			std::array<sf::Color, 4> paletteColors;
 			bool useColors = false;
 			bool transparent = false;
+			bool isInit = false;
 
 			void palettize(const std::array<unsigned, 4> &palette, bool transparent, bool force=false);
 			void palettize(const std::array<unsigned, 4> &colors, const std::array<sf::Color, 4> &palette, bool transparent, bool force=false);
@@ -146,8 +147,8 @@ namespace PkmnRenderer
 		static void (Gen1Renderer::*_renderers[EVNTTYPE_COUNT])(sf::RenderTarget &);
 
 		static void _loadMoveFrames(std::vector<MoveAnim> &m, const nlohmann::json &j);
-		static void _loadMoveData(MoveData &data, const std::string &id);
-		static void _loadPokemonData(PokemonData &data, const std::string &folder, const std::string &variant);
+		static void _loadMoveData(MoveData &data, const std::string &id, bool loadSounds);
+		static void _loadPokemonData(PokemonData &data, const std::string &folder, const std::string &variant, bool loadSounds);
 
 		EventType _currentEvent = EVNTTYPE_NONE;
 

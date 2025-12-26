@@ -20,10 +20,10 @@ cdef class Gen1Renderer :
 	def __dealloc__(self):
 		del self.__instance
 
-	def __init__(self, variant, bool hasColors):
+	def __init__(self, variant, bool hasColors, bool loadSound=True):
 		if isinstance(variant, str):
 			variant = variant.encode('utf-8')
-		self.__instance = new __Gen1Renderer(variant, hasColors)
+		self.__instance = new __Gen1Renderer(variant, hasColors, loadSound)
 		x, y = self.size
 		self.__buffer.resize(x * y * 4)
 

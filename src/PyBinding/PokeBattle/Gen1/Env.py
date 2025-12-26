@@ -3,7 +3,7 @@ from collections.abc import Callable
 
 from gymnasium import Env, register
 from gymnasium.spaces import Discrete, Box
-from numpy import array, float32, int8
+from numpy import array, float32, int8, uint8, frombuffer
 from numpy.random import Generator
 
 from .PyBoyEmulator import PyBoyEmulator
@@ -20,12 +20,12 @@ from .BadActionPolicy import BadActionPolicy
 
 
 renderers = {
-	'yellow':           (Gen1Renderer, ("",   True)),
-	'yellow_colorless': (Gen1Renderer, ("",   False)),
-	'red':              (Gen1Renderer, ("r",  True)),
-	'red_colorless':    (Gen1Renderer, ("r",  False)),
-	'green':            (Gen1Renderer, ("rg", True)),
-	'green_colorless':  (Gen1Renderer, ("rg", False)),
+	'yellow':           (Gen1Renderer, ("",   True,  False)),
+	'yellow_colorless': (Gen1Renderer, ("",   False, False)),
+	'red':              (Gen1Renderer, ("r",  True,  False)),
+	'red_colorless':    (Gen1Renderer, ("r",  False, False)),
+	'green':            (Gen1Renderer, ("rg", True,  False)),
+	'green_colorless':  (Gen1Renderer, ("rg", False, False)),
 }
 
 banned_moves = [ # These moves aren't implemented properly in the engine
@@ -148,7 +148,7 @@ def load_trainer(path: str|bytes):
 			data = fd.read()
 	else:
 		data = path
-	name, team = _load_trainer(data, state)
+	name, team = _load_trainer(data, state, False)
 	return name, [{
 		"name": p.name,
 		"level": p.level,
@@ -198,7 +198,7 @@ class Examples:
 class PokemonYellowBattle(Env):
 	metadata = {
 		'render_modes': ["human", "ansi", "rgb_array_list"],
-		'render_fps': 10
+		'render_fps': 60
 	}
 	action_space = Discrete(12)
 	observation_space = Box(
@@ -578,7 +578,9 @@ class PokemonYellowBattle(Env):
 		replay_folder: str='.',
 		shuffle_teams: bool=False,
 		rom: str|None=None,
-		leak_state: bool=False
+		renderer: str='yellow',
+		leak_state: bool=False,
+		use_emulator: bool=False
 	):
 		self.battle = BattleHandler(False, False)
 		self.op = opponent_callback
@@ -595,15 +597,28 @@ class PokemonYellowBattle(Env):
 		self.replay_folder = replay_folder
 		self.load_state = rom is None
 		self.trainer_class = None
+		self.renderer = None
+		self.emulator = None
+		self.messages = []
+		if renderer not in renderers:
+			s = "Invalid renderer selected. Available renderers:\n"
+			for key in renderers.keys():
+				s += f" - {key}\n"
+			raise RuntimeError(s)
 		if self.render_mode == "human":
 			self.emulator = PyBoyEmulator(has_interface=True, sound_volume=25, save_frames=False, rom=rom)
 		elif self.render_mode == "rgb_array_list":
-			self.emulator = PyBoyEmulator(has_interface=False, sound_volume=0, save_frames=True, rom=rom)
-		else:
-			self.emulator = None
-		self.messages = []
-		if self.render_mode == "ansi":
-			self.battle.state.logger = lambda x: self.messages.append(x)
+			if use_emulator:
+				self.emulator = PyBoyEmulator(has_interface=False, sound_volume=0, save_frames=True, rom=rom)
+			else:
+				cls, rargs = renderers[renderer]
+				self.renderer = cls(*rargs)
+				self.battle.state.logger = lambda d: self.renderer.consume_event(d)
+				self.renderer.sound_disabled = True
+				self.renderer.music_disabled = True
+				self.renderer.display_turn = False
+		elif self.render_mode == "ansi":
+			self.battle.state.logger = lambda x: self.messages.append(str(x))
 
 
 	def step_emulator(self, state: BattleState):
@@ -621,13 +636,17 @@ class PokemonYellowBattle(Env):
 
 
 	def init_emulator(self, state: BattleState):
-		if self.emulator is None or not self.recording:
+		if not self.recording:
 			return
-		if self.load_state:
-			with open(os.path.abspath(os.path.join(__file__, os.path.pardir, "pokeyellow_replay.state")), "rb") as fd:
-				self.emulator.init_battle(fd, state, trainer=self.trainer_class)
-		else:
-			self.emulator.init_battle(None, state, trainer=self.trainer_class)
+		if self.emulator is not None:
+			if self.load_state:
+				with open(os.path.abspath(os.path.join(__file__, os.path.pardir, "pokeyellow_replay.state")), "rb") as fd:
+					self.emulator.init_battle(fd, state, trainer=self.trainer_class)
+			else:
+				self.emulator.init_battle(None, state, trainer=self.trainer_class)
+		if self.renderer is not None:
+			self.renderer.reset()
+			self.renderer.state = state
 
 
 	@staticmethod
@@ -793,11 +812,11 @@ class PokemonYellowBattle(Env):
 		super().reset(seed=seed)
 		self.battle.reset()
 		self.current_turn = 0
-		self.episode_id += 1
 		if self.episode_trigger:
 			self.recording = self.episode_trigger(self.episode_id)
 		else:
 			self.recording = True
+		self.episode_id += 1
 		state = self.battle.state
 		state.desync = DesyncPolicy.Invert
 		state.bad_action = BadActionPolicy.Throw
@@ -808,14 +827,16 @@ class PokemonYellowBattle(Env):
 					p.get_name(False),
 					p.level,
 					PokemonBase(p.id),
-					self.np_random.permutation(list(Move(m.id, 3) for m in p.move_set if m.id))
+					self.np_random.permutation(list(Move(m.id, 3) for m in p.move_set if m.id)),
+					False
 				) for p in state.me.team])
 				state.op.team = self.np_random.permutation([Pokemon(
 					self.battle.state,
 					p.get_name(False),
 					p.level,
 					PokemonBase(p.id),
-					self.np_random.permutation(list(Move(m.id, 3) for m in p.move_set if m.id))
+					self.np_random.permutation(list(Move(m.id, 3) for m in p.move_set if m.id)),
+					True
 				) for p in state.op.team])
 		else:
 			self.op = options.get("ai", self.base_op)
@@ -830,11 +851,32 @@ class PokemonYellowBattle(Env):
 				for m in p["moves"]:
 					if m in banned_moves:
 						print(f"Warning: {AvailableMove(m).name} in team 2, on {p["name"]} doesn't work and has been replaced with Pound")
-			state.me.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m, 3) for m in p["moves"]]) for p in options["p1team"]]
-			state.op.team = [Pokemon(self.battle.state, p["name"], p["level"], PokemonBase(p["species"]), [Move(AvailableMove.Pound if m in banned_moves else m, 3) for m in p["moves"]]) for p in options["p2team"]]
+			state.me.team = [
+				Pokemon(
+					self.battle.state,
+					p["name"],
+					p["level"],
+					PokemonBase(p["species"]),
+					[Move(AvailableMove.Pound if m in banned_moves else m, 3) for m in p["moves"]],
+					False
+				)
+				for p in options["p1team"]
+			]
+			state.op.team = [
+				Pokemon(
+					self.battle.state,
+					p["name"],
+					p["level"],
+					PokemonBase(p["species"]),
+					[Move(AvailableMove.Pound if m in banned_moves else m, 3) for m in p["moves"]],
+					True
+				)
+				for p in options["p2team"]
+			]
 		state.rng.list = [self.np_random.integers(low=0, high=255) for _ in range(9)]
 
 		self.init_emulator(state)
+		self.battle.start()
 		return self.make_observation(state)
 
 
@@ -870,13 +912,26 @@ class PokemonYellowBattle(Env):
 			p2 = state.op.name + "'s team (P2)\n" + "\n".join(self.serialize_mon(s, i, state.me) for i, s in enumerate(state.op.team))
 			return messages + "\n" + p1 + "\n" + p2
 		if self.render_mode == 'rgb_array_list':
-			return self.emulator.get_last_frames()
+			last_frames = []
+			if self.emulator is not None:
+				last_frames = self.emulator.get_last_frames()
+			elif self.renderer is not None:
+				f = True
+				while f:
+					self.renderer.update()
+					arr = frombuffer(self.renderer.render_pic(), dtype=uint8)
+					last_frames.append(arr.reshape((self.renderer.size[1], self.renderer.size[0], 4))[:, :, :3])
+					f = not self.renderer.animation_ended
+			return last_frames
 		return None
 
 
 	def close(self):
 		if self.emulator is not None:
 			self.emulator.stop()
+			del self.emulator
+		if self.renderer is not None:
+			del self.renderer
 
 
 register('PokemonYellow', PokemonYellowBattle)

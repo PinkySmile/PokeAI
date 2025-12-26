@@ -10,7 +10,7 @@ from ._IRenderer cimport IRenderer
 cdef extern from "<Renderers/Gen1Renderer.hpp>"namespace "PkmnRenderer":
 	# TODO: Check how to implement inheritance proper
 	cdef cppclass Gen1Renderer(IRenderer):
-		Gen1Renderer(const string &variant, bool hasColors) except+
+		Gen1Renderer(const string &variant, bool hasColors, bool loadSound) except+
 		void update()
 		void reset()
 		void consumeEvent(const Event &event)

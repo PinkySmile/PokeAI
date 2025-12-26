@@ -142,28 +142,30 @@ void Gen1Renderer::_loadMoveFrames(std::vector<MoveAnim> &m, const nlohmann::jso
 	}
 }
 
-void Gen1Renderer::_loadMoveData(MoveData &data, const std::string &id)
+void Gen1Renderer::_loadMoveData(MoveData &data, const std::string &id, bool loadSounds)
 {
 	std::ifstream stream{"assets/gen1/moves/anims/move_" + id + ".json"};
 	nlohmann::json json;
 
 	stream >> json;
 
-	if (id != "45" && id != "46") // Growl and Roar
+	if (id != "45" && id != "46" && loadSounds) // Growl and Roar
 		(void)data.sound.loadFromFile("assets/gen1/moves/sounds/move_" + id + ".ogg");
 
 	Gen1Renderer::_loadMoveFrames(data.animP1, json["frames_p1"]);
 	Gen1Renderer::_loadMoveFrames(data.animP2, json["frames_p2"]);
 }
 
-void Gen1Renderer::_loadPokemonData(PokemonData &data, const std::string &folder, const std::string &variant)
+void Gen1Renderer::_loadPokemonData(PokemonData &data, const std::string &folder, const std::string &variant, bool loadSounds)
 {
 	data.front.init("assets/gen1/pokemons/" + folder + "/front" + variant + ".png");
 	data.back.init("assets/gen1/pokemons/" + folder + "/back.png");
 	(void)data.icon.loadFromFile("assets/gen1/pokemons/" + folder + "/icon.png");
-	(void)data.cry.loadFromFile("assets/gen1/pokemons/" + folder + "/cry.ogg");
-	(void)data.roar.loadFromFile("assets/gen1/moves/sounds/move_46/" + folder + ".ogg");
-	(void)data.growl.loadFromFile("assets/gen1/moves/sounds/move_45/" + folder + ".ogg");
+	if (loadSounds) {
+		(void)data.cry.loadFromFile("assets/gen1/pokemons/" + folder + "/cry.ogg");
+		(void)data.roar.loadFromFile("assets/gen1/moves/sounds/move_46/" + folder + ".ogg");
+		(void)data.growl.loadFromFile("assets/gen1/moves/sounds/move_45/" + folder + ".ogg");
+	}
 
 	std::string path = "assets/gen1/pokemons/" + folder + "/color.pal";
 	std::ifstream stream{path, std::fstream::binary};
@@ -189,7 +191,7 @@ void Gen1Renderer::_loadPokemonData(PokemonData &data, const std::string &folder
 	}
 }
 
-Gen1Renderer::Gen1Renderer(const std::string &variant, bool hasColors) :
+Gen1Renderer::Gen1Renderer(const std::string &variant, bool hasColors, bool loadSounds) :
 	_hasColor(hasColors),
 	_lastFrame(Gen1Renderer::getSize()),
 	_font("assets/gen1/font.ttf")
@@ -202,36 +204,34 @@ Gen1Renderer::Gen1Renderer(const std::string &variant, bool hasColors) :
 	nlohmann::json json;
 	std::string line;
 
-	(void)this->_music.openFromFile("assets/gen1/sounds/" + music + ".ogg");
-	this->_music.setVolume(100);
-
 	this->_font.setSmooth(false);
-	std::getline(streamLoop, line);
-	this->_music.setLoopPoints({
-		.offset = sf::seconds(std::stof(line)),
-		.length = this->_music.getDuration() - sf::seconds(std::stof(line)),
-	});
-	this->_music.setLooping(true);
-
 	this->_moveTextures[0].init("assets/gen1/moves/tilemap1.png");
 	this->_moveTextures[1].init("assets/gen1/moves/tilemap2.png");
 
 	this->_balls[0].init("assets/gen1/pokeballs/pkmnOK.png");
-	palettizeSprite(this->_balls[0], _defaultPalette, _ballColors, true);
 	this->_balls[1].init("assets/gen1/pokeballs/pkmnNO.png");
-	palettizeSprite(this->_balls[1], _defaultPalette, _ballColors, true);
 	this->_balls[2].init("assets/gen1/pokeballs/pkmnFNT.png");
-	palettizeSprite(this->_balls[2], _defaultPalette, _ballColors, true);
 	this->_balls[3].init("assets/gen1/pokeballs/pkmnSTATUS.png");
-	palettizeSprite(this->_balls[3], _defaultPalette, _ballColors, true);
 
-	(void)this->_hitSounds[0].loadFromFile("assets/gen1/sounds/ne_sound.ogg");
-	(void)this->_hitSounds[1].loadFromFile("assets/gen1/sounds/hit_sound.ogg");
-	(void)this->_hitSounds[2].loadFromFile("assets/gen1/sounds/ve_sound.ogg");
-	(void)this->_trainerLand.loadFromFile("assets/gen1/sounds/trainer_land.ogg");
-	(void)this->_ballPopSound.loadFromFile("assets/gen1/sounds/ball_pop.ogg");
-	(void)this->_menuSelect.loadFromFile("assets/gen1/sounds/menu_select.ogg");
-	(void)this->_faint.loadFromFile("assets/gen1/sounds/faint.ogg");
+	if (loadSounds) {
+		(void)this->_hitSounds[0].loadFromFile("assets/gen1/sounds/ne_sound.ogg");
+		(void)this->_hitSounds[1].loadFromFile("assets/gen1/sounds/hit_sound.ogg");
+		(void)this->_hitSounds[2].loadFromFile("assets/gen1/sounds/ve_sound.ogg");
+		(void)this->_trainerLand.loadFromFile("assets/gen1/sounds/trainer_land.ogg");
+		(void)this->_ballPopSound.loadFromFile("assets/gen1/sounds/ball_pop.ogg");
+		(void)this->_menuSelect.loadFromFile("assets/gen1/sounds/menu_select.ogg");
+		(void)this->_faint.loadFromFile("assets/gen1/sounds/faint.ogg");
+
+		(void)this->_music.openFromFile("assets/gen1/sounds/" + music + ".ogg");
+		this->_music.setVolume(100);
+
+		std::getline(streamLoop, line);
+		this->_music.setLoopPoints({
+			.offset = sf::seconds(std::stof(line)),
+			.length = this->_music.getDuration() - sf::seconds(std::stof(line)),
+		});
+		this->_music.setLooping(true);
+	}
 
 	this->_trainer[0].init("assets/gen1/redb.png");
 	this->_trainer[1].init("assets/gen1/red.png");
@@ -251,18 +251,18 @@ Gen1Renderer::Gen1Renderer(const std::string &variant, bool hasColors) :
 	this->_boxes[3].init("assets/gen1/pkmns_border_player_side.png");
 
 	streamList >> json;
-	Gen1Renderer::_loadPokemonData(this->_missingno, "missingno", "");
+	Gen1Renderer::_loadPokemonData(this->_missingno, "missingno", "", loadSounds);
 	for (auto &id : json) {
 		unsigned id_ = id;
 
-		Gen1Renderer::_loadPokemonData(this->_data[id_], std::to_string(id_), variant);
+		Gen1Renderer::_loadPokemonData(this->_data[id_], std::to_string(id_), variant, loadSounds);
 	}
 
 	streamListMove >> json;
 	for (auto &id : json) {
 		unsigned id_ = id;
 
-		Gen1Renderer::_loadMoveData(this->_moveData[id_], std::to_string(id_));
+		Gen1Renderer::_loadMoveData(this->_moveData[id_], std::to_string(id_), loadSounds);
 	}
 
 	streamStartAnim >> json;
@@ -354,6 +354,7 @@ std::optional<BattleAction> Gen1Renderer::selectAction(bool attackDisabled)
 
 void Gen1Renderer::reset()
 {
+	this->_currentEvent = EVNTTYPE_NONE;
 	this->_currentTurn = 0;
 	this->state.p1.spriteId = this->state.p1.team[this->state.p1.active].id;
 	this->state.p2.spriteId = this->state.p2.team[this->state.p2.active].id;
@@ -441,6 +442,14 @@ void Gen1Renderer::_handleEvent(const Event &event)
 		this->_animMove = 0;
 		this->_subCounter = 0;
 		this->_currentAnim = 0;
+		palettizeSprite(this->_balls[0], _defaultPalette, _ballColors, false);
+		palettizeSprite(this->_balls[1], _defaultPalette, _ballColors, false);
+		palettizeSprite(this->_balls[2], _defaultPalette, _ballColors, false);
+		palettizeSprite(this->_balls[3], _defaultPalette, _ballColors, false);
+		palettizeSprite(this->_boxes[0], _defaultPalette, _defaultObjColor, false);
+		palettizeSprite(this->_boxes[1], _defaultPalette, _defaultObjColor, false);
+		palettizeSprite(this->_boxes[2], _defaultPalette, _defaultObjColor, false);
+		palettizeSprite(this->_boxes[3], _defaultPalette, _defaultObjColor, false);
 	} else if (auto miss = std::get_if<MoveMissEvent>(&event)) {
 		auto &p = miss->player ? this->state.p1 : this->state.p2;
 
@@ -2541,6 +2550,7 @@ void Gen1Renderer::PalettedSprite::palettize(const std::array<unsigned, 4> &colo
 		this->paletteColors[3] == palette[color[3]] &&
 		transparent == this->transparent &&
 		!force &&
+		this->isInit &&
 		this->useColors
 	)
 		return;
@@ -2566,12 +2576,11 @@ void Gen1Renderer::PalettedSprite::palettize(const std::array<unsigned, 4> &colo
 			else if (c.r < 0xF0) img.setPixel({x, y}, this->paletteColors[1]);
 			else img.setPixel({x, y}, this->paletteColors[0]);
 		}
+	this->isInit = true;
 	(void)this->texture.loadFromImage(img);
 }
 
 void Gen1Renderer::PalettedSprite::init(const std::filesystem::path &path)
 {
 	(void)this->source.loadFromFile(path);
-	(void)this->texture.loadFromImage(this->source);
-	this->palettize({0, 1, 2, 3}, false, true);
 }
