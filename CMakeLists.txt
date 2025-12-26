@@ -108,6 +108,18 @@ else (WIN32)
 endif (WIN32)
 
 
+add_library(
+	PokemonGen1Renderers ${LIBRARY_TYPE}
+	src/Renderers/IRenderer.hpp
+	src/Renderers/IRenderer.cpp
+	src/Renderers/Gen1Renderer.cpp
+	src/Renderers/Gen1Renderer.hpp
+)
+target_link_libraries(
+	PokemonGen1Renderers
+	PokemonGen1Core
+)
+
 
 add_executable(
 	PokeAI_gui
@@ -116,10 +128,6 @@ add_executable(
 	src/Client/gui/Utils.cpp
 	src/Client/gui/Utils.hpp
 	src/Client/gui/battle.cpp
-	src/Client/gui/IRenderer.hpp
-	src/Client/gui/IRenderer.cpp
-	src/Client/gui/Gen1Renderer.cpp
-	src/Client/gui/Gen1Renderer.hpp
 )
 target_link_libraries(
 	PokeAI_gui
@@ -128,18 +136,12 @@ target_link_libraries(
 )
 
 add_executable(
-	test_renderer
-	src/Client/gui/test.cpp
-	src/Client/gui/Utils.cpp
-	src/Client/gui/Utils.hpp
-	src/Client/gui/IRenderer.hpp
-	src/Client/gui/IRenderer.cpp
-	src/Client/gui/Gen1Renderer.cpp
-	src/Client/gui/Gen1Renderer.hpp
+	test_renderer_g1
+	src/Renderers/test_g1.cpp
 )
 target_link_libraries(
-	test_renderer
-	PokemonGen1Client
+	test_renderer_g1
+	PokemonGen1Renderers
 	TGUI::TGUI
 )
 

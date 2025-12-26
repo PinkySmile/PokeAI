@@ -69,6 +69,7 @@ enum AnimationType {
 };
 
 using namespace PkmnCommon;
+using namespace PkmnRenderer;
 
 void Gen1Renderer::_loadMoveFrames(std::vector<MoveAnim> &m, const nlohmann::json &json)
 {
@@ -340,7 +341,7 @@ void Gen1Renderer::render(sf::RenderTarget &target)
 	target.draw(text);
 }
 
-std::optional<IRenderer::BattleAction> Gen1Renderer::selectAction(bool attackDisabled)
+std::optional<BattleAction> Gen1Renderer::selectAction(bool attackDisabled)
 {
 	return {};
 }

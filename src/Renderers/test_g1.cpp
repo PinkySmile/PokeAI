@@ -91,8 +91,8 @@ int main(int argc, char **argv)
 	}
 
 	PokemonGen1::BattleHandler handler{false, false};
-	auto &state = handler.getBattleState();
-	Gen1Renderer renderer{version, colors};
+	PokemonGen1::BattleState &state = handler.getBattleState();
+	PkmnRenderer::Gen1Renderer renderer{version, colors};
 
 	state.battleLogger = [&renderer](const PkmnCommon::Event &event){
 		if (auto text = std::get_if<PkmnCommon::TextEvent>(&event))
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
 		}
 	} else try {
 		handler.start();
-		renderer.state = fromGen1(state);
+		renderer.state = PkmnRenderer::fromGen1(state);
 		while (!handler.isFinished()) {
 			if (replay.empty()) {
 				state.me.nextAction = basic_opponent(state.me, state.op);

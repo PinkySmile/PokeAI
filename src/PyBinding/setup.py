@@ -61,7 +61,8 @@ include_dir = os.path.join(cwd, '..', '..', 'include')
 source_dir = os.path.join(cwd, '..', '..', 'src')
 
 incs = [include_dir, source_dir, '.']
-libs = ['PokemonGen1Core', 'PokemonGen1Emulator']
+int_libs = ['PokemonGen1Core', 'PokemonGen1Emulator', 'PokemonGen1Renderers']
+libs = int_libs + ['sfml-graphics', 'sfml-system', 'sfml-audio']
 
 extensions = [
 	Extension("PokeBattle.Gen1.BattleHandler",      ['PokeBattle/Gen1/BattleHandler.pyx'],      include_dirs=incs, libraries=libs),
@@ -77,6 +78,7 @@ extensions = [
 	Extension("PokeBattle.Gen1.Type",               ['PokeBattle/Gen1/Type.pyx'],               include_dirs=incs, libraries=libs),
 	Extension("PokeBattle.Gen1.DesyncPolicy",       ['PokeBattle/Gen1/DesyncPolicy.pyx'],       include_dirs=incs, libraries=libs),
 	Extension("PokeBattle.Gen1.BadActionPolicy",    ['PokeBattle/Gen1/BadActionPolicy.pyx'],    include_dirs=incs, libraries=libs),
+	Extension("PokeBattle.Gen1.Gen1Renderer",       ['PokeBattle/Gen1/Gen1Renderer.pyx'],       include_dirs=incs, libraries=libs),
 ]
 cython_ext = cythonize(extensions, build_dir="build")
 
@@ -89,7 +91,7 @@ setup(
 	],
 	url='https://github.com/PinkySmile/PokeAI',
 	package_data={"PokeBattle/Gen1": ["pokeyellow.gbc", "*.state", "scenarios/*"]},
-	ext_modules=[CMakeExtension(lib) for lib in libs] + cython_ext,
+	ext_modules=[CMakeExtension(lib) for lib in int_libs] + cython_ext,
 	license='MIT',
 	author='PinkySmile',
 	author_email='Gegel85@laposte.net',

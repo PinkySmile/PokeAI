@@ -309,12 +309,27 @@ cdef extern from "<GameEngine/Event.hpp>" namespace "PkmnCommon":
 	GameStartEvent getGameStartEvent(const Event &e);
 	GameEndEvent getGameEndEvent(const Event &e);
 
+	Event setTextEvent(const TextEvent &e);
+	Event setMoveEvent(const MoveEvent &e);
+	Event setAnimEvent(const AnimEvent &e);
+	Event setExtraAnimEvent(const ExtraAnimEvent &e);
+	Event setHealthModEvent(const HealthModEvent &e);
+	Event setSwitchEvent(const SwitchEvent &e);
+	Event setWithdrawEvent(const WithdrawEvent &e);
+	Event setDeathEvent(const DeathEvent &e);
+	Event setHitEvent(const HitEvent &e);
+	Event setStatusClearedEvent(const StatusClearedEvent &e);
+	Event setTurnStartEvent(const TurnStartEvent &e);
+	Event setMoveMissEvent(const MoveMissEvent &e);
+	Event setGameStartEvent(const GameStartEvent &e);
+	Event setGameEndEvent(const GameEndEvent &e);
+
 
 cdef inline dict dictFromTextEvent(const TextEvent &value):
 	f: bytes = value.message
 	return {
 		'type': 'TextEvent',
-		'message': f.decode('ASCII')
+		'message': f.decode('utf-8')
 	}
 
 
@@ -422,37 +437,183 @@ cdef inline dict dictFromStatusClearedEvent(const StatusClearedEvent &value):
 		'player': value.player,
 	}
 
-
-cdef inline void evalLogger(void *func_p, const Event &msg) noexcept:
-	result: dict | None = None
+cdef inline dict dictFromEvent(const Event &msg):
 	index = msg.index()
 	if index == 0:
-		result = dictFromTextEvent(getTextEvent(msg))
-	elif index == 1:
-		result = dictFromMoveEvent(getMoveEvent(msg))
-	elif index == 2:
-		result = dictFromAnimEvent(getAnimEvent(msg))
-	elif index == 3:
-		result = dictFromExtraAnimEvent(getExtraAnimEvent(msg))
-	elif index == 4:
-		result = dictFromHealthModEvent(getHealthModEvent(msg))
-	elif index == 5:
-		result = dictFromSwitchEvent(getSwitchEvent(msg))
-	elif index == 6:
-		result = dictFromWithdrawEvent(getWithdrawEvent(msg))
-	elif index == 7:
-		result = dictFromDeathEvent(getDeathEvent(msg))
-	elif index == 8:
-		result = dictFromHitEvent(getHitEvent(msg))
-	elif index == 9:
-		result = dictFromStatusClearedEvent(getStatusClearedEvent(msg))
-	elif index == 10:
-		result = dictFromTurnStartEvent(getTurnStartEvent(msg))
-	elif index == 11:
-		result = dictFromMoveMissEvent(getMoveMissEvent(msg))
-	elif index == 12:
-		result = dictFromGameStartEvent(getGameStartEvent(msg))
-	elif index == 13:
-		result = dictFromGameEndEvent(getGameEndEvent(msg))
-	assert result is not None
-	(<object> func_p)(result)
+		return dictFromTextEvent(getTextEvent(msg))
+	if index == 1:
+		return dictFromMoveEvent(getMoveEvent(msg))
+	if index == 2:
+		return dictFromAnimEvent(getAnimEvent(msg))
+	if index == 3:
+		return dictFromExtraAnimEvent(getExtraAnimEvent(msg))
+	if index == 4:
+		return dictFromHealthModEvent(getHealthModEvent(msg))
+	if index == 5:
+		return dictFromSwitchEvent(getSwitchEvent(msg))
+	if index == 6:
+		return dictFromWithdrawEvent(getWithdrawEvent(msg))
+	if index == 7:
+		return dictFromDeathEvent(getDeathEvent(msg))
+	if index == 8:
+		return dictFromHitEvent(getHitEvent(msg))
+	if index == 9:
+		return dictFromStatusClearedEvent(getStatusClearedEvent(msg))
+	if index == 10:
+		return dictFromTurnStartEvent(getTurnStartEvent(msg))
+	if index == 11:
+		return dictFromMoveMissEvent(getMoveMissEvent(msg))
+	if index == 12:
+		return dictFromGameStartEvent(getGameStartEvent(msg))
+	if index == 13:
+		return dictFromGameEndEvent(getGameEndEvent(msg))
+	raise RuntimeError(f"Unknown event '{index}'")
+
+cdef inline void evalLogger(void *func_p, const Event &msg) noexcept:
+	(<object> func_p)(dictFromEvent(msg))
+
+
+
+cdef inline TextEvent dictToTextEvent(dict value):
+	assert value['type'] == 'TextEvent'
+	return {
+		'message': value['message'].encode('utf-8')
+	}
+
+"""
+cdef inline MoveEvent dictToMoveEvent(dict value):
+	return {
+		'type': 'MoveEvent',
+		'moveId': value.moveId,
+		'player': value.player,
+		'hideSubstitute': value.hideSubstitute,
+	}
+
+
+cdef inline MoveMissEvent dictToMoveMissEvent(dict value):
+	return {
+		'type': 'MoveMissEvent',
+		'moveId': value.moveId,
+		'player': value.player,
+	}
+
+
+cdef inline AnimEvent dictToAnimEvent(dict value):
+	return {
+		'type': 'AnimEvent',
+		'animId': value.animId,
+		'isGuaranteed': value.isGuaranteed,
+		'player': value.player,
+		'turn': value.turn,
+	}
+
+
+cdef inline ExtraAnimEvent dictToExtraAnimEvent(dict value):
+	return {
+		'type': 'ExtraAnimEvent',
+		'moveId': value.moveId,
+		'index': value.index,
+		'player': value.player,
+	}
+
+
+cdef inline HealthModEvent dictToHealthModEvent(dict value):
+	return {
+		'type': 'HealthModEvent',
+		'newHealth': value.newHealth,
+		'player': value.player,
+	}
+
+
+cdef inline SwitchEvent dictToSwitchEvent(dict value):
+	return {
+		'type': 'SwitchEvent',
+		'newPkmnId': value.newPkmnId,
+		'player': value.player,
+	}
+
+
+cdef inline WithdrawEvent dictToWithdrawEvent(dict value):
+	return {
+		'type': 'WithdrawEvent',
+		'player': value.player,
+	}
+
+
+cdef inline DeathEvent dictToDeathEvent(dict value):
+	return {
+		'type': 'DeathEvent',
+		'player': value.player,
+	}
+
+
+cdef inline HitEvent dictToHitEvent(dict value):
+	return {
+		'type': 'HitEvent',
+		'veryEffective': value.veryEffective,
+		'notVeryEffective': value.notVeryEffective,
+		'player': value.player,
+		'hasEffect': value.hasEffect,
+	}
+
+
+cdef inline GameStartEvent dictToGameStartEvent(dict value):
+	return {
+		'type': 'GameStartEvent',
+	}
+
+
+cdef inline GameEndEvent dictToGameEndEvent(dict value):
+	return {
+		'type': 'GameEndEvent',
+		'p1Won': value.p1Won,
+		'p2Won': value.p2Won,
+		'p1Ran': value.p1Ran,
+		'p2Ran': value.p2Ran,
+	}
+
+
+cdef inline TurnStartEvent dictToTurnStartEvent(dict value):
+	return {
+		'type': 'TurnStartEvent',
+	}
+
+
+cdef inline StatusClearedEvent dictToStatusClearedEvent(dict value):
+	return {
+		'type': 'StatusClearedEvent',
+		'player': value.player,
+	}
+"""
+cdef inline Event dictToEvent(dict msg):
+	index = msg['type']
+	if index == 'TextEvent':
+		return setTextEvent(dictToTextEvent(msg))
+	"""
+	if index == 'MoveEvent':
+		return setMoveEvent(dictToMoveEvent(msg))
+	if index == 'AnimEvent':
+		return setAnimEvent(dictToAnimEvent(msg))
+	if index == 'ExtraAnimEvent':
+		return setExtraAnimEvent(dictToExtraAnimEvent(msg))
+	if index == 'HealthModEvent':
+		return setHealthModEvent(dictToHealthModEvent(msg))
+	if index == 'SwitchEvent':
+		return setSwitchEvent(dictToSwitchEvent(msg))
+	if index == 'WithdrawEvent':
+		return setWithdrawEvent(dictToWithdrawEvent(msg))
+	if index == 'DeathEvent':
+		return setDeathEvent(dictToDeathEvent(msg))
+	if index == 'HitEvent':
+		return setHitEvent(dictToHitEvent(msg))
+	if index == 'StatusClearedEvent':
+		return setStatusClearedEvent(dictToStatusClearedEvent(msg))
+	if index == 'TurnStartEvent':
+		return setTurnStartEvent(dictToTurnStartEvent(msg))
+	if index == 'MoveMissEvent':
+		return setMoveMissEvent(dictToMoveMissEvent(msg))
+	if index == 'GameStartEvent':
+		return setGameStartEvent(dictToGameStartEvent(msg))
+	if index == 'GameEndEvent':
+		return setGameEndEvent(dictToGameEndEvent(msg))"""
+	raise RuntimeError(f"Unknown event '{index}'")

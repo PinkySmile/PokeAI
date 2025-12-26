@@ -327,86 +327,170 @@ namespace PkmnCommon
 #ifdef __PYX_EXTERN_C
 	inline TextEvent getTextEvent(const Event &e)
 	{
-		__DBG_PRINT("TextEvent");
+		__DBG_PRINT("getTextEvent");
 		return std::get<TextEvent>(e);
 	}
 
 	inline MoveEvent getMoveEvent(const Event &e)
 	{
-		__DBG_PRINT("MoveEvent");
+		__DBG_PRINT("getMoveEvent");
 		return std::get<MoveEvent>(e);
 	}
 
 	inline AnimEvent getAnimEvent(const Event &e)
 	{
-		__DBG_PRINT("AnimEvent");
+		__DBG_PRINT("getAnimEvent");
 		return std::get<AnimEvent>(e);
 	}
 
 	inline ExtraAnimEvent getExtraAnimEvent(const Event &e)
 	{
-		__DBG_PRINT("ExtraAnimEvent");
+		__DBG_PRINT("getExtraAnimEvent");
 		return std::get<ExtraAnimEvent>(e);
 	}
 
 	inline HealthModEvent getHealthModEvent(const Event &e)
 	{
-		__DBG_PRINT("HealthModEvent");
+		__DBG_PRINT("getHealthModEvent");
 		return std::get<HealthModEvent>(e);
 	}
 
 	inline SwitchEvent getSwitchEvent(const Event &e)
 	{
-		__DBG_PRINT("SwitchEvent");
+		__DBG_PRINT("getSwitchEvent");
 		return std::get<SwitchEvent>(e);
 	}
 
 	inline WithdrawEvent getWithdrawEvent(const Event &e)
 	{
-		__DBG_PRINT("WithdrawEvent");
+		__DBG_PRINT("getWithdrawEvent");
 		return std::get<WithdrawEvent>(e);
 	}
 
 	inline DeathEvent getDeathEvent(const Event &e)
 	{
-		__DBG_PRINT("DeathEvent");
+		__DBG_PRINT("getDeathEvent");
 		return std::get<DeathEvent>(e);
 	}
 
 	inline HitEvent getHitEvent(const Event &e)
 	{
-		__DBG_PRINT("HitEvent");
+		__DBG_PRINT("getHitEvent");
 		return std::get<HitEvent>(e);
 	}
 
 	inline StatusClearedEvent getStatusClearedEvent(const Event &e)
 	{
-		__DBG_PRINT("StatusClearedEvent");
+		__DBG_PRINT("getStatusClearedEvent");
 		return std::get<StatusClearedEvent>(e);
 	}
 
 	inline TurnStartEvent getTurnStartEvent(const Event &e)
 	{
-		__DBG_PRINT("TurnStartEvent");
+		__DBG_PRINT("getTurnStartEvent");
 		return std::get<TurnStartEvent>(e);
 	}
 
 	inline MoveMissEvent getMoveMissEvent(const Event &e)
 	{
-		__DBG_PRINT("MoveMissEvent");
+		__DBG_PRINT("getMoveMissEvent");
 		return std::get<MoveMissEvent>(e);
 	}
 
 	inline GameStartEvent getGameStartEvent(const Event &e)
 	{
-		__DBG_PRINT("GameStartEvent");
+		__DBG_PRINT("getGameStartEvent");
 		return std::get<GameStartEvent>(e);
 	}
 
 	inline GameEndEvent getGameEndEvent(const Event &e)
 	{
-		__DBG_PRINT("GameEndEvent");
+		__DBG_PRINT("getGameEndEvent");
 		return std::get<GameEndEvent>(e);
+	}
+
+	inline Event setTextEvent(const TextEvent &e)
+	{
+		__DBG_PRINT("setTextEvent");
+		return { e };
+	}
+
+	inline Event setMoveEvent(const MoveEvent &e)
+	{
+		__DBG_PRINT("setMoveEvent");
+		return { e };
+	}
+
+	inline Event setAnimEvent(const AnimEvent &e)
+	{
+		__DBG_PRINT("setAnimEvent");
+		return { e };
+	}
+
+	inline Event setExtraAnimEvent(const ExtraAnimEvent &e)
+	{
+		__DBG_PRINT("setExtraAnimEvent");
+		return { e };
+	}
+
+	inline Event setHealthModEvent(const HealthModEvent &e)
+	{
+		__DBG_PRINT("setHealthModEvent");
+		return { e };
+	}
+
+	inline Event setSwitchEvent(const SwitchEvent &e)
+	{
+		__DBG_PRINT("setSwitchEvent");
+		return { e };
+	}
+
+	inline Event setWithdrawEvent(const WithdrawEvent &e)
+	{
+		__DBG_PRINT("setWithdrawEvent");
+		return { e };
+	}
+
+	inline Event setDeathEvent(const DeathEvent &e)
+	{
+		__DBG_PRINT("setDeathEvent");
+		return { e };
+	}
+
+	inline Event setHitEvent(const HitEvent &e)
+	{
+		__DBG_PRINT("setHitEvent");
+		return { e };
+	}
+
+	inline Event setStatusClearedEvent(const StatusClearedEvent &e)
+	{
+		__DBG_PRINT("setStatusClearedEvent");
+		return { e };
+	}
+
+	inline Event setTurnStartEvent(const TurnStartEvent &e)
+	{
+		__DBG_PRINT("setTurnStartEvent");
+		return { e };
+	}
+
+	inline Event setMoveMissEvent(const MoveMissEvent &e)
+	{
+		__DBG_PRINT("setMoveMissEvent");
+		return { e };
+	}
+
+	inline Event setGameStartEvent(const GameStartEvent &e)
+	{
+		__DBG_PRINT("setGameStartEvent");
+		return { e };
+	}
+
+	inline Event setGameEndEvent(const GameEndEvent &e)
+	{
+		__DBG_PRINT("setGameEndEvent");
+		return { e };
 	}
 #endif
 }
