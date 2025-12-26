@@ -41,7 +41,7 @@ namespace PkmnRenderer
 
 		this->soundDisabled = true;
 		this->_skipping = true;
-		while (oldT == this->_currentTurn && !this->_queue.empty())
+		while (oldT == this->_currentTurn && (!this->_queue.empty() || !this->_finished))
 			this->update();
 		this->_skipping = false;
 		this->soundDisabled = oldSD;
@@ -85,7 +85,7 @@ namespace PkmnRenderer
 
 	bool IRenderer::hasAnimationEnded() const
 	{
-		return this->_queue.empty();
+		return this->_finished;
 	}
 
 	void IRenderer::consumeEvent(const PkmnCommon::Event &event)

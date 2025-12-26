@@ -61,11 +61,13 @@ process = start_ffmpeg_process(output, *renderer.size)
 handler.start()
 while not handler.finished:
 	handler.tick()
-	while not renderer.animation_ended:
+	f = True
+	while f:
 		print(f"\nTurn {renderer.turn} - Frame {index}\033[A\033[A")
 		index += 1
 		renderer.update()
 		process.stdin.write(renderer.render_pic())
+		f = not renderer.animation_ended
 
 process.stdin.close()
 process.wait()

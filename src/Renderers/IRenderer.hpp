@@ -119,6 +119,7 @@ namespace PkmnRenderer
 
 		sf::RenderTexture _buffer;
 		bool _skipping = false;
+		bool _finished = false;
 		std::vector<SavedState> _snapshots;
 		std::deque<PkmnCommon::Event> _queue;
 		unsigned _currentTurn = 0;

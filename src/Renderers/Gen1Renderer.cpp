@@ -38,22 +38,22 @@
 #define getColor(f, c, p) do { if (this->_hasColor) f = p[c]; else f = Gen1Renderer::_getDmgColor(c); } while (false)
 #define getColorCall(f, c, p) do { if (this->_hasColor) f(p[c]); else f(Gen1Renderer::_getDmgColor(c)); } while (false)
 
-static const std::array<unsigned int, 4> _defaultPalette{0, 1, 2, 3};
-static const std::array<unsigned int, 4> _darkPalette{3, 3, 3, 3};
-static const std::array<unsigned int, 4> _defaultObjPal{0, 0, 3, 3};
-const std::array<sf::Color, 4> _ballColors = {
+static constexpr std::array<unsigned int, 4> _defaultPalette{0, 1, 2, 3};
+static constexpr std::array<unsigned int, 4> _darkPalette{3, 3, 3, 3};
+static constexpr std::array<unsigned int, 4> _defaultObjPal{0, 0, 3, 3};
+static constexpr std::array<sf::Color, 4> _ballColors = {
 	sf::Color::White,
 	sf::Color::Yellow,
 	sf::Color::Green,
 	sf::Color{24, 24, 24},
 };
-const std::array<sf::Color, 4> _trainerColors = {
+static constexpr std::array<sf::Color, 4> _trainerColors = {
 	sf::Color::White,
 	sf::Color::Yellow,
 	sf::Color{255, 26, 8},
 	sf::Color{24, 24, 24},
 };
-const std::array<sf::Color, 4> _defaultObjColor = {
+static constexpr std::array<sf::Color, 4> _defaultObjColor = {
 	sf::Color::White,
 	sf::Color::White,
 	sf::Color::Black,
@@ -158,13 +158,13 @@ void Gen1Renderer::_loadMoveData(MoveData &data, const std::string &id)
 
 void Gen1Renderer::_loadPokemonData(PokemonData &data, const std::string &folder, const std::string &variant)
 {
-	(void)data.front.init("assets/gen1/pokemons/" + folder + "/front" + variant + ".png");
-	(void)data.back.init("assets/gen1/pokemons/" + folder + "/back.png");
+	data.front.init("assets/gen1/pokemons/" + folder + "/front" + variant + ".png");
+	data.back.init("assets/gen1/pokemons/" + folder + "/back.png");
 	(void)data.icon.loadFromFile("assets/gen1/pokemons/" + folder + "/icon.png");
 	(void)data.cry.loadFromFile("assets/gen1/pokemons/" + folder + "/cry.ogg");
 	(void)data.roar.loadFromFile("assets/gen1/moves/sounds/move_46/" + folder + ".ogg");
 	(void)data.growl.loadFromFile("assets/gen1/moves/sounds/move_45/" + folder + ".ogg");
-	
+
 	std::string path = "assets/gen1/pokemons/" + folder + "/color.pal";
 	std::ifstream stream{path, std::fstream::binary};
 	std::array<unsigned short, 4> pal;
@@ -213,16 +213,16 @@ Gen1Renderer::Gen1Renderer(const std::string &variant, bool hasColors) :
 	});
 	this->_music.setLooping(true);
 
-	(void)this->_moveTextures[0].init("assets/gen1/moves/tilemap1.png");
-	(void)this->_moveTextures[1].init("assets/gen1/moves/tilemap2.png");
+	this->_moveTextures[0].init("assets/gen1/moves/tilemap1.png");
+	this->_moveTextures[1].init("assets/gen1/moves/tilemap2.png");
 
-	(void)this->_balls[0].init("assets/gen1/pokeballs/pkmnOK.png");
+	this->_balls[0].init("assets/gen1/pokeballs/pkmnOK.png");
 	palettizeSprite(this->_balls[0], _defaultPalette, _ballColors, true);
-	(void)this->_balls[1].init("assets/gen1/pokeballs/pkmnNO.png");
+	this->_balls[1].init("assets/gen1/pokeballs/pkmnNO.png");
 	palettizeSprite(this->_balls[1], _defaultPalette, _ballColors, true);
-	(void)this->_balls[2].init("assets/gen1/pokeballs/pkmnFNT.png");
+	this->_balls[2].init("assets/gen1/pokeballs/pkmnFNT.png");
 	palettizeSprite(this->_balls[2], _defaultPalette, _ballColors, true);
-	(void)this->_balls[3].init("assets/gen1/pokeballs/pkmnSTATUS.png");
+	this->_balls[3].init("assets/gen1/pokeballs/pkmnSTATUS.png");
 	palettizeSprite(this->_balls[3], _defaultPalette, _ballColors, true);
 
 	(void)this->_hitSounds[0].loadFromFile("assets/gen1/sounds/ne_sound.ogg");
@@ -233,22 +233,22 @@ Gen1Renderer::Gen1Renderer(const std::string &variant, bool hasColors) :
 	(void)this->_menuSelect.loadFromFile("assets/gen1/sounds/menu_select.ogg");
 	(void)this->_faint.loadFromFile("assets/gen1/sounds/faint.ogg");
 
-	(void)this->_trainer[0].init("assets/gen1/redb.png");
-	(void)this->_trainer[1].init("assets/gen1/red.png");
+	this->_trainer[0].init("assets/gen1/redb.png");
+	this->_trainer[1].init("assets/gen1/red.png");
 
 	(void)this->_choicesHUD.loadFromFile("assets/gen1/choices.png");
 	(void)this->_attackHUD.loadFromFile("assets/gen1/attacks_overlay.png");
-	(void)this->_waitingHUD.init("assets/gen1/wait_overlay.png");
-	(void)this->_hpOverlay.init("assets/gen1/hp_overlay.png");
-	(void)this->_levelSprite.init("assets/gen1/level_icon.png");
+	this->_waitingHUD.init("assets/gen1/wait_overlay.png");
+	this->_hpOverlay.init("assets/gen1/hp_overlay.png");
+	this->_levelSprite.init("assets/gen1/level_icon.png");
 
 	(void)this->_arrows[0].loadFromFile("assets/gen1/arrow.png");
 	(void)this->_arrows[1].loadFromFile("assets/gen1/selectArrow.png");
 
-	(void)this->_boxes[0].init("assets/gen1/text_box.png");
-	(void)this->_boxes[1].init("assets/gen1/VS_box.png");
-	(void)this->_boxes[2].init("assets/gen1/pkmns_border.png");
-	(void)this->_boxes[3].init("assets/gen1/pkmns_border_player_side.png");
+	this->_boxes[0].init("assets/gen1/text_box.png");
+	this->_boxes[1].init("assets/gen1/VS_box.png");
+	this->_boxes[2].init("assets/gen1/pkmns_border.png");
+	this->_boxes[3].init("assets/gen1/pkmns_border_player_side.png");
 
 	streamList >> json;
 	Gen1Renderer::_loadPokemonData(this->_missingno, "missingno", "");
@@ -306,13 +306,16 @@ void Gen1Renderer::update()
 	while (!(this->*Gen1Renderer::_updates[this->_currentEvent])()) {
 		if (this->_currentEvent == EVNTTYPE_GAME_END) {
 			this->_queue.clear();
+			this->_finished = true;
 			break;
 		}
 		this->_currentEvent = EVNTTYPE_NONE;
+		this->_finished = true;
 		if (this->_queue.empty())
 			break;
 		this->_handleEvent(this->_queue.front());
 		this->_queue.pop_front();
+		this->_finished = false;
 		if (this->_skipping)
 			break;
 	}
@@ -2409,12 +2412,10 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 	for (auto &s : frame.sprites) {
 		if (!s.prio)
 			continue;
-		if (this->_hasColor) {
-			auto &pal = frame.pals[s.palNum];
 
-			tileset.palettize(_defaultPalette, pal.first == 4 ? pal.second : *pals[pal.first], true);
-		} else
-			tileset.palettize(s.palNum == 0 ? frame.pal0 : frame.pal1, true);
+		auto &pal = frame.pals[s.palNum];
+
+		palettizeSprite(tileset, _defaultPalette, pal.first == 4 ? pal.second : *pals[pal.first], true);
 		sprite.setTextureRect({
 			{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
 			{8, 8}
@@ -2436,12 +2437,10 @@ void Gen1Renderer::_renderMove(sf::RenderTarget &target)
 	for (auto &s : frame.sprites) {
 		if (s.prio)
 			continue;
-		if (this->_hasColor) {
-			auto &pal = frame.pals[s.palNum];
 
-			tileset.palettize(_defaultPalette, pal.first == 4 ? pal.second : *pals[pal.first], true);
-		} else
-			tileset.palettize(s.palNum == 0 ? frame.pal0 : frame.pal1, true);
+		auto &pal = frame.pals[s.palNum];
+
+		palettizeSprite(tileset, _defaultPalette, pal.first == 4 ? pal.second : *pals[pal.first], true);
 		sprite.setTextureRect({
 			{static_cast<int>(s.id % 16) * 8, static_cast<int>(s.id / 16) * 8},
 			{8, 8}
