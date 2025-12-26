@@ -330,6 +330,9 @@ void Gen1Renderer::render(sf::RenderTarget &target)
 
 	(this->*Gen1Renderer::_renderers[this->_currentEvent])(this->_lastFrame);
 
+	if (!this->displayTurn)
+		return;
+
 	sf::Text text{this->_font};
 
 	text.setCharacterSize(8);

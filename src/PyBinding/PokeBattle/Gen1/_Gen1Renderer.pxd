@@ -5,16 +5,11 @@ from libcpp.vector cimport vector
 from libcpp cimport bool
 
 from ._Event cimport Event
-from ._IRenderer cimport GameState
+from ._IRenderer cimport IRenderer
 
-cdef extern from "<Renderers/Gen1Renderer.hpp>":
+cdef extern from "<Renderers/Gen1Renderer.hpp>"namespace "PkmnRenderer":
 	# TODO: Check how to implement inheritance proper
-	cdef cppclass Gen1Renderer:
-		bool soundDisabled
-		bool musicDisabled
-		bool waiting
-		GameState state
-
+	cdef cppclass Gen1Renderer(IRenderer):
 		Gen1Renderer(const string &variant, bool hasColors) except+
 		void update()
 		void reset()

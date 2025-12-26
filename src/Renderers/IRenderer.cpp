@@ -4,9 +4,7 @@
 
 #include <cstring>
 #include "IRenderer.hpp"
-
 #include <SFML/Graphics/Image.hpp>
-#include <SFML/Graphics/RenderTexture.hpp>
 
 namespace PkmnRenderer
 {
@@ -65,11 +63,11 @@ namespace PkmnRenderer
 		size_t bytes = lineBytes * size.y;
 
 		if (buffer) {
-			sf::RenderTexture tex{size};
+			if (this->_buffer.getSize() != size)
+				(void)this->_buffer.resize(size);
+			this->render(this->_buffer);
 
-			this->render(tex);
-
-			const sf::Image img = tex.getTexture().copyToImage();
+			const sf::Image img = this->_buffer.getTexture().copyToImage();
 			const unsigned char *ptrIn = img.getPixelsPtr();
 			unsigned char *ptrOut = buffer + bytes;
 

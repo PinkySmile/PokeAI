@@ -13,6 +13,7 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <SFML/Audio/SoundBuffer.hpp>
+#include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Window/Event.hpp>
 #include "GameEngine/Gen1/State.hpp"
 #include "GameEngine/Event.hpp"
@@ -70,7 +71,7 @@ namespace PkmnRenderer
 	struct PlayerState {
 		char name[32];
 		std::array<Pokemon, 6> team;
-		unsigned active;
+		unsigned active = 0;
 		unsigned spriteId;
 		bool acidArmor;
 		bool exploded;
@@ -85,6 +86,7 @@ namespace PkmnRenderer
 
 	class IRenderer {
 	public:
+		bool displayTurn = true;
 		bool soundDisabled = false;
 		bool musicDisabled = false;
 		bool waiting = false;
@@ -115,6 +117,7 @@ namespace PkmnRenderer
 			unsigned turn;
 		};
 
+		sf::RenderTexture _buffer;
 		bool _skipping = false;
 		std::vector<SavedState> _snapshots;
 		std::deque<PkmnCommon::Event> _queue;

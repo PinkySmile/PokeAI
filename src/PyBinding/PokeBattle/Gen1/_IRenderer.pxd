@@ -2,11 +2,12 @@
 
 from libcpp.string cimport string
 from libcpp.vector cimport vector
+from libcpp cimport bool
 
 from ._Event cimport Event
 from ._State cimport BattleAction, BattleState
 
-cdef extern from "<Renderers/Gen1Renderer.hpp>" namespace PkmnRenderer:
+cdef extern from "<Renderers/Gen1Renderer.hpp>" namespace "PkmnRenderer":
 	ctypedef enum BattleAction:
 		EmptyAction,
 		Attack1,
@@ -81,11 +82,13 @@ cdef extern from "<SFML/System/Vector2.hpp>" namespace "sf" nogil:
 	cdef cppclass Vector2u:
 		unsigned x
 		unsigned y
+		Vector2u()
 		Vector2u(unsigned, unsigned)
 
 
-cdef extern from "<Renderers/Gen1Renderer.hpp>" namespace PkmnRenderer:
+cdef extern from "<Renderers/Gen1Renderer.hpp>" namespace "PkmnRenderer":
 	cdef cppclass IRenderer:
+		bool displayTurn
 		bool soundDisabled
 		bool musicDisabled
 		bool waiting
@@ -96,6 +99,7 @@ cdef extern from "<Renderers/Gen1Renderer.hpp>" namespace PkmnRenderer:
 		void nextTurn()
 		void goToTurn(unsigned turn)
 		unsigned getTurn() const
+		Vector2u getSize() const
 		vector[unsigned char] renderVec()
 		size_t renderBuff(unsigned char *buffer)
 		bool hasAnimationEnded() const

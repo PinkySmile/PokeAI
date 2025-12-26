@@ -437,6 +437,7 @@ cdef inline dict dictFromStatusClearedEvent(const StatusClearedEvent &value):
 		'player': value.player,
 	}
 
+
 cdef inline dict dictFromEvent(const Event &msg):
 	index = msg.index()
 	if index == 0:
@@ -469,6 +470,7 @@ cdef inline dict dictFromEvent(const Event &msg):
 		return dictFromGameEndEvent(getGameEndEvent(msg))
 	raise RuntimeError(f"Unknown event '{index}'")
 
+
 cdef inline void evalLogger(void *func_p, const Event &msg) noexcept:
 	(<object> func_p)(dictFromEvent(msg))
 
@@ -480,116 +482,114 @@ cdef inline TextEvent dictToTextEvent(dict value):
 		'message': value['message'].encode('utf-8')
 	}
 
-"""
+
 cdef inline MoveEvent dictToMoveEvent(dict value):
+	assert value['type'] == 'MoveEvent'
 	return {
-		'type': 'MoveEvent',
-		'moveId': value.moveId,
-		'player': value.player,
-		'hideSubstitute': value.hideSubstitute,
+		'moveId': value["moveId"],
+		'player': value["player"],
+		'hideSubstitute': value["hideSubstitute"],
 	}
 
 
 cdef inline MoveMissEvent dictToMoveMissEvent(dict value):
+	assert value['type'] == 'MoveMissEvent'
 	return {
-		'type': 'MoveMissEvent',
-		'moveId': value.moveId,
-		'player': value.player,
+		'moveId': value["moveId"],
+		'player': value["player"],
 	}
 
 
 cdef inline AnimEvent dictToAnimEvent(dict value):
+	assert value['type'] == 'AnimEvent'
 	return {
-		'type': 'AnimEvent',
-		'animId': value.animId,
-		'isGuaranteed': value.isGuaranteed,
-		'player': value.player,
-		'turn': value.turn,
+		'animId': value["animId"],
+		'isGuaranteed': value["isGuaranteed"],
+		'player': value["player"],
+		'turn': value["turn"],
 	}
 
 
 cdef inline ExtraAnimEvent dictToExtraAnimEvent(dict value):
+	assert value['type'] == 'ExtraAnimEvent'
 	return {
-		'type': 'ExtraAnimEvent',
-		'moveId': value.moveId,
-		'index': value.index,
-		'player': value.player,
+		'moveId': value["moveId"],
+		'index': value["index"],
+		'player': value["player"],
 	}
 
 
 cdef inline HealthModEvent dictToHealthModEvent(dict value):
+	assert value['type'] == 'HealthModEvent'
 	return {
-		'type': 'HealthModEvent',
-		'newHealth': value.newHealth,
-		'player': value.player,
+		'newHealth': value["newHealth"],
+		'player': value["player"],
 	}
 
 
 cdef inline SwitchEvent dictToSwitchEvent(dict value):
+	assert value['type'] == 'SwitchEvent'
 	return {
-		'type': 'SwitchEvent',
-		'newPkmnId': value.newPkmnId,
-		'player': value.player,
+		'newPkmnId': value["newPkmnId"],
+		'player': value["player"],
 	}
 
 
 cdef inline WithdrawEvent dictToWithdrawEvent(dict value):
+	assert value['type'] == 'WithdrawEvent'
 	return {
-		'type': 'WithdrawEvent',
-		'player': value.player,
+		'player': value["player"],
 	}
 
 
 cdef inline DeathEvent dictToDeathEvent(dict value):
+	assert value['type'] == 'DeathEvent'
 	return {
-		'type': 'DeathEvent',
-		'player': value.player,
+		'player': value["player"],
 	}
 
 
 cdef inline HitEvent dictToHitEvent(dict value):
+	assert value['type'] == 'HitEvent'
 	return {
-		'type': 'HitEvent',
-		'veryEffective': value.veryEffective,
-		'notVeryEffective': value.notVeryEffective,
-		'player': value.player,
-		'hasEffect': value.hasEffect,
+		'veryEffective': value["veryEffective"],
+		'notVeryEffective': value["notVeryEffective"],
+		'player': value["player"],
+		'hasEffect': value["hasEffect"],
 	}
 
 
 cdef inline GameStartEvent dictToGameStartEvent(dict value):
-	return {
-		'type': 'GameStartEvent',
-	}
+	assert value['type'] == 'GameStartEvent'
+	return {}
 
 
 cdef inline GameEndEvent dictToGameEndEvent(dict value):
+	assert value['type'] == 'GameEndEvent'
 	return {
-		'type': 'GameEndEvent',
-		'p1Won': value.p1Won,
-		'p2Won': value.p2Won,
-		'p1Ran': value.p1Ran,
-		'p2Ran': value.p2Ran,
+		'p1Won': value["p1Won"],
+		'p2Won': value["p2Won"],
+		'p1Ran': value["p1Ran"],
+		'p2Ran': value["p2Ran"],
 	}
 
 
 cdef inline TurnStartEvent dictToTurnStartEvent(dict value):
-	return {
-		'type': 'TurnStartEvent',
-	}
+	assert value['type'] == 'TurnStartEvent'
+	return {}
 
 
 cdef inline StatusClearedEvent dictToStatusClearedEvent(dict value):
+	assert value['type'] == 'StatusClearedEvent'
 	return {
-		'type': 'StatusClearedEvent',
-		'player': value.player,
+		'player': value["player"],
 	}
-"""
+
+
 cdef inline Event dictToEvent(dict msg):
 	index = msg['type']
 	if index == 'TextEvent':
 		return setTextEvent(dictToTextEvent(msg))
-	"""
 	if index == 'MoveEvent':
 		return setMoveEvent(dictToMoveEvent(msg))
 	if index == 'AnimEvent':
@@ -615,5 +615,5 @@ cdef inline Event dictToEvent(dict msg):
 	if index == 'GameStartEvent':
 		return setGameStartEvent(dictToGameStartEvent(msg))
 	if index == 'GameEndEvent':
-		return setGameEndEvent(dictToGameEndEvent(msg))"""
+		return setGameEndEvent(dictToGameEndEvent(msg))
 	raise RuntimeError(f"Unknown event '{index}'")
