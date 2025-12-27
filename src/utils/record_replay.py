@@ -1,5 +1,6 @@
 import os
 import sys
+import traceback
 import subprocess
 from argparse import ArgumentParser
 from PokeBattle.Gen1.BattleHandler import BattleHandler
@@ -59,7 +60,11 @@ index = 0
 process = start_ffmpeg_process(output, *renderer.size)
 handler.start()
 while not handler.finished:
-	handler.tick()
+	try:
+		handler.tick()
+	except:
+		traceback.print_exc()
+		exit(1)
 	f = True
 	while f:
 		print(f"\nTurn {renderer.turn} - Frame {index}\033[A\033[A")

@@ -579,6 +579,7 @@ class PokemonYellowBattle(Env):
 		shuffle_teams: bool=False,
 		rom: str|None=None,
 		renderer: str='yellow',
+		skip_frames: int=0,
 		leak_state: bool=False,
 		use_emulator: bool=False
 	):
@@ -591,6 +592,7 @@ class PokemonYellowBattle(Env):
 		self.render_mode = render_mode
 		self.last_frames = []
 		self.episode_id = 0
+		self.skip_frames = skip_frames
 		self.episode_trigger = episode_trigger
 		self.recording = False
 		self.shuffle_teams = shuffle_teams
@@ -918,10 +920,13 @@ class PokemonYellowBattle(Env):
 			elif self.renderer is not None:
 				f = True
 				while f:
-					self.renderer.update()
-					arr = frombuffer(self.renderer.render_pic(), dtype=uint8)
+					for _ in range(self.skip_frames + 1):
+						self.renderer.update()
+					b = self.renderer.render_pic()
+					arr = frombuffer(b, dtype=uint8)
 					last_frames.append(arr.reshape((self.renderer.size[1], self.renderer.size[0], 4))[:, :, :3])
 					f = not self.renderer.animation_ended
+					del arr
 			return last_frames
 		return None
 

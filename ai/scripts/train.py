@@ -64,7 +64,7 @@ def make_env(gym_id, seed, idx, capture_video, run_name, video_every):
             if gym_id == 'PokemonYellow':
                 env = gym.make('PokemonYellow', seed, render_mode='rgb_array_list', opponent_callback=basic_opponent,
                                episode_trigger=fn_episode_trigger, replay_folder=get_replay_folder(run_name),
-                               shuffle_teams=True)
+                               shuffle_teams=True, skip_frames=29, use_emulator=False)
             else:
                 env = gym.make(gym_id, seed, render_mode='rgb_array')
             # record every `video_every` episodes on env 0

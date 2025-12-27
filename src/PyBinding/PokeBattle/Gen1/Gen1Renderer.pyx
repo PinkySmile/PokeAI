@@ -1,8 +1,8 @@
 # distutils: language = c++
 
 from libcpp.string cimport string
-from libcpp.vector cimport vector
 from libcpp cimport bool
+from cython cimport cast
 from cython.operator cimport dereference
 
 from ._Gen1Renderer cimport Gen1Renderer as __Gen1Renderer
@@ -10,9 +10,11 @@ from ._IRenderer cimport Vector2u, fromGen1
 from ._Event cimport Event, dictToEvent
 from .State cimport BattleState
 
+ctypedef unsigned char *u
+
 cdef class Gen1Renderer :
 	cdef __Gen1Renderer *__instance
-	cdef vector[unsigned char] __buffer
+	cdef string __buffer
 
 	def __cinit__(self):
 		self.__instance = NULL
@@ -59,8 +61,8 @@ cdef class Gen1Renderer :
 		return self.__instance.hasAnimationEnded()
 
 	def render_pic(self, buffer=None) -> bytes:
-		self.__instance.renderBuff(self.__buffer.data())
-		return bytes(self.__buffer)
+		self.__instance.renderBuff(cast(u, self.__buffer.data()))
+		return self.__buffer
 
 	@property
 	def sound_disabled(self):
