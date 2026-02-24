@@ -161,6 +161,16 @@ target_link_libraries(
 )
 
 add_executable(
+	test_showdown_reader
+	src/Renderers/test_showdown_reader.cpp
+)
+target_link_libraries(
+	test_showdown_reader
+	PokemonGen1Renderers
+	TGUI::TGUI
+)
+
+add_executable(
 	PokeAI_cli
 	src/Client/commandLine.cpp
 )

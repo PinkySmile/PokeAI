@@ -10,12 +10,27 @@
 
 static const char *ignore[] = {
 	"j",
+	"l",
+	"n",
+	"c",
 	"t:",
 	"gametype",
 	"rated",
 	"tier",
 	"upkeep",
-	"inactive"
+	"inactive",
+	"inactiveoff",
+	"rule",
+	"raw",
+	"html",
+	"uhtml",
+	"badge",
+	"clearpoke",
+	"poke",
+	"teampreview",
+	"-hint",
+	"-mustrecharge",
+	"-transform",
 };
 
 std::map<std::string, unsigned> statusNames{
@@ -24,12 +39,13 @@ std::map<std::string, unsigned> statusNames{
 	{ "brn", PkmnCommon::SYSANIM_NOW_BURNED },
 	{ "psn", PkmnCommon::SYSANIM_NOW_POISONED },
 	{ "par", PkmnCommon::SYSANIM_NOW_PARALYZED },
-	{ "tox", PkmnCommon::SYSANIM_NOW_PARALYZED },
+	{ "tox", PkmnCommon::SYSANIM_NOW_BADLY_POISONED },
 	{ "cfz", PkmnCommon::SYSANIM_NOW_CONFUSED },
 };
 std::map<std::string, unsigned> pokemonNames{
 	{ "Rhydon",      PokemonGen1::Rhydon },
 	{ "Kangaskhan",  PokemonGen1::Kangaskhan },
+	{ "Nidoran-M",   PokemonGen1::Nidoran_M },
 	{ "Nidoran_M",   PokemonGen1::Nidoran_M },
 	{ "Clefairy",    PokemonGen1::Clefairy },
 	{ "Spearow",     PokemonGen1::Spearow },
@@ -42,6 +58,7 @@ std::map<std::string, unsigned> pokemonNames{
 	{ "Exeggcute",   PokemonGen1::Exeggcute },
 	{ "Grimer",      PokemonGen1::Grimer },
 	{ "Gengar",      PokemonGen1::Gengar },
+	{ "Nidoran-F",   PokemonGen1::Nidoran_F },
 	{ "Nidoran_F",   PokemonGen1::Nidoran_F },
 	{ "Nidoqueen",   PokemonGen1::Nidoqueen },
 	{ "Cubone",      PokemonGen1::Cubone },
@@ -67,6 +84,7 @@ std::map<std::string, unsigned> pokemonNames{
 	{ "Graveler",    PokemonGen1::Graveler },
 	{ "Chansey",     PokemonGen1::Chansey },
 	{ "Machoke",     PokemonGen1::Machoke },
+	{ "Mr. Mime",    PokemonGen1::Mr_Mime },
 	{ "Mr_Mime",     PokemonGen1::Mr_Mime },
 	{ "Hitmonlee",   PokemonGen1::Hitmonlee },
 	{ "Hitmonchan",  PokemonGen1::Hitmonchan },
@@ -83,6 +101,7 @@ std::map<std::string, unsigned> pokemonNames{
 	{ "Seel",        PokemonGen1::Seel },
 	{ "Diglett",     PokemonGen1::Diglett },
 	{ "Tauros",      PokemonGen1::Tauros },
+	{ "Farfetch'd",  PokemonGen1::Farfetchd },
 	{ "Farfetchd",   PokemonGen1::Farfetchd },
 	{ "Venonat",     PokemonGen1::Venonat },
 	{ "Dragonite",   PokemonGen1::Dragonite },
@@ -218,6 +237,7 @@ std::map<std::string, unsigned> movesNames{
 	{ "Wrap",          PokemonGen1::Wrap },
 	{ "Take Down",     PokemonGen1::Take_Down },
 	{ "Thrash",        PokemonGen1::Thrash },
+	{ "Double-Edge",   PokemonGen1::Double_Edge },
 	{ "Double Edge",   PokemonGen1::Double_Edge },
 	{ "Tail Whip",     PokemonGen1::Tail_Whip },
 	{ "Poison Sting",  PokemonGen1::Poison_Sting },
@@ -242,6 +262,7 @@ std::map<std::string, unsigned> movesNames{
 	{ "Blizzard",      PokemonGen1::Blizzard },
 	{ "Psybeam",       PokemonGen1::Psybeam },
 	{ "Bubblebeam",    PokemonGen1::Bubblebeam },
+	{ "Bubble Beam",   PokemonGen1::Bubblebeam },
 	{ "Aurora Beam",   PokemonGen1::Aurora_Beam },
 	{ "Hyper Beam",    PokemonGen1::Hyper_Beam },
 	{ "Peck",          PokemonGen1::Peck },
@@ -257,6 +278,7 @@ std::map<std::string, unsigned> movesNames{
 	{ "Growth",        PokemonGen1::Growth },
 	{ "Razor Leaf",    PokemonGen1::Razor_Leaf },
 	{ "Solarbeam",     PokemonGen1::Solarbeam },
+	{ "Solar Beam",    PokemonGen1::Solarbeam },
 	{ "Poisonpowder",  PokemonGen1::Poisonpowder },
 	{ "Stun Spore",    PokemonGen1::Stun_Spore },
 	{ "Sleep Powder",  PokemonGen1::Sleep_Powder },
@@ -301,6 +323,7 @@ std::map<std::string, unsigned> movesNames{
 	{ "Metronome",     PokemonGen1::Metronome },
 	{ "Mirror Move",   PokemonGen1::Mirror_Move },
 	{ "Self-Destruct", PokemonGen1::Self_Destruct },
+	{ "Selfdestruct",  PokemonGen1::Self_Destruct },
 	{ "Egg Bomb",      PokemonGen1::Egg_Bomb },
 	{ "Lick",          PokemonGen1::Lick },
 	{ "Smog",          PokemonGen1::Smog },
@@ -316,6 +339,7 @@ std::map<std::string, unsigned> movesNames{
 	{ "Amnesia",       PokemonGen1::Amnesia },
 	{ "Kinesis",       PokemonGen1::Kinesis },
 	{ "Soft-Boiled",   PokemonGen1::Softboiled },
+	{ "Softboiled",    PokemonGen1::Softboiled },
 	{ "Hi Jump Kick",  PokemonGen1::Hi_Jump_Kick },
 	{ "Glare",         PokemonGen1::Glare },
 	{ "Dream Eater",   PokemonGen1::Dream_Eater },
@@ -366,11 +390,62 @@ static std::vector<std::string> split(const std::string &s, char delim)
 	return result;
 }
 
+// Parse the HP value from Showdown HP strings:
+//   "74/100"         -> 74
+//   "74/100 par"     -> 74
+//   "0 fnt"          -> 0
+//   "100/100"        -> 100
+static unsigned parseHP(const std::string &hpStr)
+{
+	auto slashPos = hpStr.find('/');
+	if (slashPos == std::string::npos) {
+		// "0 fnt" format – parse up to first space
+		auto spacePos = hpStr.find(' ');
+		return std::stoul(hpStr.substr(0, spacePos == std::string::npos ? hpStr.size() : spacePos));
+	}
+	return std::stoul(hpStr.substr(0, slashPos));
+}
+
+// Returns the portion after the slash, stripped of any status suffix.
+static unsigned parseMaxHP(const std::string &hpStr)
+{
+	auto slashPos = hpStr.find('/');
+	if (slashPos == std::string::npos)
+		return 100;
+	std::string after = hpStr.substr(slashPos + 1);
+	auto spacePos = after.find(' ');
+	return std::stoul(after.substr(0, spacePos == std::string::npos ? after.size() : spacePos));
+}
+
 static std::unique_ptr<IResultBasedGenerator> makeRenderer(const std::string &id)
 {
 	if (id == "1")
 		return std::make_unique<Gen1ResultBasedGenerator>();
 	throw std::invalid_argument("Invalid generation: \"" + id + "\"");
+}
+
+// Map a stat name and signed amount to the appropriate SYSANIM constant.
+// Positive amount = boost, negative = unboost.
+static unsigned getStatAnim(const std::string &stat, int amount)
+{
+	static const std::map<std::string, unsigned> bases = {
+		{ "atk",      PkmnCommon::SYSANIM_ATK_DECREASE_BIG },
+		{ "def",      PkmnCommon::SYSANIM_DEF_DECREASE_BIG },
+		{ "spa",      PkmnCommon::SYSANIM_SPA_DECREASE_BIG },
+		{ "spd",      PkmnCommon::SYSANIM_SPD_DECREASE_BIG },
+		{ "spe",      PkmnCommon::SYSANIM_SPE_DECREASE_BIG },
+		{ "accuracy", PkmnCommon::SYSANIM_ACC_DECREASE_BIG },
+		{ "evasion",  PkmnCommon::SYSANIM_EVD_DECREASE_BIG },
+	};
+	auto it = bases.find(stat);
+	if (it == bases.end())
+		return 0;
+	unsigned base = it->second;
+	// Layout: base+0=DEC_BIG, base+1=DEC, base+2=INC, base+3=INC_BIG
+	if (amount >= 2)  return base + 3;
+	if (amount == 1)  return base + 2;
+	if (amount == -1) return base + 1;
+	return base; // amount <= -2
 }
 
 ShowdownReader::ShowdownReader(PkmnRenderer::GameState &state) :
@@ -403,15 +478,15 @@ void ShowdownReader::_processChunk(std::vector<PkmnCommon::Event> &output)
 		auto &op = vals.front();
 
 		for (auto i : ignore)
-			if (vals.front() == i)
+			if (op == i)
 				goto done;
+
 		if (first) {
 			if (op == "gen" && !this->_converter)
 				this->_converter = makeRenderer(line.substr(5));
-			else if (op == "player") {
+			else if (op == "player" && vals.size() >= 3 && !vals.at(2).empty()) {
 				auto &p = vals.at(1);
 				auto &name = vals.at(2);
-				//auto &sprite = vals.at(3);
 				auto &pstate = p == "p1" ? this->_state.p1 : this->_state.p2;
 
 				pstate.name[32] = 0;
@@ -425,91 +500,323 @@ void ShowdownReader::_processChunk(std::vector<PkmnCommon::Event> &output)
 				auto size = std::stoul(num);
 
 				for (size_t i = 0; i < 6; i++)
-					pstate.team[0].id = i < size;
+					pstate.team[i].id = i < size ? 1 : 0;
 			} else if (op == "start") {
 				start = true;
 			} else if (op == "switch") {
-				auto target = split(vals.at(1), ':');
+				auto target   = split(vals.at(1), ':');
 				auto nameDual = split(vals.at(2), ',');
-				auto health = split(vals.at(3), '/');
-				health[0].pop_back();
-				auto current = std::stoul(health[0]);
-				auto maxHealth = std::stoul(health[1]);
-				//auto &slot = target[0];
-				auto species = target[1].substr(1);
-				auto isP1 = target[0].starts_with("p1");
-				auto &pstate = isP1 ? this->_state.p1 : this->_state.p2;
-				auto &s = isP1 ? this->_pstate.first : this->_pstate.second;
-				auto it = std::ranges::find(s.allocatedNames, species);
+				auto &hpStr   = vals.at(3);
+				unsigned current   = parseHP(hpStr);
+				unsigned maxHealth = parseMaxHP(hpStr);
+				// POKEMON field: "pXa: Nickname" — the in-battle slot identifier.
+				// DETAILS field: "Species" or "Species, LLevel" — the actual species.
+				auto nickname = target[1].substr(1); // strip leading space
+				auto &species = nameDual[0];          // actual species from DETAILS
+				bool isP1     = target[0].starts_with("p1");
+				auto &pstate  = isP1 ? this->_state.p1 : this->_state.p2;
+				auto &s       = isP1 ? this->_pstate.first : this->_pstate.second;
+				// Track slots by nickname so the same Pokemon coming back is recognised.
+				auto it       = std::ranges::find(s.allocatedNames, nickname);
 				unsigned index;
 
 				if (it == s.allocatedNames.end()) {
-					s.allocatedNames.emplace_back(species);
+					s.allocatedNames.emplace_back(nickname);
 					index = s.allocatedNames.size() - 1;
-					if (nameDual.size() >= 2 && nameDual[1][1] == 'L')
-						pstate.team[index].level = std::stoul(nameDual[1].substr(1));
+					if (nameDual.size() >= 2 && nameDual[1].size() >= 2 && nameDual[1][1] == 'L')
+						pstate.team[index].level = std::stoul(nameDual[1].substr(2));
 					else
 						pstate.team[index].level = 100;
 					pstate.team[index].name[32] = 0;
-					strncpy(pstate.team[index].name, nameDual[0].c_str(), sizeof(pstate.team[index].name) - 1);
+					strncpy(pstate.team[index].name, nickname.c_str(), sizeof(pstate.team[index].name) - 1);
 					pstate.team[index].maxHp = maxHealth;
-					pstate.team[index].hp = current;
+					pstate.team[index].hp    = current;
 				} else
 					index = it - s.allocatedNames.begin();
 
 				if (!pokemonNames.contains(species))
 					throw std::invalid_argument("Unknown species \"" + species + "\"");
 				pstate.team[index].id = pokemonNames[species];
+
 				if (!start) {
 					if (isP1) {
 						if (s.hp != 0)
 							this->_events.emplace_back(PkmnCommon::WithdrawEvent{true}, this->_pstate);
 						this->_events.emplace_back(PkmnCommon::SwitchEvent{index, true}, this->_pstate);
-					} else  {
+					} else {
 						if (s.hp != 0)
 							this->_events.emplace_back(PkmnCommon::WithdrawEvent{false}, this->_pstate);
 						this->_events.emplace_back(PkmnCommon::SwitchEvent{index, false}, this->_pstate);
 					}
 				} else {
 					pstate.spriteId = pstate.team[index].id;
-					pstate.active = index;
+					pstate.active   = index;
 				}
 				s.onField = index;
-				s.hp = current;
+				s.hp      = current;
 			} else if (op == "move") {
-				auto user = split(vals.at(1), ':');
+				auto user  = split(vals.at(1), ':');
 				auto &move = vals.at(2);
-				auto target = split(vals.at(3), ':');
+				bool isP1  = user[0].starts_with("p1");
 
 				if (!movesNames.contains(move))
 					throw std::invalid_argument("Unknown move \"" + move + "\"");
-				this->_events.emplace_back(PkmnCommon::MoveEvent{movesNames[move], user[0].starts_with("p1"), false}, this->_pstate);
+
+				// Reset move context for each new move
+				this->_moveCtx = {};
+				this->_moveCtx.lastMoveId   = movesNames[move];
+				this->_moveCtx.attackerIsP1 = isP1;
+
+				this->_events.emplace_back(
+					PkmnCommon::MoveEvent{movesNames[move], isP1, false},
+					this->_pstate
+				);
 			} else if (op == "-status") {
 				auto target = split(vals.at(1), ':');
-				auto &type = vals.at(2);
-				bool p1 = target[0].starts_with("p1");
+				auto &type  = vals.at(2);
+				bool p1     = target[0].starts_with("p1");
+				bool silent = vals.size() > 3 && vals.at(3) == "[silent]";
 
 				if (!statusNames.contains(type))
 					throw std::invalid_argument("Unknown status \"" + type + "\"");
 				(p1 ? this->_pstate.first : this->_pstate.second).status = statusNames[type];
-				this->_events.emplace_back(PkmnCommon::AnimEvent{
-					statusNames[type],
-					false,
-					p1,
-					false
-				}, this->_pstate);
+				if (!silent)
+					this->_events.emplace_back(PkmnCommon::AnimEvent{
+						statusNames[type],
+						false,
+						p1,
+						false
+					}, this->_pstate);
+			} else if (op == "-curestatus") {
+				auto target = split(vals.at(1), ':');
+				auto &type  = vals.at(2);
+				bool p1     = target[0].starts_with("p1");
+
+				(p1 ? this->_pstate.first : this->_pstate.second).status = 0;
+
+				if (type == "slp")
+					this->_events.emplace_back(PkmnCommon::AnimEvent{
+						PkmnCommon::SYSANIM_WAKE_UP, true, p1, p1
+					}, this->_pstate);
+				else if (type == "frz")
+					this->_events.emplace_back(PkmnCommon::AnimEvent{
+						PkmnCommon::SYSANIM_THAWED, true, p1, p1
+					}, this->_pstate);
+				else
+					// Other status cures (par/brn/psn/tox) treated as Haze-like full clear
+					this->_events.emplace_back(PkmnCommon::StatusClearedEvent{p1}, this->_pstate);
+			} else if (op == "-crit") {
+				this->_moveCtx.hasCrit = true;
+			} else if (op == "-supereffective") {
+				this->_moveCtx.isSuperEffective = true;
+			} else if (op == "-resisted") {
+				this->_moveCtx.isNotVeryEffective = true;
 			} else if (op == "-damage") {
 				auto target = split(vals.at(1), ':');
-				auto health = split(vals.at(2), '/');
-				health[0].pop_back();
-				unsigned current = std::stoul(health[0]);
-				//auto maxHealth = std::stoul(health[1]);
+				auto &hpStr = vals.at(2);
+				bool p1     = target[0].starts_with("p1");
+				unsigned newHP = parseHP(hpStr);
 
-				this->_events.emplace_back(PkmnCommon::HealthModEvent{
-					current,
-					target[0].starts_with("p1"),
-					true
-				}, this->_pstate);
+				// Check for [from] source
+				std::string fromSource;
+				if (vals.size() > 3 && vals.at(3).starts_with("[from]"))
+					fromSource = vals.at(3).size() > 7 ? vals.at(3).substr(7) : "";
+
+				(p1 ? this->_pstate.first : this->_pstate.second).hp = newHP;
+
+				if (fromSource == "psn" || fromSource == "tox") {
+					// Poison/toxic upkeep damage
+					bool badPoison = (fromSource == "tox") ||
+					                 hpStr.find("tox") != std::string::npos;
+					this->_events.emplace_back(PkmnCommon::AnimEvent{
+						badPoison ? PkmnCommon::SYSANIM_BAD_POISON : PkmnCommon::SYSANIM_POISON,
+						true, p1, p1
+					}, this->_pstate);
+					this->_events.emplace_back(PkmnCommon::HealthModEvent{newHP, p1, true}, this->_pstate);
+				} else if (fromSource == "brn") {
+					this->_events.emplace_back(PkmnCommon::AnimEvent{
+						PkmnCommon::SYSANIM_BURN, true, p1, p1
+					}, this->_pstate);
+					this->_events.emplace_back(PkmnCommon::HealthModEvent{newHP, p1, true}, this->_pstate);
+				} else if (fromSource == "confusion") {
+					this->_events.emplace_back(PkmnCommon::AnimEvent{
+						PkmnCommon::SYSANIM_CONFUSED_HIT, true, p1, p1
+					}, this->_pstate);
+					this->_events.emplace_back(PkmnCommon::HealthModEvent{newHP, p1, true}, this->_pstate);
+				} else if (!fromSource.empty()) {
+					// Recoil, burn, leech, etc. — just HP change, no extra animation
+					this->_events.emplace_back(PkmnCommon::HealthModEvent{newHP, p1, true}, this->_pstate);
+				} else {
+					// Normal move damage
+					if (!this->_moveCtx.firstHitEmitted) {
+						this->_events.emplace_back(PkmnCommon::HitEvent{
+							this->_moveCtx.isSuperEffective,
+							this->_moveCtx.isNotVeryEffective,
+							p1,
+							true
+						}, this->_pstate);
+						this->_moveCtx.firstHitEmitted = true;
+					}
+					this->_events.emplace_back(PkmnCommon::HealthModEvent{newHP, p1, true}, this->_pstate);
+					if (this->_moveCtx.hasCrit) {
+						this->_events.emplace_back(PkmnCommon::TextEvent{"Critical hit!"}, this->_pstate);
+						this->_moveCtx.hasCrit = false; // emit crit text only once
+					}
+				}
+			} else if (op == "-heal") {
+				auto target = split(vals.at(1), ':');
+				auto &hpStr = vals.at(2);
+				bool p1     = target[0].starts_with("p1");
+				unsigned newHP = parseHP(hpStr);
+				bool silent = vals.size() > 3 && vals.at(3) == "[silent]";
+
+				(p1 ? this->_pstate.first : this->_pstate.second).hp = newHP;
+				this->_events.emplace_back(
+					PkmnCommon::HealthModEvent{newHP, p1, !silent},
+					this->_pstate
+				);
+			} else if (op == "faint") {
+				auto target = split(vals.at(1), ':');
+				bool p1     = target[0].starts_with("p1");
+
+				(p1 ? this->_pstate.first : this->_pstate.second).hp = 0;
+				this->_events.emplace_back(PkmnCommon::DeathEvent{p1}, this->_pstate);
+			} else if (op == "cant") {
+				auto target = split(vals.at(1), ':');
+				auto &reason = vals.at(2);
+				bool p1     = target[0].starts_with("p1");
+
+				static const std::map<std::string, unsigned> cantAnims = {
+					{ "slp",      PkmnCommon::SYSANIM_ASLEEP },
+					{ "frz",      PkmnCommon::SYSANIM_FROZEN },
+					{ "par",      PkmnCommon::SYSANIM_PARALYZED },
+					{ "recharge", PkmnCommon::SYSANIM_RECHARGE },
+				};
+				auto it = cantAnims.find(reason);
+				if (it != cantAnims.end())
+					this->_events.emplace_back(PkmnCommon::AnimEvent{
+						it->second, true, p1, p1
+					}, this->_pstate);
+				// Unknown cant reasons are silently ignored
+			} else if (op == "-miss") {
+				this->_events.emplace_back(
+					PkmnCommon::MoveMissEvent{this->_moveCtx.lastMoveId, this->_moveCtx.attackerIsP1},
+					this->_pstate
+				);
+			} else if (op == "-fail") {
+				this->_events.emplace_back(
+					PkmnCommon::MoveMissEvent{this->_moveCtx.lastMoveId, this->_moveCtx.attackerIsP1},
+					this->_pstate
+				);
+			} else if (op == "-immune") {
+				this->_events.emplace_back(
+					PkmnCommon::MoveMissEvent{this->_moveCtx.lastMoveId, this->_moveCtx.attackerIsP1},
+					this->_pstate
+				);
+			} else if (op == "-nothing") {
+				this->_events.emplace_back(PkmnCommon::TextEvent{"No effect!"}, this->_pstate);
+			} else if (op == "-boost") {
+				auto target = split(vals.at(1), ':');
+				auto &stat  = vals.at(2);
+				int amount  = std::stoi(vals.at(3));
+				bool p1     = target[0].starts_with("p1");
+				unsigned animId = getStatAnim(stat, amount);
+
+				if (animId != 0)
+					this->_events.emplace_back(PkmnCommon::AnimEvent{
+						animId, true, p1, p1
+					}, this->_pstate);
+			} else if (op == "-unboost") {
+				auto target = split(vals.at(1), ':');
+				auto &stat  = vals.at(2);
+				int amount  = std::stoi(vals.at(3));
+				bool p1     = target[0].starts_with("p1");
+				unsigned animId = getStatAnim(stat, -amount);
+
+				if (animId != 0)
+					this->_events.emplace_back(PkmnCommon::AnimEvent{
+						animId, false, p1, !p1
+					}, this->_pstate);
+			} else if (op == "-start") {
+				// vals: ["-start", "pXa: Name", "condition", ...]
+				auto target   = split(vals.at(1), ':');
+				auto &cond    = vals.at(2);
+				bool p1       = target[0].starts_with("p1");
+
+				if (cond == "Substitute") {
+					(p1 ? this->_state.p1 : this->_state.p2).substitute = true;
+				} else if (cond == "confusion") {
+					this->_events.emplace_back(PkmnCommon::AnimEvent{
+						PkmnCommon::SYSANIM_NOW_CONFUSED, true, p1, p1
+					}, this->_pstate);
+				}
+				// Reflect, Light Screen, typechange: no intermediary event
+			} else if (op == "-end") {
+				auto target = split(vals.at(1), ':');
+				auto &cond  = vals.at(2);
+				bool p1     = target[0].starts_with("p1");
+
+				if (cond == "Substitute") {
+					(p1 ? this->_state.p1 : this->_state.p2).substitute = false;
+					this->_events.emplace_back(PkmnCommon::AnimEvent{
+						PkmnCommon::SYSANIM_SUB_BREAK, true, p1, p1
+					}, this->_pstate);
+				} else if (cond == "confusion") {
+					this->_events.emplace_back(PkmnCommon::AnimEvent{
+						PkmnCommon::SYSANIM_BACK_TO_SENSE, true, p1, p1
+					}, this->_pstate);
+				}
+			} else if (op == "-activate") {
+				auto target = split(vals.at(1), ':');
+				auto &cond  = vals.at(2);
+
+				if (cond == "confusion") {
+					bool p1 = target[0].starts_with("p1");
+					this->_events.emplace_back(PkmnCommon::AnimEvent{
+						PkmnCommon::SYSANIM_CONFUSED, true, p1, p1
+					}, this->_pstate);
+				}
+				// "-activate|Substitute|[damage]": sub absorbed damage, no event
+			} else if (op == "-hitcount") {
+				unsigned n  = std::stoul(vals.at(2));
+				std::string text = "Hit " + std::to_string(n) + " time" + (n == 1 ? "!" : "s!");
+
+				this->_events.emplace_back(PkmnCommon::TextEvent{text}, this->_pstate);
+			} else if (op == "-prepare") {
+				auto user   = split(vals.at(1), ':');
+				auto &move  = vals.at(2);
+				bool p1     = user[0].starts_with("p1");
+
+				if (!movesNames.contains(move))
+					throw std::invalid_argument("Unknown move in -prepare: \"" + move + "\"");
+				this->_events.emplace_back(
+					PkmnCommon::ExtraAnimEvent{movesNames[move], 0, p1},
+					this->_pstate
+				);
+			} else if (op == "-message") {
+				// Check for forfeit message
+				if (!this->_gameEnded && vals.size() >= 2) {
+					auto &msg = vals.at(1);
+					if (msg.ends_with(" forfeited.")) {
+						std::string loserName = msg.substr(0, msg.size() - 11);
+						bool loserIsP1 = (loserName == this->_state.p1.name);
+						this->_gameEnded = true;
+						this->_events.emplace_back(PkmnCommon::GameEndEvent{
+							!loserIsP1, loserIsP1, false, false
+						}, this->_pstate);
+					}
+				}
+			} else if (op == "player") {
+				// Late player events (reconnect/disconnect) — ignore
+			} else if (op == "win") {
+				if (!this->_gameEnded && vals.size() >= 2) {
+					auto &winner = vals.at(1);
+					bool p1Won = (winner == this->_state.p1.name);
+					this->_gameEnded = true;
+					this->_events.emplace_back(PkmnCommon::GameEndEvent{
+						p1Won, !p1Won, false, false
+					}, this->_pstate);
+				}
 			} else if (op == "turn") {
 				if (!start)
 					this->_events.emplace_back(PkmnCommon::TurnStartEvent{}, this->_pstate);
