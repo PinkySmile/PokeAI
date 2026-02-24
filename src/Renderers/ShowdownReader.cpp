@@ -101,8 +101,9 @@ std::map<std::string, unsigned> pokemonNames{
 	{ "Seel",        PokemonGen1::Seel },
 	{ "Diglett",     PokemonGen1::Diglett },
 	{ "Tauros",      PokemonGen1::Tauros },
-	{ "Farfetch'd",  PokemonGen1::Farfetchd },
-	{ "Farfetchd",   PokemonGen1::Farfetchd },
+	{ "Farfetch'd",     PokemonGen1::Farfetchd },
+	{ "Farfetch\u2019d", PokemonGen1::Farfetchd },
+	{ "Farfetchd",      PokemonGen1::Farfetchd },
 	{ "Venonat",     PokemonGen1::Venonat },
 	{ "Dragonite",   PokemonGen1::Dragonite },
 	{ "Doduo",       PokemonGen1::Doduo },
@@ -198,6 +199,7 @@ std::map<std::string, unsigned> pokemonNames{
 	{ "Bellsprout",  PokemonGen1::Bellsprout },
 	{ "Weepinbell",  PokemonGen1::Weepinbell },
 	{ "Victreebel",  PokemonGen1::Victreebel },
+	{ "MissingNo.",  PokemonGen1::Missingno },
 };
 std::map<std::string, unsigned> movesNames{
 	{ "Pound",         PokemonGen1::Pound },
@@ -340,7 +342,8 @@ std::map<std::string, unsigned> movesNames{
 	{ "Kinesis",       PokemonGen1::Kinesis },
 	{ "Soft-Boiled",   PokemonGen1::Softboiled },
 	{ "Softboiled",    PokemonGen1::Softboiled },
-	{ "Hi Jump Kick",  PokemonGen1::Hi_Jump_Kick },
+	{ "Hi Jump Kick",   PokemonGen1::Hi_Jump_Kick },
+	{ "High Jump Kick", PokemonGen1::Hi_Jump_Kick },
 	{ "Glare",         PokemonGen1::Glare },
 	{ "Dream Eater",   PokemonGen1::Dream_Eater },
 	{ "Poison Gas",    PokemonGen1::Poison_Gas },
@@ -468,6 +471,9 @@ void ShowdownReader::_processChunk(std::vector<PkmnCommon::Event> &output)
 	bool start = false;
 
 	for (auto &line : this->_chunk) {
+		if (line.empty() || line[0] != '|')
+			continue;
+
 		std::vector<std::string> vals = split(line, '|');
 
 		if (vals.front().empty())
@@ -476,6 +482,8 @@ void ShowdownReader::_processChunk(std::vector<PkmnCommon::Event> &output)
 			continue;
 
 		auto &op = vals.front();
+		if (op.empty())
+			continue;
 
 		for (auto i : ignore)
 			if (op == i)
@@ -820,6 +828,13 @@ void ShowdownReader::_processChunk(std::vector<PkmnCommon::Event> &output)
 			} else if (op == "turn") {
 				if (!start)
 					this->_events.emplace_back(PkmnCommon::TurnStartEvent{}, this->_pstate);
+			} else if (op == "tie") {
+				if (!this->_gameEnded) {
+					this->_gameEnded = true;
+					this->_events.emplace_back(PkmnCommon::GameEndEvent{
+						false, false, false, false
+					}, this->_pstate);
+				}
 			} else
 				throw std::invalid_argument("Unknown directive for line \"" + line + "\"");
 		}

@@ -278,7 +278,7 @@ static void handleMove(
 			? state.p1.team[s.first.onField].name
 			: state.p2.team[s.second.onField].name;
 		output.emplace_back(PkmnCommon::TextEvent{statusAppliedText(anim.animId, afflictedName)});
-		output.emplace_back(anim);
+		output.emplace_back(PkmnCommon::AnimEvent{anim.animId, move.getStatusChange().cmpVal == 0, anim.player, anim.turn});
 	}
 
 	// ── Haze / full stat clear (Move.cpp line 316) ────────────────────────
@@ -399,6 +399,11 @@ bool Gen1ResultBasedGenerator::convertEvent(
 	// ── Standalone HealthModEvent (safety pass-through) ───────────────────
 	} else if (auto hp = std::get_if<PkmnCommon::HealthModEvent>(&event)) {
 		output.emplace_back(*hp);
+
+	// ── Standalone MoveMissEvent (e.g. Gen 1 stat-overflow fail after a boost) ──
+	} else if (auto miss = std::get_if<PkmnCommon::MoveMissEvent>(&event)) {
+		output.emplace_back(PkmnCommon::TextEvent{"But, it failed!"});
+		output.emplace_back(*miss);
 
 	} else {
 		throw std::runtime_error("Gen1ResultBasedGenerator: unhandled event type");
