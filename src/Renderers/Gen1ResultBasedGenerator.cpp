@@ -18,7 +18,6 @@ static const unsigned statusAnims[] = {
 	PkmnCommon::SYSANIM_NOW_CONFUSED,
 };
 
-// Stat animation range — SYSANIM_ATK_DECREASE_BIG through SYSANIM_EVD_INCREASE_BIG.
 static bool isStatAnim(unsigned animId)
 {
 	return animId >= PkmnCommon::SYSANIM_ATK_DECREASE_BIG &&
@@ -30,80 +29,94 @@ static bool isStatusAnim(unsigned animId)
 	return std::ranges::find(statusAnims, animId) != std::end(statusAnims);
 }
 
-// Text for status newly applied.
+// Text emitted when a status condition is newly inflicted (from Pokemon.cpp messages map).
 static std::string statusAppliedText(unsigned animId, const std::string &name)
 {
 	switch (animId) {
-	case PkmnCommon::SYSANIM_NOW_ASLEEP:        return name + " fell asleep!";
-	case PkmnCommon::SYSANIM_NOW_FROZEN:        return name + " was frozen solid!";
-	case PkmnCommon::SYSANIM_NOW_BURNED:        return name + " was burned!";
-	case PkmnCommon::SYSANIM_NOW_POISONED:      return name + " was poisoned!";
-	case PkmnCommon::SYSANIM_NOW_BADLY_POISONED:return name + " was badly poisoned!";
-	case PkmnCommon::SYSANIM_NOW_PARALYZED:     return name + "'s paralyzed! It may not attack!";
-	case PkmnCommon::SYSANIM_NOW_CONFUSED:      return name + " became confused!";
-	default:                                    return name + " was affected!";
+	case PkmnCommon::SYSANIM_NOW_ASLEEP:         return name + " fell asleep!";
+	case PkmnCommon::SYSANIM_NOW_FROZEN:         return name + " was frozen solid!";
+	case PkmnCommon::SYSANIM_NOW_BURNED:         return name + " was burned!";
+	case PkmnCommon::SYSANIM_NOW_POISONED:       return name + " was poisoned!";
+	case PkmnCommon::SYSANIM_NOW_BADLY_POISONED: return name + "'s badly poisoned!";
+	case PkmnCommon::SYSANIM_NOW_PARALYZED:      return name + "'s paralyzed! It may not attack!";
+	case PkmnCommon::SYSANIM_NOW_CONFUSED:       return name + " became confused!";
+	default:                                     return name + " was affected!";
 	}
 }
 
-// Text for standalone AnimEvents (cant, cure, etc.).
+// Text for standalone AnimEvents (cant, cure, end-of-turn damage, etc.)
+// from Pokemon.cpp attack() / stepEnds().
 static std::string standaloneAnimText(unsigned animId, const std::string &name)
 {
 	switch (animId) {
-	case PkmnCommon::SYSANIM_ASLEEP:      return name + " is fast asleep!";
-	case PkmnCommon::SYSANIM_FROZEN:      return name + " is frozen solid!";
-	case PkmnCommon::SYSANIM_PARALYZED:   return name + " is fully paralyzed!";
-	case PkmnCommon::SYSANIM_RECHARGE:    return name + " must recharge!";
-	case PkmnCommon::SYSANIM_CONFUSED:    return name + " is confused!";
-	case PkmnCommon::SYSANIM_WAKE_UP:     return name + " woke up!";
-	case PkmnCommon::SYSANIM_THAWED:      return name + " thawed out!";
-	case PkmnCommon::SYSANIM_BACK_TO_SENSE: return name + " snapped out of confusion!";
-	case PkmnCommon::SYSANIM_CONFUSED_HIT: return name + " hurt itself in its confusion!";
-	case PkmnCommon::SYSANIM_SUB_BREAK:   return name + "'s SUBSTITUTE broke!";
-	case PkmnCommon::SYSANIM_POISON:      return name + " is hurt by poison!";
-	case PkmnCommon::SYSANIM_BAD_POISON:  return name + " is hurt by poison!";
-	case PkmnCommon::SYSANIM_BURN:        return name + " is hurt by the burn!";
-	case PkmnCommon::SYSANIM_LEECHED:     return name + " had its energy drained!";
-	default:                              return "";
+	case PkmnCommon::SYSANIM_ASLEEP:       return name + " is fast asleep!";
+	case PkmnCommon::SYSANIM_FROZEN:       return name + " is frozen solid!";
+	case PkmnCommon::SYSANIM_PARALYZED:    return name + "'s fully paralyzed!";
+	case PkmnCommon::SYSANIM_RECHARGE:     return name + " must recharge!";
+	case PkmnCommon::SYSANIM_CONFUSED:     return name + " is confused!";
+	case PkmnCommon::SYSANIM_WAKE_UP:      return name + " woke up!";
+	case PkmnCommon::SYSANIM_THAWED:       return "Fire defrosted " + name + "!";
+	case PkmnCommon::SYSANIM_BACK_TO_SENSE:return name + " is confused no more!";
+	case PkmnCommon::SYSANIM_CONFUSED_HIT: return "It hurt itself in its confusion!";
+	case PkmnCommon::SYSANIM_SUB_BREAK:    return name + "'s SUBSTITUTE broke!";
+	case PkmnCommon::SYSANIM_POISON:       return name + "'s hurt by the poison!";
+	case PkmnCommon::SYSANIM_BAD_POISON:   return name + "'s hurt by the poison!";
+	case PkmnCommon::SYSANIM_BURN:         return name + "'s hurt by the burn!";
+	case PkmnCommon::SYSANIM_LEECHED:      return "LEECH SEED saps " + name + "!";
+	default:                               return "";
 	}
 }
 
-// Text for stat change AnimEvents.
+// Stat name (little string) and change text for stat-change AnimEvents,
+// mirroring statToLittleString() from StatsChange.cpp and Pokemon::upStat().
+//
+// SYSANIM group layout (each group = 4 consecutive IDs starting at base):
+//   base+0 = DECREASE_BIG, base+1 = DECREASE, base+2 = INCREASE, base+3 = INCREASE_BIG
+//
+// Group → Gen-1 stat → statToLittleString():
+//   0 ATK  → ATK
+//   1 DEF  → DEF
+//   2 SPA  → SPE  (Gen-1 "Special" masqueraded as SPA anim, statToLittleString(STATS_SPE)="SPE")
+//   3 SPD  → SPD  (unused in Gen 1)
+//   4 SPE  → SPD  (Gen-1 Speed uses SPE anim,  statToLittleString(STATS_SPD)="SPD")
+//   5 ACC  → ACC
+//   6 EVD  → EVD
 static std::string statAnimText(unsigned animId, const std::string &name)
 {
 	static const char *statNames[] = {
-		"ATK", "DEF", "SPE", "",
-		"SPD", "ACC", "EVD"
+		"ATK", "DEF", "SPE", "SPD", "SPD", "ACC", "EVD"
 	};
-	unsigned offset = animId - PkmnCommon::SYSANIM_ATK_DECREASE_BIG;
-	unsigned statIdx = offset / 4;
+	unsigned offset  = animId - PkmnCommon::SYSANIM_ATK_DECREASE_BIG;
+	unsigned group   = offset / 4;
 	unsigned kind    = offset % 4;
-	// kind: 0=DEC_BIG, 1=DEC, 2=INC, 3=INC_BIG
+
+	const char *stat   = group < 7 ? statNames[group] : "???";
 	const char *change = "";
 	switch (kind) {
-	case 0: change = " fell harshly!"; break;
-	case 1: change = " fell!";         break;
-	case 2: change = " rose!";         break;
-	case 3: change = " rose sharply!"; break;
+	case 0: change = " greatly fell!";  break;
+	case 1: change = " fell!";          break;
+	case 2: change = " rose!";          break;
+	case 3: change = " greatly rose!";  break;
 	}
-	const char *stat = statIdx < 7 ? statNames[statIdx] : "???";
 	return name + "'s " + stat + change;
 }
 
-// Loading-turn text for two-turn moves.
+// Loading-turn text for two-turn moves — mirrors Move.cpp:
+//   logger(TextEvent{ owner.getName() + " " + this->_loadingMsg });
 static std::string loadingText(unsigned moveId, const std::string &name)
 {
 	switch (moveId) {
 	case PokemonGen1::Fly:        return name + " flew up high!";
 	case PokemonGen1::Dig:        return name + " dug a hole!";
-	case PokemonGen1::Solarbeam:  return name + " absorbed sunlight!";
+	case PokemonGen1::Solarbeam:  return name + " took in sunlight!";
 	case PokemonGen1::Skull_Bash: return name + " lowered its head!";
-	case PokemonGen1::Razor_Wind: return name + " whipped up a whirlwind!";
+	case PokemonGen1::Razor_Wind: return name + " made a whirlwind!";
 	case PokemonGen1::Sky_Attack: return name + " is glowing!";
 	default:                      return name + " is preparing!";
 	}
 }
 
-// Whether this AnimEvent type should be followed by consuming an HP event.
+// Whether this standalone AnimEvent type is always followed by a HealthModEvent.
 static bool animNeedsHP(unsigned animId)
 {
 	return animId == PkmnCommon::SYSANIM_POISON ||
@@ -124,8 +137,8 @@ static void handleMove(
 {
 	const auto &move = PokemonGen1::availableMoves.at(event.moveId);
 
-	// Identify attacker and target names using the state snapshot.
-	const auto &myPState = event.player ? s.first : s.second;
+	// Resolve attacker / target names from the state snapshot.
+	const auto &myPState = event.player ? s.first  : s.second;
 	const auto &opPState = event.player ? s.second : s.first;
 	const auto &myPlayer = event.player ? state.p1 : state.p2;
 	const auto &opPlayer = event.player ? state.p2 : state.p1;
@@ -134,7 +147,7 @@ static void handleMove(
 	std::string myName = myPlayer.team[myPState.onField].name;
 	std::string opName = opPlayer.team[opPState.onField].name;
 
-	// ── Look-ahead: consume related events from the queue ─────────────────
+	// ── Look-ahead: consume related events ────────────────────────────────
 	struct HitInfo { bool veryEffective = false; bool notVeryEffective = false; };
 
 	bool missed = false;
@@ -157,7 +170,7 @@ static void handleMove(
 				hitInfo = HitInfo{hit->veryEffective, hit->notVeryEffective};
 		} else if (auto health = std::get_if<PkmnCommon::HealthModEvent>(&e)) {
 			if (health->player == event.player)
-				selfHP = health->newHealth;        // recoil / drain / self-heal
+				selfHP = health->newHealth;
 			else
 				targetHPs.push_back(health->newHealth);
 		} else if (auto text = std::get_if<PkmnCommon::TextEvent>(&e)) {
@@ -167,8 +180,7 @@ static void handleMove(
 				break;
 		} else if (auto death = std::get_if<PkmnCommon::DeathEvent>(&e)) {
 			deaths.push_back(*death);
-		} else if (auto miss = std::get_if<PkmnCommon::MoveMissEvent>(&e)) {
-			(void)miss;
+		} else if (std::get_if<PkmnCommon::MoveMissEvent>(&e)) {
 			missed = true;
 		} else if (auto anim = std::get_if<PkmnCommon::AnimEvent>(&e)) {
 			if (isStatusAnim(anim->animId))
@@ -187,11 +199,12 @@ static void handleMove(
 		events.pop_front();
 	}
 
-	// ── Emit move announcement ─────────────────────────────────────────────
+	// ── Move announcement (Move.cpp line 811) ─────────────────────────────
 	output.emplace_back(PkmnCommon::TextEvent{myName + " used " + Utils::toUpper(move.getName()) + "!"});
 
 	// ── Miss / fail / immune ───────────────────────────────────────────────
 	if (missed) {
+		// Move.cpp lines 779-786
 		if (move.getID() == PokemonGen1::Whirlwind || move.getID() == PokemonGen1::Roar)
 			output.emplace_back(PkmnCommon::TextEvent{opName + " is unaffected!"});
 		else if (move.getCategory() == PokemonGen1::STATUS)
@@ -202,7 +215,7 @@ static void handleMove(
 		return;
 	}
 
-	// ── Two-turn move: loading phase ───────────────────────────────────────
+	// ── Two-turn move: loading phase (Move.cpp line 804-808) ──────────────
 	if (prepareAnim.has_value()) {
 		output.emplace_back(PkmnCommon::TextEvent{loadingText(move.getID(), myName)});
 		output.emplace_back(*prepareAnim);
@@ -212,18 +225,17 @@ static void handleMove(
 	// ── Damaging move ──────────────────────────────────────────────────────
 	if (!targetHPs.empty()) {
 		HitInfo hi = hitInfo.value_or(HitInfo{});
-		bool hideSub = false;
 
 		// First hit
-		output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, hideSub});
+		output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, false});
 		output.emplace_back(PkmnCommon::HitEvent{hi.veryEffective, hi.notVeryEffective, opIsP1, true});
 		output.emplace_back(PkmnCommon::HealthModEvent{targetHPs[0], opIsP1, true});
 		if (hasCrit)
-			output.emplace_back(PkmnCommon::TextEvent{"Critical hit!"});
+			output.emplace_back(PkmnCommon::TextEvent{"Critical hit!"}); // Move.cpp line 990
 		if (hi.notVeryEffective)
-			output.emplace_back(PkmnCommon::TextEvent{"It's not very effective..."});
+			output.emplace_back(PkmnCommon::TextEvent{"It's not very effective!"}); // Move.cpp line 992
 		else if (hi.veryEffective)
-			output.emplace_back(PkmnCommon::TextEvent{"It's super effective!"});
+			output.emplace_back(PkmnCommon::TextEvent{"It's super effective!"});    // Move.cpp line 994
 
 		// Subsequent hits (multi-hit moves)
 		for (size_t i = 1; i < targetHPs.size(); i++) {
@@ -232,23 +244,31 @@ static void handleMove(
 			output.emplace_back(PkmnCommon::HealthModEvent{targetHPs[i], opIsP1, true});
 		}
 
-		// Recoil / drain HP for attacker
+		// Recoil / drain HP for the attacker (Move.cpp line 169/279)
 		if (selfHP.has_value())
 			output.emplace_back(PkmnCommon::HealthModEvent{selfHP.value(), event.player, true});
 
 	} else if (selfHP.has_value()) {
-		// Self-targeting move: Recover, Soft-Boiled, Rest, Substitute, etc.
+		// Self-targeting: Recover, Soft-Boiled, Rest, Substitute HP cost, etc.
 		output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, false});
 
 		unsigned mid = move.getID();
 		if (mid == PokemonGen1::Rest) {
-			output.emplace_back(PkmnCommon::TextEvent{myName + " slept and became healthy!"});
+			// Move.cpp lines 286 + 290
+			output.emplace_back(PkmnCommon::TextEvent{myName + " started sleeping!"});
+			output.emplace_back(PkmnCommon::HealthModEvent{selfHP.value(), event.player, true});
+			output.emplace_back(PkmnCommon::TextEvent{myName + " regained health!"});
 		} else if (mid == PokemonGen1::Substitute) {
-			output.emplace_back(PkmnCommon::TextEvent{myName + " made a SUBSTITUTE!"});
+			// Move.cpp line 388
+			output.emplace_back(PkmnCommon::TextEvent{"It created a SUBSTITUTE!"});
+			output.emplace_back(PkmnCommon::HealthModEvent{selfHP.value(), event.player, true});
+		} else {
+			// Recover, Soft-Boiled, Dream Eater heal, etc. (Move.cpp line 279)
+			output.emplace_back(PkmnCommon::HealthModEvent{selfHP.value(), event.player, true});
+			output.emplace_back(PkmnCommon::TextEvent{myName + " regained health!"});
 		}
-		output.emplace_back(PkmnCommon::HealthModEvent{selfHP.value(), event.player, true});
 	} else {
-		// No damage, no self-HP: status/effect move (Swords Dance, Agility, Growl, etc.)
+		// No damage, no self-HP: pure status/effect move (Swords Dance, Agility, etc.)
 		output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, false});
 	}
 
@@ -257,18 +277,17 @@ static void handleMove(
 		std::string afflictedName = anim.player
 			? state.p1.team[s.first.onField].name
 			: state.p2.team[s.second.onField].name;
-
 		output.emplace_back(PkmnCommon::TextEvent{statusAppliedText(anim.animId, afflictedName)});
-		output.emplace_back(PkmnCommon::AnimEvent{anim.animId, move.getStatusChange().cmpVal == 0, anim.player, anim.turn});
+		output.emplace_back(anim);
 	}
 
-	// ── Haze / stat clear ─────────────────────────────────────────────────
+	// ── Haze / full stat clear (Move.cpp line 316) ────────────────────────
 	if (hasStatusCleared) {
 		output.emplace_back(PkmnCommon::StatusClearedEvent{statusClearedPlayer});
-		output.emplace_back(PkmnCommon::TextEvent{"All stat changes were eliminated!"});
+		output.emplace_back(PkmnCommon::TextEvent{"All STATUS changes are eliminated!"});
 	}
 
-	// ── Faints ────────────────────────────────────────────────────────────
+	// ── Faints (Pokemon.cpp line 976) ─────────────────────────────────────
 	for (auto &death : deaths) {
 		std::string faintedName = death.player
 			? state.p1.team[s.first.onField].name
@@ -288,7 +307,7 @@ bool Gen1ResultBasedGenerator::convertEvent(
 	if (events.empty())
 		return false;
 
-	auto val   = events.front();
+	auto val    = events.front();
 	auto &event = val.first;
 	auto &s     = val.second;
 
@@ -302,6 +321,7 @@ bool Gen1ResultBasedGenerator::convertEvent(
 
 	// ── Switch ────────────────────────────────────────────────────────────
 	} else if (auto switch_ = std::get_if<PkmnCommon::SwitchEvent>(&event)) {
+		// BattleHandler.cpp lines 167/208
 		if (switch_->player)
 			output.emplace_back(PkmnCommon::TextEvent{"Go! " + std::string(state.p1.team[switch_->newPkmnId].name) + "!"});
 		else
@@ -310,8 +330,9 @@ bool Gen1ResultBasedGenerator::convertEvent(
 
 	// ── Withdraw ──────────────────────────────────────────────────────────
 	} else if (auto withdraw = std::get_if<PkmnCommon::WithdrawEvent>(&event)) {
+		// BattleHandler.cpp lines 163/204
 		if (withdraw->player)
-			output.emplace_back(PkmnCommon::TextEvent{std::string(state.p1.team[s.first.onField].name) + ", enough! Come back!"});
+			output.emplace_back(PkmnCommon::TextEvent{std::string(state.p1.team[s.first.onField].name) + " enough! Come back!"});
 		else
 			output.emplace_back(PkmnCommon::TextEvent{std::string(state.p2.name) + " withdrew " + state.p2.team[s.second.onField].name + "!"});
 		output.emplace_back(*withdraw);
@@ -320,22 +341,24 @@ bool Gen1ResultBasedGenerator::convertEvent(
 	} else if (auto move = std::get_if<PkmnCommon::MoveEvent>(&event)) {
 		handleMove(state, *move, s, usedEvents, events, output);
 
-	// ── Game start ────────────────────────────────────────────────────────
+	// ── Game start (BattleHandler.cpp lines 34-36) ────────────────────────
 	} else if (std::holds_alternative<PkmnCommon::GameStartEvent>(event)) {
 		output.emplace_back(PkmnCommon::GameStartEvent{});
-		output.emplace_back(PkmnCommon::TextEvent{std::string(state.p1.name) + " wants to fight!"});
+		output.emplace_back(PkmnCommon::TextEvent{std::string(state.p2.name) + " wants to fight!"});
 		output.emplace_back(PkmnCommon::TextEvent{std::string(state.p2.name) + " sent out " + state.p2.team[0].name + "!"});
 		output.emplace_back(PkmnCommon::TextEvent{std::string(state.p1.team[0].name) + " go!"});
 
-	// ── Game end ──────────────────────────────────────────────────────────
+	// ── Game end (BattleHandler.cpp lines 130-131/137) ────────────────────
 	} else if (auto end = std::get_if<PkmnCommon::GameEndEvent>(&event)) {
 		output.emplace_back(*end);
-		if (end->p1Won)
-			output.emplace_back(PkmnCommon::TextEvent{std::string(state.p1.name) + " won the battle!"});
-		else if (end->p2Won)
-			output.emplace_back(PkmnCommon::TextEvent{std::string(state.p2.name) + " won the battle!"});
+		if (end->p1Won) {
+			output.emplace_back(PkmnCommon::TextEvent{std::string(state.p1.name) + " defeated " + state.p2.name + "!"});
+		} else if (end->p2Won) {
+			output.emplace_back(PkmnCommon::TextEvent{std::string(state.p1.name) + " is out of usable pokemon!"});
+			output.emplace_back(PkmnCommon::TextEvent{std::string(state.p1.name) + " blacked out!"});
+		}
 
-	// ── Standalone death (Pokemon fainted outside of a move context) ──────
+	// ── Standalone death (Pokemon.cpp line 976) ───────────────────────────
 	} else if (auto death = std::get_if<PkmnCommon::DeathEvent>(&event)) {
 		std::string faintedName = death->player
 			? state.p1.team[s.first.onField].name
@@ -350,6 +373,7 @@ bool Gen1ResultBasedGenerator::convertEvent(
 			: state.p2.team[s.second.onField].name;
 
 		if (isStatAnim(anim->animId)) {
+			// Pokemon.cpp lines 898-904, statToLittleString()
 			output.emplace_back(PkmnCommon::TextEvent{statAnimText(anim->animId, pkmnName)});
 			output.emplace_back(*anim);
 		} else {
@@ -357,7 +381,7 @@ bool Gen1ResultBasedGenerator::convertEvent(
 			if (!text.empty())
 				output.emplace_back(PkmnCommon::TextEvent{text});
 			output.emplace_back(*anim);
-			// Consume a following HealthModEvent for damage-dealing standalone anims
+			// Consume the following HealthModEvent for damage-dealing standalone anims.
 			if (animNeedsHP(anim->animId) && !events.empty()) {
 				if (auto hp = std::get_if<PkmnCommon::HealthModEvent>(&events.front().first)) {
 					output.emplace_back(*hp);
@@ -367,12 +391,12 @@ bool Gen1ResultBasedGenerator::convertEvent(
 			}
 		}
 
-	// ── StatusClearedEvent (e.g. from Haze, standalone) ───────────────────
+	// ── StatusClearedEvent (Haze, Move.cpp line 316) ──────────────────────
 	} else if (auto sc = std::get_if<PkmnCommon::StatusClearedEvent>(&event)) {
 		output.emplace_back(*sc);
-		output.emplace_back(PkmnCommon::TextEvent{"All stat changes were eliminated!"});
+		output.emplace_back(PkmnCommon::TextEvent{"All STATUS changes are eliminated!"});
 
-	// ── Standalone HealthModEvent (rare: burn/leech damage without anim) ────
+	// ── Standalone HealthModEvent (safety pass-through) ───────────────────
 	} else if (auto hp = std::get_if<PkmnCommon::HealthModEvent>(&event)) {
 		output.emplace_back(*hp);
 
