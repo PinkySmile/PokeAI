@@ -84,7 +84,7 @@ static std::string standaloneAnimText(unsigned animId, const std::string &name)
 static std::string statAnimText(unsigned animId, const std::string &name)
 {
 	static const char *statNames[] = {
-		"ATK", "DEF", "SPE", "SPD", "SPD", "ACC", "EVD"
+		"ATK", "DEF", "SPE", "", "SPD", "ACC", "EVD"
 	};
 	unsigned offset  = animId - PkmnCommon::SYSANIM_ATK_DECREASE_BIG;
 	unsigned group   = offset / 4;
@@ -260,8 +260,8 @@ static void handleMove(
 			output.emplace_back(PkmnCommon::TextEvent{myName + " regained health!"});
 		} else if (mid == PokemonGen1::Substitute) {
 			// Move.cpp line 388
-			output.emplace_back(PkmnCommon::TextEvent{"It created a SUBSTITUTE!"});
 			output.emplace_back(PkmnCommon::HealthModEvent{selfHP.value(), event.player, true});
+			output.emplace_back(PkmnCommon::TextEvent{"It created a SUBSTITUTE!"});
 		} else {
 			// Recover, Soft-Boiled, Dream Eater heal, etc. (Move.cpp line 279)
 			output.emplace_back(PkmnCommon::HealthModEvent{selfHP.value(), event.player, true});
@@ -277,8 +277,8 @@ static void handleMove(
 		std::string afflictedName = anim.player
 			? state.p1.team[s.first.onField].name
 			: state.p2.team[s.second.onField].name;
-		output.emplace_back(PkmnCommon::TextEvent{statusAppliedText(anim.animId, afflictedName)});
 		output.emplace_back(PkmnCommon::AnimEvent{anim.animId, move.getStatusChange().cmpVal == 0, anim.player, anim.turn});
+		output.emplace_back(PkmnCommon::TextEvent{statusAppliedText(anim.animId, afflictedName)});
 	}
 
 	// ── Haze / full stat clear (Move.cpp line 316) ────────────────────────
@@ -372,15 +372,17 @@ bool Gen1ResultBasedGenerator::convertEvent(
 			? state.p1.team[s.first.onField].name
 			: state.p2.team[s.second.onField].name;
 
+		if (anim->animId >= PkmnCommon::SYSANIM_SPD_DECREASE_BIG && anim->animId <= PkmnCommon::SYSANIM_SPD_INCREASE_BIG)
+			return true;
 		if (isStatAnim(anim->animId)) {
 			// Pokemon.cpp lines 898-904, statToLittleString()
-			output.emplace_back(PkmnCommon::TextEvent{statAnimText(anim->animId, pkmnName)});
 			output.emplace_back(*anim);
+			output.emplace_back(PkmnCommon::TextEvent{statAnimText(anim->animId, pkmnName)});
 		} else {
 			std::string text = standaloneAnimText(anim->animId, pkmnName);
+			output.emplace_back(*anim);
 			if (!text.empty())
 				output.emplace_back(PkmnCommon::TextEvent{text});
-			output.emplace_back(*anim);
 			// Consume the following HealthModEvent for damage-dealing standalone anims.
 			if (animNeedsHP(anim->animId) && !events.empty()) {
 				if (auto hp = std::get_if<PkmnCommon::HealthModEvent>(&events.front().first)) {
