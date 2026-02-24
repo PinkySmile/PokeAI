@@ -269,6 +269,7 @@ namespace PkmnCommon
 	struct HealthModEvent {
 		unsigned newHealth;
 		bool player;
+		bool animated;
 	};
 
 	struct SwitchEvent {

@@ -285,6 +285,7 @@ namespace PokemonGen1
 		owner.setNonVolatileStatus(STATUS_ASLEEP_FOR_2_TURN);
 		logger(PkmnCommon::TextEvent{owner.getName() + " started sleeping!"});
 		logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy(), .hideSubstitute = false});
+		// TODO: HealthModEvent shouldn't be animated for this case
 		owner.heal(owner.getMaxHealth());
 		logger(PkmnCommon::TextEvent{owner.getName() + " regained health!"});
 		logger(PkmnCommon::AnimEvent{
@@ -310,6 +311,8 @@ namespace PokemonGen1
 		target.setGlobalCritRatio(1);
 		target.setReflectUp(false);
 		target.setLightScreenUp(false);
+		logger(PkmnCommon::StatusClearedEvent{true});
+		logger(PkmnCommon::StatusClearedEvent{false});
 		logger(PkmnCommon::TextEvent{"All STATUS changes are eliminated!"});
 		return true;
 	};

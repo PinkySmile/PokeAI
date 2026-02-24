@@ -300,7 +300,7 @@ std::map<std::string, unsigned> movesNames{
 	{ "Bide",          PokemonGen1::Bide },
 	{ "Metronome",     PokemonGen1::Metronome },
 	{ "Mirror Move",   PokemonGen1::Mirror_Move },
-	{ "Self Destruct", PokemonGen1::Self_Destruct },
+	{ "Self-Destruct", PokemonGen1::Self_Destruct },
 	{ "Egg Bomb",      PokemonGen1::Egg_Bomb },
 	{ "Lick",          PokemonGen1::Lick },
 	{ "Smog",          PokemonGen1::Smog },
@@ -315,7 +315,7 @@ std::map<std::string, unsigned> movesNames{
 	{ "Constrict",     PokemonGen1::Constrict },
 	{ "Amnesia",       PokemonGen1::Amnesia },
 	{ "Kinesis",       PokemonGen1::Kinesis },
-	{ "Softboiled",    PokemonGen1::Softboiled },
+	{ "Soft-Boiled",   PokemonGen1::Softboiled },
 	{ "Hi Jump Kick",  PokemonGen1::Hi_Jump_Kick },
 	{ "Glare",         PokemonGen1::Glare },
 	{ "Dream Eater",   PokemonGen1::Dream_Eater },
@@ -397,6 +397,8 @@ void ShowdownReader::_processChunk(std::vector<PkmnCommon::Event> &output)
 
 		if (vals.front().empty())
 			vals.erase(vals.begin());
+		if (vals.empty())
+			continue;
 
 		auto &op = vals.front();
 
@@ -505,7 +507,8 @@ void ShowdownReader::_processChunk(std::vector<PkmnCommon::Event> &output)
 
 				this->_events.emplace_back(PkmnCommon::HealthModEvent{
 					current,
-					target[0].starts_with("p1")
+					target[0].starts_with("p1"),
+					true
 				}, this->_pstate);
 			} else if (op == "turn") {
 				if (!start)

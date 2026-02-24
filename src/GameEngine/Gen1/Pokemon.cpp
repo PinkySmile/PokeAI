@@ -935,7 +935,7 @@ namespace PokemonGen1
 			this->_computedStats.HP = this->_computedStats.maxHP;
 		else
 			this->_computedStats.HP += health;
-		this->_battleState->battleLogger(PkmnCommon::HealthModEvent{.newHealth = this->_computedStats.HP, .player = !this->isEnemy() });
+		this->_battleState->battleLogger(PkmnCommon::HealthModEvent{.newHealth = this->_computedStats.HP, .player = !this->isEnemy(), .animated = true });
 	}
 
 	void Pokemon::takeDamage(Pokemon &target, unsigned short damage, bool skipSubstitute, bool swapSide)
@@ -969,7 +969,7 @@ namespace PokemonGen1
 			this->_computedStats.HP = 0;
 		else
 			this->_computedStats.HP -= damage;
-		logger(PkmnCommon::HealthModEvent{.newHealth = this->_computedStats.HP, .player = !this->isEnemy() });
+		logger(PkmnCommon::HealthModEvent{.newHealth = this->_computedStats.HP, .player = !this->isEnemy(), .animated = true });
 
 		if (!this->_computedStats.HP) {
 			this->_currentStatus = STATUS_KO;

@@ -641,6 +641,18 @@ void Gen1Renderer::_handleEvent(const Event &event)
 			this->_currentAnim = ANIMTYPE_DELAY;
 		else
 			throw std::runtime_error("Anim not implemented: " + std::to_string(anim->animId));
+	} else if (auto status = std::get_if<StatusClearedEvent>(&event)) {
+		auto &state = status->player ? this->state.p1 : this->state.p2;
+		auto &pkmn = state.team[state.active];
+
+		pkmn.asleep = false;
+		pkmn.frozen = false;
+		pkmn.burned = false;
+		pkmn.poisoned = false;
+		pkmn.toxicPoisoned = false;
+		pkmn.paralyzed = false;
+		pkmn.leeched = false;
+		pkmn.confused = false;
 	} else if (auto extraAnim = std::get_if<ExtraAnimEvent>(&event)) {
 		this->_currentEvent = EVNTTYPE_MOVE;
 		this->_isMoveAnim = true;
