@@ -23,14 +23,19 @@ std::vector<std::string> readReplay(const std::filesystem::path &path, std::opti
 
 	while (std::getline(stream, line)) {
 		if (found) {
-			if (line.ends_with("</script>"))
+			if (line.ends_with("</script>")) {
+				lines.push_back(line.substr(0, line.size() - 9));
 				break;
+			}
 			if (line.starts_with("|gen|") && !renderer)
 				renderer = line.substr(5);
 			lines.push_back(line);
 		} else if (line.starts_with(firstLine)) {
 			found = true;
 			lines.push_back(line.substr(firstLine.size()));
+		} else if (line.starts_with("|j|")) {
+			found = true;
+			lines.push_back(line);
 		}
 	}
 	return lines;
