@@ -267,7 +267,7 @@ namespace PokemonGen1
 			this->applyStatusDebuff();
 	}
 
-	void Pokemon::setStatus(PokemonGen1::StatusChange status)
+	void Pokemon::setStatus( StatusChange status)
 	{
 		if ((status & STATUS_BAD_POISON) && !(this->_currentStatus & STATUS_BAD_POISON))
 			this->_badPoisonStage = 1;
@@ -1238,7 +1238,7 @@ namespace PokemonGen1
 		return this->_nickname;
 	}
 
-	void Pokemon::transform(const PokemonGen1::Pokemon &target)
+	void Pokemon::transform(const  Pokemon &target)
 	{
 		for (size_t i = 0; i < this->_moveSet.size(); i++)
 			this->_moveSetCopy[i].setPP(this->_moveSet[i].getPP());

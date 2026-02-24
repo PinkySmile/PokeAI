@@ -1594,7 +1594,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 	getColorCall(target.clear, 0, _trainerColors);
 	sprite.setPosition({0, 96});
 	target.draw(sprite);
-	switch (this->_animMove){
+	switch (this->_animMove) {
 	case INTROSTEP_VS_PANEL:
 		getColorCall(target.clear, 0, _trainerColors);
 
@@ -1605,7 +1605,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		text.setString(this->state.p1.name);
 		text.setPosition({36, 48});
 		target.draw(text);
-		for (unsigned i = 0; i < this->state.p1.team.size(); i++) {
+		for (unsigned i = 0; i < std::size(this->state.p1.team); i++) {
 			auto &pkmn = this->state.p1.team[i];
 
 			if (pkmn.id == 0)
@@ -1623,7 +1623,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		text.setString(this->state.p2.name);
 		text.setPosition({36, 80});
 		target.draw(text);
-		for (unsigned i = 0; i < state.p2.team.size(); i++) {
+		for (unsigned i = 0; i < std::size(this->state.p2.team); i++) {
 			auto &pkmn = this->state.p2.team[i];
 
 			if (pkmn.id == 0)
@@ -1707,7 +1707,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		sprite.setTexture(this->_boxes[2].texture, true);
 		sprite.setPosition({8, 16});
 		target.draw(sprite);
-		for (unsigned i = 0; i < this->state.p2.team.size(); i++) {
+		for (unsigned i = 0; i < std::size(this->state.p2.team); i++) {
 			auto &pkmn = this->state.p2.team[i];
 
 			if (pkmn.id == 0)
@@ -1727,7 +1727,7 @@ void Gen1Renderer::_renderGameStart(sf::RenderTarget &target)
 		sprite.setScale({-1, 1});
 		target.draw(sprite);
 		sprite.setScale({1, 1});
-		for (unsigned i = 0; i < this->state.p1.team.size(); i++) {
+		for (unsigned i = 0; i < std::size(this->state.p1.team); i++) {
 			auto &pkmn = this->state.p1.team[i];
 
 			if (pkmn.id == 0)
@@ -1988,7 +1988,7 @@ void Gen1Renderer::_renderGameEnd(sf::RenderTarget &target)
 		text.setString(this->state.p1.name);
 		text.setPosition({36, 48});
 		target.draw(text);
-		for (unsigned i = 0; i < this->state.p1.team.size(); i++) {
+		for (unsigned i = 0; i < std::size(this->state.p1.team); i++) {
 			auto &pkmn = this->state.p1.team[i];
 
 			if (pkmn.id == 0)
@@ -2006,7 +2006,7 @@ void Gen1Renderer::_renderGameEnd(sf::RenderTarget &target)
 		text.setString(this->state.p2.name);
 		text.setPosition({36, 80});
 		target.draw(text);
-		for (unsigned i = 0; i < state.p2.team.size(); i++) {
+		for (unsigned i = 0; i < std::size(this->state.p2.team); i++) {
 			auto &pkmn = this->state.p2.team[i];
 
 			if (pkmn.id == 0)

@@ -114,6 +114,11 @@ add_library(
 	src/Renderers/IRenderer.cpp
 	src/Renderers/Gen1Renderer.cpp
 	src/Renderers/Gen1Renderer.hpp
+	src/Renderers/IResultBasedGenerator.hpp
+	src/Renderers/Gen1ResultBasedGenerator.cpp
+	src/Renderers/Gen1ResultBasedGenerator.hpp
+	src/Renderers/ShowdownReader.cpp
+	src/Renderers/ShowdownReader.hpp
 )
 target_link_libraries(
 	PokemonGen1Renderers
@@ -141,6 +146,16 @@ add_executable(
 )
 target_link_libraries(
 	test_renderer_g1
+	PokemonGen1Renderers
+	TGUI::TGUI
+)
+
+add_executable(
+	play_showdown_replay
+	src/Renderers/play_showdown_replay.cpp
+)
+target_link_libraries(
+	play_showdown_replay
 	PokemonGen1Renderers
 	TGUI::TGUI
 )

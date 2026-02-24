@@ -55,8 +55,8 @@ namespace PkmnRenderer
 		unsigned spd;
 		unsigned spe;
 		unsigned level;
-		char name[32];
-		std::array<Move, 4> moves;
+		Move moves[4];
+		char name[33];
 		bool asleep;
 		bool frozen;
 		bool burned;
@@ -69,10 +69,10 @@ namespace PkmnRenderer
 	};
 
 	struct PlayerState {
-		char name[32];
-		std::array<Pokemon, 6> team;
+		Pokemon team[6];
 		unsigned active = 0;
 		unsigned spriteId;
+		char name[33];
 		bool acidArmor;
 		bool exploded;
 		bool hidden;

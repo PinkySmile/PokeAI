@@ -19,425 +19,433 @@
 #define NO_CALLBACK nullptr, ""
 #define NOT_IMPLEMENTED nullptr, "Not implemented"
 
-//Miss callbacks
-#define GLITCH_HYPER_BEAM [](unsigned, Pokemon &, Pokemon &target, bool, const BattleLogger &){\
-	target.setRecharging(false);\
-	return true;\
-}, "Removes the opponent recharge state and will make the target use it's move once more"
-
-#define SUICIDE_MISS [](unsigned id, Pokemon &owner, Pokemon &target, bool, const BattleLogger &logger){\
-	logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy(), .hideSubstitute = true});\
-	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy(), .hasEffect = true});\
-	owner.takeDamage(target, owner.getHealth(), true, false);\
-	return true;\
-}, "Kills user"
-
-#define TAKE_1DAMAGE [](unsigned id, Pokemon &owner, Pokemon &target, bool, const BattleLogger &logger){\
-	logger(PkmnCommon::TextEvent{owner.getName() + " kept going and crashed!"});\
-	logger(PkmnCommon::ExtraAnimEvent{.moveId = id, .index = 0, .player = !owner.isEnemy()});\
-	owner.takeDamage(target, 1, false, false);\
-	return true;\
-}, "Take 1 damage"
-
-#define CONFUSE_ON_LAST_DESC "Confuse the user on last run"
-#define CONFUSE_ON_LAST_MISS nullptr, CONFUSE_ON_LAST_DESC
-
-// Can hit callback
-#define ALWAYS_HIT [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &){ return true; }
-
-#define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_CHECK [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &){\
-	unsigned char multipliedLevel = owner.getLevel() * 1.5;\
-	unsigned char r;\
-	unsigned int index = 0;\
-	auto &rng = owner.getRandomGenerator();\
-	auto desyncPolicy = owner.getBattleState().desync;\
-\
-	/* In the base game, Psywave can deal: */\
-	/*  - [0, 1.5*lvl) damage when used on the player (by the opponent). */\
-	/*  - [1, 1.5*lvl) damage when used on the opponent (by the player). */\
-	/* In link battle, rolling a 0 in the loop will desync, because on one end the loop */\
-	/* will continue rolling RNG, and the other won't and make the move deal 0 damage. */\
-	/* Adjust what we do based on the desync policy: */\
-	/*  - DESYNC_IGNORE -> Just run the calculation as if done by the base game, and let ourselves be desynced if in link battle. */\
-	/*  - DESYNC_INVERT -> Invert the calculation logic, to match the link battle opponent's one and stay in sync (default). */\
-	/*  - DESYNC_THROW  -> Throw a DesyncException when 0 is rolled. */\
-	/*  - DESYNC_MISS   -> Make the move miss if a 0 is rolled. This is to mimic the Desync Cause in Pokémon Showdown. */\
-	if (desyncPolicy == DESYNC_THROW) {\
-		do {\
-			r = rng.peak(index++);\
-			if (r == 0) {\
-				rng.skip(index);\
-				throw DesyncException("Psywave rolled 0");\
-			}\
-		} while (r >= multipliedLevel);\
-	} else if (desyncPolicy == DESYNC_MISS) {\
-		do {\
-			r = rng.peak(index++);\
-			if (r == 0) {\
-				rng.skip(index);\
-				return false;\
-			}\
-		} while (r >= multipliedLevel);\
-	}\
-	return true;\
-}
-
-#define HEALTH_CHECK [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &){\
-        unsigned h = owner.getHealth();\
-        unsigned m = owner.getMaxHealth();\
-	return (h & 0xFF) - (m & 0xFF) - ((h >> 8) < (m >> 8)) != 0;\
-}
-
-#define USE_LAST_FOE_MOVE_CHECK [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &){\
-	return target.getLastUsedMove().getID() != 0;\
-}
-
-#define CREATE_SUBSTITUTE_CHECK [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){ \
-	if (owner.hasSubstitute()) {\
-		logger(PkmnCommon::TextEvent{owner.getName() + " has a SUBSTITUTE!"});\
-		return false;\
-	}\
-	unsigned hp = owner.getMaxHealth() / 4;\
-	if (owner.getHealth() < hp) {/* Apparently you can die if you have exactly the right HP!? */\
-		logger(PkmnCommon::TextEvent{"Too weak to make a SUBSTITUTE!"});\
-		return false;\
-	}\
-	return true;\
-}
-
-#define REFLECT_CHECK [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &){ \
-        return !owner.hasReflectUp();\
-}
-
-#define LIGHT_SCREEN_CHECK [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &){ \
-        return !owner.hasLightScreenUp();\
-}
-
-#define MIST_CHECK [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &){ \
-        return !owner.isMisted();\
-}
-
-#define SLEEP_CHECK [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &){ \
-        return target.hasStatus(STATUS_ASLEEP);\
-}
-
-#define DISABLE_CHECK [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){\
-	if (target.getMoveDisabled() != 0) {\
-		owner.getRandomGenerator().skip(1);\
-		return false;\
-	}\
-\
-	auto &moveSet = target.getMoveSet();\
-	auto &rng = target.getRandomGenerator();\
-	const Move *move = nullptr;\
-	unsigned index = 0;\
-	size_t slot;\
-\
-	do {\
-		do {\
-			slot = rng.peak(index++) & 3;\
-			if (slot < moveSet.size())\
-				move = &moveSet[slot];\
-		} while (move && move->getID() == None);\
-		if (std::ranges::all_of(moveSet.begin(), moveSet.end(), [](const Move &m){ return m.getPP() == 0; })) {\
-			owner.getRandomGenerator().skip(1);\
-			return false;\
-		}\
-	} while (move->getPP() == 0);\
-	return true;\
-}
-
-
-//Hit callbacks
-#define OHKO_DESC "Kills in one hit if the user's speed is higher than the foe's"
-#define ONE_HIT_KO_HANDLE nullptr, OHKO_DESC
-
-#define QU_RECOIL_DESC "Take a quarter of the damage dealt as recoil"
-#define TAKE_QUARTER_MOVE_DAMAGE [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger){\
-	logger(PkmnCommon::ExtraAnimEvent{.moveId = id, .index = 0, .player = !owner.isEnemy()});\
-	if (damage <= 3)\
-		owner.takeDamage(target, 1, true, false);\
-	else\
-		owner.takeDamage(target, damage / 4, true, false);\
-	logger(PkmnCommon::TextEvent{owner.getName() + "'s hits with recoil!"});\
-	return true;\
-}, QU_RECOIL_DESC
-
-#define TRANSFORM_DESC "Transform the user into the foe, copying stats, types and sprite"
-#define TRANSFORM [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
-	owner.transform(target);\
-	logger(PkmnCommon::TextEvent{owner.getName() + " transformed into " + target.getSpeciesName() + "!"});\
-	return true;\
-}, TRANSFORM_DESC
-
-#define TAKE_HALF_MOVE_DAMAGE_DESC "Take half dealt damage as recoil"
-#define TAKE_HALF_MOVE_DAMAGE [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger){ \
-	logger(PkmnCommon::ExtraAnimEvent{.moveId = id, .index = 0, .player = !owner.isEnemy()});\
-	if (damage == 1)\
-		owner.takeDamage(target, 1, true, false);\
-	else\
-		owner.takeDamage(target, damage / 2, true, false);\
-	logger(PkmnCommon::TextEvent{owner.getName() + "'s hits with recoil!"});\
-	return true;\
-}, TAKE_HALF_MOVE_DAMAGE_DESC
-
-#define WRAP_TARGET [](unsigned, Pokemon &, Pokemon &target, unsigned, bool last, const BattleLogger &){\
-	if (!last)\
-		target.setWrapped(true);\
-	return true;\
-}, WRAP_TARGET_DESC
-
-#define CONFUSE_ON_LAST nullptr, CONFUSE_ON_LAST_DESC
-
-#define DEAL_20_DAMAGE_DESC "Deal 20 damage"
-#define DEAL_20_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
-	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});\
-	target.takeDamage(owner, 20, false, false);\
-	target.getBattleState().lastDamage = 20;\
-	return true;\
-}, DEAL_20_DAMAGE_DESC
-
-#define DEAL_40_DAMAGE_DESC "Deal 40 damage"
-#define DEAL_40_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
-	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});\
-	target.takeDamage(owner, 40, false, false);\
-	target.getBattleState().lastDamage = 40;\
-	return true;\
-}, DEAL_40_DAMAGE_DESC
-
-#define DEAL_LVL_AS_DAMAGE_DESC "Deal the user's level as raw damage"
-#define DEAL_LVL_AS_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
-	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy(), .hasEffect = true});\
-	target.takeDamage(owner, owner.getLevel(), false, false);\
-	target.getBattleState().lastDamage = owner.getLevel();\
-	return true;\
-}, DEAL_LVL_AS_DAMAGE_DESC
-
-#define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_DESC "Deal between 1 damage and 1.5 times the user's level as damage"
-#define DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
-	unsigned char multipliedLevel = owner.getLevel() * 1.5;\
-\
-	if (!multipliedLevel)\
-		throw OpponentCrashedException(owner.getName() + " used PSY_WAVE, but (level * 1.5 % 256) is 0 causing both games to go in an infinite loop.");\
-	if (multipliedLevel == 1 && owner.isEnemy())\
-		throw OpponentCrashedException(owner.getName() + " used PSY_WAVE, but (level * 1.5 % 256) is 1 causing opponent games to go in an infinite loop.");\
-\
-	unsigned char r = 0;\
-	auto &rng = owner.getRandomGenerator();\
-	auto desyncPolicy = owner.getBattleState().desync;\
-\
-	/* In the base game, Psywave can deal: */\
-	/*  - [0, 1.5*lvl) damage when used on the player (by the opponent). */\
-	/*  - [1, 1.5*lvl) damage when used on the opponent (by the player). */\
-	/* In link battle, rolling a 0 in the loop will desync, because on one end the loop */\
-	/* will continue rolling RNG, and the other won't and make the move deal 0 damage. */\
-	/* Adjust what we do based on the desync policy: */\
-	/*  - DESYNC_IGNORE -> Just run the calculation as if done by the base game, and let ourselves be desynced if in link battle. */\
-	/*  - DESYNC_INVERT -> Invert the calculation logic, to match the link battle opponent's one and stay in sync (default). */\
-	/*  - DESYNC_THROW  -> Throw a DesyncException when 0 is rolled. */\
-	/*  - DESYNC_MISS   -> Make the move miss if a 0 is rolled. This is to mimic the Desync Cause in Pokémon Showdown. */\
-	if (desyncPolicy == DESYNC_INVERT || desyncPolicy == DESYNC_IGNORE) {\
-		bool allowZero = desyncPolicy == DESYNC_IGNORE ? !target.isEnemy() : target.isEnemy();\
-\
-		do {\
-                        r = rng();\
-                } while ((!allowZero && r == 0) || r >= multipliedLevel);\
-        } else if (desyncPolicy == DESYNC_THROW || desyncPolicy == DESYNC_MISS) {\
-		do {\
-                        r = rng();\
-                } while (r >= multipliedLevel);\
-        }\
-\
-	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});\
-	target.getBattleState().lastDamage = r;\
-	target.takeDamage(owner, r, false, false);\
-	return true;\
-}, DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_DESC
-
-#define ABSORB_HALF_DAMAGE_DESC "Absorb half dealt damage"
-#define ABSORB_HALF_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger){\
-	if (damage == 1)\
-		owner.heal(1);\
-	else\
-		owner.heal(damage / 2);\
-	logger(PkmnCommon::TextEvent{"Sucked health from " + target.getName() + "!"});\
-	return true;\
-}, ABSORB_HALF_DAMAGE_DESC
-
-#define HEAL_HALF_HEALTH_DESC "Heal half max HP"
-#define HEAL_HALF_HEALTH [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){\
-	owner.heal(owner.getMaxHealth() / 2);\
-	logger(PkmnCommon::TextEvent{owner.getName() + " regained health!"});\
-	return true;\
-}, HEAL_HALF_HEALTH_DESC
-
-#define HEAL_ALL_HEALTH_AND_SLEEP_DESC "Heal all lost HP and sleep for 2 turns"
-#define HEAL_ALL_HEALTH_AND_SLEEP [](unsigned id, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){\
-	owner.setNonVolatileStatus(STATUS_ASLEEP_FOR_2_TURN);\
-	logger(PkmnCommon::TextEvent{owner.getName() + " started sleeping!"});\
-	logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy(), .hideSubstitute = false});\
-	owner.heal(owner.getMaxHealth());\
-	logger(PkmnCommon::TextEvent{owner.getName() + " regained health!"});\
-	logger(PkmnCommon::AnimEvent{\
-		.animId = PkmnCommon::SYSANIM_NOW_ASLEEP,\
-		.isGuaranteed = true,\
-		.player = !owner.isEnemy(),\
-		.turn = !owner.isEnemy()\
-	});\
-	return true;\
-}, HEAL_ALL_HEALTH_AND_SLEEP_DESC
-
-#define CANCEL_STATS_CHANGE_DESC "Resets all stats, status, crit chance multiplier and special effects"
-#define CANCEL_STATS_CHANGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
-	owner.resetStatsChanges();\
-	owner.setStatus(STATUS_NONE);\
-	owner.setGlobalCritRatio(1);\
-	owner.setReflectUp(false);\
-	owner.setLightScreenUp(false);\
-	if (target.hasStatus(STATUS_ASLEEP) || target.hasStatus(STATUS_FROZEN))\
-		target.getMyState().nextAction = NoAction;\
-	target.resetStatsChanges();\
-	target.setStatus(STATUS_NONE);\
-	target.setGlobalCritRatio(1);\
-	target.setReflectUp(false);\
-	target.setLightScreenUp(false);\
-	logger(PkmnCommon::TextEvent{"All STATUS changes are eliminated!"});\
-	return true;\
-}, CANCEL_STATS_CHANGE_DESC
-
-#define SET_USER_CRIT_RATIO_TO_1_QUARTER_DESC "User has 4 times less chance to crit"
-#define SET_USER_CRIT_RATIO_TO_1_QUARTER [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){\
-	logger(PkmnCommon::TextEvent{owner.getName() + "'s getting pumped!"});\
-	owner.setGlobalCritRatio(0.25);\
-	return true;\
-}, SET_USER_CRIT_RATIO_TO_1_QUARTER_DESC
-
-#define STORE_DAMAGES_DESC "Store damage"
-#define STORE_DAMAGES [](unsigned id, Pokemon &owner, Pokemon &target, unsigned, bool last, const BattleLogger &logger){\
-	if (last) {\
-		logger(PkmnCommon::TextEvent{owner.getName() + " unleashes energy!"});\
-		logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy(), .hideSubstitute = true});\
-		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});\
-		target.takeDamage(owner, owner.getDamagesStored() * 2, false, false);\
-	}\
-	owner.storeDamages(!last);\
-	return true;\
-}, STORE_DAMAGES_DESC
-
-#define USE_RANDOM_MOVE_DESC "Use a randomly chosen move"
-#define USE_RANDOM_MOVE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){\
-	unsigned index;\
-\
-	do {\
-		index = owner.getRandomGenerator()();\
-	} while (!index || index >= Struggle || index == Metronome);\
-	owner.useMove(availableMoves[index], target);\
-	return true;\
-}, USE_RANDOM_MOVE_DESC
-
-#define USE_LAST_FOE_MOVE_DESC "Use last foe's used move"
-#define USE_LAST_FOE_MOVE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){\
-	owner.useMove(availableMoves[target.getLastUsedMove().getID()], target);\
-	return true;\
-}, USE_LAST_FOE_MOVE_DESC
-
-#define SUICIDE_DESC "Kill user"
-#define SUICIDE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){\
-	owner.takeDamage(target, owner.getHealth(), true, false);\
-	return true;\
-}, SUICIDE_DESC
-
-#define CONVERSION_DESC "Copy foe's types"
-#define CONVERSION [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
-	logger(PkmnCommon::TextEvent{"Converted type to " + target.getName() + "'s!"});\
-	owner.setTypes(target.getTypes());\
-	return true;\
-}, CONVERSION_DESC
-
-#define DEAL_HALF_HP_DAMAGE_DESC "Deal half foe's HP"
-#define DEAL_HALF_HP_DAMAGE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
-	target.getBattleState().lastDamage = target.getHealth() / 2;\
-	logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});\
-	target.takeDamage(owner, target.getHealth() / 2, false, false); /* TODO: Check how it interacts with SUBSTITUTE */\
-	return true;\
-}, DEAL_HALF_HP_DAMAGE_DESC
-
-#define DO_NOTHING_DESC "No effect"
-#define DO_NOTHING [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &logger){\
-	logger(PkmnCommon::TextEvent{"No effect!"});\
-	return true;\
-}, DO_NOTHING_DESC
-
-#define CREATE_SUBSTITUTE_DESC "Creates a substitute"
-#define CREATE_SUBSTITUTE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){ \
-	unsigned hp = owner.getMaxHealth() / 4;\
-	owner.setSubstituteHealth(hp);\
-	owner.takeDamage(target, hp, true, false);\
-	logger(PkmnCommon::TextEvent{"It created a SUBSTITUTE!"});\
-	return true;\
-}, CREATE_SUBSTITUTE_DESC
-
-#define REFLECT_DESC "Doubles active pokemon physical defense"
-#define REFLECT [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){ \
-	logger(PkmnCommon::TextEvent{owner.getName() + " gained armor!"});\
-	owner.setReflectUp(true);\
-	return true;\
-}, REFLECT_DESC
-
-#define LIGHT_SCREEN_DESC "Doubles active pokemon special defense"
-#define LIGHT_SCREEN [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){ \
-	logger(PkmnCommon::TextEvent{owner.getName() + "'s protected against special attacks!"});\
-	owner.setLightScreenUp(true);\
-	return true;\
-}, LIGHT_SCREEN_DESC
-
-#define MIST_DESC "Make stat reducing status moves miss"
-#define MIST [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger){ \
-	logger(PkmnCommon::TextEvent{owner.getName() + "'s shrouded in mist!"});\
-	owner.setMisted(true);\
-	return true;\
-}, MIST_DESC
-
-#define COUNTER_DESC "Deal double the last damage dealt"
-#define COUNTER nullptr, COUNTER_DESC
-
-#define PAY_DAY_DESC "Gain extra money at the end of the match"
-#define PAY_DAY [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &logger){ \
-	logger(PkmnCommon::TextEvent{"Coins scattered everywhere!"});\
-	return true;\
-}, PAY_DAY_DESC
-
-#define COPY_RANDOM_MOVE_DESC "Copy a random move from opponent's"
-#define COPY_RANDOM_MOVE [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){ \
-	auto &moves = target.getMoveSet();\
-	auto &rng = target.getRandomGenerator();\
-	size_t id = rng() & 3;\
-\
-	while (id >= moves.size() || moves[id].getID() == 0) id = rng() & 3;\
-	owner.learnMove(moves[id]);\
-	return true;\
-}, COPY_RANDOM_MOVE_DESC
-
-#define DISABLE_DESC "Disable a random move from foe"
-#define DISABLE [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &logger){\
-	auto &moveSet = target.getMoveSet();\
-	auto &rng = target.getRandomGenerator();\
-	const Move *move = nullptr;\
-	size_t slot;\
-\
-	do {\
-		slot = rng() & 3;\
-		if (slot < moveSet.size())\
-			move = &moveSet[slot];\
-	} while ((move && move->getID() == None) || move->getPP() == 0);\
-	logger(PkmnCommon::TextEvent{target.getName() + "'s " + Utils::toUpper(move->getName()) + " was disabled!"});\
-	target.setMoveDisabled(slot);\
-	return true;\
-}, DISABLE_DESC
-
+#define DESC_CALLBACK(c) c##Cb, c##Desc
 
 namespace PokemonGen1
 {
+	//Miss callbacks
+	Move::MissCallback glitchHyperBeamCb = [](unsigned, Pokemon &, Pokemon &target, bool, const BattleLogger &) {
+		target.setRecharging(false);
+		return true;
+	};
+	const char *glitchHyperBeamDesc = "Removes the opponent recharge state and will make the target use it's move once more";
+
+	Move::MissCallback explodeMissCb = [](unsigned id, Pokemon &owner, Pokemon &target, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy(), .hideSubstitute = true});
+		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy(), .hasEffect = true});
+		owner.takeDamage(target, owner.getHealth(), true, false);
+		return true;
+	};
+	const char *explodeMissDesc = "Kills user";
+
+	Move::MissCallback take1DmgCb = [](unsigned id, Pokemon &owner, Pokemon &target, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::TextEvent{owner.getName() + " kept going and crashed!"});
+		logger(PkmnCommon::ExtraAnimEvent{.moveId = id, .index = 0, .player = !owner.isEnemy()});
+		owner.takeDamage(target, 1, false, false);
+		return true;
+	};
+	const char *take1DmgDesc = "Take 1 damage";
+
+	Move::MissCallback confuseOnLastMissCb = nullptr;
+	const char *confuseOnLastMissDesc = "Confuse the user on last run";
+
+
+	// Can hit callback
+	Move::HitCallback alwaysHit = [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &){ return true; };
+
+	Move::HitCallback deal1DamageTo1d5LevelDamageCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &) {
+		unsigned char multipliedLevel = owner.getLevel() * 1.5;
+		unsigned char r;
+		unsigned int index = 0;
+		auto &rng = owner.getRandomGenerator();
+		auto desyncPolicy = owner.getBattleState().desync;
+
+		/* In the base game, Psywave can deal: */
+		/*  - [0, 1.5*lvl) damage when used on the player (by the opponent). */\
+		/*  - [1, 1.5*lvl) damage when used on the opponent (by the player). */\
+		/* In link battle, rolling a 0 in the loop will desync, because on one end the loop */
+		/* will continue rolling RNG, and the other won't and make the move deal 0 damage. */
+		/* Adjust what we do based on the desync policy: */
+		/*  - DESYNC_IGNORE -> Just run the calculation as if done by the base game, and let ourselves be desynced if in link battle. */
+		/*  - DESYNC_INVERT -> Invert the calculation logic, to match the link battle opponent's one and stay in sync (default). */
+		/*  - DESYNC_THROW  -> Throw a DesyncException when 0 is rolled. */
+		/*  - DESYNC_MISS   -> Make the move miss if a 0 is rolled. This is to mimic the Desync Cause in Pokémon Showdown. */
+		if (desyncPolicy == DESYNC_THROW) {
+			do {
+				r = rng.peak(index++);
+				if (r == 0) {
+					rng.skip(index);
+					throw DesyncException("Psywave rolled 0");
+				}
+			} while (r >= multipliedLevel);
+		} else if (desyncPolicy == DESYNC_MISS) {
+			do {
+				r = rng.peak(index++);
+				if (r == 0) {
+					rng.skip(index);
+					return false;
+				}
+			} while (r >= multipliedLevel);
+		}
+		return true;
+	};
+
+	Move::HitCallback healCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &) {
+	        unsigned h = owner.getHealth();
+	        unsigned m = owner.getMaxHealth();
+		return (h & 0xFF) - (m & 0xFF) - ((h >> 8) < (m >> 8)) != 0;
+	};
+
+	Move::HitCallback useLastFoeMoveCheck = [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &) {
+		return target.getLastUsedMove().getID() != 0;
+	};
+
+	Move::HitCallback createSubstituteCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+		if (owner.hasSubstitute()) {
+			logger(PkmnCommon::TextEvent{owner.getName() + " has a SUBSTITUTE!"});
+			return false;
+		}
+		unsigned hp = owner.getMaxHealth() / 4;
+		if (owner.getHealth() < hp) {/* Apparently you can die if you have exactly the right HP!? */
+			logger(PkmnCommon::TextEvent{"Too weak to make a SUBSTITUTE!"});
+			return false;
+		}
+		return true;
+	};
+
+	Move::HitCallback reflectCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &) {
+	        return !owner.hasReflectUp();
+	};
+
+	Move::HitCallback lightScreenCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &) {
+	        return !owner.hasLightScreenUp();
+	};
+
+	Move::HitCallback mistCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &) {
+		return !owner.isMisted();
+	};
+
+	Move::HitCallback sleepCheck = [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &) {
+		return target.hasStatus(STATUS_ASLEEP);
+	};
+
+	Move::HitCallback disableCheck = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){
+		if (target.getMoveDisabled() != 0) {
+			owner.getRandomGenerator().skip(1);
+			return false;
+		}
+
+		auto &moveSet = target.getMoveSet();
+		auto &rng = target.getRandomGenerator();
+		const Move *move = nullptr;
+		unsigned index = 0;
+		size_t slot;
+
+		do {
+			do {
+				slot = rng.peak(index++) & 3;
+				if (slot < moveSet.size())
+					move = &moveSet[slot];
+			} while (move && move->getID() == None);
+			if (std::ranges::all_of(moveSet.begin(), moveSet.end(), [](const Move &m){ return m.getPP() == 0; })) {
+				owner.getRandomGenerator().skip(1);
+				return false;
+			}
+		} while (move->getPP() == 0);
+		return true;
+	};
+
+
+	// Hit callbacks
+	Move::HitCallback ohkoCb = nullptr;
+	const char *ohkoDesc = "Kills in one hit if the user's speed is higher than the foe's";
+
+	Move::HitCallback quRecoilCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::ExtraAnimEvent{.moveId = id, .index = 0, .player = !owner.isEnemy()});
+		if (damage <= 3)
+			owner.takeDamage(target, 1, true, false);
+		else
+			owner.takeDamage(target, damage / 4, true, false);
+		logger(PkmnCommon::TextEvent{owner.getName() + "'s hits with recoil!"});
+		return true;
+	};
+	const char *quRecoilDesc = "Take a quarter of the damage dealt as recoil";
+
+	Move::HitCallback transformCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+		owner.transform(target);
+		logger(PkmnCommon::TextEvent{owner.getName() + " transformed into " + target.getSpeciesName() + "!"});
+		return true;
+	};
+	const char *transformDesc = "Transform the user into the foe, copying stats, types and sprite";
+
+	Move::HitCallback takeHalfMoveDamageCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::ExtraAnimEvent{.moveId = id, .index = 0, .player = !owner.isEnemy()});
+		if (damage == 1)
+			owner.takeDamage(target, 1, true, false);
+		else
+			owner.takeDamage(target, damage / 2, true, false);
+		logger(PkmnCommon::TextEvent{owner.getName() + "'s hits with recoil!"});
+		return true;
+	};
+	const char *takeHalfMoveDamageDesc = "Take half dealt damage as recoil";
+
+	Move::HitCallback wrapTargetCb = [](unsigned, Pokemon &, Pokemon &target, unsigned, bool last, const BattleLogger &) {
+		if (!last)
+			target.setWrapped(true);
+		return true;
+	};
+	const char *wrapTargetDesc = "Set the foe in the wrapped state for all the move duration";
+
+	Move::HitCallback confuseOnLastCb = nullptr;
+	const char *confuseOnLastDesc = "Confuse the user on last run";
+
+	Move::HitCallback deal20DamageCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
+		target.takeDamage(owner, 20, false, false);
+		target.getBattleState().lastDamage = 20;
+		return true;
+	};
+	const char *deal20DamageDesc = "Deal 20 damage";
+
+	Move::HitCallback deal40DamageCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
+		target.takeDamage(owner, 40, false, false);
+		target.getBattleState().lastDamage = 40;
+		return true;
+	};
+	const char *deal40DamageDesc = "Deal 40 damage";
+
+	Move::HitCallback dealLvlAsDmgCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy(), .hasEffect = true});
+		target.takeDamage(owner, owner.getLevel(), false, false);
+		target.getBattleState().lastDamage = owner.getLevel();
+		return true;
+	};
+	const char *dealLvlAsDmgDesc = "Deal the user's level as raw damage";
+
+	Move::HitCallback deal1DamageTo1d5LevelDamageCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+		unsigned char multipliedLevel = owner.getLevel() * 1.5;
+
+		if (!multipliedLevel)
+			throw OpponentCrashedException(owner.getName() + " used PSY_WAVE, but (level * 1.5 % 256) is 0 causing both games to go in an infinite loop.");
+		if (multipliedLevel == 1 && owner.isEnemy())
+			throw OpponentCrashedException(owner.getName() + " used PSY_WAVE, but (level * 1.5 % 256) is 1 causing opponent games to go in an infinite loop.");
+
+		unsigned char r = 0;
+		auto &rng = owner.getRandomGenerator();
+		auto desyncPolicy = owner.getBattleState().desync;
+
+		/* In the base game, Psywave can deal: */
+		/*  - [0, 1.5*lvl) damage when used on the player (by the opponent). */
+		/*  - [1, 1.5*lvl) damage when used on the opponent (by the player). */
+		/* In link battle, rolling a 0 in the loop will desync, because on one end the loop */
+		/* will continue rolling RNG, and the other won't and make the move deal 0 damage. */
+		/* Adjust what we do based on the desync policy: */
+		/*  - DESYNC_IGNORE -> Just run the calculation as if done by the base game, and let ourselves be desynced if in link battle. */
+		/*  - DESYNC_INVERT -> Invert the calculation logic, to match the link battle opponent's one and stay in sync (default). */
+		/*  - DESYNC_THROW  -> Throw a DesyncException when 0 is rolled. */
+		/*  - DESYNC_MISS   -> Make the move miss if a 0 is rolled. This is to mimic the Desync Cause in Pokémon Showdown. */
+		if (desyncPolicy == DESYNC_INVERT || desyncPolicy == DESYNC_IGNORE) {
+			bool allowZero = desyncPolicy == DESYNC_IGNORE ? !target.isEnemy() : target.isEnemy();
+
+			do {
+	                        r = rng();
+	                } while ((!allowZero && r == 0) || r >= multipliedLevel);
+	        } else if (desyncPolicy == DESYNC_THROW || desyncPolicy == DESYNC_MISS) {
+			do {
+	                        r = rng();
+	                } while (r >= multipliedLevel);
+	        }
+
+		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
+		target.getBattleState().lastDamage = r;
+		target.takeDamage(owner, r, false, false);
+		return true;
+	};
+	const char *deal1DamageTo1d5LevelDamageDesc = "Deal between 1 damage and 1.5 times the user's level as damage";
+
+	Move::HitCallback absorbHalfDmgCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger) {
+		if (damage == 1)
+			owner.heal(1);
+		else
+			owner.heal(damage / 2);
+		logger(PkmnCommon::TextEvent{"Sucked health from " + target.getName() + "!"});
+		return true;
+	};
+	const char *absorbHalfDmgDesc = "Absorb half dealt damage";
+
+	Move::HitCallback healHalfHealthCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+		owner.heal(owner.getMaxHealth() / 2);
+		logger(PkmnCommon::TextEvent{owner.getName() + " regained health!"});
+		return true;
+	};
+	const char *healHalfHealthDesc = "Heal half max HP";
+
+	Move::HitCallback healAllHealthAndSleepCb = [](unsigned id, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+		owner.setNonVolatileStatus(STATUS_ASLEEP_FOR_2_TURN);
+		logger(PkmnCommon::TextEvent{owner.getName() + " started sleeping!"});
+		logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy(), .hideSubstitute = false});
+		owner.heal(owner.getMaxHealth());
+		logger(PkmnCommon::TextEvent{owner.getName() + " regained health!"});
+		logger(PkmnCommon::AnimEvent{
+			.animId = PkmnCommon::SYSANIM_NOW_ASLEEP,
+			.isGuaranteed = true,
+			.player = !owner.isEnemy(),
+			.turn = !owner.isEnemy()
+		});
+		return true;
+	};
+	const char *healAllHealthAndSleepDesc = "Heal all lost HP and sleep for 2 turns";
+
+	Move::HitCallback cancelStatsChangeCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+		owner.resetStatsChanges();
+		owner.setStatus(STATUS_NONE);
+		owner.setGlobalCritRatio(1);
+		owner.setReflectUp(false);
+		owner.setLightScreenUp(false);
+		if (target.hasStatus(STATUS_ASLEEP) || target.hasStatus(STATUS_FROZEN))
+			target.getMyState().nextAction = NoAction;
+		target.resetStatsChanges();
+		target.setStatus(STATUS_NONE);
+		target.setGlobalCritRatio(1);
+		target.setReflectUp(false);
+		target.setLightScreenUp(false);
+		logger(PkmnCommon::TextEvent{"All STATUS changes are eliminated!"});
+		return true;
+	};
+	const char *cancelStatsChangeDesc = "Resets all stats, status, crit chance multiplier and special effects";
+
+	Move::HitCallback setUserCritRatioToQuCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::TextEvent{owner.getName() + "'s getting pumped!"});
+		owner.setGlobalCritRatio(0.25);
+		return true;
+	};
+	const char *setUserCritRatioToQuDesc = "User has 4 times less chance to crit";
+
+	Move::HitCallback storeDmgCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned, bool last, const BattleLogger &logger) {
+		if (last) {
+			logger(PkmnCommon::TextEvent{owner.getName() + " unleashes energy!"});
+			logger(PkmnCommon::MoveEvent{.moveId = id, .player = !owner.isEnemy(), .hideSubstitute = true});
+			logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
+			target.takeDamage(owner, owner.getDamagesStored() * 2, false, false);
+		}
+		owner.storeDamages(!last);
+		return true;
+	};
+	const char *storeDmgDesc = "Store damage";
+
+	Move::HitCallback useRandomMoveCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &) {
+		unsigned index;
+
+		do {
+			index = owner.getRandomGenerator()();
+		} while (!index || index >= Struggle || index == Metronome);
+		owner.useMove(availableMoves[index], target);
+		return true;
+	};
+	const char *useRandomMoveDesc = "Use a randomly chosen move";
+
+	Move::HitCallback useLastFoeMoveCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &) {
+		owner.useMove(availableMoves[target.getLastUsedMove().getID()], target);
+		return true;
+	};
+	const char *useLastFoeMoveDesc = "Use last foe's used move";
+
+	Move::HitCallback explodeCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){
+		owner.takeDamage(target, owner.getHealth(), true, false);
+		return true;
+	};
+	const char *explodeDesc = "Kill user";
+
+	Move::HitCallback conversionCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::TextEvent{"Converted type to " + target.getName() + "'s!"});
+		owner.setTypes(target.getTypes());
+		return true;
+	};
+	const char *conversionDesc = "Copy foe's types";
+
+	Move::HitCallback dealHalfHPDmgCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){
+		target.getBattleState().lastDamage = target.getHealth() / 2;
+		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
+		target.takeDamage(owner, target.getHealth() / 2, false, false); /* TODO: Check how it interacts with SUBSTITUTE */
+		return true;
+	};
+	const char *dealHalfHPDmgDesc = "Deal half foe's HP";
+
+	Move::HitCallback nothingCb = [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::TextEvent{"No effect!"});
+		return true;
+	};
+	const char *nothingDesc = "No effect";
+
+	Move::HitCallback createSubCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+		unsigned hp = owner.getMaxHealth() / 4;
+		owner.setSubstituteHealth(hp);
+		owner.takeDamage(target, hp, true, false);
+		logger(PkmnCommon::TextEvent{"It created a SUBSTITUTE!"});
+		return true;
+	};
+	const char *createSubDesc = "Creates a substitute";
+
+	Move::HitCallback reflectCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::TextEvent{owner.getName() + " gained armor!"});
+		owner.setReflectUp(true);
+		return true;
+	};
+	const char *reflectDesc = "Doubles active pokemon physical defense";
+
+	Move::HitCallback lightScreenCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::TextEvent{owner.getName() + "'s protected against special attacks!"});
+		owner.setLightScreenUp(true);
+		return true;
+	};
+	const char *lightScreenDesc = "Doubles active pokemon special defense";
+
+	Move::HitCallback mistCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::TextEvent{owner.getName() + "'s shrouded in mist!"});
+		owner.setMisted(true);
+		return true;
+	};
+	const char *mistDesc = "Make stat reducing status moves miss";
+
+	Move::HitCallback counterCb = nullptr;
+	const char *counterDesc = "Deal double the last damage took if from normal or fighting move";
+
+	Move::HitCallback payDayCb = [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+		logger(PkmnCommon::TextEvent{"Coins scattered everywhere!"});
+		return true;
+	};
+	const char *payDayDesc = "Gain extra money at the end of the match";
+
+	Move::HitCallback copyRandomMoveCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &) {
+		auto &moves = target.getMoveSet();
+		auto &rng = target.getRandomGenerator();
+		size_t id = rng() & 3;
+
+		while (id >= moves.size() || moves[id].getID() == 0) id = rng() & 3;
+		owner.learnMove(moves[id]);
+		return true;
+	};
+	const char *copyRandomMoveDesc = "Copy a random move from the foe";
+
+	Move::HitCallback disableCb = [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+		auto &moveSet = target.getMoveSet();
+		auto &rng = target.getRandomGenerator();
+		const Move *move = nullptr;
+		size_t slot;
+
+		do {
+			slot = rng() & 3;
+			if (slot < moveSet.size())
+				move = &moveSet[slot];
+		} while ((move && move->getID() == None) || move->getPP() == 0);
+		logger(PkmnCommon::TextEvent{target.getName() + "'s " + Utils::toUpper(move->getName()) + " was disabled!"});
+		target.setMoveDisabled(slot);
+		return true;
+	};
+	const char *disableDesc = "Disable a random move from foe";
+
+
 	static std::map<StatusChange, std::string> messages = {
 		{ STATUS_ASLEEP,         "<TARGET>'s already asleep!" },
 		{ STATUS_POISONED,       "It didn't affect <TARGET>!" },
@@ -469,10 +477,10 @@ namespace PokemonGen1
 		const std::string &loadingMsg,
 		bool invulnerableDuringLoading,
 		bool needRecharge,
-		const HitCallback &&canHitCallback,
-		const HitCallback &&hitCallback,
+		const HitCallback &canHitCallback,
+		const HitCallback &hitCallback,
 		const std::string &hitCallBackDescription,
-		const MissCallback &&missCallback,
+		const MissCallback &missCallback,
 		const std::string &missCallBackDescription
 	) :
 		_canHitCallback(canHitCallback),
@@ -800,7 +808,7 @@ namespace PokemonGen1
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
 			if (this->getID() == Thrash || this->getID() == Petal_Dance)
 				logger(PkmnCommon::ExtraAnimEvent{.moveId = this->getID(), .index = 0, .player = !owner.isEnemy()});
-		} else if (this->_hitCallBackDescription == WRAP_TARGET_DESC) {
+		} else if (this->_hitCallBackDescription == wrapTargetDesc) {
 			this->_nbHit--;
 			if (!this->_keepGoingMsg.empty())
 				logger(PkmnCommon::TextEvent{owner.getName() + this->_keepGoingMsg});
@@ -1210,13 +1218,13 @@ namespace PokemonGen1
 		Move{0x03, "DoubleSlap"  , TYPE_NORMAL  , PHYSICAL,  15,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x04, "Comet Punch" , TYPE_NORMAL  , PHYSICAL,  18,  85, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x05, "Mega Punch"  , TYPE_NORMAL  , PHYSICAL,  80,  85, 20},
-		Move{0x06, "Pay Day"     , TYPE_NORMAL  , PHYSICAL,  40, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, PAY_DAY},
+		Move{0x06, "Pay Day"     , TYPE_NORMAL  , PHYSICAL,  40, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(payDay)},
 		Move{0x07, "Fire Punch"  , TYPE_FIRE    , SPECIAL,   75, 100, 15, {STATUS_BURNED, 0x1A}},
 		Move{0x08, "Ice Punch"   , TYPE_ICE     , SPECIAL,   75, 100, 15, {STATUS_FROZEN, 0x1A}},
 		Move{0x09, "ThunderPunch", TYPE_ELECTRIC, SPECIAL,   75, 100, 15, {STATUS_PARALYZED, 0x1A}},
 		Move{0x0A, "Scratch"     , TYPE_NORMAL  , PHYSICAL,  40, 100, 35},
 		Move{0x0B, "ViceGrip"    , TYPE_NORMAL  , PHYSICAL,  55, 100, 30},
-		Move{0x0C, "Guillotine"  , TYPE_NORMAL  , PHYSICAL, 255,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, ONE_HIT_KO_HANDLE},
+		Move{0x0C, "Guillotine"  , TYPE_NORMAL  , PHYSICAL, 255,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(ohko)},
 		Move{0x0D, "Razor Wind"  , TYPE_NORMAL  , PHYSICAL,  80,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("made a whirlwind!")},
 		Move{0x0E, "Swords Dance", TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, {{STATS_ATK, 2, 0}}},
 		Move{0x0F, "Cut"         , TYPE_NORMAL  , PHYSICAL,  50,  95, 30},
@@ -1224,25 +1232,25 @@ namespace PokemonGen1
 		Move{0x11, "Wing Attack" , TYPE_FLYING  , PHYSICAL,  35, 100, 35},
 		Move{0x12, "Whirlwind"   , TYPE_NORMAL  , STATUS  ,   0, 100, 20},
 		Move{0x13, "Fly"         , TYPE_FLYING  , PHYSICAL,  70,  95, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("flew up high!"), true},
-		Move{0x14, "Bind"        , TYPE_NORMAL  , PHYSICAL,  15,  75, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, WRAP_TARGET, GLITCH_HYPER_BEAM},
+		Move{0x14, "Bind"        , TYPE_NORMAL  , PHYSICAL,  15,  75, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(wrapTarget), DESC_CALLBACK(glitchHyperBeam)},
 		Move{0x15, "Slam"        , TYPE_NORMAL  , PHYSICAL,  80,  75, 20},
 		Move{0x16, "Vine Whip"   , TYPE_GRASS   , SPECIAL ,  35, 100, 10},
 		Move{0x17, "Stomp"       , TYPE_NORMAL  , PHYSICAL,  65, 100, 20, {STATUS_FLINCHED, 0x4D}},
 		Move{0x18, "Double Kick" , TYPE_FIGHTING, PHYSICAL,  30, 100, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, {2, 2}},
 		Move{0x19, "Mega Kick"   , TYPE_NORMAL  , PHYSICAL, 120,  75,  5},
-		Move{0x1A, "Jump Kick"   , TYPE_FIGHTING, PHYSICAL,  70,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, NO_CALLBACK, TAKE_1DAMAGE},
+		Move{0x1A, "Jump Kick"   , TYPE_FIGHTING, PHYSICAL,  70,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, NO_CALLBACK, DESC_CALLBACK(take1Dmg)},
 		Move{0x1B, "Rolling Kick", TYPE_FIGHTING, PHYSICAL,  60,  85, 15, {STATUS_FLINCHED, 0x4D}},
 		Move{0x1C, "Sand-Attack" , TYPE_NORMAL  , STATUS  ,   0, 100, 15, NO_STATUS_CHANGE, {}, {{STATS_ACC, -1, 0}}},
 		Move{0x1D, "Headbutt"    , TYPE_NORMAL  , PHYSICAL,  70, 100, 15, {STATUS_FLINCHED, 0x4D}},
 		Move{0x1E, "Horn Attack" , TYPE_NORMAL  , PHYSICAL,  65, 100, 25},
 		Move{0x1F, "Fury Attack" , TYPE_NORMAL  , PHYSICAL,  15,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
-		Move{0x20, "Horn Drill"  , TYPE_NORMAL  , PHYSICAL, 255,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, ONE_HIT_KO_HANDLE},
+		Move{0x20, "Horn Drill"  , TYPE_NORMAL  , PHYSICAL, 255,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(ohko)},
 		Move{0x21, "Tackle"      , TYPE_NORMAL  , PHYSICAL,  35,  95, 35},
 		Move{0x22, "Body Slam"   , TYPE_NORMAL  , PHYSICAL,  85, 100, 15, {STATUS_PARALYZED, 0x4D}},
-		Move{0x23, "Wrap"        , TYPE_NORMAL  , PHYSICAL,  15,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, WRAP_TARGET, GLITCH_HYPER_BEAM},
-		Move{0x24, "Take down"   , TYPE_NORMAL  , PHYSICAL,  90,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, TAKE_QUARTER_MOVE_DAMAGE},
-		Move{0x25, "Thrash"      , TYPE_NORMAL  , PHYSICAL,  90, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, "'s thrashing about!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, CONFUSE_ON_LAST, CONFUSE_ON_LAST_MISS},
-		Move{0x26, "Double Edge" , TYPE_NORMAL  , PHYSICAL, 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, TAKE_QUARTER_MOVE_DAMAGE},
+		Move{0x23, "Wrap"        , TYPE_NORMAL  , PHYSICAL,  15,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(wrapTarget), DESC_CALLBACK(glitchHyperBeam)},
+		Move{0x24, "Take down"   , TYPE_NORMAL  , PHYSICAL,  90,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(quRecoil)},
+		Move{0x25, "Thrash"      , TYPE_NORMAL  , PHYSICAL,  90, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, "'s thrashing about!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(confuseOnLast), DESC_CALLBACK(confuseOnLastMiss)},
+		Move{0x26, "Double Edge" , TYPE_NORMAL  , PHYSICAL, 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(quRecoil)},
 		Move{0x27, "Tail Whip"   , TYPE_NORMAL  , STATUS  ,   0, 100, 30, NO_STATUS_CHANGE, {}, {{STATS_DEF, -1, 0}}},
 		Move{0x28, "Poison Sting", TYPE_POISON  , PHYSICAL,  15, 100, 35, {STATUS_POISONED, 0x34}},
 		Move{0x29, "Twineedle"   , TYPE_BUG     , PHYSICAL,  25, 100, 20, {STATUS_POISONED, 0x34}, NO_STATS_CHANGE, {2, 2}},
@@ -1253,12 +1261,12 @@ namespace PokemonGen1
 		Move{0x2E, "Roar"        , TYPE_NORMAL  , STATUS  ,   0, 100, 20},
 		Move{0x2F, "Sing"        , TYPE_NORMAL  , STATUS  ,   0,  55, 15, {STATUS_ASLEEP, 0}},
 		Move{0x30, "Supersonic"  , TYPE_NORMAL  , STATUS  ,   0,  55, 20, {STATUS_CONFUSED, 0}},
-		Move{0x31, "SonicBoom"   , TYPE_NORMAL  , STATUS  ,   0,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, DEAL_20_DAMAGE},
-		Move{0x32, "Disable"     , TYPE_NORMAL  , STATUS  ,   0,  55, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DISABLE_CHECK, DISABLE},
+		Move{0x31, "SonicBoom"   , TYPE_NORMAL  , STATUS  ,   0,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(deal20Damage)},
+		Move{0x32, "Disable"     , TYPE_NORMAL  , STATUS  ,   0,  55, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, disableCheck, DESC_CALLBACK(disable)},
 		Move{0x33, "Acid"        , TYPE_POISON  , PHYSICAL,  40, 100, 30, NO_STATUS_CHANGE, {}, {{STATS_DEF, -1, 0x55}}},
 		Move{0x34, "Ember"       , TYPE_FIRE    , SPECIAL ,  40, 100, 25, {STATUS_BURNED, 0x1A}},
 		Move{0x35, "Flamethrower", TYPE_FIRE    , SPECIAL ,  95, 100, 15, {STATUS_BURNED, 0x1A}},
-		Move{0x36, "Mist"        , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, MIST_CHECK, MIST},
+		Move{0x36, "Mist"        , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, mistCheck, DESC_CALLBACK(mist)},
 		Move{0x37, "Water Gun"   , TYPE_WATER   , SPECIAL ,  40, 100, 25},
 		Move{0x38, "Hydro Pump"  , TYPE_WATER   , SPECIAL , 120,  80,  5},
 		Move{0x39, "Surf"        , TYPE_WATER   , SPECIAL ,  95, 100, 15},
@@ -1270,13 +1278,13 @@ namespace PokemonGen1
 		Move{0x3F, "Hyper Beam"  , TYPE_NORMAL  , PHYSICAL, 150,  90,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, true},
 		Move{0x40, "Peck"        , TYPE_FLYING  , PHYSICAL,  35, 100, 35},
 		Move{0x41, "Drill Peck"  , TYPE_FLYING  , PHYSICAL,  80, 100, 20},
-		Move{0x42, "Submission"  , TYPE_FIGHTING, PHYSICAL,  80,  80, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, TAKE_QUARTER_MOVE_DAMAGE},
+		Move{0x42, "Submission"  , TYPE_FIGHTING, PHYSICAL,  80,  80, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(quRecoil)},
 		Move{0x43, "Low Kick"    , TYPE_FIGHTING, PHYSICAL,  50,  90, 20, {STATUS_FLINCHED, 0x4D}},
-		Move{0x44, "Counter"     , TYPE_FIGHTING, PHYSICAL,   1, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, -5, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, COUNTER},
-		Move{0x45, "Seismic Toss", TYPE_FIGHTING, STATUS,     0, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, DEAL_LVL_AS_DAMAGE},
+		Move{0x44, "Counter"     , TYPE_FIGHTING, PHYSICAL,   1, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, -5, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(counter)},
+		Move{0x45, "Seismic Toss", TYPE_FIGHTING, STATUS,     0, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(dealLvlAsDmg)},
 		Move{0x46, "Strength"    , TYPE_NORMAL  , PHYSICAL,  80, 100, 15},
-		Move{0x47, "Absorb"      , TYPE_GRASS   , SPECIAL ,  20, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, ABSORB_HALF_DAMAGE},
-		Move{0x48, "Mega Drain"  , TYPE_GRASS   , SPECIAL ,  40, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, ABSORB_HALF_DAMAGE},
+		Move{0x47, "Absorb"      , TYPE_GRASS   , SPECIAL ,  20, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(absorbHalfDmg)},
+		Move{0x48, "Mega Drain"  , TYPE_GRASS   , SPECIAL ,  40, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(absorbHalfDmg)},
 		Move{0x49, "Leech Seed"  , TYPE_GRASS   , STATUS  ,   0,  90, 10, {STATUS_LEECHED, 0}},
 		Move{0x4A, "Growth"      , TYPE_NORMAL  , STATUS  ,   0, 255, 40, NO_STATUS_CHANGE, {{STATS_SPE, 1, 0}}},
 		Move{0x4B, "Razor Leaf"  , TYPE_GRASS   , SPECIAL ,  55,  95, 25, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},
@@ -1284,17 +1292,17 @@ namespace PokemonGen1
 		Move{0x4D, "PoisonPowder", TYPE_POISON  , STATUS  ,   0,  75, 35, {STATUS_POISONED, 0}},
 		Move{0x4E, "Stun Spore"  , TYPE_GRASS   , STATUS  ,   0,  75, 30, {STATUS_PARALYZED, 0}},
 		Move{0x4F, "Sleep Powder", TYPE_GRASS   , STATUS  ,   0,  75, 15, {STATUS_ASLEEP, 0}},
-		Move{0x50, "Petal Dance" , TYPE_GRASS   , SPECIAL ,  70, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, "'s thrashing about!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, CONFUSE_ON_LAST, CONFUSE_ON_LAST_MISS},
+		Move{0x50, "Petal Dance" , TYPE_GRASS   , SPECIAL ,  70, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, "'s thrashing about!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(confuseOnLast), DESC_CALLBACK(confuseOnLastMiss)},
 		Move{0x51, "String Shot" , TYPE_BUG     , STATUS  ,   0,  95, 40, NO_STATUS_CHANGE, {}, {{STATS_SPD, -1, 0}}},
-		Move{0x52, "Dragon Rage" , TYPE_DRAGON  , SPECIAL ,   0, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, DEAL_40_DAMAGE},
-		Move{0x53, "Fire Spin"   , TYPE_FIRE    , SPECIAL ,  15,  70, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, WRAP_TARGET, GLITCH_HYPER_BEAM},
+		Move{0x52, "Dragon Rage" , TYPE_DRAGON  , SPECIAL ,   0, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(deal40Damage)},
+		Move{0x53, "Fire Spin"   , TYPE_FIRE    , SPECIAL ,  15,  70, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(wrapTarget), DESC_CALLBACK(glitchHyperBeam)},
 		Move{0x54, "ThunderShock", TYPE_ELECTRIC, SPECIAL ,  40, 100, 30, {STATUS_PARALYZED, 0x1A}},
 		Move{0x55, "ThunderBolt" , TYPE_ELECTRIC, SPECIAL ,  95, 100, 15, {STATUS_PARALYZED, 0x1A}},
 		Move{0x56, "Thunder Wave", TYPE_ELECTRIC, STATUS  ,   0, 100, 20, {STATUS_PARALYZED, 0}},
 		Move{0x57, "Thunder"     , TYPE_ELECTRIC, SPECIAL , 120,  70, 10, {STATUS_PARALYZED, 0x1A}},
 		Move{0x58, "Rock Throw"  , TYPE_ROCK    , PHYSICAL,  50,  65, 15},
 		Move{0x59, "Earthquake"  , TYPE_GROUND  , PHYSICAL, 100, 100, 10},
-		Move{0x5A, "Fissure"     , TYPE_GROUND  , PHYSICAL, 255,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, ONE_HIT_KO_HANDLE},
+		Move{0x5A, "Fissure"     , TYPE_GROUND  , PHYSICAL, 255,  30,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(ohko)},
 		Move{0x5B, "Dig"         , TYPE_GROUND  , PHYSICAL, 100, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("dug a hole!"), true},
 		Move{0x5C, "Toxic"       , TYPE_POISON  , STATUS  ,   0,  85, 10, {STATUS_BADLY_POISONED, 0}},
 		Move{0x5D, "Confusion"   , TYPE_PSYCHIC , SPECIAL ,  50, 100, 25, {STATUS_CONFUSED, 0x19}},
@@ -1305,11 +1313,11 @@ namespace PokemonGen1
 		Move{0x62, "Quick Attack", TYPE_NORMAL  , PHYSICAL,  40, 100, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 1},
 		Move{0x63, "Rage"        , TYPE_NORMAL  , PHYSICAL,  20, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {0xFFFFFFFF, 0xFFFFFFFF}},
 		Move{0x64, "Teleport"    , TYPE_NORMAL  , STATUS  ,   0, 255, 20},
-		Move{0x65, "Night Shade" , TYPE_GHOST   , STATUS  ,   0, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, DEAL_LVL_AS_DAMAGE},
-		Move{0x66, "Mimic"       , TYPE_NORMAL  , STATUS  ,   0, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, COPY_RANDOM_MOVE},
+		Move{0x65, "Night Shade" , TYPE_GHOST   , STATUS  ,   0, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(dealLvlAsDmg)},
+		Move{0x66, "Mimic"       , TYPE_NORMAL  , STATUS  ,   0, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(copyRandomMove)},
 		Move{0x67, "Screech"     , TYPE_NORMAL  , STATUS  ,   0,  85, 40, NO_STATUS_CHANGE, {}, {{STATS_DEF, -2, 0}}},
 		Move{0x68, "Double Team" , TYPE_NORMAL  , STATUS  ,   0, 255, 15, NO_STATUS_CHANGE, {{STATS_EVD, 1, 0}}},
-		Move{0x69, "Recover"     , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEALTH_CHECK, HEAL_HALF_HEALTH},
+		Move{0x69, "Recover"     , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, healCheck, DESC_CALLBACK(healHalfHealth)},
 		Move{0x6A, "Harden"      , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, {{STATS_DEF, 1, 0}}},
 		Move{0x6B, "Minimize"    , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {{STATS_EVD, 1, 0}}},
 		Move{0x6C, "SmokeScreen" , TYPE_NORMAL  , STATUS  ,   0, 100, 20, NO_STATUS_CHANGE, {}, {{STATS_ACC, -1, 0}}},
@@ -1317,14 +1325,14 @@ namespace PokemonGen1
 		Move{0x6E, "Withdraw"    , TYPE_WATER   , STATUS  ,   0, 255, 40, NO_STATUS_CHANGE, {{STATS_DEF, 1, 0}}},
 		Move{0x6F, "Defense Curl", TYPE_NORMAL  , STATUS  ,   0, 255, 40, NO_STATUS_CHANGE, {{STATS_DEF, 1, 0}}},
 		Move{0x70, "Barrier"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, {{STATS_DEF, 2, 0}}},
-		Move{0x71, "Light Screen", TYPE_PSYCHIC , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, LIGHT_SCREEN_CHECK, LIGHT_SCREEN},
-		Move{0x72, "Haze"        , TYPE_ICE     , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, CANCEL_STATS_CHANGE},
-		Move{0x73, "Reflect"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, REFLECT_CHECK, REFLECT},
-		Move{0x74, "Focus Energy", TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, SET_USER_CRIT_RATIO_TO_1_QUARTER},
-		Move{0x75, "Bide"        , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, "", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, STORE_DAMAGES},
-		Move{0x76, "Metronome"   , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, USE_RANDOM_MOVE},
-		Move{0x77, "Mirror Move" , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, USE_LAST_FOE_MOVE_CHECK, USE_LAST_FOE_MOVE},
-		Move{0x78, "SelfDestruct", TYPE_NORMAL  , PHYSICAL, 130, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, SUICIDE, SUICIDE_MISS},
+		Move{0x71, "Light Screen", TYPE_PSYCHIC , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, lightScreenCheck, DESC_CALLBACK(lightScreen)},
+		Move{0x72, "Haze"        , TYPE_ICE     , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(cancelStatsChange)},
+		Move{0x73, "Reflect"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, reflectCheck, DESC_CALLBACK(reflect)},
+		Move{0x74, "Focus Energy", TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(setUserCritRatioToQu)},
+		Move{0x75, "Bide"        , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, {3, 4}, "", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(storeDmg)},
+		Move{0x76, "Metronome"   , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(useRandomMove)},
+		Move{0x77, "Mirror Move" , TYPE_NORMAL  , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, useLastFoeMoveCheck, DESC_CALLBACK(useLastFoeMove)},
+		Move{0x78, "SelfDestruct", TYPE_NORMAL  , PHYSICAL, 130, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(explode), DESC_CALLBACK(explodeMiss)},
 		Move{0x79, "Egg Bomb"    , TYPE_NORMAL  , PHYSICAL, 100,  75, 10},
 		Move{0x7A, "Lick"        , TYPE_GHOST   , PHYSICAL,  20, 100, 30, {STATUS_PARALYZED, 0x4D}},
 		Move{0x7B, "Smog"        , TYPE_POISON  , PHYSICAL,  20,  70, 20, {STATUS_POISONED, 0x67}},
@@ -1332,44 +1340,44 @@ namespace PokemonGen1
 		Move{0x7D, "Bone Club"   , TYPE_GROUND  , PHYSICAL,  65,  85, 20, {STATUS_FLINCHED, 0x1A}},
 		Move{0x7E, "Fire Blast"  , TYPE_FIRE    , SPECIAL , 120,  85,  5, {STATUS_BURNED, 0x4D}},
 		Move{0x7F, "Waterfall"   , TYPE_WATER   , SPECIAL ,  80, 100, 15},
-		Move{0x80, "Clamp"       , TYPE_WATER   , SPECIAL,   35,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, WRAP_TARGET, GLITCH_HYPER_BEAM},
+		Move{0x80, "Clamp"       , TYPE_WATER   , SPECIAL,   35,  75, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, TWO_TO_FIVE_HITS, "'s attack continues!", 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(wrapTarget), DESC_CALLBACK(glitchHyperBeam)},
 		Move{0x81, "Swift"       , TYPE_NORMAL  , PHYSICAL,  60, 255, 20},
 		Move{0x82, "Skull Bash"  , TYPE_NORMAL  , PHYSICAL, 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("lowered its head!")},
 		Move{0x83, "Spike Cannon", TYPE_NORMAL  , PHYSICAL,  20, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x84, "Constrict"   , TYPE_NORMAL  , PHYSICAL,  10, 100, 35, NO_STATUS_CHANGE, {}, {{STATS_SPD, -1, 0x55}}},
 		Move{0x85, "Amnesia"     , TYPE_PSYCHIC , STATUS  ,   0, 255, 20, NO_STATUS_CHANGE, {{STATS_SPE, 2, 0}}},
 		Move{0x86, "Kinesis"     , TYPE_PSYCHIC , STATUS  ,   0,  80, 15, NO_STATUS_CHANGE, {}, {{STATS_ACC, -1, 0}}},
-		Move{0x87, "SoftBoiled"  , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEALTH_CHECK, HEAL_HALF_HEALTH},
-		Move{0x88, "Hi Jump Kick", TYPE_FIGHTING, PHYSICAL,  85,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, NO_CALLBACK, TAKE_1DAMAGE},
+		Move{0x87, "SoftBoiled"  , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, healCheck, DESC_CALLBACK(healHalfHealth)},
+		Move{0x88, "Hi Jump Kick", TYPE_FIGHTING, PHYSICAL,  85,  90, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, NO_CALLBACK, DESC_CALLBACK(take1Dmg)},
 		Move{0x89, "Glare"       , TYPE_NORMAL  , STATUS  ,   0,  75, 30, {STATUS_PARALYZED, 0}},
-		Move{0x8A, "Dream Eater" , TYPE_PSYCHIC , SPECIAL , 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, SLEEP_CHECK, ABSORB_HALF_DAMAGE},
+		Move{0x8A, "Dream Eater" , TYPE_PSYCHIC , SPECIAL , 100, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, sleepCheck, DESC_CALLBACK(absorbHalfDmg)},
 		Move{0x8B, "Poison Gas"  , TYPE_POISON  , STATUS  ,   0,  55, 40, {STATUS_POISONED, 0}},
 		Move{0x8C, "Barrage"     , TYPE_NORMAL  , PHYSICAL,  15,  85, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
-		Move{0x8D, "Leech Life"  , TYPE_BUG     , PHYSICAL,  20, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, ABSORB_HALF_DAMAGE},
+		Move{0x8D, "Leech Life"  , TYPE_BUG     , PHYSICAL,  20, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(absorbHalfDmg)},
 		Move{0x8E, "Lovely Kiss" , TYPE_NORMAL  , STATUS  ,   0,  75, 10, {STATUS_ASLEEP, 0}},
 		Move{0x8F, "Sky Attack"  , TYPE_FLYING  , PHYSICAL, 140,  90,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("is glowing!")},
-		Move{0x90, "Transform"   , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, TRANSFORM},
+		Move{0x90, "Transform"   , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(transform)},
 		Move{0x91, "Bubble"      , TYPE_WATER   , SPECIAL ,  20, 100, 30, NO_STATUS_CHANGE, {}, {{STATS_SPD, -1, 0x55}}},
 		Move{0x92, "Dizzy Punch" , TYPE_NORMAL  , PHYSICAL,  70, 100, 10},
 		Move{0x93, "Spore"       , TYPE_GRASS   , STATUS  ,   0, 100, 15, {STATUS_ASLEEP, 0}},
 		Move{0x94, "Flash"       , TYPE_NORMAL  , STATUS  ,   0,  70, 20, NO_STATUS_CHANGE, {}, {{STATS_ACC, -1, 0}}},
-		Move{0x95, "Psywave"     , TYPE_PSYCHIC , SPECIAL ,   0,  80, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE_CHECK, DEAL_1_DAMAGE_TO_1_5_LEVEL_DAMAGE},
-		Move{0x96, "Splash"      , TYPE_NORMAL  , STATUS  ,   0, 255, 40, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, DO_NOTHING},
+		Move{0x95, "Psywave"     , TYPE_PSYCHIC , SPECIAL ,   0,  80, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, deal1DamageTo1d5LevelDamageCheck, DESC_CALLBACK(deal1DamageTo1d5LevelDamage)},
+		Move{0x96, "Splash"      , TYPE_NORMAL  , STATUS  ,   0, 255, 40, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(nothing)},
 		Move{0x97, "Acid Armor"  , TYPE_POISON  , STATUS  ,   0, 255, 40, NO_STATUS_CHANGE, {{STATS_DEF, 2, 0}}},
 		Move{0x98, "CrabHammer"  , TYPE_WATER   , SPECIAL ,  90,  85, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},
-		Move{0x99, "Explosion"   , TYPE_NORMAL  , PHYSICAL, 170, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, SUICIDE, SUICIDE_MISS},
+		Move{0x99, "Explosion"   , TYPE_NORMAL  , PHYSICAL, 170, 100,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(explode), DESC_CALLBACK(explodeMiss)},
 		Move{0x9A, "Fury Swipes" , TYPE_NORMAL  , PHYSICAL,  18,  80, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, TWO_TO_FIVE_HITS},
 		Move{0x9B, "Bonemerang"  , TYPE_GROUND  , PHYSICAL,  50,  90, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, {2, 2}},
-		Move{0x9C, "Rest"        , TYPE_PSYCHIC , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, HEALTH_CHECK, HEAL_ALL_HEALTH_AND_SLEEP},
+		Move{0x9C, "Rest"        , TYPE_PSYCHIC , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, healCheck, DESC_CALLBACK(healAllHealthAndSleep)},
 		Move{0x9D, "Rock Slide"  , TYPE_ROCK    , PHYSICAL,  75,  90, 10},
 		Move{0x9E, "Hyper Fang"  , TYPE_NORMAL  , PHYSICAL,  80,  90, 15, {STATUS_FLINCHED, 0x1A}},
 		Move{0x9F, "Sharpen"     , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, {{STATS_ATK, 1, 0}}},
-		Move{0xA0, "Conversion"  , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, CONVERSION},
+		Move{0xA0, "Conversion"  , TYPE_NORMAL  , STATUS  ,   0, 255, 30, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(conversion)},
 		Move{0xA1, "Tri Attack"  , TYPE_NORMAL  , PHYSICAL,  80, 100, 10},
-		Move{0xA2, "Super Fang"  , TYPE_NORMAL  , PHYSICAL,   0,  90, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, DEAL_HALF_HP_DAMAGE},
+		Move{0xA2, "Super Fang"  , TYPE_NORMAL  , PHYSICAL,   0,  90, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(dealHalfHPDmg)},
 		Move{0xA3, "Slash"       , TYPE_NORMAL  , PHYSICAL,  70, 100, 20, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE * 8},
-		Move{0xA4, "Substitute"  , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, CREATE_SUBSTITUTE_CHECK, CREATE_SUBSTITUTE},
-		Move{0xA5, "Struggle"    , TYPE_NORMAL  , PHYSICAL,  50, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, ALWAYS_HIT, TAKE_HALF_MOVE_DAMAGE},
+		Move{0xA4, "Substitute"  , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, createSubstituteCheck, DESC_CALLBACK(createSub)},
+		Move{0xA5, "Struggle"    , TYPE_NORMAL  , PHYSICAL,  50, 100, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(takeHalfMoveDamage)},
 		DEFAULT_MOVE(0xA6),
 		DEFAULT_MOVE(0xA7),
 		DEFAULT_MOVE(0xA8),

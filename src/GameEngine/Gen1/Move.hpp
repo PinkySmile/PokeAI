@@ -102,10 +102,10 @@ namespace PokemonGen1
 			const std::string &loadingMsg = "",
 			bool invulnerableDuringLoading = false,
 			bool needRecharge = false,
-			const HitCallback &&canHitCallback = nullptr,
-			const HitCallback &&hitCallback = nullptr,
+			const HitCallback &canHitCallback = nullptr,
+			const HitCallback &hitCallback = nullptr,
 			const std::string &hitCallBackDescription = "",
-			const MissCallback &&missCallback = nullptr,
+			const MissCallback &missCallback = nullptr,
 			const std::string &missCallBackDescription = ""
 		);
 		Move(const Move &);

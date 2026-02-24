@@ -106,7 +106,7 @@ namespace PkmnRenderer
 		result.p1.hidden = false;
 		result.p1.acidArmor = false;
 		result.p1.exploded = false;
-		for (unsigned i = 0; i < result.p1.team.size() && i < state.me.team.size(); i++) {
+		for (unsigned i = 0; i < std::size(result.p1.team) && i < state.me.team.size(); i++) {
 			auto &po = result.p1.team[i];
 			auto &pi = state.me.team[i];
 			auto &moveSet = pi.getMoveSet();
@@ -129,7 +129,7 @@ namespace PkmnRenderer
 			po.ko = pi.hasStatus(PokemonGen1::STATUS_KO);
 			po.leeched = pi.hasStatus(PokemonGen1::STATUS_LEECHED);
 			po.confused = pi.hasStatus(PokemonGen1::STATUS_CONFUSED);
-			for (unsigned j = 0; j < po.moves.size() && j < moveSet.size(); j++) {
+			for (unsigned j = 0; j < std::size(po.moves) && j < moveSet.size(); j++) {
 				po.moves[j].id = moveSet[j].getID();
 				po.moves[j].pp = moveSet[j].getPP();
 				po.moves[j].maxPp = moveSet[j].getMaxPP();
@@ -143,7 +143,7 @@ namespace PkmnRenderer
 		result.p2.hidden = false;
 		result.p2.acidArmor = false;
 		result.p2.exploded = false;
-		for (unsigned i = 0; i < result.p2.team.size() && i < state.op.team.size(); i++) {
+		for (unsigned i = 0; i < std::size(result.p2.team) && i < state.op.team.size(); i++) {
 			auto &po = result.p2.team[i];
 			auto &pi = state.op.team[i];
 			auto &moveSet = pi.getMoveSet();
@@ -166,7 +166,7 @@ namespace PkmnRenderer
 			po.ko = pi.hasStatus(PokemonGen1::STATUS_KO);
 			po.leeched = pi.hasStatus(PokemonGen1::STATUS_LEECHED);
 			po.confused = pi.hasStatus(PokemonGen1::STATUS_CONFUSED);
-			for (unsigned j = 0; j < po.moves.size() && j < moveSet.size(); j++) {
+			for (unsigned j = 0; j < std::size(po.moves) && j < moveSet.size(); j++) {
 				po.moves[j].id = moveSet[j].getID();
 				po.moves[j].pp = moveSet[j].getPP();
 				po.moves[j].maxPp = moveSet[j].getMaxPP();
