@@ -84,7 +84,7 @@ static std::string standaloneAnimText(unsigned animId, const std::string &name)
 static std::string statAnimText(unsigned animId, const std::string &name)
 {
 	static const char *statNames[] = {
-		"ATK", "DEF", "SPE", "", "SPD", "ACC", "EVD"
+		"ATTACK", "DEFENSE", "SPECIAL", "", "SPEED", "ACCURACY", "EVADE"
 	};
 	unsigned offset  = animId - PkmnCommon::SYSANIM_ATK_DECREASE_BIG;
 	unsigned group   = offset / 4;
