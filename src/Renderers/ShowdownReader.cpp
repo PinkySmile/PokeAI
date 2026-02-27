@@ -808,9 +808,10 @@ void ShowdownReader::_processChunk(std::vector<PkmnCommon::Event> &output)
 					if (msg.ends_with(" forfeited.")) {
 						std::string loserName = msg.substr(0, msg.size() - 11);
 						bool loserIsP1 = (loserName == this->_state.p1.name);
+
 						this->_gameEnded = true;
 						this->_events.emplace_back(PkmnCommon::GameEndEvent{
-							!loserIsP1, loserIsP1, false, false
+							!loserIsP1, loserIsP1, loserIsP1, !loserIsP1
 						}, this->_pstate);
 					}
 				}

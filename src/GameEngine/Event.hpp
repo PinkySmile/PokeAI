@@ -197,7 +197,7 @@ namespace PkmnCommon
 		bool player;
 	};
 
-	enum SystemAnim {
+	enum SystemAnim: unsigned {
 		SYSANIM_ASLEEP,
 		SYSANIM_BURN,
 		SYSANIM_FROZEN,

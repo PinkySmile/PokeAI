@@ -157,6 +157,7 @@ static void handleMove(
 	std::optional<HitInfo> hitInfo;
 	std::vector<unsigned> targetHPs;
 	std::optional<unsigned> selfHP;
+	std::vector<PkmnCommon::AnimEvent> statsEffects;
 	std::vector<PkmnCommon::AnimEvent> statusEffects;
 	std::vector<PkmnCommon::DeathEvent> deaths;
 	std::optional<PkmnCommon::ExtraAnimEvent> prepareAnim;
@@ -185,6 +186,8 @@ static void handleMove(
 		} else if (auto anim = std::get_if<PkmnCommon::AnimEvent>(&e)) {
 			if (isStatusAnim(anim->animId))
 				statusEffects.push_back(*anim);
+			else if (isStatAnim(anim->animId))
+				statsEffects.push_back(*anim);
 			else
 				break;
 		} else if (auto sc = std::get_if<PkmnCommon::StatusClearedEvent>(&e)) {
@@ -192,9 +195,8 @@ static void handleMove(
 			statusClearedPlayer = sc->player;
 		} else if (auto extra = std::get_if<PkmnCommon::ExtraAnimEvent>(&e)) {
 			prepareAnim = *extra;
-		} else {
+		} else
 			break;
-		}
 		usedEvents.push_back(front);
 		events.pop_front();
 	}
@@ -227,9 +229,28 @@ static void handleMove(
 		HitInfo hi = hitInfo.value_or(HitInfo{});
 
 		// First hit
-		output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, false});
-		output.emplace_back(PkmnCommon::HitEvent{hi.veryEffective, hi.notVeryEffective, opIsP1, true});
-		output.emplace_back(PkmnCommon::HealthModEvent{targetHPs[0], opIsP1, true});
+		if (move.getID() == PkmnCommon::Explosion || move.getID() == PkmnCommon::Self_Destruct) {
+			output.emplace_back(PkmnCommon::MoveEvent{.moveId = move.getID(), .player = event.player, .hideSubstitute = true});
+			output.emplace_back(PkmnCommon::HitEvent{.veryEffective = hi.veryEffective, .notVeryEffective = hi.notVeryEffective, .player = opIsP1, .hasEffect = true});
+			output.emplace_back(PkmnCommon::ExtraAnimEvent{.moveId = move.getID(), .index = 0, .player = event.player});
+			output.emplace_back(PkmnCommon::HitEvent{hi.veryEffective, hi.notVeryEffective, opIsP1, true});
+			output.emplace_back(PkmnCommon::HealthModEvent{targetHPs[0], opIsP1, true});
+		} else {
+			bool hasEffect = !move.getFoeChange().empty() ||
+				!move.getOwnerChange().empty() ||
+				move.getNbHits().first != 1 ||
+				move.getNbHits().second != 1 ||
+				move.getNbRuns().first != 1 ||
+				move.getNbRuns().second != 1 ||
+				move.getStatusChange().status != PokemonGen1::STATUS_NONE ||
+				!move.getHitCallBackDescription().empty() ||
+				!move.getMissCallBackDescription().empty();
+
+			output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, false});
+			output.emplace_back(PkmnCommon::HitEvent{hi.veryEffective, hi.notVeryEffective, opIsP1, hasEffect});
+			output.emplace_back(PkmnCommon::HealthModEvent{targetHPs[0], opIsP1, true});
+
+		}
 		if (hasCrit)
 			output.emplace_back(PkmnCommon::TextEvent{"Critical hit!"}); // Move.cpp line 990
 		if (hi.notVeryEffective)
@@ -270,6 +291,8 @@ static void handleMove(
 	} else {
 		// No damage, no self-HP: pure status/effect move (Swords Dance, Agility, etc.)
 		output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, false});
+		if (move.getID() == PkmnCommon::Transform)
+			output.emplace_back(PkmnCommon::TextEvent{myName + " transformed into " + PokemonGen1::pokemonList.at(opPlayer.team[opPState.onField].id).name + "!"});
 	}
 
 	// ── Status side effects inflicted by the move ──────────────────────────
@@ -279,6 +302,16 @@ static void handleMove(
 			: state.p2.team[s.second.onField].name;
 		output.emplace_back(PkmnCommon::AnimEvent{anim.animId, move.getStatusChange().cmpVal == 0, anim.player, anim.turn});
 		output.emplace_back(PkmnCommon::TextEvent{statusAppliedText(anim.animId, afflictedName)});
+	}
+	for (auto &anim : statsEffects) {
+		if (anim.animId >= PkmnCommon::SYSANIM_SPD_DECREASE_BIG && anim.animId <= PkmnCommon::SYSANIM_SPD_INCREASE_BIG)
+			continue;
+		std::string afflictedName = anim.player
+			? state.p1.team[s.first.onField].name
+			: state.p2.team[s.second.onField].name;
+
+		output.emplace_back(PkmnCommon::AnimEvent{anim.animId, move.getCategory() == PokemonGen1::STATUS, anim.player, anim.turn});
+		output.emplace_back(PkmnCommon::TextEvent{statAnimText(anim.animId, afflictedName)});
 	}
 
 	// ── Haze / full stat clear (Move.cpp line 316) ────────────────────────
@@ -351,9 +384,13 @@ bool Gen1ResultBasedGenerator::convertEvent(
 	// ── Game end (BattleHandler.cpp lines 130-131/137) ────────────────────
 	} else if (auto end = std::get_if<PkmnCommon::GameEndEvent>(&event)) {
 		output.emplace_back(*end);
-		if (end->p1Won) {
+		if (end->p1Ran)
+			output.emplace_back(PkmnCommon::TextEvent{"Got away safely!"});
+		else if (end->p2Ran)
+			output.emplace_back(PkmnCommon::TextEvent{std::string(state.p2.name) + " ran!"});
+		else if (end->p1Won)
 			output.emplace_back(PkmnCommon::TextEvent{std::string(state.p1.name) + " defeated " + state.p2.name + "!"});
-		} else if (end->p2Won) {
+		else if (end->p2Won) {
 			output.emplace_back(PkmnCommon::TextEvent{std::string(state.p1.name) + " is out of usable pokemon!"});
 			output.emplace_back(PkmnCommon::TextEvent{std::string(state.p1.name) + " blacked out!"});
 		}
@@ -375,14 +412,14 @@ bool Gen1ResultBasedGenerator::convertEvent(
 		if (anim->animId >= PkmnCommon::SYSANIM_SPD_DECREASE_BIG && anim->animId <= PkmnCommon::SYSANIM_SPD_INCREASE_BIG)
 			return true;
 		if (isStatAnim(anim->animId)) {
-			// Pokemon.cpp lines 898-904, statToLittleString()
-			output.emplace_back(*anim);
 			output.emplace_back(PkmnCommon::TextEvent{statAnimText(anim->animId, pkmnName)});
+			output.emplace_back(*anim);
 		} else {
 			std::string text = standaloneAnimText(anim->animId, pkmnName);
-			output.emplace_back(*anim);
+
 			if (!text.empty())
 				output.emplace_back(PkmnCommon::TextEvent{text});
+			output.emplace_back(*anim);
 			// Consume the following HealthModEvent for damage-dealing standalone anims.
 			if (animNeedsHP(anim->animId) && !events.empty()) {
 				if (auto hp = std::get_if<PkmnCommon::HealthModEvent>(&events.front().first)) {

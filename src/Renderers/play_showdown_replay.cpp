@@ -38,6 +38,7 @@ std::vector<std::string> readReplay(const std::filesystem::path &path, std::opti
 			lines.push_back(line);
 		}
 	}
+	lines.emplace_back("|");
 	return lines;
 }
 
@@ -69,6 +70,7 @@ int main(int argc, char *argv[])
 		if (!argsDisabled && argv[index][0] == '-') {
 			if (strcmp(argv[index], "--") == 0) {
 				argsDisabled = true;
+				continue;
 			} else if (strcmp(argv[index], "-r") == 0) {
 				index++;
 				if (index > argc) {
@@ -76,6 +78,7 @@ int main(int argc, char *argv[])
 					return EXIT_FAILURE;
 				}
 				renderer = argv[index];
+				continue;
 			} else if (strcmp(argv[index], "-a") == 0) {
 				index++;
 				if (index > argc) {
@@ -83,6 +86,7 @@ int main(int argc, char *argv[])
 					return EXIT_FAILURE;
 				}
 				extraArgs = argv[index];
+				continue;
 			} else {
 				printf("Unknown option %s\n", argv[index]);
 				return EXIT_FAILURE;
