@@ -2176,7 +2176,7 @@ void Gen1Renderer::_renderWithdraw(sf::RenderTarget &target)
 			target.draw(sprite);
 		}
 
-		this->_displayOpFace(target, this->state.p2.spriteId);
+		this->_displayOpFace(target, this->state.p2.substitute ? 256 : this->state.p2.spriteId);
 	} else {
 		if (mul > 0) {
 			auto it = this->_data.find(this->state.p2.spriteId);
@@ -2199,7 +2199,7 @@ void Gen1Renderer::_renderWithdraw(sf::RenderTarget &target)
 			target.draw(sprite);
 		}
 
-		this->_displayMyFace(target, this->state.p1.spriteId);
+		this->_displayMyFace(target, this->state.p1.substitute ? 256 : this->state.p1.spriteId);
 	}
 }
 void Gen1Renderer::_renderHealthMod(sf::RenderTarget &target)

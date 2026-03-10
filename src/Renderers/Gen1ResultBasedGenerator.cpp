@@ -150,6 +150,7 @@ static void handleMove(
 	// ── Look-ahead: consume related events ────────────────────────────────
 	struct HitInfo { bool veryEffective = false; bool notVeryEffective = false; };
 
+	std::vector<std::string> subDmg;
 	bool missed = false;
 	bool hasCrit = false;
 	bool hasStatusCleared = false;
@@ -177,6 +178,8 @@ static void handleMove(
 		} else if (auto text = std::get_if<PkmnCommon::TextEvent>(&e)) {
 			if (text->message == "Critical hit!")
 				hasCrit = true;
+			else if (text->message.starts_with("The SUBSTITUTE took damage"))
+				subDmg.push_back(text->message);
 			else
 				break;
 		} else if (auto death = std::get_if<PkmnCommon::DeathEvent>(&e)) {
@@ -202,7 +205,10 @@ static void handleMove(
 	}
 
 	// ── Move announcement (Move.cpp line 811) ─────────────────────────────
-	output.emplace_back(PkmnCommon::TextEvent{myName + " used " + Utils::toUpper(move.getName()) + "!"});
+	if (event.isContinuation)
+		output.emplace_back(PkmnCommon::TextEvent{myName + "'s attack continues!"});
+	else
+		output.emplace_back(PkmnCommon::TextEvent{myName + " used " + Utils::toUpper(move.getName()) + "!"});
 
 	// ── Miss / fail / immune ───────────────────────────────────────────────
 	if (missed) {
@@ -219,13 +225,13 @@ static void handleMove(
 
 	// ── Two-turn move: loading phase (Move.cpp line 804-808) ──────────────
 	if (prepareAnim.has_value()) {
-		output.emplace_back(PkmnCommon::TextEvent{loadingText(move.getID(), myName)});
 		output.emplace_back(*prepareAnim);
+		output.emplace_back(PkmnCommon::TextEvent{loadingText(move.getID(), myName)});
 		return;
 	}
 
 	// ── Damaging move ──────────────────────────────────────────────────────
-	if (!targetHPs.empty()) {
+	if (!targetHPs.empty() || !subDmg.empty()) {
 		HitInfo hi = hitInfo.value_or(HitInfo{});
 
 		// First hit
@@ -234,7 +240,6 @@ static void handleMove(
 			output.emplace_back(PkmnCommon::HitEvent{.veryEffective = hi.veryEffective, .notVeryEffective = hi.notVeryEffective, .player = opIsP1, .hasEffect = true});
 			output.emplace_back(PkmnCommon::ExtraAnimEvent{.moveId = move.getID(), .index = 0, .player = event.player});
 			output.emplace_back(PkmnCommon::HitEvent{hi.veryEffective, hi.notVeryEffective, opIsP1, true});
-			output.emplace_back(PkmnCommon::HealthModEvent{targetHPs[0], opIsP1, true});
 		} else {
 			bool hasEffect = !move.getFoeChange().empty() ||
 				!move.getOwnerChange().empty() ||
@@ -246,23 +251,36 @@ static void handleMove(
 				!move.getHitCallBackDescription().empty() ||
 				!move.getMissCallBackDescription().empty();
 
-			output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, false});
+			output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, true});
 			output.emplace_back(PkmnCommon::HitEvent{hi.veryEffective, hi.notVeryEffective, opIsP1, hasEffect});
-			output.emplace_back(PkmnCommon::HealthModEvent{targetHPs[0], opIsP1, true});
-
 		}
+
+		if (!subDmg.empty()) {
+			output.emplace_back(PkmnCommon::TextEvent{subDmg[0]});
+			subDmg.pop_back();
+		} else {
+			output.emplace_back(PkmnCommon::HealthModEvent{targetHPs[0], opIsP1, true});
+			targetHPs.pop_back();
+		}
+
 		if (hasCrit)
-			output.emplace_back(PkmnCommon::TextEvent{"Critical hit!"}); // Move.cpp line 990
+			output.emplace_back(PkmnCommon::TextEvent{"Critical hit!"});
 		if (hi.notVeryEffective)
-			output.emplace_back(PkmnCommon::TextEvent{"It's not very effective!"}); // Move.cpp line 992
+			output.emplace_back(PkmnCommon::TextEvent{"It's not very effective!"});
 		else if (hi.veryEffective)
-			output.emplace_back(PkmnCommon::TextEvent{"It's super effective!"});    // Move.cpp line 994
+			output.emplace_back(PkmnCommon::TextEvent{"It's super effective!"});
 
 		// Subsequent hits (multi-hit moves)
-		for (size_t i = 1; i < targetHPs.size(); i++) {
+		while (!targetHPs.empty()) {
 			output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, true});
 			output.emplace_back(PkmnCommon::HitEvent{hi.veryEffective, hi.notVeryEffective, opIsP1, true});
-			output.emplace_back(PkmnCommon::HealthModEvent{targetHPs[i], opIsP1, true});
+			if (!subDmg.empty()) {
+				output.emplace_back(PkmnCommon::TextEvent{subDmg[0]});
+				subDmg.pop_back();
+			} else {
+				output.emplace_back(PkmnCommon::HealthModEvent{targetHPs[0], opIsP1, true});
+				targetHPs.pop_back();
+			}
 		}
 
 		// Recoil / drain HP for the attacker (Move.cpp line 169/279)

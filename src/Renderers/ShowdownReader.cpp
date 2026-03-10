@@ -566,24 +566,30 @@ void ShowdownReader::_processChunk(std::vector<PkmnCommon::Event> &output)
 				auto user  = split(vals.at(1), ':');
 				auto &move = vals.at(2);
 				bool isP1  = user[0].starts_with("p1");
+				// "[from] WrapName" (no "move:" prefix) means the trapping move continues.
+				// "[from] move: X" means used via Metronome/Sleep Talk/Mirror Move — not a continuation.
+				bool isContinuation = vals.size() >= 5 &&
+					vals.at(4).starts_with("[from]") &&
+					!vals.at(4).starts_with("[from] move:");
 
 				if (!movesNames.contains(move))
 					throw std::invalid_argument("Unknown move \"" + move + "\"");
 
 				// Reset move context for each new move
 				this->_moveCtx = {};
-				this->_moveCtx.lastMoveId   = movesNames[move];
-				this->_moveCtx.attackerIsP1 = isP1;
+				this->_moveCtx.lastMoveId     = movesNames[move];
+				this->_moveCtx.attackerIsP1   = isP1;
+				this->_moveCtx.isContinuation = isContinuation;
 
 				this->_events.emplace_back(
-					PkmnCommon::MoveEvent{movesNames[move], isP1, false},
+					PkmnCommon::MoveEvent{movesNames[move], isP1, false, isContinuation},
 					this->_pstate
 				);
 			} else if (op == "-status") {
 				auto target = split(vals.at(1), ':');
 				auto &type  = vals.at(2);
 				bool p1     = target[0].starts_with("p1");
-				bool silent = vals.size() > 3 && vals.at(3) == "[silent]";
+				bool silent = vals.size() > 3 && (vals.at(3) == "[silent]" || vals.at(3) == "[from] move: Rest");
 
 				if (!statusNames.contains(type))
 					throw std::invalid_argument("Unknown status \"" + type + "\"");
@@ -706,17 +712,7 @@ void ShowdownReader::_processChunk(std::vector<PkmnCommon::Event> &output)
 						it->second, true, p1, p1
 					}, this->_pstate);
 				// Unknown cant reasons are silently ignored
-			} else if (op == "-miss") {
-				this->_events.emplace_back(
-					PkmnCommon::MoveMissEvent{this->_moveCtx.lastMoveId, this->_moveCtx.attackerIsP1},
-					this->_pstate
-				);
-			} else if (op == "-fail") {
-				this->_events.emplace_back(
-					PkmnCommon::MoveMissEvent{this->_moveCtx.lastMoveId, this->_moveCtx.attackerIsP1},
-					this->_pstate
-				);
-			} else if (op == "-immune") {
+			} else if (op == "-miss" || op == "-fail" || op == "-immune") {
 				this->_events.emplace_back(
 					PkmnCommon::MoveMissEvent{this->_moveCtx.lastMoveId, this->_moveCtx.attackerIsP1},
 					this->_pstate
@@ -757,14 +753,24 @@ void ShowdownReader::_processChunk(std::vector<PkmnCommon::Event> &output)
 					this->_events.emplace_back(PkmnCommon::AnimEvent{
 						PkmnCommon::SYSANIM_NOW_CONFUSED, true, p1, p1
 					}, this->_pstate);
+				} else if (cond == "typechange" && vals.size() >= 4) {
+					this->_events.emplace_back(
+						PkmnCommon::TextEvent{"Converted type to " + vals.at(3) + "!"},
+						this->_pstate
+					);
 				}
-				// Reflect, Light Screen, typechange: no intermediary event
+				// Reflect, Light Screen: no intermediary event
 			} else if (op == "-end") {
 				auto target = split(vals.at(1), ':');
 				auto &cond  = vals.at(2);
 				bool p1     = target[0].starts_with("p1");
 
 				if (cond == "Substitute") {
+					auto &s      = p1 ? this->_pstate.first : this->_pstate.second;
+					auto &pstate = p1 ? this->_state.p1 : this->_state.p2;
+					std::string name = pstate.team[s.onField].name;
+
+					this->_events.emplace_back(PkmnCommon::TextEvent{"The SUBSTITUTE took damage for " + name + "!"}, this->_pstate);
 					(p1 ? this->_state.p1 : this->_state.p2).substitute = false;
 					this->_events.emplace_back(PkmnCommon::AnimEvent{
 						PkmnCommon::SYSANIM_SUB_BREAK, true, p1, p1
@@ -783,8 +789,17 @@ void ShowdownReader::_processChunk(std::vector<PkmnCommon::Event> &output)
 					this->_events.emplace_back(PkmnCommon::AnimEvent{
 						PkmnCommon::SYSANIM_CONFUSED, true, p1, p1
 					}, this->_pstate);
+				} else if (cond == "Substitute" && vals.size() > 3 && vals.at(3) == "[damage]") {
+					bool p1 = target[0].starts_with("p1");
+					auto &pstate = p1 ? this->_state.p1 : this->_state.p2;
+					auto &s      = p1 ? this->_pstate.first : this->_pstate.second;
+					std::string name = pstate.team[s.onField].name;
+
+					this->_events.emplace_back(
+						PkmnCommon::TextEvent{"The SUBSTITUTE took damage for " + name + "!"},
+						this->_pstate
+					);
 				}
-				// "-activate|Substitute|[damage]": sub absorbed damage, no event
 			} else if (op == "-hitcount") {
 				unsigned n  = std::stoul(vals.at(2));
 				std::string text = "Hit " + std::to_string(n) + " time" + (n == 1 ? "!" : "s!");

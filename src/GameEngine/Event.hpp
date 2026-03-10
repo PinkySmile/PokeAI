@@ -190,6 +190,7 @@ namespace PkmnCommon
 		unsigned moveId;
 		bool player;
 		bool hideSubstitute;
+		bool isContinuation = false;
 	};
 
 	struct MoveMissEvent {

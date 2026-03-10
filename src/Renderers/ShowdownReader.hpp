@@ -30,6 +30,7 @@ private:
 		bool isSuperEffective = false;
 		bool isNotVeryEffective = false;
 		bool firstHitEmitted = false;
+		bool isContinuation = false;
 	};
 
 	std::pair<PState, PState> _pstate;
