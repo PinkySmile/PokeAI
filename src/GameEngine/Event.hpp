@@ -17,6 +17,171 @@ namespace PkmnCommon
 		std::string message;
 	};
 
+	enum PokemonSpecies {
+		Empty,
+		Missingno,
+		Substituted,
+		Minimized,
+
+		Bulbasaur,
+		Ivysaur,
+		Venusaur,
+		Charmander,
+		Charmeleon,
+		Charizard,
+		Squirtle,
+		Wartortle,
+		Blastoise,
+		Caterpie,
+		Metapod,
+		Butterfree,
+		Weedle,
+		Kakuna,
+		Beedrill,
+		Pidgey,
+		Pidgeotto,
+		Pidgeot,
+		Rattata,
+		Raticate,
+		Spearow,
+		Fearow,
+		Ekans,
+		Arbok,
+		Pikachu,
+		Raichu,
+		Sandshrew,
+		Sandslash,
+		Nidoran_F,
+		Nidorina,
+		Nidoqueen,
+		Nidoran_M,
+		Nidorino,
+		Nidoking,
+		Clefairy,
+		Clefable,
+		Vulpix,
+		Ninetales,
+		Jigglypuff,
+		Wigglytuff,
+		Zubat,
+		Golbat,
+		Oddish,
+		Gloom,
+		Vileplume,
+		Paras,
+		Parasect,
+		Venonat,
+		Venomoth,
+		Diglett,
+		Dugtrio,
+		Meowth,
+		Persian,
+		Psyduck,
+		Golduck,
+		Mankey,
+		Primeape,
+		Growlithe,
+		Arcanine,
+		Poliwag,
+		Poliwhirl,
+		Poliwrath,
+		Abra,
+		Kadabra,
+		Alakazam,
+		Machop,
+		Machoke,
+		Machamp,
+		Bellsprout,
+		Weepinbell,
+		Victreebel,
+		Tentacool,
+		Tentacruel,
+		Geodude,
+		Graveler,
+		Golem,
+		Ponyta,
+		Rapidash,
+		Slowpoke,
+		Slowbro,
+		Magnemite,
+		Magneton,
+		Farfetchd,
+		Doduo,
+		Dodrio,
+		Seel,
+		Dewgong,
+		Grimer,
+		Muk,
+		Shellder,
+		Cloyster,
+		Gastly,
+		Haunter,
+		Gengar,
+		Onix,
+		Drowzee,
+		Hypno,
+		Krabby,
+		Kingler,
+		Voltorb,
+		Electrode,
+		Exeggcute,
+		Exeggutor,
+		Cubone,
+		Marowak,
+		Hitmonlee,
+		Hitmonchan,
+		Lickitung,
+		Koffing,
+		Weezing,
+		Rhyhorn,
+		Rhydon,
+		Chansey,
+		Tangela,
+		Kangaskhan,
+		Horsea,
+		Seadra,
+		Goldeen,
+		Seaking,
+		Staryu,
+		Starmie,
+		Mr_Mime,
+		Scyther,
+		Jynx,
+		Electabuzz,
+		Magmar,
+		Pinsir,
+		Tauros,
+		Magikarp,
+		Gyarados,
+		Lapras,
+		Ditto,
+		Eevee,
+		Vaporeon,
+		Jolteon,
+		Flareon,
+		Porygon,
+		Omanyte,
+		Omastar,
+		Kabuto,
+		Kabutops,
+		Aerodactyl,
+		Snorlax,
+		Articuno,
+		Zapdos,
+		Moltres,
+		Dratini,
+		Dragonair,
+		Dragonite,
+		Mewtwo,
+		Mew,
+
+		Gen1_Spectre,
+		Gen1_Fossil1,
+		Gen1_Fossil2,
+
+		SPECIES_COUNT
+	};
+
 	enum MoveIndex {
 		None = 0x00,
 		Pound = 0x01,
@@ -187,14 +352,14 @@ namespace PkmnCommon
 	};
 
 	struct MoveEvent {
-		unsigned moveId;
+		MoveIndex moveId;
 		bool player;
 		bool hideSubstitute;
 		bool isContinuation = false;
 	};
 
 	struct MoveMissEvent {
-		unsigned moveId;
+		MoveIndex moveId;
 		bool player;
 	};
 
@@ -262,7 +427,7 @@ namespace PkmnCommon
 	};
 
 	struct ExtraAnimEvent {
-		unsigned moveId;
+		MoveIndex moveId;
 		unsigned index;
 		bool player;
 	};
@@ -325,7 +490,9 @@ namespace PkmnCommon
 		GameStartEvent,
 		GameEndEvent
 	> Event;
-	
+
+	const char *speciesToString(PokemonSpecies id);
+
 #ifdef __PYX_EXTERN_C
 	inline TextEvent getTextEvent(const Event &e)
 	{

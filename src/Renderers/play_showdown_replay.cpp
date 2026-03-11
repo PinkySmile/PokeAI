@@ -33,7 +33,7 @@ std::vector<std::string> readReplay(const std::filesystem::path &path, std::opti
 		} else if (line.starts_with(firstLine)) {
 			found = true;
 			lines.push_back(line.substr(firstLine.size()));
-		} else if (line.starts_with("|j|")) {
+		} else if (line.starts_with("|")) {
 			found = true;
 			lines.push_back(line);
 		}
@@ -96,6 +96,10 @@ int main(int argc, char *argv[])
 	}
 
 	std::vector<std::string> lines = readReplay(replay, renderer);
+	if (!renderer) {
+		puts("Failed to detect renderer.");
+		return EXIT_FAILURE;
+	}
 	std::unique_ptr<PkmnRenderer::IRenderer> rendererPtr = createRenderer(*renderer, extraArgs);
 	auto &state = rendererPtr->state;
 	memset(&state, 0, sizeof(state));

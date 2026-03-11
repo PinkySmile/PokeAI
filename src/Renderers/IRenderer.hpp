@@ -47,7 +47,7 @@ namespace PkmnRenderer
 	};
 
 	struct Pokemon {
-		unsigned id = 0;
+		PkmnCommon::PokemonSpecies id = PkmnCommon::Missingno;
 		unsigned hp;
 		unsigned maxHp;
 		unsigned atk;
@@ -71,7 +71,7 @@ namespace PkmnRenderer
 	struct PlayerState {
 		Pokemon team[6];
 		unsigned active = 0;
-		unsigned spriteId;
+		PkmnCommon::PokemonSpecies spriteId;
 		char name[33];
 		bool acidArmor;
 		bool exploded;
@@ -100,8 +100,8 @@ namespace PkmnRenderer
 		virtual void consumeEvent(const PkmnCommon::Event &event);
 		virtual void consumeEvent(const sf::Event &event) = 0;
 		virtual std::optional<BattleAction> selectAction(bool attackDisabled) = 0;
-		virtual const sf::Texture &getPkmnFace(unsigned pkmnId) = 0;
-		virtual const sf::SoundBuffer &getPkmnCry(unsigned int pkmnId) = 0;
+		virtual const sf::Texture &getPkmnFace(PkmnCommon::PokemonSpecies pkmnId) = 0;
+		virtual const sf::SoundBuffer &getPkmnCry(PkmnCommon::PokemonSpecies pkmnId) = 0;
 		virtual void previousTurn();
 		virtual void nextTurn();
 		void goToTurn(unsigned turn);
@@ -125,6 +125,7 @@ namespace PkmnRenderer
 		unsigned _currentTurn = 0;
 	};
 
+	PkmnCommon::PokemonSpecies gen1SpeciesToCommon(unsigned id);
 	GameState fromGen1(const PokemonGen1::BattleState &state);
 	PokemonGen1::BattleAction toGen1(BattleAction);
 }

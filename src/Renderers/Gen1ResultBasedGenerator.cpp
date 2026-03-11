@@ -147,6 +147,11 @@ static void handleMove(
 	std::string myName = myPlayer.team[myPState.onField].name;
 	std::string opName = opPlayer.team[opPState.onField].name;
 
+	if (event.player)
+		opName = "Enemy " + opName;
+	else
+		myName = "Enemy " + myName;
+
 	// ── Look-ahead: consume related events ────────────────────────────────
 	struct HitInfo { bool veryEffective = false; bool notVeryEffective = false; };
 
@@ -219,7 +224,7 @@ static void handleMove(
 			output.emplace_back(PkmnCommon::TextEvent{"But, it failed!"});
 		else
 			output.emplace_back(PkmnCommon::TextEvent{myName + "'s attack missed!"});
-		output.emplace_back(PkmnCommon::MoveMissEvent{move.getID(), event.player});
+		output.emplace_back(PkmnCommon::MoveMissEvent{gen1MoveToCommon(move.getID()), event.player});
 		return;
 	}
 
@@ -236,9 +241,9 @@ static void handleMove(
 
 		// First hit
 		if (move.getID() == PkmnCommon::Explosion || move.getID() == PkmnCommon::Self_Destruct) {
-			output.emplace_back(PkmnCommon::MoveEvent{.moveId = move.getID(), .player = event.player, .hideSubstitute = true});
+			output.emplace_back(PkmnCommon::MoveEvent{.moveId = gen1MoveToCommon(move.getID()), .player = event.player, .hideSubstitute = true});
 			output.emplace_back(PkmnCommon::HitEvent{.veryEffective = hi.veryEffective, .notVeryEffective = hi.notVeryEffective, .player = opIsP1, .hasEffect = true});
-			output.emplace_back(PkmnCommon::ExtraAnimEvent{.moveId = move.getID(), .index = 0, .player = event.player});
+			output.emplace_back(PkmnCommon::ExtraAnimEvent{.moveId = gen1MoveToCommon(move.getID()), .index = 0, .player = event.player});
 			output.emplace_back(PkmnCommon::HitEvent{hi.veryEffective, hi.notVeryEffective, opIsP1, true});
 		} else {
 			bool hasEffect = !move.getFoeChange().empty() ||
@@ -251,7 +256,7 @@ static void handleMove(
 				!move.getHitCallBackDescription().empty() ||
 				!move.getMissCallBackDescription().empty();
 
-			output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, true});
+			output.emplace_back(PkmnCommon::MoveEvent{gen1MoveToCommon(move.getID()), event.player, true});
 			output.emplace_back(PkmnCommon::HitEvent{hi.veryEffective, hi.notVeryEffective, opIsP1, hasEffect});
 		}
 
@@ -272,7 +277,7 @@ static void handleMove(
 
 		// Subsequent hits (multi-hit moves)
 		while (!targetHPs.empty()) {
-			output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, true});
+			output.emplace_back(PkmnCommon::MoveEvent{gen1MoveToCommon(move.getID()), event.player, true});
 			output.emplace_back(PkmnCommon::HitEvent{hi.veryEffective, hi.notVeryEffective, opIsP1, true});
 			if (!subDmg.empty()) {
 				output.emplace_back(PkmnCommon::TextEvent{subDmg[0]});
@@ -289,7 +294,7 @@ static void handleMove(
 
 	} else if (selfHP.has_value()) {
 		// Self-targeting: Recover, Soft-Boiled, Rest, Substitute HP cost, etc.
-		output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, false});
+		output.emplace_back(PkmnCommon::MoveEvent{gen1MoveToCommon(move.getID()), event.player, false});
 
 		unsigned mid = move.getID();
 		if (mid == PokemonGen1::Rest) {
@@ -308,7 +313,7 @@ static void handleMove(
 		}
 	} else {
 		// No damage, no self-HP: pure status/effect move (Swords Dance, Agility, etc.)
-		output.emplace_back(PkmnCommon::MoveEvent{move.getID(), event.player, false});
+		output.emplace_back(PkmnCommon::MoveEvent{gen1MoveToCommon(move.getID()), event.player, false});
 		if (move.getID() == PkmnCommon::Transform)
 			output.emplace_back(PkmnCommon::TextEvent{myName + " transformed into " + PokemonGen1::pokemonList.at(opPlayer.team[opPState.onField].id).name + "!"});
 	}
@@ -317,7 +322,7 @@ static void handleMove(
 	for (auto &anim : statusEffects) {
 		std::string afflictedName = anim.player
 			? state.p1.team[s.first.onField].name
-			: state.p2.team[s.second.onField].name;
+			: std::string("Enemy ") + state.p2.team[s.second.onField].name;
 		output.emplace_back(PkmnCommon::AnimEvent{anim.animId, move.getStatusChange().cmpVal == 0, anim.player, anim.turn});
 		output.emplace_back(PkmnCommon::TextEvent{statusAppliedText(anim.animId, afflictedName)});
 	}
@@ -326,7 +331,7 @@ static void handleMove(
 			continue;
 		std::string afflictedName = anim.player
 			? state.p1.team[s.first.onField].name
-			: state.p2.team[s.second.onField].name;
+			: std::string("Enemy ") + state.p2.team[s.second.onField].name;
 
 		output.emplace_back(PkmnCommon::AnimEvent{anim.animId, move.getCategory() == PokemonGen1::STATUS, anim.player, anim.turn});
 		output.emplace_back(PkmnCommon::TextEvent{statAnimText(anim.animId, afflictedName)});
@@ -342,7 +347,8 @@ static void handleMove(
 	for (auto &death : deaths) {
 		std::string faintedName = death.player
 			? state.p1.team[s.first.onField].name
-			: state.p2.team[s.second.onField].name;
+			: std::string("Enemy ") + state.p2.team[s.second.onField].name;
+
 		output.emplace_back(PkmnCommon::TextEvent{faintedName + " fainted!"});
 		output.emplace_back(death);
 	}
@@ -358,9 +364,9 @@ bool Gen1ResultBasedGenerator::convertEvent(
 	if (events.empty())
 		return false;
 
-	auto val    = events.front();
+	auto val = events.front();
 	auto &event = val.first;
-	auto &s     = val.second;
+	auto &s = val.second;
 
 	usedEvents.push_back(val);
 	events.pop_front();

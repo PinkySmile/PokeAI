@@ -24,7 +24,7 @@ private:
 	};
 
 	struct MoveContext {
-		unsigned lastMoveId = 0;
+		PkmnCommon::MoveIndex lastMoveId = PkmnCommon::None;
 		bool attackerIsP1 = false;
 		bool hasCrit = false;
 		bool isSuperEffective = false;

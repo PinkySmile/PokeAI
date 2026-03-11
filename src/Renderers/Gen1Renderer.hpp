@@ -25,8 +25,8 @@ namespace PkmnRenderer
 		using IRenderer::consumeEvent;
 		void consumeEvent(const sf::Event &event) override;
 		std::optional<BattleAction> selectAction(bool attackDisabled) override;
-		const sf::Texture &getPkmnFace(unsigned int pkmnId) override;
-		const sf::SoundBuffer &getPkmnCry(unsigned int pkmnId) override;
+		const sf::Texture &getPkmnFace(PkmnCommon::PokemonSpecies pkmnId) override;
+		const sf::SoundBuffer &getPkmnCry(PkmnCommon::PokemonSpecies pkmnId) override;
 		void previousTurn() override;
 
 	private:
@@ -116,12 +116,14 @@ namespace PkmnRenderer
 		bool _updateTurnStart();
 		bool _updateText();
 
+		const MoveData &getMoveData(unsigned move);
+		PokemonData &getPkmnData(PkmnCommon::PokemonSpecies pkmnId);
 		void _displayMyStats(sf::RenderTarget &target, const Pokemon &pkmn, const std::array<unsigned, 4> &palette = {0, 1, 2, 3});
 		void _displayOpStats(sf::RenderTarget &target, const Pokemon &pkmn, const std::array<unsigned, 4> &palette = {0, 1, 2, 3});
-		void _displayMyFace(sf::RenderTarget &target, unsigned pkmnId, const std::array<unsigned, 4> &palette = {0, 1, 2, 3}, const sf::Vector2i &offset = {0, 0});
-		void _displayOpFace(sf::RenderTarget &target, unsigned pkmnId, const std::array<unsigned, 4> &palette = {0, 1, 2, 3}, const sf::Vector2i &offset = {0, 0});
-		void _displayMyShrunkFace(sf::RenderTarget &target, unsigned pkmnId, const std::array<unsigned, 4> &palette, unsigned current, unsigned max);
-		void _displayOpShrunkFace(sf::RenderTarget &target, unsigned pkmnId, const std::array<unsigned, 4> &palette, unsigned current, unsigned max);
+		void _displayMyFace(sf::RenderTarget &target, PkmnCommon::PokemonSpecies pkmnId, const std::array<unsigned, 4> &palette = {0, 1, 2, 3}, const sf::Vector2i &offset = {0, 0});
+		void _displayOpFace(sf::RenderTarget &target, PkmnCommon::PokemonSpecies pkmnId, const std::array<unsigned, 4> &palette = {0, 1, 2, 3}, const sf::Vector2i &offset = {0, 0});
+		void _displayMyShrunkFace(sf::RenderTarget &target, PkmnCommon::PokemonSpecies pkmnId, const std::array<unsigned, 4> &palette, unsigned current, unsigned max);
+		void _displayOpShrunkFace(sf::RenderTarget &target, PkmnCommon::PokemonSpecies pkmnId, const std::array<unsigned, 4> &palette, unsigned current, unsigned max);
 
 		void _renderScene(sf::RenderTarget &, const std::array<unsigned, 4> &palette = {0, 1, 2, 3});
 		void _renderNormal(sf::RenderTarget &);
@@ -148,15 +150,17 @@ namespace PkmnRenderer
 
 		static void _loadMoveFrames(std::vector<MoveAnim> &m, const nlohmann::json &j);
 		static void _loadMoveData(MoveData &data, const std::string &id, bool loadSounds);
-		static void _loadPokemonData(PokemonData &data, const std::string &folder, const std::string &variant, bool loadSounds);
+		static void _loadPokemonData(PokemonData &data, std::string folder, const std::string &variant, bool loadSounds);
 
 		EventType _currentEvent = EVNTTYPE_NONE;
 
-		bool _hasColor = false;
-		unsigned _gpCounter[10];
+		bool _hasColor;
+		bool _loadSounds;
+		unsigned _gpCounter[10] = {};
 		std::function<void()> _onAnimEnd;
 		std::string _queuedText;
 		std::string _displayedText;
+		std::string _variant;
 		sf::Texture _arrows[2];
 		sf::Texture _choicesHUD;
 		sf::Texture _attackHUD;
@@ -180,10 +184,8 @@ namespace PkmnRenderer
 		sf::Sound _moveSound{this->_trainerLand};
 		sf::Sound _crySound{this->_trainerLand};
 		sf::Sound _hitSound{this->_trainerLand};
-		std::pair<sf::Texture, sf::Texture> _activeMons;
 		std::deque<sf::Event> _sfmlQueue;
 		sf::Font _font;
-		PokemonData _missingno;
 		std::unordered_map<unsigned, PokemonData> _data;
 		std::unordered_map<unsigned, MoveData> _moveData;
 		sf::Music _music;
