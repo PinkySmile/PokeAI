@@ -2,6 +2,7 @@
 
 FORMAT=$1
 COUNT=$2
+OUTPUT=$3
 
 if [ -z "$FORMAT" ]; then
 	printf "Usage: %s <format> [<count>]" "$0"
@@ -9,6 +10,12 @@ if [ -z "$FORMAT" ]; then
 fi
 if [ -z "$COUNT" ]; then
 	COUNT=50
+fi
+if [ -z "$OUTPUT" ]; then
+	OUTPUT=.
+fi
+if ! [ -d "$OUTPUT" ]; then
+	mkdir "$OUTPUT" || exit
 fi
 
 LAST="$(date +%s)"
@@ -22,13 +29,13 @@ while [ $COUNT -gt 0 ]; do
 		if [ "$VALUE" "!=" null ]; then
 			ID="$(echo "$VALUE" | jq -r '.["id"]')"
 			LAST="$(echo "$VALUE" | jq '.["uploadtime"]')"
-			if ls "${ID}_${LAST}.log" >/dev/null 2>/dev/null; then
+			if ls "$OUTPUT/${ID}_${LAST}.log" >/dev/null 2>/dev/null; then
 				LAST=$(ls | cut -f 2 -d '_' | cut -f 1 -d '.' | sort | head -n 1)
 				VALUE=null
 				echo "Skipping replays already downloaded..."
 			else
 				echo "[GET] https://replay.pokemonshowdown.com/$ID.log"
-				curl --fail "https://replay.pokemonshowdown.com/$ID.log" --output "${ID}_${LAST}.log" 2>/dev/null || exit
+				curl --fail "https://replay.pokemonshowdown.com/$ID.log" --output "$OUTPUT/${ID}_${LAST}.log" 2>/dev/null || exit
 				INDEX=$(($INDEX + 1))
 				COUNT=$(($COUNT - 1))
 			fi
