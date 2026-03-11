@@ -521,11 +521,11 @@ void ShowdownReader::_processChunk(std::vector<PkmnCommon::Event> &output)
 				// DETAILS field: "Species" or "Species, LLevel" — the actual species.
 				auto nickname = target[1].substr(1); // strip leading space
 				auto &species = nameDual[0];          // actual species from DETAILS
-				bool isP1     = target[0].starts_with("p1");
-				auto &pstate  = isP1 ? this->_state.p1 : this->_state.p2;
-				auto &s       = isP1 ? this->_pstate.first : this->_pstate.second;
-				// Track slots by nickname so the same Pokemon coming back is recognised.
-				auto it       = std::ranges::find(s.allocatedNames, nickname);
+				bool isP1 = target[0].starts_with("p1");
+				auto &pstate = isP1 ? this->_state.p1 : this->_state.p2;
+				auto &s = isP1 ? this->_pstate.first : this->_pstate.second;
+				// Track slots by nickname so the same Pokemon coming back is recognized.
+				auto it  = std::ranges::find(s.allocatedNames, nickname);
 				unsigned index;
 
 				if (it == s.allocatedNames.end()) {

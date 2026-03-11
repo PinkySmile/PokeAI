@@ -325,7 +325,7 @@ namespace PokemonGen1
 		Struggle = 0xA5
 	};
 
-	#define gen1MoveToCommon(m) static_cast<PkmnCommon::MoveIndex>(m)
+	inline PkmnCommon::MoveIndex moveToCommon(unsigned m) { return static_cast<PkmnCommon::MoveIndex>(m); }
 }
 
 

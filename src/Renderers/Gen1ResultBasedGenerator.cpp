@@ -224,7 +224,7 @@ static void handleMove(
 			output.emplace_back(PkmnCommon::TextEvent{"But, it failed!"});
 		else
 			output.emplace_back(PkmnCommon::TextEvent{myName + "'s attack missed!"});
-		output.emplace_back(PkmnCommon::MoveMissEvent{gen1MoveToCommon(move.getID()), event.player});
+		output.emplace_back(PkmnCommon::MoveMissEvent{PokemonGen1::moveToCommon(move.getID()), event.player});
 		return;
 	}
 
@@ -241,9 +241,9 @@ static void handleMove(
 
 		// First hit
 		if (move.getID() == PkmnCommon::Explosion || move.getID() == PkmnCommon::Self_Destruct) {
-			output.emplace_back(PkmnCommon::MoveEvent{.moveId = gen1MoveToCommon(move.getID()), .player = event.player, .hideSubstitute = true});
+			output.emplace_back(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(move.getID()), .player = event.player, .hideSubstitute = true});
 			output.emplace_back(PkmnCommon::HitEvent{.veryEffective = hi.veryEffective, .notVeryEffective = hi.notVeryEffective, .player = opIsP1, .hasEffect = true});
-			output.emplace_back(PkmnCommon::ExtraAnimEvent{.moveId = gen1MoveToCommon(move.getID()), .index = 0, .player = event.player});
+			output.emplace_back(PkmnCommon::ExtraAnimEvent{.moveId = PokemonGen1::moveToCommon(move.getID()), .index = 0, .player = event.player});
 			output.emplace_back(PkmnCommon::HitEvent{hi.veryEffective, hi.notVeryEffective, opIsP1, true});
 		} else {
 			bool hasEffect = !move.getFoeChange().empty() ||
@@ -256,7 +256,7 @@ static void handleMove(
 				!move.getHitCallBackDescription().empty() ||
 				!move.getMissCallBackDescription().empty();
 
-			output.emplace_back(PkmnCommon::MoveEvent{gen1MoveToCommon(move.getID()), event.player, true});
+			output.emplace_back(PkmnCommon::MoveEvent{PokemonGen1::moveToCommon(move.getID()), event.player, true});
 			output.emplace_back(PkmnCommon::HitEvent{hi.veryEffective, hi.notVeryEffective, opIsP1, hasEffect});
 		}
 
@@ -277,7 +277,7 @@ static void handleMove(
 
 		// Subsequent hits (multi-hit moves)
 		while (!targetHPs.empty()) {
-			output.emplace_back(PkmnCommon::MoveEvent{gen1MoveToCommon(move.getID()), event.player, true});
+			output.emplace_back(PkmnCommon::MoveEvent{PokemonGen1::moveToCommon(move.getID()), event.player, true});
 			output.emplace_back(PkmnCommon::HitEvent{hi.veryEffective, hi.notVeryEffective, opIsP1, true});
 			if (!subDmg.empty()) {
 				output.emplace_back(PkmnCommon::TextEvent{subDmg[0]});
@@ -294,7 +294,7 @@ static void handleMove(
 
 	} else if (selfHP.has_value()) {
 		// Self-targeting: Recover, Soft-Boiled, Rest, Substitute HP cost, etc.
-		output.emplace_back(PkmnCommon::MoveEvent{gen1MoveToCommon(move.getID()), event.player, false});
+		output.emplace_back(PkmnCommon::MoveEvent{PokemonGen1::moveToCommon(move.getID()), event.player, false});
 
 		unsigned mid = move.getID();
 		if (mid == PokemonGen1::Rest) {
@@ -313,7 +313,7 @@ static void handleMove(
 		}
 	} else {
 		// No damage, no self-HP: pure status/effect move (Swords Dance, Agility, etc.)
-		output.emplace_back(PkmnCommon::MoveEvent{gen1MoveToCommon(move.getID()), event.player, false});
+		output.emplace_back(PkmnCommon::MoveEvent{PokemonGen1::moveToCommon(move.getID()), event.player, false});
 		if (move.getID() == PkmnCommon::Transform)
 			output.emplace_back(PkmnCommon::TextEvent{myName + " transformed into " + PokemonGen1::pokemonList.at(opPlayer.team[opPState.onField].id).name + "!"});
 	}

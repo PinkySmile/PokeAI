@@ -90,6 +90,7 @@ namespace PkmnRenderer
 		bool soundDisabled = false;
 		bool musicDisabled = false;
 		bool waiting = false;
+		bool swapSide = false;
 		GameState state;
 
 		virtual ~IRenderer() = default;
@@ -109,6 +110,7 @@ namespace PkmnRenderer
 		std::vector<unsigned char> renderVec();
 		size_t renderBuff(unsigned char *buffer);
 		bool hasAnimationEnded() const;
+		PlayerState &getState(bool player);
 
 	protected:
 		struct SavedState {

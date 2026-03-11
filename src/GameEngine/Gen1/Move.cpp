@@ -31,7 +31,7 @@ namespace PokemonGen1
 	const char *glitchHyperBeamDesc = "Removes the opponent recharge state and will make the target use it's move once more";
 
 	Move::MissCallback explodeMissCb = [](unsigned id, Pokemon &owner, Pokemon &target, bool, const BattleLogger &logger) {
-		logger(PkmnCommon::MoveEvent{.moveId = gen1MoveToCommon(id), .player = !owner.isEnemy(), .hideSubstitute = true});
+		logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(id), .player = !owner.isEnemy(), .hideSubstitute = true});
 		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy(), .hasEffect = true});
 		owner.takeDamage(target, owner.getHealth(), true, false);
 		return true;
@@ -40,7 +40,7 @@ namespace PokemonGen1
 
 	Move::MissCallback take1DmgCb = [](unsigned id, Pokemon &owner, Pokemon &target, bool, const BattleLogger &logger) {
 		logger(PkmnCommon::TextEvent{owner.getName() + " kept going and crashed!"});
-		logger(PkmnCommon::ExtraAnimEvent{.moveId = gen1MoveToCommon(id), .index = 0, .player = !owner.isEnemy()});
+		logger(PkmnCommon::ExtraAnimEvent{.moveId = PokemonGen1::moveToCommon(id), .index = 0, .player = !owner.isEnemy()});
 		owner.takeDamage(target, 1, false, false);
 		return true;
 	};
@@ -161,7 +161,7 @@ namespace PokemonGen1
 	const char *ohkoDesc = "Kills in one hit if the user's speed is higher than the foe's";
 
 	Move::HitCallback quRecoilCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger) {
-		logger(PkmnCommon::ExtraAnimEvent{.moveId = gen1MoveToCommon(id), .index = 0, .player = !owner.isEnemy()});
+		logger(PkmnCommon::ExtraAnimEvent{.moveId = PokemonGen1::moveToCommon(id), .index = 0, .player = !owner.isEnemy()});
 		if (damage <= 3)
 			owner.takeDamage(target, 1, true, false);
 		else
@@ -179,7 +179,7 @@ namespace PokemonGen1
 	const char *transformDesc = "Transform the user into the foe, copying stats, types and sprite";
 
 	Move::HitCallback takeHalfMoveDamageCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger) {
-		logger(PkmnCommon::ExtraAnimEvent{.moveId = gen1MoveToCommon(id), .index = 0, .player = !owner.isEnemy()});
+		logger(PkmnCommon::ExtraAnimEvent{.moveId = PokemonGen1::moveToCommon(id), .index = 0, .player = !owner.isEnemy()});
 		if (damage == 1)
 			owner.takeDamage(target, 1, true, false);
 		else
@@ -284,7 +284,7 @@ namespace PokemonGen1
 	Move::HitCallback healAllHealthAndSleepCb = [](unsigned id, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
 		owner.setNonVolatileStatus(STATUS_ASLEEP_FOR_2_TURN);
 		logger(PkmnCommon::TextEvent{owner.getName() + " started sleeping!"});
-		logger(PkmnCommon::MoveEvent{.moveId = gen1MoveToCommon(id), .player = !owner.isEnemy(), .hideSubstitute = false});
+		logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(id), .player = !owner.isEnemy(), .hideSubstitute = false});
 		// TODO: HealthModEvent shouldn't be animated for this case
 		owner.heal(owner.getMaxHealth());
 		logger(PkmnCommon::TextEvent{owner.getName() + " regained health!"});
@@ -328,7 +328,7 @@ namespace PokemonGen1
 	Move::HitCallback storeDmgCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned, bool last, const BattleLogger &logger) {
 		if (last) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " unleashes energy!"});
-			logger(PkmnCommon::MoveEvent{.moveId = gen1MoveToCommon(id), .player = !owner.isEnemy(), .hideSubstitute = true});
+			logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(id), .player = !owner.isEnemy(), .hideSubstitute = true});
 			logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
 			target.takeDamage(owner, owner.getDamagesStored() * 2, false, false);
 		}
@@ -755,7 +755,7 @@ namespace PokemonGen1
 		if (this->_category == STATUS && !this->_foeChange.empty() && target.isMisted()) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
 			logger(PkmnCommon::TextEvent{"But, it failed!"});
-			logger(PkmnCommon::MoveMissEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy()});
+			logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 			return false;
 		}
 
@@ -772,19 +772,19 @@ namespace PokemonGen1
 		))) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
 			logger(PkmnCommon::TextEvent{"But, it failed!"});
-			logger(PkmnCommon::MoveMissEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy()});
+			logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 			return false;
 		}
 		if (this->getID() == Whirlwind || this->getID() == Roar) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
 			logger(PkmnCommon::TextEvent{target.getName() + " is unaffected!"});
-			logger(PkmnCommon::MoveMissEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy()});
+			logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 			return false;
 		}
 		if (this->getID() == Teleport) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
 			logger(PkmnCommon::TextEvent{"But, it failed!"});
-			logger(PkmnCommon::MoveMissEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy()});
+			logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 			return false;
 		}
 
@@ -801,7 +801,7 @@ namespace PokemonGen1
 				this->_nbHit += this->_nbRuns.first;
 			}
 			if (this->_needLoading) {
-				logger(PkmnCommon::ExtraAnimEvent{.moveId = gen1MoveToCommon(this->getID()), .index = 0, .player = !owner.isEnemy()});
+				logger(PkmnCommon::ExtraAnimEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .index = 0, .player = !owner.isEnemy()});
 				logger(PkmnCommon::TextEvent{owner.getName() + " " + this->_loadingMsg});
 				if (this->_invulnerableDuringLoading)
 					owner.setInvincible(true);
@@ -810,7 +810,7 @@ namespace PokemonGen1
 			this->_nbHit--;
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
 			if (this->getID() == Thrash || this->getID() == Petal_Dance)
-				logger(PkmnCommon::ExtraAnimEvent{.moveId = gen1MoveToCommon(this->getID()), .index = 0, .player = !owner.isEnemy()});
+				logger(PkmnCommon::ExtraAnimEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .index = 0, .player = !owner.isEnemy()});
 		} else if (this->_hitCallBackDescription == wrapTargetDesc) {
 			this->_nbHit--;
 			if (!this->_keepGoingMsg.empty())
@@ -845,7 +845,7 @@ namespace PokemonGen1
 				logger(PkmnCommon::TextEvent{"It didn't affect " + target.getName() + "!"});
 			if (this->_missCallback)
 				this->_missCallback(this->getID(), owner, target, this->isFinished(), logger);
-			logger(PkmnCommon::MoveMissEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy()});
+			logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 			return false;
 		}
 		if ((this->_category != STATUS || this->_type == TYPE_ELECTRIC) && getAttackDamageMultiplier(this->_type, target.getTypes()) == 0) {
@@ -857,7 +857,7 @@ namespace PokemonGen1
 			logger(PkmnCommon::TextEvent{"It didn't affect " + target.getName() + "!"});
 			if (this->_missCallback)
 				this->_missCallback(this->getID(), owner, target, this->isFinished(), logger);
-			logger(PkmnCommon::MoveMissEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy()});
+			logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 			return false;
 		}
 
@@ -867,7 +867,7 @@ namespace PokemonGen1
 			rng(); // Crit-check, but result doesn't matter
 			if (owner.getSpeed() < target.getSpeed()) {
 				logger(PkmnCommon::TextEvent{target.getName() + " is unaffected!"});
-				logger(PkmnCommon::MoveMissEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy()});
+				logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 				return false;
 			}
 			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, false, true, false, false);
@@ -899,7 +899,7 @@ namespace PokemonGen1
 				owner.getBattleState().lastDamage == 0
 			) {
 				logger(PkmnCommon::TextEvent{owner.getName() + "'s attack missed!"});
-				logger(PkmnCommon::MoveMissEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy()});
+				logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 				return false;
 			}
 		}
@@ -930,14 +930,14 @@ namespace PokemonGen1
 			else if (!this->_power)
 				logger(PkmnCommon::TextEvent{"But, it failed!"});
 			owner.getBattleState().lastDamage = 0;
-			logger(PkmnCommon::MoveMissEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy()});
+			logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 			return false;
 		}
 		if (this->_statusChange.status == STATUS_LEECHED && (target.getStatus() & STATUS_LEECHED)) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
 			// https://github.com/pret/pokeyellow/blob/d237b01cfb241f417567c964e0df0658cf921570/data/text/text_5.asm#L191
 			logger(PkmnCommon::TextEvent{target.getName() + " evaded attack!"});
-			logger(PkmnCommon::MoveMissEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy()});
+			logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 			return false;
 		}
 
@@ -949,7 +949,7 @@ namespace PokemonGen1
 			logger(PkmnCommon::TextEvent{messages[this->_statusChange.status]});
 			if (this->_missCallback)
 				this->_missCallback(this->getID(), owner, target, this->isFinished(), logger);
-			logger(PkmnCommon::MoveMissEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy()});
+			logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 			return false;
 		}
 
@@ -957,18 +957,18 @@ namespace PokemonGen1
 		if (this->getID() == Rest || this->getID() == Mirror_Move);
 		else if (this->getID() == Thrash || this->getID() == Petal_Dance) {
 			if (first)
-				logger(PkmnCommon::MoveEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy(), .hideSubstitute = true});
+				logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy(), .hideSubstitute = true});
 			else
-				logger(PkmnCommon::MoveEvent{.moveId = gen1MoveToCommon(Thrash), .player = !owner.isEnemy(), .hideSubstitute = true});
+				logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(Thrash), .player = !owner.isEnemy(), .hideSubstitute = true});
 		} else if (this->getID() == Explosion || this->getID() == Self_Destruct) {
-			logger(PkmnCommon::MoveEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy(), .hideSubstitute = true});
+			logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy(), .hideSubstitute = true});
 			logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !target.isEnemy(), .hasEffect = true});
-			logger(PkmnCommon::ExtraAnimEvent{.moveId = gen1MoveToCommon(this->getID()), .index = 0, .player = !owner.isEnemy()});
+			logger(PkmnCommon::ExtraAnimEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .index = 0, .player = !owner.isEnemy()});
 		} else if (this->getID() == Bide) {
 			if (first)
-				logger(PkmnCommon::ExtraAnimEvent{.moveId = gen1MoveToCommon(this->getID()), .index = 0, .player = !owner.isEnemy()});
+				logger(PkmnCommon::ExtraAnimEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .index = 0, .player = !owner.isEnemy()});
 		} else
-			logger(PkmnCommon::MoveEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy(), .hideSubstitute = this->_category != STATUS});
+			logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy(), .hideSubstitute = this->_category != STATUS});
 		if (this->_power) {
 			bool hasEffect = !this->_foeChange.empty() ||
 				!this->_ownerChange.empty() ||
@@ -1015,7 +1015,7 @@ namespace PokemonGen1
 
 		if (this->_power && hits > 1) {
 			for (size_t i = 1; i < hits; i++) {
-				logger(PkmnCommon::MoveEvent{.moveId = gen1MoveToCommon(this->getID()), .player = !owner.isEnemy(), .hideSubstitute = true});
+				logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy(), .hideSubstitute = true});
 				logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !target.isEnemy(), .hasEffect = true});
 				target.takeDamage(owner, owner.getBattleState().lastDamage, false, false);
 				if (damage.isNotVeryEffective)

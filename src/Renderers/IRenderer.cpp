@@ -246,6 +246,13 @@ namespace PkmnRenderer
 		return this->_finished;
 	}
 
+	PlayerState &IRenderer::getState(bool player)
+	{
+		if (!this->swapSide == player)
+			return this->state.p1;
+		return this->state.p2;
+	}
+
 	void IRenderer::consumeEvent(const PkmnCommon::Event &event)
 	{
 		this->_queue.push_back(event);

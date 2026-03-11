@@ -162,6 +162,8 @@ int main(int argc, char *argv[])
 					rendererPtr->goToTurn(0);
 				if (key->code == sf::Keyboard::Key::End)
 					rendererPtr->goToTurn(-1);
+				if (key->code == sf::Keyboard::Key::Backspace)
+					rendererPtr->swapSide = !rendererPtr->swapSide;
 			}
 			rendererPtr->consumeEvent(*event);
 		}
