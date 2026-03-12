@@ -183,12 +183,12 @@ cdef extern from "<GameEngine/Event.hpp>" namespace "PkmnCommon":
 		Struggle
 
 	struct MoveEvent:
-		unsigned moveId;
+		MoveIndex moveId;
 		bool player;
 		bool hideSubstitute;
 
 	struct MoveMissEvent:
-		unsigned moveId;
+		MoveIndex moveId;
 		bool player;
 
 	ctypedef enum SystemAnim:
@@ -254,7 +254,7 @@ cdef extern from "<GameEngine/Event.hpp>" namespace "PkmnCommon":
 		bool turn;
 
 	struct ExtraAnimEvent:
-		unsigned moveId;
+		MoveIndex moveId;
 		unsigned index;
 		bool player;
 
