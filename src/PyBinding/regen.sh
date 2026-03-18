@@ -1,4 +1,3 @@
 #!/bin/sh
-rm -rf dist/*.whl build/lib.linux-x86_64-cpython-*/
 python3 setup.py bdist_wheel
 pip install dist/*.whl --force-reinstall

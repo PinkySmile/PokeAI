@@ -56,7 +56,6 @@ if not args.fast:
 	state.logger = print
 
 
-#with open("pokeyellow_replay.state", "rb") as fd:
 battle.start()
 emulator.init_battle(None, state, fast_forward=args.fast or to_turn > 0, trainer=trainer)
 

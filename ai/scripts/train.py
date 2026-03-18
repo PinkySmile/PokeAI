@@ -55,7 +55,7 @@ def _capture_frame(self):
 gym.wrappers.RecordVideo._capture_frame = _capture_frame
 
 
-def make_env(gym_id, seed, idx, capture_video, run_name, video_every):
+def make_env(gym_id, seed, idx, capture_video, use_emulator, run_name, video_every):
     fn_episode_trigger = lambda ep_id: ep_id % max(1, int(video_every)) == 0
 
     def thunk():
@@ -64,7 +64,7 @@ def make_env(gym_id, seed, idx, capture_video, run_name, video_every):
             if gym_id == 'PokemonYellow':
                 env = gym.make('PokemonYellow', seed, render_mode='rgb_array_list', opponent_callback=basic_opponent,
                                episode_trigger=fn_episode_trigger, replay_folder=get_replay_folder(run_name),
-                               shuffle_teams=True, skip_frames=29, use_emulator=False)
+                               shuffle_teams=True, skip_frames=29, use_emulator=use_emulator)
             else:
                 env = gym.make(gym_id, seed, render_mode='rgb_array')
             # record every `video_every` episodes on env 0
@@ -221,6 +221,7 @@ def parse_args():
     parser.add_argument('--wandb-project-name', type=str, default='ppo', help='wandb project name')
     parser.add_argument('--capture-video', action='store_true', default=False,
                         help='Save video of the agent in its environment')
+    parser.add_argument('--emulator', action='store_true', default=False, help='Use emulator for video')
     parser.add_argument('--video-every', type=int, default=100, help='Record a video every N episodes on env 0')
 
     parser.add_argument('--num-envs', type=int, default=16, help='Number of parallel environments to run')
@@ -316,7 +317,7 @@ if __name__ == '__main__':
 
     # Creating the vectorized environments to run multiple independent copies of the same environment in parallel
     envs = gym.vector.AsyncVectorEnv(
-        [make_env(args.gym_id, args.seed + i, i, args.capture_video, run_name, args.video_every) for i in
+        [make_env(args.gym_id, args.seed + i, i, args.capture_video, args.emulator, run_name, args.video_every) for i in
          range(args.num_envs)])
     assert isinstance(envs.single_action_space, gym.spaces.Discrete), 'We only support discrete action space'
 

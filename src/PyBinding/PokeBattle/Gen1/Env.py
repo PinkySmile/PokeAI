@@ -597,7 +597,6 @@ class PokemonYellowBattle(Env):
 		self.recording = False
 		self.shuffle_teams = shuffle_teams
 		self.replay_folder = replay_folder
-		self.load_state = rom is None
 		self.trainer_class = None
 		self.renderer = None
 		self.emulator = None
@@ -641,14 +640,10 @@ class PokemonYellowBattle(Env):
 		if not self.recording:
 			return
 		if self.emulator is not None:
-			if self.load_state:
-				with open(os.path.abspath(os.path.join(__file__, os.path.pardir, "pokeyellow_replay.state")), "rb") as fd:
-					self.emulator.init_battle(fd, state, trainer=self.trainer_class)
-			else:
-				self.emulator.init_battle(None, state, trainer=self.trainer_class)
+			self.emulator.init_battle(None, state, trainer=self.trainer_class)
 		if self.renderer is not None:
-			self.renderer.reset()
 			self.renderer.state = state
+			self.renderer.reset()
 
 
 	@staticmethod
