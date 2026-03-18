@@ -26,7 +26,6 @@ with open("ai/configs/config.json", "r") as f:
 
 LOGS_ROOT = CONFIG.get("logs_root")
 VIDEOS_SUBDIR = CONFIG.get("videos_subdir")
-RUNS_DIR = CONFIG.get("runs_dir")
 
 
 def get_replay_folder(run_name: str):
@@ -64,7 +63,7 @@ def make_env(gym_id, seed, idx, capture_video, use_emulator, run_name, video_eve
             if gym_id == 'PokemonYellow':
                 env = gym.make('PokemonYellow', seed, render_mode='rgb_array_list', opponent_callback=basic_opponent,
                                episode_trigger=fn_episode_trigger, replay_folder=get_replay_folder(run_name),
-                               shuffle_teams=True, skip_frames=29, use_emulator=use_emulator)
+                               shuffle_teams=True, skip_frames=6, use_emulator=use_emulator)
             else:
                 env = gym.make(gym_id, seed, render_mode='rgb_array')
             # record every `video_every` episodes on env 0
@@ -278,12 +277,10 @@ if __name__ == '__main__':
     try:
         run_videos_dir = os.path.join(LOGS_ROOT, run_name, VIDEOS_SUBDIR)
         run_wandb_dir = os.path.join(LOGS_ROOT, run_name)
-        run_runs_dir = os.path.join(RUNS_DIR, run_name)
         checkpoints_dir = os.path.join(LOGS_ROOT, run_name, "checkpoints")
 
         os.makedirs(run_videos_dir, exist_ok=True)
         os.makedirs(run_wandb_dir, exist_ok=True)
-        os.makedirs(run_runs_dir, exist_ok=True)
         os.makedirs(checkpoints_dir, exist_ok=True)
     except Exception:
         logger.warn("Could not create directories.")
@@ -299,7 +296,7 @@ if __name__ == '__main__':
             config=vars(args),
             name=run_name,
             save_code=True,
-            dir=f'{LOGS_ROOT}/{run_name}'
+            dir=CONFIG.get("wandb_dir")
         )
     writer = SummaryWriter(f'{LOGS_ROOT}/{run_name}')
     writer.add_text('hyperparameters',
