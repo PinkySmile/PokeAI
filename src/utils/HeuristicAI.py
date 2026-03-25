@@ -337,12 +337,13 @@ def layer_ko_bonus(me: PlayerState, op: PlayerState, rng: Generator) -> list[flo
 
 		if move.priority > 0:
 			# Priority moves always go first (barring tie) – full credit
-			result[ATTACK1 + i] = ko
+			val = ko
 		elif we_underspec:
 			# Opponent moves first; if they can KO us the move never lands
-			result[ATTACK1 + i] = ko * (1.0 - op_best_ko)
+			val = ko * (1 - op_best_ko)
 		else:
-			result[ATTACK1 + i] = ko
+			val = ko
+		result[ATTACK1 + i] = math.exp((val - 1) * 10)
 
 	# Struggle KO check (power 50, Normal type, uses Attack/Defense)
 	if get_attack_damage_multiplier(int(Type.Normal), opp.types) != 0:
@@ -794,9 +795,7 @@ def layer_special_moves(me: PlayerState, op: PlayerState, rng: Generator) -> lis
 		# ── Counter (Gen 1: reflects last Normal/Fighting physical hit × 2) ───
 		if move_id == int(AvailableMove.Counter):
 			last_op = opp.last_used_move
-			if (last_op.id != 0
-					and last_op.category == MoveCategory.Physical
-					and last_op.type in (Type.Normal, Type.Fighting)):
+			if last_op.id != 0 and last_op.category == MoveCategory.Physical and last_op.type in (Type.Normal, Type.Fighting):
 				stored = p.damages_stored
 				if stored > 0:
 					counter_dmg = stored * 2
