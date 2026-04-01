@@ -64,21 +64,32 @@ incs = [include_dir, source_dir, '.']
 int_libs = ['PokemonGen1Core', 'PokemonGen1Emulator', 'PokemonGen1Renderers']
 libs = int_libs + ['sfml-graphics', 'sfml-system', 'sfml-audio']
 
+libdirs = os.environ.get('EXTRA_LIBS')
+if libdirs:
+	libdirs = libdirs.split(";")
+else:
+	libdirs = []
+
+inc_dirs = os.environ.get('EXTRA_INC')
+if inc_dirs:
+	incs += inc_dirs.split(";")
+
+
 extensions = [
-	Extension("PokeBattle.Gen1.BattleHandler",      ['PokeBattle/Gen1/BattleHandler.pyx'],      include_dirs=incs, libraries=libs),
-	Extension("PokeBattle.Gen1.Damage",             ['PokeBattle/Gen1/Damage.pyx'],             include_dirs=incs, libraries=libs),
-	Extension("PokeBattle.Gen1.EmulatorGameHandle", ['PokeBattle/Gen1/EmulatorGameHandle.pyx'], include_dirs=incs, libraries=libs),
-	Extension("PokeBattle.Gen1.Move",               ['PokeBattle/Gen1/Move.pyx'],               include_dirs=incs, libraries=libs),
-	Extension("PokeBattle.Gen1.Pokemon",            ['PokeBattle/Gen1/Pokemon.pyx'],            include_dirs=incs, libraries=libs),
-	Extension("PokeBattle.Gen1.RandomGenerator",    ['PokeBattle/Gen1/RandomGenerator.pyx'],    include_dirs=incs, libraries=libs),
-	Extension("PokeBattle.Gen1.State",              ['PokeBattle/Gen1/State.pyx'],              include_dirs=incs, libraries=libs),
-	Extension("PokeBattle.Gen1.StatsChange",        ['PokeBattle/Gen1/StatsChange.pyx'],        include_dirs=incs, libraries=libs),
-	Extension("PokeBattle.Gen1.StatusChange",       ['PokeBattle/Gen1/StatusChange.pyx'],       include_dirs=incs, libraries=libs),
-	Extension("PokeBattle.Gen1.Team",               ['PokeBattle/Gen1/Team.pyx'],               include_dirs=incs, libraries=libs),
-	Extension("PokeBattle.Gen1.Type",               ['PokeBattle/Gen1/Type.pyx'],               include_dirs=incs, libraries=libs),
-	Extension("PokeBattle.Gen1.DesyncPolicy",       ['PokeBattle/Gen1/DesyncPolicy.pyx'],       include_dirs=incs, libraries=libs),
-	Extension("PokeBattle.Gen1.BadActionPolicy",    ['PokeBattle/Gen1/BadActionPolicy.pyx'],    include_dirs=incs, libraries=libs),
-	Extension("PokeBattle.Gen1.Gen1Renderer",       ['PokeBattle/Gen1/Gen1Renderer.pyx'],       include_dirs=incs, libraries=libs),
+	Extension("PokeBattle.Gen1.BattleHandler",      ['PokeBattle/Gen1/BattleHandler.pyx'],      include_dirs=incs, libraries=libs, library_dirs=libdirs),
+	Extension("PokeBattle.Gen1.Damage",             ['PokeBattle/Gen1/Damage.pyx'],             include_dirs=incs, libraries=libs, library_dirs=libdirs),
+	Extension("PokeBattle.Gen1.EmulatorGameHandle", ['PokeBattle/Gen1/EmulatorGameHandle.pyx'], include_dirs=incs, libraries=libs, library_dirs=libdirs),
+	Extension("PokeBattle.Gen1.Move",               ['PokeBattle/Gen1/Move.pyx'],               include_dirs=incs, libraries=libs, library_dirs=libdirs),
+	Extension("PokeBattle.Gen1.Pokemon",            ['PokeBattle/Gen1/Pokemon.pyx'],            include_dirs=incs, libraries=libs, library_dirs=libdirs),
+	Extension("PokeBattle.Gen1.RandomGenerator",    ['PokeBattle/Gen1/RandomGenerator.pyx'],    include_dirs=incs, libraries=libs, library_dirs=libdirs),
+	Extension("PokeBattle.Gen1.State",              ['PokeBattle/Gen1/State.pyx'],              include_dirs=incs, libraries=libs, library_dirs=libdirs),
+	Extension("PokeBattle.Gen1.StatsChange",        ['PokeBattle/Gen1/StatsChange.pyx'],        include_dirs=incs, libraries=libs, library_dirs=libdirs),
+	Extension("PokeBattle.Gen1.StatusChange",       ['PokeBattle/Gen1/StatusChange.pyx'],       include_dirs=incs, libraries=libs, library_dirs=libdirs),
+	Extension("PokeBattle.Gen1.Team",               ['PokeBattle/Gen1/Team.pyx'],               include_dirs=incs, libraries=libs, library_dirs=libdirs),
+	Extension("PokeBattle.Gen1.Type",               ['PokeBattle/Gen1/Type.pyx'],               include_dirs=incs, libraries=libs, library_dirs=libdirs),
+	Extension("PokeBattle.Gen1.DesyncPolicy",       ['PokeBattle/Gen1/DesyncPolicy.pyx'],       include_dirs=incs, libraries=libs, library_dirs=libdirs),
+	Extension("PokeBattle.Gen1.BadActionPolicy",    ['PokeBattle/Gen1/BadActionPolicy.pyx'],    include_dirs=incs, libraries=libs, library_dirs=libdirs),
+	Extension("PokeBattle.Gen1.Gen1Renderer",       ['PokeBattle/Gen1/Gen1Renderer.pyx'],       include_dirs=incs, libraries=libs, library_dirs=libdirs),
 ]
 cython_ext = cythonize(extensions, build_dir="build")
 
