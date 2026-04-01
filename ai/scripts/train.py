@@ -366,6 +366,8 @@ if __name__ == '__main__':
     next_done = torch.zeros(args.num_envs, dtype=torch.float32, device=device)
     num_updates = args.total_timesteps // args.batch_size
 
+    env0_episodes  = -1
+
     # --- Training loop ---
     for update in range(start_update, num_updates + 1):
         if args.anneal_lr:
@@ -399,6 +401,9 @@ if __name__ == '__main__':
             if "_episode" in infos:
                 for i in range(len(infos["_episode"])):
                     if infos["_episode"][i]:
+                        if i == 0:
+                            env0_episodes += 1
+
                         ep_return = infos["episode"]["r"][i]
                         ep_length = infos["episode"]["l"][i]
                         print(
@@ -506,7 +511,7 @@ if __name__ == '__main__':
                 "update": update,
                 "model_state": model_to_save.state_dict(),
                 "optim_state": optimizer.state_dict(),
-            }, os.path.join(checkpoints_dir, f"update{update}.pt"))
+            }, os.path.join(checkpoints_dir, f"update{update}_ep{env0_episodes}.pt"))
 
         # DEBUG: Is the value function a good indicator of the returns ?
         y_pred, y_true = b_values.cpu().numpy(), b_returns.cpu().numpy()
