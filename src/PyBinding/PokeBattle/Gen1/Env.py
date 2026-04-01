@@ -632,7 +632,8 @@ class PokemonYellowBattle(Env):
 			print("Emulator desync detected!")
 			for e in errors:
 				print(f" - {e}")
-			self.battle.save_replay(os.path.join(self.replay_folder, f"desynced-episode-{self.episode_id}.replay"))
+			if self.replay_folder:
+				self.battle.save_replay(os.path.join(self.replay_folder, f"desynced-episode-{self.episode_id - 1}.replay"))
 			self.recording = False
 
 
@@ -798,7 +799,7 @@ class PokemonYellowBattle(Env):
 		self.battle.tick()
 		self.current_turn += 1
 		if self.battle.finished and self.replay_folder:
-			self.battle.save_replay(os.path.join(self.replay_folder, f"episode-{self.episode_id}.replay"))
+			self.battle.save_replay(os.path.join(self.replay_folder, f"episode-{self.episode_id - 1}.replay"))
 		observation, info = self.make_observation(state)
 		self.step_emulator(state)
 		# self.spec.max_episode_steps

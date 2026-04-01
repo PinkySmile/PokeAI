@@ -76,7 +76,7 @@ def make_env(gym_id, seed, idx, capture_video, use_emulator, run_name, video_eve
             try:
                 if gym_id == 'PokemonYellow':
                     env = gym.make('PokemonYellow', seed, opponent_callback=basic_opponent,
-                                   render_mode='human' if idx == 0 else None, replay_folder=get_replay_folder(run_name),
+                                   render_mode='human' if idx == 0 else None, replay_folder=None,
                                    shuffle_teams=True)
                 else:
                     env = gym.make(gym_id, seed)

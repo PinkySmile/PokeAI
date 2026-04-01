@@ -101,16 +101,16 @@ int main(int argc, char **argv)
 	};
 	if (testMoves) {
 		memset((void*)&renderer.state, 0, sizeof(renderer.state));
-		renderer.state.p1.spriteId = PokemonGen1::Pikachu;
+		renderer.state.p1.spriteId = PkmnCommon::Pikachu;
 		strcpy(renderer.state.p1.team[0].name, "PIKACHU");
-		renderer.state.p1.team[0].id = PokemonGen1::Pikachu;
+		renderer.state.p1.team[0].id = PkmnCommon::Pikachu;
 		renderer.state.p1.team[0].hp = 50;
 		renderer.state.p1.team[0].maxHp = 75;
 		renderer.state.p1.team[0].level = 75;
 		renderer.state.p1.active = 0;
-		renderer.state.p2.spriteId = PokemonGen1::Clefairy;
+		renderer.state.p2.spriteId = PkmnCommon::Clefairy;
 		strcpy(renderer.state.p2.team[0].name, "CLEFAIRY");
-		renderer.state.p2.team[0].id = PokemonGen1::Clefairy;
+		renderer.state.p2.team[0].id = PkmnCommon::Clefairy;
 		renderer.state.p2.team[0].hp = 50;
 		renderer.state.p2.team[0].maxHp = 75;
 		renderer.state.p2.team[0].level = 100;
