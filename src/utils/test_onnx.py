@@ -51,12 +51,12 @@ env = gym.make(
 	use_emulator=True
 )
 next_obs, next_obs_info = env.reset(seed=args.seed, options=start_options)
-mask = next_obs_info.get('mask')
+next_mask = next_obs_info.get('mask')
 terminated = False
 while not terminated:
 	outputs = session.run(["action"], {
 		'observation': [next_obs],
-		'action_mask': [mask]
+		'action_mask': [next_mask]
 	})
 	next_obs, reward, terminated, truncated, infos = env.step(outputs[0][0])
 	next_mask = infos.get('mask')
