@@ -120,6 +120,7 @@ add_library(
 	src/Renderers/Gen1ResultBasedGenerator.hpp
 	src/Renderers/ShowdownReader.cpp
 	src/Renderers/ShowdownReader.hpp
+	src/GameEngine/Event.cpp
 )
 target_link_libraries(
 	PokemonGen1Renderers
