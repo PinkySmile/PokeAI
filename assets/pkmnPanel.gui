@@ -103,7 +103,6 @@ Renderer.4 {
 }
 
 BitmapButton.Species {
-    Image = "front_sprites/1_front.png" Smooth;
     ImageScaling = 1;
     Position = (5, 5);
     Size = (90, 90);

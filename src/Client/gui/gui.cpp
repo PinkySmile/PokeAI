@@ -9,11 +9,12 @@
 #include <memory>
 #include "gui.hpp"
 #include "Utils.hpp"
-#include "GameEngine/Team.hpp"
+#include "GameEngine/Gen1/Team.hpp"
 #include "Emulator/EmulatorGameHandle.hpp"
 #include "Emulator/BgbHandler.hpp"
 #include "../AIs/AI.hpp"
 #include "../AIs/AIFactory.hpp"
+#include "Renderers/IRenderer.hpp"
 
 using namespace PokemonGen1;
 
@@ -750,9 +751,9 @@ void makeMainMenuGUI(
 			buffer.resize(length / 2);
 			try {
 				stream.read(reinterpret_cast<char *>(buffer.data()), length / 2);
-				me = loadTrainer(buffer, state);
+				me = loadTrainer(buffer, state, false);
 				stream.read(reinterpret_cast<char *>(buffer.data()), length / 2);
-				op = loadTrainer(buffer, state);
+				op = loadTrainer(buffer, state, true);
 			} catch (std::exception &e) {
 				Utils::dispMsg(Utils::getLastExceptionName(), "Cannot load load file \"" + path + "\"\n" + e.what(), MB_ICONERROR);
 			}
@@ -766,7 +767,7 @@ void makeMainMenuGUI(
 			buffer.resize(length);
 			stream.read(reinterpret_cast<char *>(buffer.data()), length);
 			try {
-				auto t = loadTrainer(buffer, state);
+				auto t = loadTrainer(buffer, state, side);
 
 				player.name = t.first;
 				player.team = t.second;
@@ -897,7 +898,7 @@ void makeMainMenuGUI(
 
 void mainMenu(sf::RenderWindow &window, std::unique_ptr<EmulatorGameHandle> &emulator, BattleHandler &game, BattleResources &resources, std::pair<unsigned char, unsigned char> &ai, bool &ready)
 {
-	bool side;
+	bool side = false;
 	tgui::Gui gui{window};
 	auto &state = game.getBattleState();
 
@@ -964,13 +965,15 @@ void loadResources(BattleResources &resources)
 	(void)resources.categories[1].loadFromFile("assets/move_categories/special.png");
 	(void)resources.categories[2].loadFromFile("assets/move_categories/status.png");
 
-	for (int i = 0; i < 256; i++)
-		if (!resources.pokemonsBack[i].loadFromFile("assets/back_sprites/" + std::to_string(i) + "_back.png"))
-			(void)resources.pokemonsBack[i].loadFromFile("assets/back_sprites/missingno_back.png");
+	for (int i = 0; i < 256; i++) {
+		auto id = PkmnRenderer::gen1SpeciesToCommon(i);
+		std::string name = PkmnCommon::speciesToString(id);
 
-	for (int i = 0; i < 256; i++)
-		if (!resources.pokemonsFront[i].loadFromFile("assets/front_sprites/" + std::to_string(i) + "_front.png"))
-			(void)resources.pokemonsFront[i].loadFromFile("assets/front_sprites/missingno_front.png");
+		if (!resources.pokemonsFront[i].loadFromFile("assets/gen1/pokemons/" + name + "/front.png"))
+			(void)resources.pokemonsFront[i].loadFromFile("\"assets/gen1/pokemons/missingno/front.png");
+		if (!resources.pokemonsBack[i].loadFromFile("assets/gen1/pokemons/" + name + "/back.png"))
+			(void)resources.pokemonsBack[i].loadFromFile("assets/gen1/pokemons/missingno/back.png");
+	}
 
 	(void)resources.balls[0].loadFromFile("assets/pokeballs/pkmnOK.png");
 	(void)resources.balls[1].loadFromFile("assets/pokeballs/pkmnNO.png");
@@ -1053,9 +1056,11 @@ void gui(const std::string &trainerName)
 	bool ready = false;
 
 	state.rng.makeRandomList(9);
-	state.battleLogger = [&battleLog](const std::string &msg){
-		std::cout << "[BATTLE]: " << msg << "!" << std::endl;
-		battleLog.push_back(splitText(msg));
+	state.battleLogger = [&battleLog](const PkmnCommon::Event &event){
+		if (auto text = std::get_if<PkmnCommon::TextEvent>(&event)) {
+			puts(text->message.c_str());
+			battleLog.push_back(splitText(text->message));
+		}
 	};
 	loadResources(resources);
 	state.me.team.resize(6, {

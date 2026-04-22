@@ -57,7 +57,7 @@ Renderer.2 {
 }
 
 BitmapButton.Species {
-    Image = "front_sprites/1_front.png" Smooth;
+    Image = "gen1/pokemons/abra/front.png" Smooth;
     ImageScaling = 1;
     Position = (5, 5);
     Size = (140, 140);

@@ -1,6 +1,6 @@
 import traceback
 
-from PokeBattle.Gen1.Env import Examples
+from PokeBattle.Gen1.Env import Examples, load_scenario, basic_opponent
 import gymnasium as gym
 import asyncio
 import sys
@@ -37,9 +37,9 @@ def check_obs(p, obs):
 auto = len(sys.argv) > 1
 
 async def main():
-	p = gym.make('PokemonYellow', render_mode="rgb_array_list", shuffle_teams=True, rom="/home/pinky/pokeyellow-gen-II/pokeyellow.gbc", leak_state=True, skip_frames=300, use_emulator=False)
+	p = gym.make('PokemonYellow', render_mode="human", shuffle_teams=True, rom="/home/pinky/pokeyellow-gen-II/pokeyellow.gbc", leak_state=True, skip_frames=300, use_emulator=False)
 	finished = False
-	params = Examples.Blue3_1
+	params = load_scenario('ai/scenarios/very_simple.scenario', basic_opponent)
 	observation, info = p.reset(options=params)
 
 	print(observation, info, len(observation))

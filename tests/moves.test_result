@@ -1,21 +1,19 @@
-Bide&Confuse_Ray[10](Move->Par) [[191, 10, 125, 124, 23, 163, 182, 133, 187]]: Failed
+Bide&Confuse_Ray[8](Move->Par) [[119, 167, 11, 5, 93, 174, 244, 217, 37]]: Failed
  - On turn 6: P2 Health b.955 vs e.999
-Bide&Confuse_Ray[12](Move->Par) [[238, 13, 98, 59, 9, 175, 67, 249, 91]]: Failed
- - On turn 6: P2 Health b.977 vs e.999
 Bide&Leech_Seed[0](Move->Par) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 3: P2 Health b.813 vs e.999
-Bide&Leech_Seed[10](Move->Par) [[176, 207, 94, 82, 178, 145, 246, 12, 55]]: Failed
+Bide&Leech_Seed[10](Move->Par) [[110, 133, 95, 149, 106, 133, 74, 41, 243]]: Failed
  - On turn 4: P2 Health b.689 vs e.999
-Bide&Leech_Seed[11](Move->Par) [[211, 51, 186, 36, 142, 222, 103, 119, 209]]: Failed
- - On turn 4: P2 Health b.689 vs e.999
-Bide&Leech_Seed[12](Move->Par) [[1, 20, 144, 119, 206, 20, 39, 53, 221]]: Failed
+Bide&Leech_Seed[11](Move->Par) [[207, 22, 153, 229, 118, 214, 51, 176, 226]]: Failed
  - On turn 3: P2 Health b.813 vs e.999
-Bide&Leech_Seed[13](Move->Par) [[121, 149, 174, 37, 239, 243, 39, 171, 27]]: Failed
+Bide&Leech_Seed[12](Move->Par) [[200, 141, 132, 86, 131, 193, 204, 171, 143]]: Failed
  - On turn 4: P2 Health b.689 vs e.999
-Bide&Leech_Seed[14](Move->Par) [[105, 203, 12, 179, 217, 202, 217, 243, 144]]: Failed
- - On turn 4: P2 Health b.689 vs e.999
-Bide&Leech_Seed[15](Move->Par) [[244, 103, 90, 193, 2, 33, 63, 211, 103]]: Failed
+Bide&Leech_Seed[13](Move->Par) [[229, 219, 36, 199, 109, 217, 21, 27, 18]]: Failed
  - On turn 4: P2 Health b.813 vs e.999
+Bide&Leech_Seed[14](Move->Par) [[1, 67, 73, 115, 211, 168, 228, 54, 226]]: Failed
+ - On turn 4: P2 Health b.689 vs e.999
+Bide&Leech_Seed[15](Move->Par) [[178, 229, 58, 87, 55, 203, 32, 49, 194]]: Failed
+ - On turn 4: P2 Health b.689 vs e.999
 Bide&Leech_Seed[2](Move->Par) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 6: P2 Health b.813 vs e.999
 Bide&Leech_Seed[3](Move->Par) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
@@ -24,28 +22,28 @@ Bide&Leech_Seed[4](Move->Par) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Faile
  - On turn 3: P2 Health b.813 vs e.999
 Bide&Leech_Seed[5](Move->Par) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 3: P2 Health b.937 vs e.999
-Bide&Leech_Seed[6](Move->Par) [[128, 223, 64, 117, 119, 218, 13, 116, 206]]: Failed
- - On turn 4: P2 Health b.689 vs e.999
-Bide&Leech_Seed[7](Move->Par) [[138, 32, 154, 11, 37, 155, 30, 110, 78]]: Failed
+Bide&Leech_Seed[6](Move->Par) [[5, 98, 160, 35, 112, 90, 75, 248, 20]]: Failed
  - On turn 3: P2 Health b.813 vs e.999
-Bide&Leech_Seed[8](Move->Par) [[248, 19, 177, 245, 250, 58, 17, 165, 97]]: Failed
- - On turn 4: P2 Health b.813 vs e.999
-Bide&Leech_Seed[9](Move->Par) [[140, 210, 40, 131, 230, 244, 14, 173, 118]]: Failed
+Bide&Leech_Seed[7](Move->Par) [[190, 62, 225, 214, 39, 36, 226, 34, 139]]: Failed
+ - On turn 3: P2 Health b.813 vs e.999
+Bide&Leech_Seed[8](Move->Par) [[17, 10, 126, 14, 95, 85, 109, 147, 98]]: Failed
+ - On turn 3: P2 Health b.813 vs e.999
+Bide&Leech_Seed[9](Move->Par) [[64, 68, 183, 59, 35, 161, 117, 146, 14]]: Failed
  - On turn 3: P2 Health b.813 vs e.999
 Bide&Poison_Gas[0](Move->Par) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 3: P2 Health b.751 vs e.999
-Bide&Poison_Gas[10](Move->Par) [[252, 123, 199, 210, 66, 194, 195, 123, 4]]: Failed
- - On turn 7: P2 Health b.751 vs e.999
-Bide&Poison_Gas[11](Move->Par) [[16, 13, 62, 96, 173, 194, 47, 148, 133]]: Failed
- - On turn 4: P2 Health b.627 vs e.999
-Bide&Poison_Gas[12](Move->Par) [[172, 79, 68, 209, 137, 196, 108, 160, 63]]: Failed
- - On turn 4: P2 Health b.751 vs e.999
-Bide&Poison_Gas[13](Move->Par) [[221, 142, 136, 37, 88, 243, 181, 245, 94]]: Failed
- - On turn 3: P2 Health b.875 vs e.999
-Bide&Poison_Gas[14](Move->Par) [[144, 174, 77, 235, 11, 115, 39, 116, 149]]: Failed
- - On turn 3: P2 Health b.875 vs e.999
-Bide&Poison_Gas[15](Move->Par) [[102, 129, 243, 41, 224, 30, 92, 111, 92]]: Failed
- - On turn 4: P2 Health b.627 vs e.999
+Bide&Poison_Gas[10](Move->Par) [[15, 34, 77, 251, 224, 110, 159, 230, 27]]: Failed
+ - On turn 3: P2 Health b.751 vs e.999
+Bide&Poison_Gas[11](Move->Par) [[143, 206, 164, 93, 35, 184, 38, 134, 252]]: Failed
+ - On turn 7: P2 Health b.627 vs e.999
+Bide&Poison_Gas[12](Move->Par) [[16, 174, 57, 78, 219, 182, 213, 218, 227]]: Failed
+ - On turn 3: P2 Health b.751 vs e.999
+Bide&Poison_Gas[13](Move->Par) [[32, 224, 185, 26, 105, 233, 175, 74, 198]]: Failed
+ - On turn 3: P2 Health b.751 vs e.999
+Bide&Poison_Gas[14](Move->Par) [[55, 74, 216, 104, 147, 231, 73, 251, 149]]: Failed
+ - On turn 3: P2 Health b.751 vs e.999
+Bide&Poison_Gas[15](Move->Par) [[1, 112, 27, 2, 3, 192, 122, 116, 34]]: Failed
+ - On turn 3: P2 Health b.751 vs e.999
 Bide&Poison_Gas[2](Move->Par) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 7: P2 Health b.627 vs e.999
 Bide&Poison_Gas[3](Move->Par) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
@@ -54,28 +52,28 @@ Bide&Poison_Gas[4](Move->Par) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Faile
  - On turn 6: P2 Health b.751 vs e.999
 Bide&Poison_Gas[5](Move->Par) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 3: P2 Health b.875 vs e.999
-Bide&Poison_Gas[6](Move->Par) [[9, 12, 220, 237, 18, 30, 232, 209, 173]]: Failed
+Bide&Poison_Gas[6](Move->Par) [[157, 131, 35, 106, 206, 243, 49, 233, 0]]: Failed
+ - On turn 4: P2 Health b.751 vs e.999
+Bide&Poison_Gas[7](Move->Par) [[29, 158, 83, 75, 117, 97, 15, 106, 57]]: Failed
  - On turn 3: P2 Health b.751 vs e.999
-Bide&Poison_Gas[7](Move->Par) [[42, 152, 100, 75, 83, 131, 48, 227, 204]]: Failed
- - On turn 3: P2 Health b.751 vs e.999
-Bide&Poison_Gas[8](Move->Par) [[89, 178, 87, 121, 97, 14, 132, 127, 150]]: Failed
- - On turn 3: P2 Health b.751 vs e.999
-Bide&Poison_Gas[9](Move->Par) [[190, 236, 148, 168, 138, 149, 237, 221, 175]]: Failed
- - On turn 7: P2 Health b.627 vs e.999
+Bide&Poison_Gas[8](Move->Par) [[72, 113, 195, 115, 224, 170, 131, 238, 199]]: Failed
+ - On turn 4: P2 Health b.627 vs e.999
+Bide&Poison_Gas[9](Move->Par) [[19, 27, 48, 141, 108, 65, 121, 215, 210]]: Failed
+ - On turn 4: P2 Health b.627 vs e.999
 Bide&Poisonpowder[0](Move->Par) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 3: P2 Health b.751 vs e.999
-Bide&Poisonpowder[10](Move->Par) [[212, 136, 170, 134, 23, 212, 196, 110, 73]]: Failed
- - On turn 3: P2 Health b.875 vs e.999
-Bide&Poisonpowder[11](Move->Par) [[21, 70, 217, 249, 125, 185, 134, 119, 115]]: Failed
- - On turn 3: P2 Health b.751 vs e.999
-Bide&Poisonpowder[12](Move->Par) [[11, 121, 156, 161, 210, 132, 91, 84, 107]]: Failed
+Bide&Poisonpowder[10](Move->Par) [[108, 75, 31, 218, 115, 65, 63, 6, 52]]: Failed
  - On turn 4: P2 Health b.627 vs e.999
-Bide&Poisonpowder[13](Move->Par) [[56, 28, 49, 165, 110, 38, 50, 87, 87]]: Failed
+Bide&Poisonpowder[11](Move->Par) [[66, 74, 62, 64, 82, 142, 58, 36, 92]]: Failed
  - On turn 3: P2 Health b.751 vs e.999
-Bide&Poisonpowder[14](Move->Par) [[113, 30, 149, 54, 196, 137, 18, 217, 138]]: Failed
+Bide&Poisonpowder[12](Move->Par) [[154, 104, 174, 156, 156, 158, 56, 250, 161]]: Failed
  - On turn 3: P2 Health b.751 vs e.999
-Bide&Poisonpowder[15](Move->Par) [[59, 229, 238, 55, 103, 231, 129, 92, 131]]: Failed
- - On turn 4: P2 Health b.627 vs e.999
+Bide&Poisonpowder[13](Move->Par) [[132, 32, 78, 144, 68, 135, 139, 71, 55]]: Failed
+ - On turn 3: P2 Health b.751 vs e.999
+Bide&Poisonpowder[14](Move->Par) [[66, 100, 182, 130, 153, 85, 175, 154, 246]]: Failed
+ - On turn 3: P2 Health b.751 vs e.999
+Bide&Poisonpowder[15](Move->Par) [[209, 246, 211, 169, 252, 121, 133, 215, 90]]: Failed
+ - On turn 6: P2 Health b.751 vs e.999
 Bide&Poisonpowder[2](Move->Par) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 7: P2 Health b.627 vs e.999
 Bide&Poisonpowder[3](Move->Par) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
@@ -84,29 +82,33 @@ Bide&Poisonpowder[4](Move->Par) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Fai
  - On turn 3: P2 Health b.751 vs e.999
 Bide&Poisonpowder[5](Move->Par) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 3: P2 Health b.875 vs e.999
-Bide&Poisonpowder[6](Move->Par) [[18, 118, 171, 15, 119, 90, 241, 206, 122]]: Failed
+Bide&Poisonpowder[6](Move->Par) [[59, 136, 149, 204, 97, 163, 166, 110, 57]]: Failed
  - On turn 3: P2 Health b.751 vs e.999
-Bide&Poisonpowder[7](Move->Par) [[3, 31, 102, 58, 201, 165, 236, 62, 188]]: Failed
- - On turn 4: P2 Health b.627 vs e.999
-Bide&Poisonpowder[8](Move->Par) [[194, 229, 160, 250, 240, 15, 10, 183, 237]]: Failed
- - On turn 4: P2 Health b.751 vs e.999
-Bide&Poisonpowder[9](Move->Par) [[83, 187, 131, 148, 17, 156, 100, 56, 143]]: Failed
- - On turn 4: P2 Health b.627 vs e.999
-Bide&Supersonic[13](Move->Par) [[47, 15, 237, 31, 121, 15, 76, 243, 159]]: Failed
- - On turn 7: P2 Health b.955 vs e.999
+Bide&Poisonpowder[7](Move->Par) [[231, 34, 113, 33, 113, 47, 22, 98, 144]]: Failed
+ - On turn 3: P2 Health b.875 vs e.999
+Bide&Poisonpowder[8](Move->Par) [[35, 58, 167, 44, 65, 198, 151, 144, 201]]: Failed
+ - On turn 3: P2 Health b.751 vs e.999
+Bide&Poisonpowder[9](Move->Par) [[78, 172, 21, 176, 240, 191, 28, 144, 141]]: Failed
+ - On turn 3: P2 Health b.751 vs e.999
+Bide&Supersonic[11](Move->Par) [[179, 213, 44, 2, 27, 86, 190, 69, 16]]: Failed
+ - On turn 6: P2 Health b.977 vs e.999
+Bide&Supersonic[12](Move->Par) [[91, 114, 15, 171, 62, 4, 49, 245, 120]]: Failed
+ - On turn 6: P2 Health b.977 vs e.999
+Bide&Supersonic[13](Move->Par) [[53, 195, 223, 150, 63, 120, 234, 242, 250]]: Failed
+ - On turn 6: P2 Health b.977 vs e.999
 Bide&Toxic[0](Move->Par) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 3: P2 Health b.627 vs e.999
-Bide&Toxic[10](Move->Par) [[32, 25, 150, 243, 74, 241, 83, 198, 123]]: Failed
- - On turn 4: P2 Health b.255 vs e.999
-Bide&Toxic[11](Move->Par) [[222, 56, 70, 15, 211, 14, 245, 187, 82]]: Failed
+Bide&Toxic[10](Move->Par) [[217, 99, 49, 228, 72, 55, 63, 13, 73]]: Failed
+ - On turn 4: P2 Health b.627 vs e.999
+Bide&Toxic[11](Move->Par) [[223, 98, 192, 178, 77, 242, 242, 138, 191]]: Failed
  - On turn 3: P2 Health b.875 vs e.999
-Bide&Toxic[12](Move->Par) [[230, 190, 95, 74, 15, 31, 203, 1, 82]]: Failed
- - On turn 3: P2 Health b.875 vs e.999
-Bide&Toxic[13](Move->Par) [[215, 139, 38, 20, 83, 67, 96, 139, 230]]: Failed
+Bide&Toxic[12](Move->Par) [[91, 165, 74, 190, 127, 119, 247, 22, 70]]: Failed
  - On turn 4: P2 Health b.255 vs e.999
-Bide&Toxic[14](Move->Par) [[130, 72, 160, 101, 24, 55, 32, 108, 16]]: Failed
+Bide&Toxic[13](Move->Par) [[47, 166, 2, 245, 153, 25, 99, 142, 20]]: Failed
  - On turn 3: P2 Health b.627 vs e.999
-Bide&Toxic[15](Move->Par) [[12, 61, 108, 203, 118, 98, 138, 2, 89]]: Failed
+Bide&Toxic[14](Move->Par) [[146, 149, 80, 165, 206, 241, 216, 202, 11]]: Failed
+ - On turn 4: P2 Health b.255 vs e.999
+Bide&Toxic[15](Move->Par) [[81, 131, 29, 54, 38, 172, 49, 217, 173]]: Failed
  - On turn 4: P2 Health b.255 vs e.999
 Bide&Toxic[2](Move->Par) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 7: P1 Health b.379 vs e.69
@@ -117,24 +119,14 @@ Bide&Toxic[4](Move->Par) [[160, 64, 160, 64, 160, 64, 160, 64, 160]]: Failed
  - On turn 3: P2 Health b.627 vs e.999
 Bide&Toxic[5](Move->Par) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 3: P2 Health b.875 vs e.999
-Bide&Toxic[6](Move->Par) [[89, 197, 155, 63, 121, 192, 252, 204, 121]]: Failed
+Bide&Toxic[6](Move->Par) [[241, 51, 70, 148, 146, 77, 91, 91, 132]]: Failed
+ - On turn 4: P2 Health b.627 vs e.999
+Bide&Toxic[7](Move->Par) [[200, 227, 250, 108, 47, 117, 61, 231, 29]]: Failed
  - On turn 4: P2 Health b.255 vs e.999
-Bide&Toxic[7](Move->Par) [[218, 80, 40, 158, 174, 140, 59, 128, 100]]: Failed
- - On turn 3: P2 Health b.875 vs e.999
-Bide&Toxic[8](Move->Par) [[229, 220, 126, 96, 118, 241, 205, 124, 179]]: Failed
- - On turn 3: P2 Health b.875 vs e.999
-Bide&Toxic[9](Move->Par) [[5, 5, 201, 170, 204, 99, 93, 35, 36]]: Failed
+Bide&Toxic[8](Move->Par) [[195, 243, 206, 240, 225, 96, 54, 52, 241]]: Failed
  - On turn 4: P2 Health b.255 vs e.999
-Dig&Confuse_Ray[10](Move->Par) [[223, 7, 69, 139, 34, 55, 167, 205, 213]]: Failed
- - On turn 3: RNG index b.5 vs e.6
-Dig&Confuse_Ray[12](Move->Par) [[113, 146, 35, 220, 144, 25, 143, 80, 128]]: Failed
- - On turn 3: RNG index b.5 vs e.6
- - On turn 3: P1 Health b.977 vs e.988
-Dig&Confuse_Ray[13](Move->Par) [[157, 111, 86, 143, 173, 49, 54, 42, 179]]: Failed
- - On turn 3: RNG index b.5 vs e.6
- - On turn 3: P1 Health b.977 vs e.988
-Dig&Confuse_Ray[15](Move->Par) [[197, 97, 36, 249, 63, 193, 72, 76, 138]]: Failed
- - On turn 3: RNG index b.4 vs e.5
+Bide&Toxic[9](Move->Par) [[116, 49, 45, 103, 247, 44, 12, 36, 204]]: Failed
+ - On turn 4: P2 Health b.255 vs e.999
 Dig&Confuse_Ray[16](Move->Par) [[93, 179, 138, 177, 116, 218, 202, 3, 108]]: Failed
  - On turn 4: RNG index b.7 vs e.8
  - On turn 4: P1 Health b.966 vs e.977
@@ -143,59 +135,46 @@ Dig&Confuse_Ray[17](Move->Par) [[75, 249, 72, 171, 120, 78, 39, 204, 67]]: Faile
 Dig&Confuse_Ray[5](Move->Par) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 5: RNG index b.1 vs e.2
  - On turn 5: P1 Health b.977 vs e.988
-Dig&Confuse_Ray[6](Move->Par) [[12, 18, 106, 127, 103, 202, 215, 212, 150]]: Failed
- - On turn 7: RNG index b.3 vs e.4
-Dig&Confuse_Ray[7](Move->Par) [[182, 111, 230, 120, 108, 172, 246, 155, 27]]: Failed
- - On turn 4: RNG index b.7 vs e.8
-Dig&Confuse_Ray[8](Move->Par) [[44, 246, 103, 196, 32, 83, 247, 251, 1]]: Failed
+Dig&Confuse_Ray[8](Move->Par) [[39, 92, 97, 187, 200, 157, 153, 101, 50]]: Failed
+ - On turn 5: RNG index b.7 vs e.8
+Dig&Supersonic[15](Move->Par) [[111, 83, 27, 243, 176, 94, 8, 131, 61]]: Failed
  - On turn 3: RNG index b.5 vs e.6
-Dig&Confuse_Ray[9](Move->Par) [[77, 41, 113, 192, 92, 14, 239, 63, 92]]: Failed
- - On turn 3: RNG index b.4 vs e.5
-Dig&Supersonic[11](Move->Par) [[206, 9, 10, 163, 235, 201, 161, 46, 118]]: Failed
- - On turn 7: RNG index b.5 vs e.6
-Dig&Supersonic[12](Move->Par) [[209, 22, 145, 212, 133, 146, 193, 202, 8]]: Failed
- - On turn 5: RNG index b.4 vs e.5
- - On turn 5: P1 Health b.988 vs e.977
-Dig&Supersonic[14](Move->Par) [[207, 50, 0, 103, 159, 251, 50, 32, 194]]: Failed
- - On turn 5: RNG index b.3 vs e.4
+ - On turn 3: P1 Health b.977 vs e.988
 Dig&Supersonic[16](Move->Par) [[75, 249, 72, 171, 120, 78, 39, 204, 67]]: Failed
  - On turn 3: RNG index b.4 vs e.5
 Dig&Supersonic[5](Move->Par) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 5: RNG index b.1 vs e.2
  - On turn 5: P1 Health b.977 vs e.988
-Dig&Supersonic[8](Move->Par) [[195, 189, 151, 91, 205, 43, 88, 81, 19]]: Failed
- - On turn 5: RNG index b.1 vs e.2
-Fly&Confuse_Ray[10](Move->Par) [[49, 246, 151, 15, 96, 199, 233, 37, 79]]: Failed
- - On turn 4: RNG index b.6 vs e.7
-Fly&Confuse_Ray[11](Move->Par) [[180, 32, 151, 191, 176, 180, 102, 180, 139]]: Failed
- - On turn 6: RNG index b.4 vs e.5
- - On turn 6: P1 Health b.966 vs e.977
-Fly&Confuse_Ray[14](Move->Par) [[180, 63, 127, 198, 165, 34, 210, 208, 225]]: Failed
+Dig&Supersonic[6](Move->Par) [[44, 123, 146, 19, 53, 199, 176, 98, 129]]: Failed
+ - On turn 4: RNG index b.7 vs e.8
+ - On turn 4: P1 Health b.966 vs e.977
+Dig&Supersonic[7](Move->Par) [[41, 177, 184, 129, 130, 208, 98, 37, 15]]: Failed
+ - On turn 7: RNG index b.4 vs e.5
+Dig&Supersonic[8](Move->Par) [[17, 187, 90, 138, 186, 66, 170, 209, 203]]: Failed
  - On turn 3: RNG index b.5 vs e.6
  - On turn 3: P1 Health b.977 vs e.988
-Fly&Confuse_Ray[15](Move->Par) [[188, 198, 249, 200, 111, 193, 93, 196, 226]]: Failed
- - On turn 4: RNG index b.6 vs e.7
+Fly&Confuse_Ray[10](Move->Par) [[47, 109, 17, 215, 248, 245, 56, 22, 241]]: Failed
+ - On turn 3: RNG index b.4 vs e.5
+Fly&Confuse_Ray[11](Move->Par) [[101, 227, 47, 173, 121, 40, 242, 59, 228]]: Failed
+ - On turn 3: RNG index b.5 vs e.6
+Fly&Confuse_Ray[13](Move->Par) [[164, 23, 186, 73, 184, 195, 37, 164, 86]]: Failed
+ - On turn 5: RNG index b.8 vs e.0
+ - On turn 5: RNG list b.[164, 23, 186, 73, 184, 195, 37, 164, 86] vs e.[53, 116, 163, 110, 153, 208, 186, 53, 175]
+Fly&Confuse_Ray[14](Move->Par) [[128, 169, 150, 172, 63, 37, 159, 149, 133]]: Failed
+ - On turn 6: RNG index b.0 vs e.1
 Fly&Confuse_Ray[16](Move->Par) [[93, 179, 138, 177, 116, 218, 202, 3, 108]]: Failed
  - On turn 4: RNG index b.7 vs e.8
  - On turn 4: P1 Health b.966 vs e.977
 Fly&Confuse_Ray[5](Move->Par) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 5: RNG index b.1 vs e.2
  - On turn 5: P1 Health b.977 vs e.988
-Fly&Confuse_Ray[8](Move->Par) [[221, 214, 198, 130, 23, 193, 244, 114, 165]]: Failed
- - On turn 4: RNG index b.6 vs e.7
-Fly&Supersonic[11](Move->Par) [[246, 122, 5, 248, 214, 236, 119, 212, 3]]: Failed
- - On turn 5: RNG index b.6 vs e.7
-Fly&Supersonic[12](Move->Par) [[72, 106, 213, 173, 62, 149, 53, 244, 208]]: Failed
- - On turn 4: RNG index b.6 vs e.7
-Fly&Supersonic[14](Move->Par) [[198, 117, 148, 119, 0, 52, 178, 114, 30]]: Failed
- - On turn 7: RNG index b.7 vs e.8
- - On turn 7: P1 Health b.988 vs e.977
-Fly&Supersonic[15](Move->Par) [[194, 233, 20, 42, 122, 98, 218, 139, 111]]: Failed
- - On turn 5: RNG index b.7 vs e.8
- - On turn 5: P1 Health b.988 vs e.977
+Fly&Confuse_Ray[7](Move->Par) [[51, 38, 115, 131, 153, 150, 250, 194, 89]]: Failed
+ - On turn 3: RNG index b.5 vs e.6
 Fly&Supersonic[5](Move->Par) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 5: RNG index b.1 vs e.2
  - On turn 5: P1 Health b.977 vs e.988
+Fly&Supersonic[8](Move->Par) [[51, 156, 88, 10, 217, 193, 128, 134, 156]]: Failed
+ - On turn 6: RNG index b.3 vs e.4
 Metronome[25](HP) [[63, 54, 78, 9, 244, 23, 234, 245, 195]]: Failed
  - On turn 7: RNG index b.7 vs e.8
  - On turn 7: RNG list b.[22, 33, 89, 88, 199, 14, 69, 84, 202] vs e.[209, 160, 120, 171, 142, 105, 116, 119, 245]
@@ -266,28 +245,28 @@ Metronome[37](Sub) [[181, 179, 12, 164, 249, 82, 14, 185, 56]]: Failed
  - On turn 6: P1 PPs b.[4, 0, 0, 0] vs e.[5, 0, 0, 0]
 Rage&Confuse_Ray[0](Move->Par) [[1, 0, 0, 0, 0, 0, 0, 0, 0]]: Failed
  - On turn 7: P2 Health b.934 vs e.915
-Rage&Confuse_Ray[10](Move->Par) [[101, 38, 201, 32, 63, 173, 180, 61, 227]]: Failed
- - On turn 4: P2 Health b.959 vs e.940
-Rage&Confuse_Ray[10](Par->Move) [[176, 115, 39, 155, 173, 185, 15, 109, 107]]: Failed
- - On turn 16: P2 Health b.749 vs e.731
-Rage&Confuse_Ray[11](Move->Par) [[9, 187, 52, 159, 124, 110, 140, 150, 210]]: Failed
- - On turn 3: P2 Health b.960 vs e.942
-Rage&Confuse_Ray[11](Par->Move) [[58, 7, 165, 96, 120, 140, 163, 236, 181]]: Failed
- - On turn 12: P2 Health b.822 vs e.792
-Rage&Confuse_Ray[12](Move->Par) [[232, 157, 203, 113, 81, 88, 73, 158, 111]]: Failed
- - On turn 11: P2 Health b.813 vs e.794
-Rage&Confuse_Ray[13](Move->Par) [[83, 250, 131, 139, 60, 20, 162, 226, 220]]: Failed
- - On turn 11: P2 Health b.798 vs e.778
-Rage&Confuse_Ray[13](Par->Move) [[206, 36, 75, 156, 120, 47, 249, 185, 194]]: Failed
- - On turn 14: P2 Health b.809 vs e.791
-Rage&Confuse_Ray[14](Move->Par) [[244, 148, 30, 30, 164, 23, 140, 122, 48]]: Failed
- - On turn 6: P2 Health b.902 vs e.882
-Rage&Confuse_Ray[14](Par->Move) [[208, 90, 55, 224, 65, 32, 109, 86, 174]]: Failed
- - On turn 18: P2 Health b.711 vs e.691
-Rage&Confuse_Ray[15](Move->Par) [[130, 209, 156, 197, 67, 184, 46, 213, 96]]: Failed
- - On turn 7: P2 Health b.888 vs e.868
-Rage&Confuse_Ray[15](Par->Move) [[212, 218, 166, 34, 252, 156, 187, 24, 63]]: Failed
- - On turn 15: P2 Health b.717 vs e.699
+Rage&Confuse_Ray[10](Move->Par) [[155, 214, 49, 50, 37, 19, 13, 66, 147]]: Failed
+ - On turn 5: P2 Health b.932 vs e.906
+Rage&Confuse_Ray[11](Move->Par) [[126, 20, 31, 24, 5, 83, 125, 240, 19]]: Failed
+ - On turn 9: P2 Health b.841 vs e.815
+Rage&Confuse_Ray[11](Par->Move) [[147, 163, 184, 38, 128, 136, 153, 234, 134]]: Failed
+ - On turn 13: P2 Health b.835 vs e.816
+Rage&Confuse_Ray[12](Move->Par) [[62, 27, 40, 22, 199, 99, 88, 212, 234]]: Failed
+ - On turn 3: P2 Health b.961 vs e.943
+Rage&Confuse_Ray[12](Par->Move) [[183, 24, 71, 66, 86, 211, 80, 196, 29]]: Failed
+ - On turn 12: P2 Health b.781 vs e.762
+Rage&Confuse_Ray[13](Move->Par) [[69, 15, 128, 121, 250, 135, 65, 215, 115]]: Failed
+ - On turn 7: P2 Health b.912 vs e.894
+Rage&Confuse_Ray[13](Par->Move) [[158, 52, 94, 210, 39, 183, 108, 233, 54]]: Failed
+ - On turn 14: P2 Health b.804 vs e.787
+Rage&Confuse_Ray[14](Move->Par) [[89, 159, 53, 108, 28, 89, 135, 205, 215]]: Failed
+ - On turn 5: P2 Health b.942 vs e.923
+Rage&Confuse_Ray[14](Par->Move) [[72, 136, 35, 181, 189, 246, 165, 19, 116]]: Failed
+ - On turn 14: P2 Health b.825 vs e.808
+Rage&Confuse_Ray[15](Move->Par) [[114, 147, 6, 170, 96, 193, 13, 226, 96]]: Failed
+ - On turn 8: P2 Health b.866 vs e.847
+Rage&Confuse_Ray[15](Par->Move) [[12, 237, 14, 170, 203, 131, 152, 94, 153]]: Failed
+ - On turn 14: P2 Health b.801 vs e.783
 Rage&Confuse_Ray[16](Move->Par) [[93, 179, 138, 177, 116, 218, 202, 3, 108]]: Failed
  - On turn 5: P2 Health b.943 vs e.926
 Rage&Confuse_Ray[1](Move->Par) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: Failed
@@ -296,6 +275,8 @@ Rage&Confuse_Ray[1](Par->Move) [[255, 255, 255, 255, 255, 255, 255, 255, 255]]: 
  - On turn 14: P2 Health b.818 vs e.800
 Rage&Confuse_Ray[2](Move->Par) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 7: P2 Health b.895 vs e.877
+Rage&Confuse_Ray[2](Par->Move) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
+ - On turn 16: P2 Health b.722 vs e.705
 Rage&Confuse_Ray[3](Move->Par) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
  - On turn 7: P2 Health b.951 vs e.933
 Rage&Confuse_Ray[3](Par->Move) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
@@ -308,42 +289,40 @@ Rage&Confuse_Ray[5](Move->Par) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 4: P2 Health b.925 vs e.906
 Rage&Confuse_Ray[5](Par->Move) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 13: P2 Health b.799 vs e.780
-Rage&Confuse_Ray[6](Move->Par) [[139, 250, 154, 197, 65, 99, 133, 47, 206]]: Failed
- - On turn 7: P2 Health b.913 vs e.896
-Rage&Confuse_Ray[6](Par->Move) [[117, 230, 179, 235, 90, 166, 62, 141, 220]]: Failed
- - On turn 15: P2 Health b.810 vs e.791
-Rage&Confuse_Ray[7](Move->Par) [[91, 130, 93, 215, 210, 22, 240, 122, 212]]: Failed
- - On turn 4: P2 Health b.937 vs e.917
-Rage&Confuse_Ray[7](Par->Move) [[157, 126, 167, 90, 165, 159, 218, 239, 45]]: Failed
- - On turn 19: P2 Health b.850 vs e.831
-Rage&Confuse_Ray[8](Move->Par) [[241, 156, 245, 125, 94, 166, 203, 20, 245]]: Failed
- - On turn 8: P2 Health b.869 vs e.852
-Rage&Confuse_Ray[8](Par->Move) [[45, 2, 170, 18, 144, 223, 170, 1, 4]]: Failed
- - On turn 15: P2 Health b.849 vs e.829
-Rage&Confuse_Ray[9](Move->Par) [[45, 134, 125, 176, 15, 152, 88, 52, 110]]: Failed
- - On turn 4: P2 Health b.939 vs e.921
-Rage&Confuse_Ray[9](Par->Move) [[166, 94, 146, 111, 203, 162, 82, 236, 60]]: Failed
- - On turn 14: P2 Health b.766 vs e.749
-Rage&Supersonic[10](Move->Par) [[10, 130, 173, 133, 76, 90, 1, 10, 113]]: Failed
- - On turn 7: P2 Health b.887 vs e.868
-Rage&Supersonic[10](Par->Move) [[250, 122, 199, 180, 92, 208, 123, 16, 214]]: Failed
- - On turn 12: P2 Health b.811 vs e.791
-Rage&Supersonic[11](Move->Par) [[133, 210, 20, 85, 234, 202, 122, 131, 46]]: Failed
- - On turn 4: P2 Health b.958 vs e.940
-Rage&Supersonic[11](Par->Move) [[16, 225, 247, 143, 100, 60, 178, 164, 230]]: Failed
- - On turn 16: P2 Health b.767 vs e.741
-Rage&Supersonic[12](Move->Par) [[15, 55, 13, 40, 201, 110, 100, 22, 230]]: Failed
- - On turn 4: P2 Health b.941 vs e.923
-Rage&Supersonic[13](Move->Par) [[84, 31, 158, 144, 23, 248, 225, 137, 185]]: Failed
- - On turn 4: P2 Health b.959 vs e.941
-Rage&Supersonic[13](Par->Move) [[5, 193, 1, 186, 197, 20, 175, 119, 159]]: Failed
- - On turn 12: P2 Health b.832 vs e.815
-Rage&Supersonic[14](Move->Par) [[115, 227, 247, 61, 173, 237, 174, 131, 155]]: Failed
- - On turn 7: P2 Health b.959 vs e.940
-Rage&Supersonic[14](Par->Move) [[98, 126, 252, 224, 144, 34, 105, 110, 100]]: Failed
- - On turn 14: P2 Health b.793 vs e.767
-Rage&Supersonic[15](Move->Par) [[156, 132, 237, 236, 102, 38, 237, 86, 104]]: Failed
- - On turn 3: P2 Health b.947 vs e.927
+Rage&Confuse_Ray[6](Move->Par) [[120, 162, 152, 166, 49, 39, 221, 162, 180]]: Failed
+ - On turn 6: P2 Health b.910 vs e.892
+Rage&Confuse_Ray[7](Move->Par) [[250, 128, 59, 42, 10, 118, 19, 53, 127]]: Failed
+ - On turn 4: P2 Health b.941 vs e.924
+Rage&Confuse_Ray[7](Par->Move) [[223, 79, 80, 226, 243, 160, 191, 7, 98]]: Failed
+ - On turn 17: P2 Health b.758 vs e.739
+Rage&Confuse_Ray[8](Move->Par) [[250, 217, 190, 194, 77, 209, 14, 198, 225]]: Failed
+ - On turn 5: P2 Health b.938 vs e.918
+Rage&Confuse_Ray[8](Par->Move) [[160, 114, 251, 160, 237, 248, 98, 94, 199]]: Failed
+ - On turn 13: P2 Health b.761 vs e.742
+Rage&Confuse_Ray[9](Move->Par) [[19, 24, 88, 222, 130, 88, 26, 42, 236]]: Failed
+ - On turn 6: P2 Health b.941 vs e.923
+Rage&Confuse_Ray[9](Par->Move) [[42, 74, 197, 164, 229, 29, 40, 39, 165]]: Failed
+ - On turn 12: P2 Health b.841 vs e.821
+Rage&Supersonic[10](Move->Par) [[88, 18, 71, 20, 60, 233, 8, 245, 104]]: Failed
+ - On turn 4: P2 Health b.936 vs e.917
+Rage&Supersonic[11](Move->Par) [[184, 22, 240, 143, 121, 179, 90, 219, 28]]: Failed
+ - On turn 7: P2 Health b.872 vs e.855
+Rage&Supersonic[11](Par->Move) [[8, 232, 7, 42, 140, 223, 51, 187, 240]]: Failed
+ - On turn 16: P2 Health b.698 vs e.680
+Rage&Supersonic[12](Move->Par) [[31, 142, 250, 86, 110, 179, 187, 245, 144]]: Failed
+ - On turn 4: P2 Health b.951 vs e.924
+Rage&Supersonic[12](Par->Move) [[206, 232, 38, 248, 69, 144, 186, 94, 49]]: Failed
+ - On turn 14: P2 Health b.843 vs e.823
+Rage&Supersonic[13](Move->Par) [[40, 221, 242, 150, 122, 26, 90, 183, 140]]: Failed
+ - On turn 8: P2 Health b.942 vs e.923
+Rage&Supersonic[13](Par->Move) [[144, 152, 7, 68, 91, 151, 197, 134, 197]]: Failed
+ - On turn 14: P2 Health b.756 vs e.737
+Rage&Supersonic[14](Move->Par) [[82, 19, 232, 115, 75, 101, 187, 72, 82]]: Failed
+ - On turn 5: P2 Health b.952 vs e.933
+Rage&Supersonic[15](Move->Par) [[126, 61, 65, 21, 217, 219, 108, 66, 6]]: Failed
+ - On turn 6: P2 Health b.920 vs e.902
+Rage&Supersonic[15](Par->Move) [[116, 102, 228, 168, 108, 67, 239, 149, 58]]: Failed
+ - On turn 12: P2 Health b.791 vs e.773
 Rage&Supersonic[2](Move->Par) [[255, 0, 255, 0, 255, 0, 255, 0, 255]]: Failed
  - On turn 9: P2 Health b.825 vs e.807
 Rage&Supersonic[3](Move->Par) [[128, 128, 128, 128, 128, 128, 128, 128, 128]]: Failed
@@ -352,18 +331,20 @@ Rage&Supersonic[5](Move->Par) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 4: P2 Health b.925 vs e.906
 Rage&Supersonic[5](Par->Move) [[255, 0, 0, 255, 0, 0, 255, 0, 255]]: Failed
  - On turn 13: P2 Health b.781 vs e.762
-Rage&Supersonic[6](Par->Move) [[20, 73, 165, 196, 226, 18, 245, 248, 39]]: Failed
- - On turn 13: P2 Health b.763 vs e.735
-Rage&Supersonic[7](Move->Par) [[231, 86, 151, 148, 178, 4, 243, 160, 119]]: Failed
- - On turn 3: P2 Health b.959 vs e.941
-Rage&Supersonic[8](Move->Par) [[165, 131, 39, 127, 97, 158, 23, 83, 124]]: Failed
- - On turn 6: P2 Health b.894 vs e.877
-Rage&Supersonic[8](Par->Move) [[35, 220, 234, 195, 76, 144, 252, 206, 93]]: Failed
- - On turn 13: P2 Health b.845 vs e.827
-Rage&Supersonic[9](Move->Par) [[54, 45, 157, 67, 69, 68, 180, 154, 63]]: Failed
- - On turn 12: P2 Health b.809 vs e.791
-Rage&Supersonic[9](Par->Move) [[51, 4, 76, 161, 106, 1, 10, 175, 21]]: Failed
- - On turn 18: P2 Health b.848 vs e.819
+Rage&Supersonic[6](Move->Par) [[79, 145, 179, 19, 162, 69, 48, 64, 24]]: Failed
+ - On turn 6: P2 Health b.928 vs e.910
+Rage&Supersonic[6](Par->Move) [[77, 31, 241, 161, 1, 117, 168, 82, 113]]: Failed
+ - On turn 12: P2 Health b.844 vs e.827
+Rage&Supersonic[7](Move->Par) [[135, 132, 62, 71, 15, 120, 112, 202, 20]]: Failed
+ - On turn 14: P2 Health b.788 vs e.768
+Rage&Supersonic[7](Par->Move) [[129, 27, 85, 183, 153, 5, 101, 97, 88]]: Failed
+ - On turn 20: P2 Health b.737 vs e.718
+Rage&Supersonic[8](Par->Move) [[229, 139, 33, 87, 252, 215, 78, 143, 89]]: Failed
+ - On turn 14: P2 Health b.773 vs e.755
+Rage&Supersonic[9](Move->Par) [[158, 94, 50, 84, 47, 97, 145, 87, 159]]: Failed
+ - On turn 7: P2 Health b.900 vs e.882
+Rage&Supersonic[9](Par->Move) [[209, 183, 245, 55, 148, 215, 114, 93, 210]]: Failed
+ - On turn 17: P2 Health b.797 vs e.780
 Absorb: 80/80
 Acid: 80/80
 Acid_Armor: 80/80
@@ -524,10 +505,10 @@ Whirlwind: 80/80
 Wing_Attack: 80/80
 Withdraw: 80/80
 Wrap: 209/209
-Fly: 518/530
-Dig: 546/563
+Fly: 521/530
+Dig: 553/563
 Metronome: 491/510
-Rage: 480/530
-Bide: 467/530
-20877 individual test(s) passed. 161 individual test(s) failed.
+Rage: 479/530
+Bide: 466/530
+20885 individual test(s) passed. 153 individual test(s) failed.
 160 test group(s) passed. 5 test group(s) failed.

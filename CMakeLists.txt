@@ -139,6 +139,7 @@ add_executable(
 target_link_libraries(
 	PokeAI_gui
 	PokemonGen1Client
+	PokemonGen1Renderers
 	TGUI::TGUI
 )
 
