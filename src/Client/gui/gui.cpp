@@ -14,6 +14,7 @@
 #include "Emulator/BgbHandler.hpp"
 #include "../AIs/AI.hpp"
 #include "../AIs/AIFactory.hpp"
+#include "Renderers/Gen1Renderer.hpp"
 #include "Renderers/IRenderer.hpp"
 
 using namespace PokemonGen1;
@@ -518,13 +519,13 @@ void openChangePkmnBox(
 		def->setText(std::to_string(stats.DEF));
 		spd->setText(std::to_string(stats.SPD));
 		spe->setText(std::to_string(stats.SPE));
-		sprite->setImage(resources.pokemonsFront[base.id]);
+		sprite->setImage(resources.renderer->getPkmnFace(PkmnRenderer::gen1SpeciesToCommon(base.id)));
 
 		sprite->onClick.connect([&emulator, &state, &aisSelected, &side, &window, &resources, &gui, index, &pkmn, &game, &base, &ready](std::weak_ptr<tgui::Panel> pkmnPan, std::weak_ptr<tgui::Panel> bigPan){
 			auto &s = (side ? state.op : state.me);
 
 			s.team.at(index) = Pokemon(state, pkmn.getNickname(), pkmn.getLevel(), base, pkmn.getMoveSet());
-			resources.crySound.setBuffer(resources.battleCries[base.id]);
+			resources.crySound.setBuffer(resources.renderer->getPkmnCry(PkmnRenderer::gen1SpeciesToCommon(base.id)));
 			resources.crySound.play();
 			gui.remove(bigPan.lock());
 			populatePokemonPanel(window, gui, emulator, game, resources, pkmnPan.lock(), index, s.team, aisSelected, side, ready);
@@ -598,7 +599,7 @@ void populatePokemonPanel(
 	def->setText(std::to_string(pkmn.getBaseStats().DEF));
 	spd->setText(std::to_string(pkmn.getBaseStats().SPD));
 	spe->setText(std::to_string(pkmn.getBaseStats().SPE));
-	sprite->setImage(resources.pokemonsFront[pkmn.getID()]);
+	sprite->setImage(resources.renderer->getPkmnFace(PkmnRenderer::gen1SpeciesToCommon(pkmn.getID())));
 
 	nick->onTextChange.connect([&pkmn](tgui::String str){
 		pkmn.setNickname(str.toStdString());
@@ -957,33 +958,9 @@ void mainMenu(sf::RenderWindow &window, std::unique_ptr<EmulatorGameHandle> &emu
 
 void loadResources(BattleResources &resources)
 {
-	(void)resources.start.openFromFile("assets/sounds/battle_intro.wav");
-	(void)resources.loop.openFromFile("assets/sounds/battle_loop.wav");
-	(void)resources.levelSprite.loadFromFile("assets/level_icon.png");
-
 	(void)resources.categories[0].loadFromFile("assets/move_categories/physical.png");
 	(void)resources.categories[1].loadFromFile("assets/move_categories/special.png");
 	(void)resources.categories[2].loadFromFile("assets/move_categories/status.png");
-
-	for (int i = 0; i < 256; i++) {
-		auto id = PkmnRenderer::gen1SpeciesToCommon(i);
-		std::string name = PkmnCommon::speciesToString(id);
-
-		if (!resources.pokemonsFront[i].loadFromFile("assets/gen1/pokemons/" + name + "/front.png"))
-			(void)resources.pokemonsFront[i].loadFromFile("\"assets/gen1/pokemons/missingno/front.png");
-		if (!resources.pokemonsBack[i].loadFromFile("assets/gen1/pokemons/" + name + "/back.png"))
-			(void)resources.pokemonsBack[i].loadFromFile("assets/gen1/pokemons/missingno/back.png");
-	}
-
-	(void)resources.balls[0].loadFromFile("assets/pokeballs/pkmnOK.png");
-	(void)resources.balls[1].loadFromFile("assets/pokeballs/pkmnNO.png");
-	(void)resources.balls[2].loadFromFile("assets/pokeballs/pkmnFNT.png");
-	(void)resources.balls[3].loadFromFile("assets/pokeballs/pkmnSTATUS.png");
-
-	(void)resources.font.openFromFile("assets/font.ttf");
-	(void)resources.hitSounds[0].loadFromFile("assets/sounds/not_effective_hit_sound.wav");
-	(void)resources.hitSounds[1].loadFromFile("assets/sounds/hit_sound.wav");
-	(void)resources.hitSounds[2].loadFromFile("assets/sounds/very_effective_hit_sound.wav");
 
 	for (int i = 0; i <= TYPE_DRAGON; i++)
 		try {
@@ -991,76 +968,25 @@ void loadResources(BattleResources &resources)
 		} catch (std::out_of_range &) {
 			(void)resources.types[typeToString(static_cast<Type>(i))].loadFromFile("assets/types/type_" + Utils::toLower(typeToString(static_cast<Type>(i))) + ".png");
 		}
-
-	(void)resources.trainer[0][0].loadFromFile("assets/back_sprites/trainer_shadow_back.png");
-	(void)resources.trainer[0][1].loadFromFile("assets/front_sprites/trainer_shadow_front.png");
-	(void)resources.trainer[1][0].loadFromFile("assets/back_sprites/trainer_back.png");
-	(void)resources.trainer[1][1].loadFromFile("assets/front_sprites/trainer_front.png");
-
-	(void)resources.trainerLand.loadFromFile("assets/sounds/trainer_land.wav");
-	(void)resources.hpOverlay.loadFromFile("assets/hp_overlay.png");
-	(void)resources.choicesHUD.loadFromFile("assets/choices.png");
-	(void)resources.attackHUD.loadFromFile("assets/attacks_overlay.png");
-	(void)resources.waitingHUD.loadFromFile("assets/wait_overlay.png");
-
-	(void)resources.arrows[0].loadFromFile("assets/arrow.png");
-	(void)resources.arrows[1].loadFromFile("assets/selectArrow.png");
-
-	(void)resources.boxes[0].loadFromFile("assets/text_box.png");
-	(void)resources.boxes[1].loadFromFile("assets/VS_box.png");
-	(void)resources.boxes[2].loadFromFile("assets/pkmns_border.png");
-	(void)resources.boxes[3].loadFromFile("assets/pkmns_border_player_side.png");
-
-	for (int i = 0; i < 256; i++)
-		(void)resources.battleCries[i].loadFromFile("assets/cries/cry_" + std::to_string(i) + ".ogg");
-}
-
-static std::string splitText(std::string str)
-{
-	size_t lineSize = 0;
-	std::string result;
-	std::string token;
-
-	result.reserve(str.size());
-	for (size_t pos = str.find(' '); !str.empty(); pos = str.find(' ')) {
-		token = str.substr(0, pos);
-
-		if (!result.empty()) {
-			if (lineSize + token.size() + 1 > 18) {
-				result += "\n";
-				lineSize = 0;
-			} else {
-				result += " ";
-				lineSize++;
-			}
-		}
-		result += token;
-		lineSize += token.size();
-		if (pos == std::string::npos)
-			break;
-		str.erase(0, pos + 1);
-	}
-
-	return result;
 }
 
 void gui(const std::string &trainerName)
 {
-	std::vector<std::string> battleLog;
 	std::unique_ptr<EmulatorGameHandle> emulator;
 	std::pair<unsigned char, unsigned char> ais = {0, 0};
 	BattleHandler battleHandler{false, getenv("MIN_DEBUG") != nullptr};
 	auto &state = battleHandler.getBattleState();
 	sf::RenderWindow window{sf::VideoMode{{800, 640}}, trainerName};
+	PkmnRenderer::Gen1Renderer renderer{"", true};
 	BattleResources resources;
 	bool ready = false;
 
+	resources.renderer = &renderer;
 	state.rng.makeRandomList(9);
-	state.battleLogger = [&battleLog](const PkmnCommon::Event &event){
-		if (auto text = std::get_if<PkmnCommon::TextEvent>(&event)) {
+	state.battleLogger = [&renderer](const PkmnCommon::Event &event){
+		if (auto text = std::get_if<PkmnCommon::TextEvent>(&event))
 			puts(text->message.c_str());
-			battleLog.push_back(splitText(text->message));
-		}
+		renderer.consumeEvent(event);
 	};
 	loadResources(resources);
 	state.me.team.resize(6, {
@@ -1094,7 +1020,7 @@ void gui(const std::string &trainerName)
 				state.op.nextAction = Run;
 				battleHandler.tick();
 			}
-			battle(window, battleHandler, resources, battleLog, ais, !emulator);
+			battle(window, battleHandler, renderer, ais, !emulator);
 			ready = false;
 		}
 	}

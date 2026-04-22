@@ -352,6 +352,25 @@ std::optional<BattleAction> Gen1Renderer::selectAction(bool attackDisabled)
 	return {};
 }
 
+void Gen1Renderer::clear()
+{
+	IRenderer::clear();
+	this->_music.stop();
+	this->_soundLand.stop();
+	this->_ballPop.stop();
+	this->_faintSound.stop();
+	this->_moveSound.stop();
+	this->_crySound.stop();
+	this->_hitSound.stop();
+	this->_currentEvent = EVNTTYPE_NONE;
+	this->_queuedText.clear();
+	this->_displayedText.clear();
+	this->_sfmlQueue.clear();
+	this->_onAnimEnd = nullptr;
+	for (auto &c : this->_gpCounter)
+		c = 0;
+}
+
 void Gen1Renderer::reset()
 {
 	this->_currentEvent = EVNTTYPE_NONE;
@@ -389,7 +408,11 @@ const Gen1Renderer::MoveData &Gen1Renderer::getMoveData(unsigned move)
 
 const sf::Texture &Gen1Renderer::getPkmnFace(PokemonSpecies pkmnId)
 {
-	return this->getPkmnData(pkmnId).front.texture;
+	auto &data = this->getPkmnData(pkmnId);
+
+	if (data.front.texture.getSize().x == 0)
+		palettizeSprite(data.front, _defaultPalette, data.palette, true);
+	return data.front.texture;
 }
 
 const sf::SoundBuffer &Gen1Renderer::getPkmnCry(PokemonSpecies pkmnId)

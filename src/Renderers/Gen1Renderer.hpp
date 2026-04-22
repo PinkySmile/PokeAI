@@ -22,6 +22,7 @@ namespace PkmnRenderer
 		void render(sf::RenderTarget &) override;
 		sf::Vector2u getSize() const override;
 		void reset() override;
+		void clear() override;
 		using IRenderer::consumeEvent;
 		void consumeEvent(const sf::Event &event) override;
 		std::optional<BattleAction> selectAction(bool attackDisabled) override;

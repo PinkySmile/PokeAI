@@ -260,6 +260,15 @@ namespace PkmnRenderer
 			s.queue.push_back(event);
 	}
 
+	void IRenderer::clear()
+	{
+		this->_queue.clear();
+		this->_snapshots.clear();
+		this->_currentTurn = 0;
+		this->_finished = false;
+		this->_skipping = false;
+	}
+
 	PkmnCommon::PokemonSpecies gen1SpeciesToCommon(unsigned id)
 	{
 		if (gen1SpeciesMap.contains(id))

@@ -98,6 +98,7 @@ namespace PkmnRenderer
 		virtual void render(sf::RenderTarget &) = 0;
 		virtual sf::Vector2u getSize() const = 0;
 		virtual void reset() = 0;
+		virtual void clear();
 		virtual void consumeEvent(const PkmnCommon::Event &event);
 		virtual void consumeEvent(const sf::Event &event) = 0;
 		virtual std::optional<BattleAction> selectAction(bool attackDisabled) = 0;
