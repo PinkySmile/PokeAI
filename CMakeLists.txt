@@ -135,6 +135,10 @@ add_executable(
 	src/Client/gui/Utils.cpp
 	src/Client/gui/Utils.hpp
 	src/Client/gui/battle.cpp
+	src/Client/gui/mainMenu.cpp
+	src/Client/gui/mainMenu.hpp
+	src/Client/gui/pickers.cpp
+	src/Client/gui/pickers.hpp
 )
 target_link_libraries(
 	PokeAI_gui

@@ -162,7 +162,7 @@ namespace
 	}
 }
 
-void battle(sf::RenderWindow &window, BattleHandler &game, PkmnRenderer::IRenderer &renderer, std::pair<unsigned char, unsigned char> aiNb, bool updateManually)
+bool battle(sf::RenderWindow &window, BattleHandler &game, PkmnRenderer::IRenderer &renderer, std::pair<unsigned char, unsigned char> aiNb, bool updateManually)
 {
 	auto ai1 = std::unique_ptr<AI>(AIFactory::create(aiNb.first));
 	auto ai2 = std::unique_ptr<AI>(AIFactory::create(aiNb.second));
@@ -176,7 +176,6 @@ void battle(sf::RenderWindow &window, BattleHandler &game, PkmnRenderer::IRender
 	bool escaped = false;
 
 	(void)menuFont.openFromFile("assets/font.ttf");
-	renderer.clear();
 	renderer.reset();
 	renderer.state = PkmnRenderer::fromGen1(state);
 	window.setSize({rendererSize.x * 4, rendererSize.y * 4});
@@ -234,4 +233,5 @@ void battle(sf::RenderWindow &window, BattleHandler &game, PkmnRenderer::IRender
 	window.setView(view);
 	game.reset();
 	game.stopReplay();
+	return escaped;
 }
