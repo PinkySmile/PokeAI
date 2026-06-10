@@ -933,7 +933,11 @@ namespace PokemonGen1
 			logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 			return false;
 		}
-		if (this->_statusChange.status == STATUS_LEECHED && (target.getStatus() & STATUS_LEECHED)) {
+		if (this->_statusChange.status == STATUS_LEECHED && (
+			(target.getStatus() & STATUS_LEECHED) ||
+			target.getTypes().first == TYPE_GRASS ||
+			target.getTypes().second == TYPE_GRASS
+		)) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " used " + Utils::toUpper(this->_name) + "!"});
 			// https://github.com/pret/pokeyellow/blob/d237b01cfb241f417567c964e0df0658cf921570/data/text/text_5.asm#L191
 			logger(PkmnCommon::TextEvent{target.getName() + " evaded attack!"});
