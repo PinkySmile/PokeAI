@@ -27,3 +27,4 @@ __pycache__/
 *.tmp
 *.mp4
 exports
+*.onnx
