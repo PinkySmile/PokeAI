@@ -90,7 +90,16 @@ def export(checkpoint_path, output_path=None, opset=14):
         print("Warning: Strict loading failed, retrying loosely...")
         agent.load_state_dict(clean_state_dict, strict=False)
 
+    class DeterministicAgent(torch.nn.Module):
+        def __init__(self, base_agent):
+            super().__init__()
+            self.base_agent = base_agent
+
+        def forward(self, obs, mask):
+            return self.base_agent(obs, mask=mask, deterministic=True)
+
     agent.eval()
+    export_agent = DeterministicAgent(agent)
 
     # Create dummy inputs
     dummy_obs = torch.randn(1, *input_obs_shape)
@@ -106,10 +115,10 @@ def export(checkpoint_path, output_path=None, opset=14):
         warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)
 
         with torch.no_grad():
-            torch_out = agent(dummy_obs, dummy_mask)
+            torch_out = export_agent(dummy_obs, dummy_mask)
 
             torch.onnx.export(
-                agent,
+                export_agent,
                 (dummy_obs, dummy_mask),
                 output_path,
                 dynamo=False,

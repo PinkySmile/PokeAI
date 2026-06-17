@@ -201,6 +201,7 @@ class PokemonYellowBattle(Env):
 		'render_fps': 60
 	}
 	action_space = Discrete(12)
+	# TODO: rework observation space
 	observation_space = Box(
 		low= array([
 			# Offset 0
@@ -781,7 +782,7 @@ class PokemonYellowBattle(Env):
 			info['simulator'] = self.battle
 		return ob, info
 
-
+	# TODO: better loss ?
 	def compute_reward(self, old: BattleState, new: BattleState):
 		if all(f.health == 0 for f in new.op.team):
 			return 100 / self.current_turn

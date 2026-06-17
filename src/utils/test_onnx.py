@@ -18,6 +18,21 @@ parser.add_argument('--scenario', type=str, default="simple", help="Pokemon batt
 parser.add_argument("model")
 args = parser.parse_args()
 
+# Fixing the seed for reproducibility
+random.seed(args.seed)
+np.random.seed(args.seed)
+torch.manual_seed(args.seed)
+torch.backends.cudnn.deterministic = True
+# session = onnxruntime.InferenceSession(args.model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+
+sess_options = onnxruntime.SessionOptions()
+sess_options.add_session_config_entry('session.random_seed', str(args.seed))
+sess_options.intra_op_num_threads = 1
+sess_options.inter_op_num_threads = 1
+sess_options.graph_optimization_level = onnxruntime.GraphOptimizationLevel.ORT_DISABLE_ALL
+
+session = onnxruntime.InferenceSession(args.model, sess_options=sess_options, providers=['CPUExecutionProvider'])
+
 if os.path.exists(f"ai/scenarios/{args.scenario}.json"):
 	with open(f"ai/scenarios/{args.scenario}.json") as fd:
 		j = json.load(fd)
@@ -36,12 +51,7 @@ else:
 			if p.suffix == ".json":
 				print(f" - {p.stem}")
 		exit(1)
-# --- Fixing the seed for reproducibility ---
-random.seed(args.seed)
-np.random.seed(args.seed)
-torch.manual_seed(args.seed)
-torch.backends.cudnn.deterministic = True
-session = onnxruntime.InferenceSession(args.model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
+
 env = gym.make(
 	'PokemonYellow',
 	args.seed,
@@ -52,11 +62,21 @@ env = gym.make(
 )
 next_obs, next_obs_info = env.reset(seed=args.seed, options=start_options)
 next_mask = next_obs_info.get('mask')
+
+# print(next_obs.sum())
+# print(next_mask)
 terminated = False
+prev_obs = None
 while not terminated:
+	obs_array = np.array([next_obs], dtype=np.float32)
+	mask_array = np.array([next_mask], dtype=bool)
+
 	outputs = session.run(["action"], {
 		'observation': [next_obs],
 		'action_mask': [next_mask]
 	})
+	# print(f"action={outputs[0][0]}, mask={next_mask}, obs_changed={not np.array_equal(next_obs, prev_obs)}")
+	# print(next_obs.sum())
+	prev_obs = next_obs.copy()
 	next_obs, reward, terminated, truncated, infos = env.step(outputs[0][0])
 	next_mask = infos.get('mask')

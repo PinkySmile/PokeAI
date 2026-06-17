@@ -82,6 +82,10 @@ def make_env(gym_id, seed, idx, capture_video, use_emulator, run_name, video_eve
                     env = gym.make(gym_id, seed)
             except TypeError:
                 env = gym.make(gym_id, seed, render_mode=None)
+
+        # TODO : check if obs are really normalized ? Maybe it works better without it ?
+        # env = gym.wrappers.RescaleObservation(env, min_obs=0.0, max_obs=1.0)
+
         env = gym.wrappers.RecordEpisodeStatistics(env)
         # seed action/obs spaces for reproducibility
         try:
@@ -116,40 +120,40 @@ class Agent(nn.Module):
 
         # Shared feature extractor
         self.feature_extractor = nn.Sequential(
-            layer_init(nn.Linear(embedded_obs_dim, 2048)),
+            layer_init(nn.Linear(embedded_obs_dim, 512)),
             nn.Tanh(),
-            layer_init(nn.Linear(2048, 1024)),
+            layer_init(nn.Linear(512, 512)),
             nn.Tanh(),
         )
 
         # Project features to embedding dimension for move scoring
-        self.move_scorer = layer_init(nn.Linear(1024, 16), std=0.01)
+        self.move_scorer = layer_init(nn.Linear(512, 16), std=0.01)
 
         # Separate heads for switch and other actions
-        self.other_actions = layer_init(nn.Linear(1024, 8), std=0.01)
+        self.other_actions = layer_init(nn.Linear(512, 8), std=0.01)
 
         self.critic = nn.Sequential(
-            layer_init(nn.Linear(embedded_obs_dim, 2048)),
+            # TODO: layer norm ?
+            layer_init(nn.Linear(embedded_obs_dim, 512)),
             nn.Tanh(),
-            layer_init(nn.Linear(2048, 1024)),
+            layer_init(nn.Linear(512, 512)),
             nn.Tanh(),
-            layer_init(nn.Linear(1024, 1), std=1.),
+            layer_init(nn.Linear(512, 1), std=1.),
         )
 
-    def forward(self, x, mask=None, action=None):
-        return self.get_action_and_value(x, mask=mask, action=None)
+    def forward(self, x, mask=None, action=None, deterministic=False):
+        return self.get_action_and_value(x, mask=mask, action=action, deterministic=deterministic)
 
     def embed_observation(self, x):
         batch_size = x.shape[0]
 
         move_id_positions = [35, 37, 39, 41, 78, 80, 82, 84]
-        move_ids = x[:, move_id_positions].long()
-        move_ids = move_ids.clone()
+        move_ids = x[:, move_id_positions].long().clone()
         move_ids = torch.where(move_ids == -10, torch.zeros_like(move_ids), move_ids)
         move_ids = torch.where(move_ids == -1, torch.ones_like(move_ids) * 165, move_ids)
+        move_ids = move_ids.clamp(0, len(AvailableMove))
 
-        move_embeds = self.move_embedding(move_ids)
-        move_embeds = move_embeds.view(batch_size, -1)
+        move_embeds = self.move_embedding(move_ids).view(batch_size, -1)
 
         all_positions = list(range(x.shape[1]))
         non_move_positions = [i for i in all_positions if i not in move_id_positions]
@@ -158,10 +162,9 @@ class Agent(nn.Module):
         return torch.cat([non_move_features, move_embeds], dim=1)
 
     def get_value(self, x):
-        x_embedded = self.embed_observation(x)
-        return self.critic(x_embedded)
+        return self.critic(self.embed_observation(x))
 
-    def get_action_and_value(self, x, mask=None, action=None):
+    def get_action_and_value(self, x, mask=None, action=None, deterministic=False):
         batch_size = x.shape[0]
         x_embedded = self.embed_observation(x)
 
@@ -175,7 +178,7 @@ class Agent(nn.Module):
                                move_ids)  # unknown move (opponent's unrevealed move) -> use a special "unknown" token
         move_embeds = self.move_embedding(move_ids)  # (batch, 4, 16)
 
-        features = self.feature_extractor(x_embedded)  # (batch, 1024)
+        features = self.feature_extractor(x_embedded)  # (batch, 256)
 
         # Project to embedding space and compute move values
         move_query = self.move_scorer(features)  # (batch, 16)
@@ -189,11 +192,16 @@ class Agent(nn.Module):
         if mask is not None:
             logits = logits.masked_fill(mask == 0, float('-inf'))
 
-        invalid_logits_row = torch.isneginf(logits).all(dim=1)
-        if invalid_logits_row.any():
-            raise ValueError(f"No valid actions available. Check the action mask.")
+        if deterministic and action is None:
+            action = torch.argmax(logits, dim=1)
+            dummy = torch.zeros(batch_size, device=x.device)
+            return action, dummy, dummy, self.critic(x_embedded)
+
+        if torch.isneginf(logits).all(dim=1).any():
+            raise ValueError("No valid actions available. Check the action mask.")
 
         probs = Categorical(logits=logits)
+
         if action is None:
             action = probs.sample()
 
@@ -255,11 +263,12 @@ if __name__ == '__main__':
     args = parse_args()
     current_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     run_name = f'{args.gym_id}_{args.exp_name}_{args.seed}_{current_time}'
+
     if os.path.exists(f"ai/scenarios/{args.scenario}.json"):
         with open(f"ai/scenarios/{args.scenario}.json") as fd:
             j = json.load(fd)
         ai = getattr(PokeBattle.Gen1.Env, j["ai"]) if "ai" in j else basic_opponent
-        start_options = load_scenario(f"ai/scenarios/{j["scenario"]}", ai)
+        start_options = load_scenario(f"ai/scenarios/{j['scenario']}", ai)
     else:
         try:
             start_options = getattr(PokeBattle.Gen1.Env.Examples, args.scenario)
@@ -275,18 +284,14 @@ if __name__ == '__main__':
             exit(1)
 
     try:
-        run_videos_dir = os.path.join(LOGS_ROOT, run_name, VIDEOS_SUBDIR)
-        run_wandb_dir = os.path.join(LOGS_ROOT, run_name)
-        checkpoints_dir = os.path.join(LOGS_ROOT, run_name, "checkpoints")
-
-        os.makedirs(run_videos_dir, exist_ok=True)
-        os.makedirs(run_wandb_dir, exist_ok=True)
-        os.makedirs(checkpoints_dir, exist_ok=True)
+        os.makedirs(os.path.join(LOGS_ROOT, run_name, VIDEOS_SUBDIR), exist_ok=True)
+        os.makedirs(os.path.join(LOGS_ROOT, run_name), exist_ok=True)
+        os.makedirs(os.path.join(LOGS_ROOT, run_name, "checkpoints"), exist_ok=True)
     except Exception:
         logger.warn("Could not create directories.")
-        pass
 
-    # --- Logging ---
+    checkpoints_dir = os.path.join(LOGS_ROOT, run_name, "checkpoints")
+
     if args.wandb:
         import wandb
 
@@ -298,6 +303,7 @@ if __name__ == '__main__':
             save_code=True,
             dir=CONFIG.get("wandb_dir")
         )
+
     writer = SummaryWriter(f'{LOGS_ROOT}/{run_name}')
     writer.add_text('hyperparameters',
                     '|param|value|\n|-|-|\n%s' % ('\n'.join(f'|{key}|{value}|' for key, value in vars(args).items())))
@@ -359,7 +365,6 @@ if __name__ == '__main__':
 
     global_step = (start_update - 1) * args.batch_size
     start_time = time.time()
-    # next_obs, _ = envs.reset(seed=args.seed)
     next_obs, next_obs_info = envs.reset(seed=args.seed, options=start_options)
     next_mask = torch.as_tensor(next_obs_info.get('mask'), device=device, dtype=torch.bool)
     next_obs = torch.as_tensor(next_obs, dtype=torch.float32, device=device)
@@ -370,12 +375,13 @@ if __name__ == '__main__':
 
     # --- Training loop ---
     for update in range(start_update, num_updates + 1):
+        # frac is used for lr annealing and logging
+        frac = 1.0 - (update - 1.0) / num_updates
         if args.anneal_lr:
-            frac = 1.0 - (update - 1.0) / num_updates
-            lrnow = frac * args.learning_rate
-            optimizer.param_groups[0]['lr'] = lrnow
+            optimizer.param_groups[0]['lr'] = frac * args.learning_rate
 
-        for step in range(0, args.num_steps):
+        # --- Rollout ---
+        for step in range(args.num_steps):
             global_step += args.num_envs
             obs[step] = next_obs
             dones[step] = next_done
@@ -386,18 +392,18 @@ if __name__ == '__main__':
             actions[step] = action
             logprobs[step] = logprob
 
+            # Store mask before stepping (mask corresponds to current obs)
+            masks[step] = next_mask
+
             next_obs, reward, terminated, truncated, infos = envs.step(action.cpu().numpy())
             next_mask = torch.as_tensor(infos.get('mask'), device=device, dtype=torch.bool)
 
             next_done = np.logical_or(terminated, truncated)
 
             rewards[step] = torch.as_tensor(reward, device=device, dtype=torch.float32).view(-1)
-            masks[step] = next_mask
-
             next_obs = torch.as_tensor(next_obs, device=device, dtype=torch.float32)
             next_done = torch.as_tensor(next_done, device=device, dtype=torch.float32)
 
-            ep_infos = infos.get('_episode')
             if "_episode" in infos:
                 for i in range(len(infos["_episode"])):
                     if infos["_episode"][i]:
@@ -413,8 +419,7 @@ if __name__ == '__main__':
                         # Log the latest recorded video to W&B when env 0 finishes an episode
                         if args.wandb and args.capture_video and i == 0:
                             try:
-                                video_dir = os.path.join(get_replay_folder(run_name))
-                                mp4s = sorted(glob.glob(os.path.join(video_dir, '*.mp4')))
+                                mp4s = sorted(glob.glob(os.path.join(get_replay_folder(run_name), '*.mp4')))
                                 if mp4s:
                                     wandb.log({"video/rollout": wandb.Video(mp4s[-1], format="mp4")})
                             except Exception:
@@ -446,19 +451,19 @@ if __name__ == '__main__':
         b_values = values.reshape(-1)
         b_masks = masks.reshape((-1, envs.single_action_space.n))
 
-        # Optimizing the policy and value network
-        batch_size = args.batch_size
-        minibatch_size = args.minibatch_size
+        # --- PPO update ---
         clipfracs = []
         approx_kl = None
         for epoch in range(args.update_epochs):
-            perm = torch.randperm(batch_size, device=device)
-            for start in range(0, batch_size, minibatch_size):
-                end = start + minibatch_size
-                mb_inds = perm[start:end]
-                _, newlogprob, entropy, newvalue = agent(b_obs[mb_inds],
-                                                         mask=b_masks[mb_inds],  # TODO A changer
-                                                         action=b_actions[mb_inds])
+            perm = torch.randperm(args.batch_size, device=device)
+            for start in range(0, args.batch_size, args.minibatch_size):
+                mb_inds = perm[start:start + args.minibatch_size]
+
+                _, newlogprob, entropy, newvalue = agent(
+                    b_obs[mb_inds],
+                    mask=b_masks[mb_inds],
+                    action=b_actions[mb_inds]
+                )
 
                 logratio = newlogprob - b_logprobs[mb_inds]
                 ratio = logratio.exp()
@@ -467,7 +472,7 @@ if __name__ == '__main__':
                 with torch.no_grad():
                     old_approx_kl = (-logratio).mean()
                     approx_kl = ((ratio - 1) - logratio).mean()
-                    clipfracs += [((ratio - 1.0).abs() > args.clip_coef).float().mean().item()]
+                    clipfracs.append(((ratio - 1.0).abs() > args.clip_coef).float().mean().item())
 
                 # Minibatch normalization
                 mb_advantages = b_advantages[mb_inds]
@@ -483,14 +488,9 @@ if __name__ == '__main__':
                 newvalue = newvalue.view(-1)
                 if args.clip_vloss:
                     v_loss_unclipped = (newvalue - b_returns[mb_inds]) ** 2
-                    v_clipped = b_values[mb_inds] + torch.clamp(
-                        newvalue - b_values[mb_inds],
-                        -args.clip_coef,
-                        args.clip_coef,
-                    )
-                    v_loss_clipped = (v_clipped - b_returns[mb_inds]) ** 2
-                    v_loss_max = torch.max(v_loss_unclipped, v_loss_clipped)
-                    v_loss = 0.5 * v_loss_max.mean()
+                    v_clipped = b_values[mb_inds] + torch.clamp(newvalue - b_values[mb_inds], -args.clip_coef,
+                                                                args.clip_coef)
+                    v_loss = 0.5 * torch.max(v_loss_unclipped, (v_clipped - b_returns[mb_inds]) ** 2).mean()
                 else:
                     v_loss = 0.5 * ((newvalue - b_returns[mb_inds]) ** 2).mean()
 
@@ -504,6 +504,7 @@ if __name__ == '__main__':
 
             if args.target_kl is not None and approx_kl is not None and approx_kl > args.target_kl:
                 break
+
         if args.save_checkpoint_every > 0 and update % args.save_checkpoint_every == 0:
             model_to_save = agent._orig_mod if hasattr(agent,
                                                        '_orig_mod') else agent  # torch.compile wraps the model; save the original (_orig_mod) to avoid serialization issues
@@ -523,14 +524,13 @@ if __name__ == '__main__':
         writer.add_scalar("losses/value_loss", v_loss.item(), global_step)
         writer.add_scalar("losses/policy_loss", pg_loss.item(), global_step)
         writer.add_scalar("losses/entropy", entropy_loss.item(), global_step)
-        if 'old_approx_kl' in locals():
-            writer.add_scalar("losses/old_approx_kl", old_approx_kl.item(), global_step)
-        if approx_kl is not None:
-            writer.add_scalar("losses/approx_kl", approx_kl.item(), global_step)
+        writer.add_scalar("losses/old_approx_kl", old_approx_kl.item(), global_step)
+        writer.add_scalar("losses/approx_kl", approx_kl.item(), global_step)
         writer.add_scalar("losses/clipfrac", np.mean(clipfracs), global_step)
         writer.add_scalar("losses/explained_variance", explained_var, global_step)
-        print("SPS:", int(global_step / (time.time() - start_time)))
-        writer.add_scalar("charts/SPS", int(global_step / (time.time() - start_time)), global_step)
+        sps = int(global_step / (time.time() - start_time))
+        print(f"update={update}/{num_updates}, SPS={sps}, explained_var={explained_var:.3f}, kl={approx_kl.item():.4f}")
+        writer.add_scalar("charts/SPS", sps, global_step)
 
     model_to_save = agent._orig_mod if hasattr(agent, '_orig_mod') else agent
     torch.save({
