@@ -175,7 +175,7 @@ bool battle(sf::RenderWindow &window, BattleHandler &game, PkmnRenderer::IRender
 	unsigned char selectedMenu = 0;
 	bool escaped = false;
 
-	(void)menuFont.openFromFile("assets/font.ttf");
+	(void)menuFont.openFromFile("assets/gen1/font.ttf");
 	renderer.reset();
 	renderer.state = PkmnRenderer::fromGen1(state);
 	window.setSize({rendererSize.x * 4, rendererSize.y * 4});

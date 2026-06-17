@@ -784,7 +784,7 @@ namespace PokemonGen1
 			this->takeDamage(target, this->getMaxHealth() / 16, true, false);
 		} else if (status & STATUS_POISONED) {
 			damage = this->getMaxHealth() / 16;
-			logger(PkmnCommon::TextEvent{this->getName() + "'s hurt by the poison!"});
+			logger(PkmnCommon::TextEvent{this->getName() + "'s hurt by poison!"});
 			if (status & STATUS_BAD_POISON) {
 				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_BAD_POISON, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 				damage *= this->_badPoisonStage++;

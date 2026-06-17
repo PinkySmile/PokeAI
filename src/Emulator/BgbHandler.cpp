@@ -26,7 +26,9 @@ BGBHandler::BGBHandler(
 {
 	this->log("Connecting to " + ip + ":" + std::to_string(port));
 	this->_socket.connect(ip, port);
+	this->_socket.setNoDelay(true);
 	this->_disconnected = false;
+	this->_startTime = std::chrono::steady_clock::now();
 	this->log("Performing handshake");
 	this->_sendPacket({VERSION_CHECK, 1, 4, 0, 0});
 
@@ -73,13 +75,27 @@ void BGBHandler::log(const std::string &string, std::ostream &stream)
 void BGBHandler::sendByte(unsigned char byte)
 {
 	this->log("Sending " + charToHex(byte));
-	this->_sendPacket({SYNC1_SIGNAL, byte, 0x80, 0, this->_ticks});
+	// sync1 control: bit 0 (internal clock / start) + bit 7 set for normal-speed master transfer
+	this->_sendPacket({SYNC1_SIGNAL, byte, 0x81, 0, this->_currentTicks()});
 }
 
 void BGBHandler::reply(unsigned char byte)
 {
 	this->log("Replying " + charToHex(byte));
+	// sync2 (slave reply) per spec: control = $80, i1 = 0
 	this->_sendPacket({SYNC2_SIGNAL, byte, 0x80, 0, 0});
+}
+
+unsigned int BGBHandler::_currentTicks() const
+{
+	using namespace std::chrono;
+	// BGB timestamps are in 2 MiHz units (2^21 ticks per second). The wire
+	// format keeps only the lowest 31 bits (highest bit must remain 0).
+	auto elapsed = steady_clock::now() - this->_startTime;
+	auto ns = duration_cast<nanoseconds>(elapsed).count();
+	// ticks = ns * 2^21 / 1e9; compute without overflow for ~24-day runtimes.
+	auto ticks = static_cast<unsigned long long>(ns) * 2097152ULL / 1000000000ULL;
+	return static_cast<unsigned int>(ticks & 0x7FFFFFFFULL);
 }
 
 void BGBHandler::_sendPacket(const BGBHandler::BGBPacket &packet)
@@ -138,7 +154,8 @@ BGBHandler::BGBPacket BGBHandler::_getNextPacket()
 
 void BGBHandler::_sync()
 {
-	this->_sendPacket({SYNC3_SIGNAL, 0, 0, 0, ++this->_ticks});
+	// sync3 timestamp form: b2 = 0, i1 = our local timestamp.
+	this->_sendPacket({SYNC3_SIGNAL, 0, 0, 0, this->_currentTicks()});
 	if (this->_loopHandle)
 		this->_loopHandle(*this);
 }

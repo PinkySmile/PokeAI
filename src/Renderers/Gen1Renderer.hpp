@@ -25,7 +25,7 @@ namespace PkmnRenderer
 		void clear() override;
 		using IRenderer::consumeEvent;
 		void consumeEvent(const sf::Event &event) override;
-		std::optional<BattleAction> selectAction(bool attackDisabled) override;
+		std::optional<BattleAction> selectAction(sf::RenderTarget &target, bool attackDisabled) override;
 		const sf::Texture &getPkmnFace(PkmnCommon::PokemonSpecies pkmnId) override;
 		const sf::SoundBuffer &getPkmnCry(PkmnCommon::PokemonSpecies pkmnId) override;
 		void previousTurn() override;

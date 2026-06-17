@@ -43,7 +43,41 @@ PACK_SPD = 40
 PACK_SPE = 42
 
 
-def test_move(emulator, move, random_state, scenario, min_turns=6):
+def speciesFromType(t: Type) -> PokemonSpecies:
+	if t == Type.Normal:
+		return PokemonSpecies.Eevee
+	if t == Type.Fighting:
+		return PokemonSpecies.Machop
+	if t == Type.Flying:
+		return PokemonSpecies.Pidgey
+	if t == Type.Poison:
+		return PokemonSpecies.Muk
+	if t == Type.Ground:
+		return PokemonSpecies.Sandshrew
+	if t == Type.Rock:
+		return PokemonSpecies.Onix
+	if t == Type.Bug:
+		return PokemonSpecies.Caterpie
+	if t == Type.Ghost:
+		return PokemonSpecies.Gastly
+	if t == Type.Fire:
+		return PokemonSpecies.Flareon
+	if t == Type.Water:
+		return PokemonSpecies.Vaporeon
+	if t == Type.Grass:
+		return PokemonSpecies.Tangela
+	if t == Type.Electric:
+		return PokemonSpecies.Jolteon
+	if t == Type.Psychic:
+		return PokemonSpecies.Abra
+	if t == Type.Ice:
+		return PokemonSpecies.Jynx
+	if t == Type.Dragon:
+		return PokemonSpecies.Dratini
+	raise TypeError("Invalid type")
+
+
+def test_move(emulator, move, opType, random_state, scenario, min_turns=6):
 	battle = BattleHandler(False, debug)
 	state = battle.state
 	if random_state is not None:
@@ -58,11 +92,11 @@ def test_move(emulator, move, random_state, scenario, min_turns=6):
 	state.bad_action = BadActionPolicy.Fix
 
 	pokemon_data = [0] * 44
-	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
+	pokemon_data[PACK_SPECIES] = speciesFromType(opType)
 	pokemon_data[PACK_CURR_LEVEL] = 5
 	pokemon_data[PACK_STATUS] = StatusChange.OK
-	pokemon_data[PACK_TYPEA] = Type.Normal
-	pokemon_data[PACK_TYPEB] = Type.Normal
+	pokemon_data[PACK_TYPEA] = opType
+	pokemon_data[PACK_TYPEB] = opType
 	if scenario & 4:
 		pokemon_data[PACK_MOVE1] = AvailableMove.Substitute
 	elif scenario & 2:
@@ -176,7 +210,7 @@ def test_move(emulator, move, random_state, scenario, min_turns=6):
 			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
 
 
-def test_trap_move_turn_skip(emulator, move, random_state, scenario, min_turns=6):
+def test_trap_move_turn_skip(emulator, move, opType, random_state, scenario, min_turns=6):
 	battle = BattleHandler(False, debug)
 	state = battle.state
 	if random_state is not None:
@@ -191,11 +225,11 @@ def test_trap_move_turn_skip(emulator, move, random_state, scenario, min_turns=6
 	state.bad_action = BadActionPolicy.Fix
 
 	pokemon_data = [0] * 44
-	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
+	pokemon_data[PACK_SPECIES] = speciesFromType(opType)
 	pokemon_data[PACK_CURR_LEVEL] = 5
 	pokemon_data[PACK_STATUS] = StatusChange.OK
-	pokemon_data[PACK_TYPEA] = Type.Normal
-	pokemon_data[PACK_TYPEB] = Type.Normal
+	pokemon_data[PACK_TYPEA] = opType
+	pokemon_data[PACK_TYPEB] = opType
 	if scenario & 1:
 		pokemon_data[PACK_MOVE1] = AvailableMove.Confuse_Ray
 	else:
@@ -292,7 +326,7 @@ def test_trap_move_turn_skip(emulator, move, random_state, scenario, min_turns=6
 			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
 
 
-def test_bind_switch(emulator, move, random_state, scenario):
+def test_bind_switch(emulator, move, opType, random_state, scenario):
 	min_turns = 6
 	battle = BattleHandler(False, debug)
 	state = battle.state
@@ -308,11 +342,11 @@ def test_bind_switch(emulator, move, random_state, scenario):
 	state.bad_action = BadActionPolicy.Fix
 
 	pokemon_data = [0] * 44
-	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
+	pokemon_data[PACK_SPECIES] = speciesFromType(opType)
 	pokemon_data[PACK_CURR_LEVEL] = 5
 	pokemon_data[PACK_STATUS] = StatusChange.OK
-	pokemon_data[PACK_TYPEA] = Type.Normal
-	pokemon_data[PACK_TYPEB] = Type.Normal
+	pokemon_data[PACK_TYPEA] = opType
+	pokemon_data[PACK_TYPEB] = opType
 	if scenario & 1:
 		pokemon_data[PACK_MOVE1] = AvailableMove.Substitute
 	else:
@@ -426,7 +460,7 @@ def test_bind_switch(emulator, move, random_state, scenario):
 			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
 
 
-def test_bind_switch_inverted(emulator, move, random_state, scenario):
+def test_bind_switch_inverted(emulator, move, opType, random_state, scenario):
 	min_turns = 6
 	battle = BattleHandler(False, debug)
 	state = battle.state
@@ -442,11 +476,11 @@ def test_bind_switch_inverted(emulator, move, random_state, scenario):
 	state.bad_action = BadActionPolicy.Fix
 
 	pokemon_data = [0] * 44
-	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
+	pokemon_data[PACK_SPECIES] = speciesFromType(opType)
 	pokemon_data[PACK_CURR_LEVEL] = 5
 	pokemon_data[PACK_STATUS] = StatusChange.OK
-	pokemon_data[PACK_TYPEA] = Type.Normal
-	pokemon_data[PACK_TYPEB] = Type.Normal
+	pokemon_data[PACK_TYPEA] = opType
+	pokemon_data[PACK_TYPEB] = opType
 	if scenario & 1:
 		pokemon_data[PACK_MOVE1] = AvailableMove.Substitute
 	else:
@@ -554,7 +588,7 @@ def test_bind_switch_inverted(emulator, move, random_state, scenario):
 			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
 
 
-def multi_turn_status_move(emulator: PyBoyEmulator, move: int, move2: int, random_state: list | None, scenario: int):
+def multi_turn_status_move(emulator: PyBoyEmulator, move: int, move2: int, opType: Type, random_state: list | None, scenario: int):
 	min_turns = 6
 	battle = BattleHandler(False, debug)
 	state = battle.state
@@ -570,11 +604,11 @@ def multi_turn_status_move(emulator: PyBoyEmulator, move: int, move2: int, rando
 	state.bad_action = BadActionPolicy.Fix
 
 	pokemon_data = [0] * 44
-	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
+	pokemon_data[PACK_SPECIES] = speciesFromType(opType)
 	pokemon_data[PACK_CURR_LEVEL] = 5
 	pokemon_data[PACK_STATUS] = StatusChange.OK
-	pokemon_data[PACK_TYPEA] = Type.Normal
-	pokemon_data[PACK_TYPEB] = Type.Normal
+	pokemon_data[PACK_TYPEA] = opType
+	pokemon_data[PACK_TYPEB] = opType
 	pokemon_data[PACK_MOVE1] = AvailableMove.Thunder_Wave
 	pokemon_data[PACK_MOVE2] = move
 	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
@@ -672,7 +706,7 @@ def multi_turn_status_move(emulator: PyBoyEmulator, move: int, move2: int, rando
 			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
 
 
-def test_mist(emulator: PyBoyEmulator, move: int, random_state: list|None):
+def test_mist(emulator: PyBoyEmulator, move: int, opType: Type, random_state: list|None):
 	min_turns = 6
 	battle = BattleHandler(False, debug)
 	state = battle.state
@@ -688,11 +722,11 @@ def test_mist(emulator: PyBoyEmulator, move: int, random_state: list|None):
 	state.bad_action = BadActionPolicy.Fix
 
 	pokemon_data = [0] * 44
-	pokemon_data[PACK_SPECIES] = PokemonSpecies.Eevee
+	pokemon_data[PACK_SPECIES] = speciesFromType(opType)
 	pokemon_data[PACK_CURR_LEVEL] = 5
 	pokemon_data[PACK_STATUS] = StatusChange.OK
-	pokemon_data[PACK_TYPEA] = Type.Normal
-	pokemon_data[PACK_TYPEB] = Type.Normal
+	pokemon_data[PACK_TYPEA] = opType
+	pokemon_data[PACK_TYPEB] = opType
 	pokemon_data[PACK_MOVE1] = move
 	pokemon_data[PACK_MOVE2] = AvailableMove.Empty
 	pokemon_data[PACK_MOVE3] = AvailableMove.Empty
@@ -783,6 +817,50 @@ def test_mist(emulator: PyBoyEmulator, move: int, random_state: list|None):
 			print(state.rng.index, emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.list)), list(map(lambda x: f'{x:02X}', emulator_state[3])))
 		f = emulator.compare_basic_states(battle.state, emulator_state)
 		if not f[0] or battle.finished or (current_turn > min_turns and not emulator.waiting):
+			state.rng.reset()
+			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
+
+
+def test_replay(emulator: PyBoyEmulator, replay: str):
+	battle = BattleHandler(False, debug)
+	battle.load_replay(replay)
+	state = battle.state
+	if debug:
+		state.logger = lambda x: print(f'Simulator: {x}')
+		emulator.on_text_displayed = lambda x: print(f'Emulator: {x}')
+	state.desync = DesyncPolicy.Ignore
+	state.bad_action = BadActionPolicy.Fix
+
+	battle.start()
+	emulator.init_battle(None, state)
+
+	current_turn = 0
+	emulator_state = emulator.get_emulator_basic_state()
+	if debug:
+		print(emulator.dump_basic_state(emulator_state[0]))
+		print(emulator.dump_basic_state(emulator_state[1]))
+		print(state.me.team[0].dump())
+		print(state.op.team[0].dump())
+		print(state.rng.index, emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.list)), list(map(lambda x: f'{x:02X}', emulator_state[3])))
+	f = emulator.compare_basic_states(battle.state, emulator_state)
+	if not f[0]:
+		state.rng.reset()
+		return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
+	while True:
+		if debug:
+			print(f' ---------- TURN {current_turn + 1} ----------')
+		battle.tick()
+		emulator.step(state)
+		current_turn += 1
+		emulator_state = emulator.get_emulator_basic_state()
+		if debug:
+			print(emulator.dump_basic_state(emulator_state[0]))
+			print(emulator.dump_basic_state(emulator_state[1]))
+			print(state.me.team[0].dump())
+			print(state.op.team[0].dump())
+			print(state.rng.index, emulator_state[2], list(map(lambda x: f'{x:02X}', state.rng.list)), list(map(lambda x: f'{x:02X}', emulator_state[3])))
+		f = emulator.compare_basic_states(battle.state, emulator_state)
+		if not f[0] or battle.finished:
 			state.rng.reset()
 			return f[0], [f"On turn {current_turn}: {e}" for e in f[1]], [state.rng.list]
 
@@ -946,105 +1024,140 @@ multi_turn_moves = [
 	AvailableMove.Rage,
 	AvailableMove.Bide
 ]
+replay_moves = [
+	(AvailableMove.Leech_Seed, 'replays/desync-leech-seed.replay')
+]
+types = [
+	Type.Normal,
+	Type.Fighting,
+	Type.Flying,
+	Type.Poison,
+	Type.Ground,
+	Type.Rock,
+	Type.Bug,
+	Type.Ghost,
+	Type.Fire,
+	Type.Water,
+	Type.Grass,
+	Type.Electric,
+	Type.Psychic,
+	Type.Ice,
+	Type.Dragon
+]
 
 # TODO: Add status (PSN, BRN, LCH) + kill test
 tests = []
+for move_index, replay_path in replay_moves:
+	tests.append({
+		'name': replay_path,
+		'cb': test_replay,
+		'args': [replay_path],
+		'group': AvailableMove(move_index).name
+	})
 for move_index in range(1, AvailableMove.Struggle + 1):
 	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):
 		name = AvailableMove(move_index).name
-		tests.append({
-			'name': f'{name}[{i}](LP)',
-			'cb': test_move,
-			'args': [move_index, rand, 1],
-			'group': name
-		})
-		tests.append({
-			'name': f'{name}[{i}](HP)',
-			'cb': test_move,
-			'args': [move_index, rand, 0],
-			'group': name
-		})
-		tests.append({
-			'name': f'{name}[{i}](LS)',
-			'cb': test_move,
-			'args': [move_index, rand, 3],
-			'group': name
-		})
-		tests.append({
-			'name': f'{name}[{i}](HS)',
-			'cb': test_move,
-			'args': [move_index, rand, 2],
-			'group': name
-		})
-		tests.append({
-			'name': f'{name}[{i}](Sub)',
-			'cb': test_move,
-			'args': [move_index, rand, 5],
-			'group': name
-		})
+		for t in types:
+			tname = t.name
+			tests.append({
+				'name': f'{name}{{{tname}}}[{i}](LP)',
+				'cb': test_move,
+				'args': [move_index, t, rand, 1],
+				'group': name
+			})
+			tests.append({
+				'name': f'{name}{{{tname}}}[{i}](HP)',
+				'cb': test_move,
+				'args': [move_index, t, rand, 0],
+				'group': name
+			})
+			tests.append({
+				'name': f'{name}{{{tname}}}[{i}](LS)',
+				'cb': test_move,
+				'args': [move_index, t, rand, 3],
+				'group': name
+			})
+			tests.append({
+				'name': f'{name}{{{tname}}}[{i}](HS)',
+				'cb': test_move,
+				'args': [move_index, t, rand, 2],
+				'group': name
+			})
+			tests.append({
+				'name': f'{name}{{{tname}}}[{i}](Sub)',
+				'cb': test_move,
+				'args': [move_index, t, rand, 5],
+				'group': name
+			})
 for move_index in binding_moves:
 	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):
 		name = AvailableMove(move_index).name
-		tests.append({
-			'name': f'{name}&Switch[{i}](Atk)',
-			'cb': test_bind_switch,
-			'args': [int(move_index), rand, 0],
-			'group': name
-		})
-		tests.append({
-			'name': f'{name}&Switch[{i}](Sub)',
-			'cb': test_bind_switch,
-			'args': [int(move_index), rand, 1],
-			'group': name
-		})
-		tests.append({
-			'name': f'{name}&Switch[{i}](SAtk)',
-			'cb': test_bind_switch_inverted,
-			'args': [int(move_index), rand, 2],
-			'group': name
-		})
-		tests.append({
-			'name': f'{name}&Switch[{i}](SSub)',
-			'cb': test_bind_switch_inverted,
-			'args': [int(move_index), rand, 3],
-			'group': name
-		})
-		tests.append({
-			'name': f'{name}&CFZ[{i}]',
-			'cb': test_trap_move_turn_skip,
-			'args': [int(move_index), rand, 1],
-			'group': name
-		})
-		tests.append({
-			'name': f'{name}&PAR[{i}]',
-			'cb': test_trap_move_turn_skip,
-			'args': [int(move_index), rand, 0],
-			'group': name
-		})
+		for t in types:
+			tname = t.name
+			tests.append({
+				'name': f'{name}&Switch{{{tname}}}[{i}](Atk)',
+				'cb': test_bind_switch,
+				'args': [int(move_index), t, rand, 0],
+				'group': name
+			})
+			tests.append({
+				'name': f'{name}&Switch{{{tname}}}[{i}](Sub)',
+				'cb': test_bind_switch,
+				'args': [int(move_index), t, rand, 1],
+				'group': name
+			})
+			tests.append({
+				'name': f'{name}&Switch{{{tname}}}[{i}](SAtk)',
+				'cb': test_bind_switch_inverted,
+				'args': [int(move_index), t, rand, 2],
+				'group': name
+			})
+			tests.append({
+				'name': f'{name}&Switch{{{tname}}}[{i}](SSub)',
+				'cb': test_bind_switch_inverted,
+				'args': [int(move_index), t, rand, 3],
+				'group': name
+			})
+			tests.append({
+				'name': f'{name}&CFZ{{{tname}}}[{i}]',
+				'cb': test_trap_move_turn_skip,
+				'args': [int(move_index), t, rand, 1],
+				'group': name
+			})
+			tests.append({
+				'name': f'{name}&PAR{{{tname}}}[{i}]',
+				'cb': test_trap_move_turn_skip,
+				'args': [int(move_index), t, rand, 0],
+				'group': name
+			})
 for move_index in status_moves:
 	for move_index2 in multi_turn_moves:
 		for i, rand in enumerate(rand_lists + extra_lists.get(move_index, []) + extra_lists.get(move_index2, [])):
 			name = move_index.name
-			tests.append({
-				'name': f'{move_index2.name}&{name}[{i}](Par->Move)',
-				'cb': multi_turn_status_move,
-				'args': [int(move_index), int(move_index2), rand, 1],
-				'group': move_index2.name
-			})
-			tests.append({
-				'name': f'{move_index2.name}&{name}[{i}](Move->Par)',
-				'cb': multi_turn_status_move,
-				'args': [int(move_index), int(move_index2), rand, 0],
-				'group': move_index2.name
-			})
+			for t in types:
+				tname = t.name
+				tests.append({
+					'name': f'{move_index2.name}&{name}{{{tname}}}[{i}](Par->Move)',
+					'cb': multi_turn_status_move,
+					'args': [int(move_index), int(move_index2), t, rand, 1],
+					'group': move_index2.name
+				})
+				tests.append({
+					'name': f'{move_index2.name}&{name}{{{tname}}}[{i}](Move->Par)',
+					'cb': multi_turn_status_move,
+					'args': [int(move_index), int(move_index2), t, rand, 0],
+					'group': move_index2.name
+				})
 for move_index in range(1, AvailableMove.Struggle + 1):
 	for i, rand in enumerate(rand_lists + extra_lists.get(move_index, [])):
-		tests.append({
-			'name': f'Mist&{AvailableMove(move_index).name}[{i}]',
-			'cb': test_mist,
-			'args': [move_index, rand],
-			'group': 'Mist'
-		})
+		for t in types:
+			tname = t.name
+			tests.append({
+				'name': f'Mist&{AvailableMove(move_index).name}{{{tname}}}[{i}]',
+				'cb': test_mist,
+				'args': [move_index, t, rand],
+				'group': 'Mist'
+			})
 
 results = []
 

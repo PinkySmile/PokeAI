@@ -101,7 +101,7 @@ namespace PkmnRenderer
 		virtual void clear();
 		virtual void consumeEvent(const PkmnCommon::Event &event);
 		virtual void consumeEvent(const sf::Event &event) = 0;
-		virtual std::optional<BattleAction> selectAction(bool attackDisabled) = 0;
+		virtual std::optional<BattleAction> selectAction(sf::RenderTarget &target, bool attackDisabled) = 0;
 		virtual const sf::Texture &getPkmnFace(PkmnCommon::PokemonSpecies pkmnId) = 0;
 		virtual const sf::SoundBuffer &getPkmnCry(PkmnCommon::PokemonSpecies pkmnId) = 0;
 		virtual void previousTurn();

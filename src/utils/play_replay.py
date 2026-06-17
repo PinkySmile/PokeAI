@@ -1,8 +1,10 @@
 import sys
 import os.path
+from numpy import int8, array
 from PokeBattle.Gen1.YellowEmulator import TrainerClass
 from PokeBattle.Gen1.PyBoyEmulator import PyBoyEmulator
 from PokeBattle.Gen1.BattleHandler import BattleHandler
+from PokeBattle.Gen1.State import BattleState
 from argparse import ArgumentParser
 
 
@@ -59,12 +61,51 @@ if not args.fast:
 battle.start()
 emulator.init_battle(None, state, fast_forward=args.fast or to_turn > 0, trainer=trainer)
 
+
+def get_mask(s: BattleState):
+	pkmn = s.me.pokemon_on_field
+	can_use_struggle = False
+	can_no_action = False
+	move_mask = [False] * 4
+	switch_mask = [int(len(s.me.team) > i and s.me.pokemon_on_field_index != i and s.me.team[i].health > 0) for i in range(6)]
+	if pkmn.health == 0:
+		pass
+	elif s.op.pokemon_on_field.health == 0:
+		switch_mask = [False] * 6
+		can_no_action = True
+	elif pkmn.wrapped:
+		can_no_action = True
+	else:
+		assert len(pkmn.move_set) == 4
+		move_mask = [int(m.id != 0 and m.pp != 0 and pkmn.move_disabled != i) for i, m in enumerate(pkmn.move_set)]
+		can_use_struggle = int(not any(move_mask))
+	result = move_mask + switch_mask + [can_no_action, can_use_struggle]
+	if not any(result):
+		result[10] = True
+	return result
+
+def print_mask(mask):
+	print("Attack1",      bool(mask[0]))
+	print("Attack2",      bool(mask[1]))
+	print("Attack3",      bool(mask[2]))
+	print("Attack4",      bool(mask[3]))
+	print("Switch1",      bool(mask[4]))
+	print("Switch2",      bool(mask[5]))
+	print("Switch3",      bool(mask[6]))
+	print("Switch4",      bool(mask[7]))
+	print("Switch5",      bool(mask[8]))
+	print("Switch6",      bool(mask[9]))
+	print("NoAction",     bool(mask[10]))
+	print("StruggleMove", bool(mask[11]))
+
+
 turn = 0
 while not battle.finished:
 	print(f" ---------- TURN {turn + 1:<3} ----------")
 	with open(state_folder + f"/turn{turn:03d}.state", "wb") as fd:
 		emulator.emulator.save_state(fd)
 	battle.save_state(state_folder + f"/turn{turn:03d}.json")
+	print_mask(array(get_mask(battle.state), dtype=int8))
 	battle.tick()
 	emulator.step(state, fast_forward=args.fast or turn < to_turn)
 	emulator_state = emulator.get_emulator_basic_state()

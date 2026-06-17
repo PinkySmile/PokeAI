@@ -52,6 +52,7 @@ public:
 	unsigned		getRemoteIp();
 	std::string		makeRawRequest(const std::string &host, unsigned short portno, const std::string &content);
 	SOCKET			getSockFd() const { return this->_sockfd; };
+	void			setNoDelay(bool enable);
 
 protected:
 	SOCKET		_sockfd = INVALID_SOCKET;

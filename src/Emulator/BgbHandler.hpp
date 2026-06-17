@@ -6,6 +6,7 @@
 #define POKEAI_BGBHANDLER_HPP
 
 
+#include <chrono>
 #include <vector>
 #include <thread>
 #include <iostream>
@@ -18,8 +19,10 @@ private:
 	bool _logging = false;
 	Socket _socket;
 	std::thread _mainThread;
-	unsigned int _ticks = 0;
+	std::chrono::steady_clock::time_point _startTime = std::chrono::steady_clock::now();
 	std::function<void ()> _mainHandler;
+
+	unsigned int _currentTicks() const;
 
 	struct BGBPacket {
 		unsigned char b1;

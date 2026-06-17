@@ -59,8 +59,8 @@ static std::string standaloneAnimText(unsigned animId, const std::string &name)
 	case PkmnCommon::SYSANIM_BACK_TO_SENSE:return name + " is confused no more!";
 	case PkmnCommon::SYSANIM_CONFUSED_HIT: return "It hurt itself in its confusion!";
 	case PkmnCommon::SYSANIM_SUB_BREAK:    return name + "'s SUBSTITUTE broke!";
-	case PkmnCommon::SYSANIM_POISON:       return name + "'s hurt by the poison!";
-	case PkmnCommon::SYSANIM_BAD_POISON:   return name + "'s hurt by the poison!";
+	case PkmnCommon::SYSANIM_POISON:       return name + "'s hurt by poison!";
+	case PkmnCommon::SYSANIM_BAD_POISON:   return name + "'s hurt by poison!";
 	case PkmnCommon::SYSANIM_BURN:         return name + "'s hurt by the burn!";
 	case PkmnCommon::SYSANIM_LEECHED:      return "LEECH SEED saps " + name + "!";
 	default:                               return "";

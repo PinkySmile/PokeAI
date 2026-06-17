@@ -347,7 +347,11 @@ void Gen1Renderer::render(sf::RenderTarget &target)
 	target.draw(text);
 }
 
-std::optional<BattleAction> Gen1Renderer::selectAction(bool attackDisabled)
+void Gen1Renderer::consumeEvent(const sf::Event &event)
+{
+}
+
+std::optional<BattleAction> Gen1Renderer::selectAction(sf::RenderTarget &target, bool attackDisabled)
 {
 	return {};
 }
@@ -393,7 +397,6 @@ Gen1Renderer::PokemonData &Gen1Renderer::getPkmnData(PkmnCommon::PokemonSpecies 
 	auto it = this->_data.find(pkmnId);
 
 	if (it == this->_data.end()) {
-		printf("Loading %i (%s)\n", pkmnId, speciesToString(pkmnId));
 		Gen1Renderer::_loadPokemonData(this->_data[pkmnId], speciesToString(pkmnId), this->_variant, this->_loadSounds);
 		it = this->_data.find(pkmnId);
 	}
@@ -2500,10 +2503,6 @@ void Gen1Renderer::_renderText(sf::RenderTarget &target)
 	target.draw(text);
 	this->_displayMyFace(target, substituteSprite(this->p1State));
 	this->_displayOpFace(target, substituteSprite(this->p2State));
-}
-
-void Gen1Renderer::consumeEvent(const sf::Event &event)
-{
 }
 
 void Gen1Renderer::previousTurn()

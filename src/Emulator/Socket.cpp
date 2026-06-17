@@ -11,6 +11,8 @@
 #ifndef _WIN32
 #	include <netdb.h>
 #	include <arpa/inet.h>
+#	include <netinet/in.h>
+#	include <netinet/tcp.h>
 #	include <sys/select.h>
 	typedef fd_set FD_SET;
 #endif
@@ -218,6 +220,20 @@ void Socket::send(const std::string &msg)
 std::string Socket::readUntilEOF()
 {
 	return this->read(-1);
+}
+
+void Socket::setNoDelay(bool enable)
+{
+	if (!this->isOpen())
+		throw NotConnectedException("This socket is not connected to a server");
+
+#ifdef _WIN32
+	BOOL flag = enable ? TRUE : FALSE;
+#else
+	int flag = enable ? 1 : 0;
+#endif
+
+	(void)setsockopt(this->_sockfd, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char *>(&flag), sizeof(flag));
 }
 
 bool	Socket::isOpen()

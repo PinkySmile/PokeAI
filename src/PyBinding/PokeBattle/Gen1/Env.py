@@ -635,6 +635,7 @@ class PokemonYellowBattle(Env):
 				print(f" - {e}")
 			if self.replay_folder:
 				self.battle.save_replay(os.path.join(self.replay_folder, f"desynced-episode-{self.episode_id - 1}.replay"))
+				self.battle.save_state(os.path.join(self.replay_folder, f"desynced-episode-{self.episode_id - 1}-turn-{self.current_turn}.bstate"))
 			self.recording = False
 
 

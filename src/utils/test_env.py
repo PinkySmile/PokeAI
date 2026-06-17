@@ -39,7 +39,7 @@ auto = len(sys.argv) > 1
 async def main():
 	p = gym.make('PokemonYellow', render_mode="human", shuffle_teams=True, rom="/home/pinky/pokeyellow-gen-II/pokeyellow.gbc", leak_state=True, skip_frames=300, use_emulator=False)
 	finished = False
-	params = load_scenario('ai/scenarios/very_simple.scenario', basic_opponent)
+	params = load_scenario('ai/scenarios/less_simple.scenario', basic_opponent)
 	observation, info = p.reset(options=params)
 
 	print(observation, info, len(observation))
