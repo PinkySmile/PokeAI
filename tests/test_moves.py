@@ -1045,6 +1045,23 @@ types = [
 	Type.Dragon
 ]
 
+parser = ArgumentParser(prog=sys.argv[0])
+parser.add_argument('-d', '--debug', action='store_true')
+parser.add_argument('-u', '--display-emulator', action='store_true')
+parser.add_argument('-e', '--emu-debug', action='store_true')
+parser.add_argument('-i', '--show-individual', action='store_true')
+parser.add_argument('-f', '--show-failure', action='store_true')
+parser.add_argument('-t', '--test', nargs='*')
+parser.add_argument('-v', '--volume', default=25, type=int)
+parser.add_argument('-j', '--jobs', default=1, type=int)
+parser.add_argument('-o', '--output')
+parser.add_argument('-y', '--type', nargs='*', choices=list(map(lambda a: a.name, Type)))
+parser.add_argument('-r', '--rom')
+args = parser.parse_args()
+
+if not args.type is None:
+	types = [getattr(Type, t) for t in args.type]
+
 # TODO: Add status (PSN, BRN, LCH) + kill test
 tests = []
 for move_index, replay_path in replay_moves:
@@ -1160,19 +1177,6 @@ for move_index in range(1, AvailableMove.Struggle + 1):
 			})
 
 results = []
-
-parser = ArgumentParser(prog=sys.argv[0])
-parser.add_argument('-d', '--debug', action='store_true')
-parser.add_argument('-u', '--display-emulator', action='store_true')
-parser.add_argument('-e', '--emu-debug', action='store_true')
-parser.add_argument('-i', '--show-individual', action='store_true')
-parser.add_argument('-f', '--show-failure', action='store_true')
-parser.add_argument('-t', '--test', nargs='*')
-parser.add_argument('-v', '--volume', default=25, type=int)
-parser.add_argument('-j', '--jobs', default=1, type=int)
-parser.add_argument('-o', '--output')
-parser.add_argument('-r', '--rom')
-args = parser.parse_args()
 
 
 debug = args.debug

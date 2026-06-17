@@ -71,6 +71,7 @@ namespace PokemonGen1
 
 		if (p1Attack) {
 			this->_state.me.lastAttack =
+				p1.isWrapped() ? static_cast<AvailableMove>(-1) :
 				this->_state.me.nextAction == StruggleMove ? Struggle :
 				static_cast<AvailableMove>(p1.getMoveSet()[this->_state.me.nextAction - Attack1].getID());
 			if (p1.getForcedAttack())
@@ -78,6 +79,7 @@ namespace PokemonGen1
 		}
 		if (p2Attack) {
 			this->_state.op.lastAttack =
+				p2.isWrapped() ? static_cast<AvailableMove>(-1) :
 				this->_state.op.nextAction == StruggleMove ? Struggle :
 				static_cast<AvailableMove>(p2.getMoveSet()[this->_state.op.nextAction - Attack1].getID());
 			if (p2.getForcedAttack())
@@ -402,26 +404,16 @@ namespace PokemonGen1
 		auto &me = this->_state.me.team[this->_state.me.pokemonOnField];
 		auto &op = this->_state.op.team[this->_state.op.pokemonOnField];
 
-		//TODO: Wrong
-		if (me.hasStatus(STATUS_ASLEEP) || me.hasStatus(STATUS_FROZEN)) {
-			this->_state.me.nextAction = this->_state.me.lastAction;
-			if (Switch1 <= this->_state.me.nextAction && this->_state.me.nextAction <= Switch6)
-				this->_state.me.nextAction = NoAction;
-			if (this->_state.me.nextAction == StruggleMove)
-				this->_state.me.nextAction = NoAction;
-		}
-		if (op.hasStatus(STATUS_ASLEEP) || op.hasStatus(STATUS_FROZEN)) {
-			this->_state.op.nextAction = this->_state.op.lastAction;
-			if (Switch1 <= this->_state.op.nextAction && this->_state.op.nextAction <= Switch6)
-				this->_state.op.nextAction = NoAction;
-			if (this->_state.op.nextAction == StruggleMove)
-				this->_state.op.nextAction = NoAction;
-		}
+		this->_replayData.input.emplace_back(this->_state.me.nextAction, this->_state.op.nextAction);
+		//TODO: Wrong(?)
+		if ((me.hasStatus(STATUS_ASLEEP) || me.hasStatus(STATUS_FROZEN)) && Attack1 <= this->_state.me.nextAction && this->_state.me.nextAction <= Attack4)
+			this->_state.me.nextAction = this->_state.me.lastAttack == -1 ? NoAction : Attack1;
+		if ((op.hasStatus(STATUS_ASLEEP) || op.hasStatus(STATUS_FROZEN)) && Attack1 <= this->_state.op.nextAction && this->_state.op.nextAction <= Attack4)
+			this->_state.op.nextAction = this->_state.op.lastAttack == -1 ? NoAction : Attack1;
 		if (this->_state.me.nextAction == EmptyAction || this->_state.op.nextAction == EmptyAction)
 			throw std::runtime_error("No action selected");
 		this->_state.me.discovered[this->_state.op.pokemonOnField].first = true;
 		this->_state.op.discovered[this->_state.me.pokemonOnField].first = true;
-		this->_replayData.input.emplace_back(this->_state.me.nextAction, this->_state.op.nextAction);
 		this->_log("P1 will do " + BattleActionToString(this->_state.me.nextAction));
 		this->_log("P2 will do " + BattleActionToString(this->_state.op.nextAction));
 		this->_executeBattleActions();

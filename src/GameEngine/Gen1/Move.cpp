@@ -893,6 +893,7 @@ namespace PokemonGen1
 			auto type = atk.getType();
 
 			if (
+				target.getMyState().lastAttack == -1 ||
 				atk.getID() == Counter ||
 				atk.getCategory() == STATUS ||
 				(type != TYPE_NORMAL && type != TYPE_FIGHTING) ||
