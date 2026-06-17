@@ -110,6 +110,8 @@ def gen1AI(me: PlayerState, op: PlayerState, categories: list[int], random: Gene
 			best = [i]
 		elif scores[best[0]] == scores[i]:
 			best.append(i)
+	if scores[best[0]] == -1000:
+		return BattleAction.StruggleMove
 	return BattleAction(BattleAction.Attack1 + best[random.integers(low=0, high=len(best))])
 
 
