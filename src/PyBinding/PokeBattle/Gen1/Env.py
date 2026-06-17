@@ -596,6 +596,7 @@ class PokemonYellowBattle(Env):
 		self.skip_frames = skip_frames
 		self.episode_trigger = episode_trigger
 		self.recording = False
+		self.saved_replay = True
 		self.shuffle_teams = shuffle_teams
 		self.replay_folder = replay_folder
 		self.trainer_class = None
@@ -801,6 +802,7 @@ class PokemonYellowBattle(Env):
 		self.battle.tick()
 		self.current_turn += 1
 		if self.battle.finished and self.replay_folder:
+			self.saved_replay = True
 			self.battle.save_replay(os.path.join(self.replay_folder, f"episode-{self.episode_id - 1}.replay"))
 		observation, info = self.make_observation(state)
 		self.step_emulator(state)
@@ -810,6 +812,9 @@ class PokemonYellowBattle(Env):
 
 	def reset(self, seed=None, options=None):
 		super().reset(seed=seed)
+		if not self.saved_replay and self.replay_folder:
+			self.battle.save_replay(os.path.join(self.replay_folder, f"episode-{self.episode_id - 1}-partial.replay"))
+		self.saved_replay = False
 		self.battle.reset()
 		self.current_turn = 0
 		if self.episode_trigger:
