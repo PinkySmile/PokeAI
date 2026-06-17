@@ -70,20 +70,22 @@ namespace PokemonGen1
 		bool p1Start = p1PriorityFactor > p2PriorityFactor;
 
 		if (p1Attack) {
-			this->_state.me.lastAttack =
-				p1.isWrapped() ? static_cast<AvailableMove>(-1) :
-				this->_state.me.nextAction == StruggleMove ? Struggle :
-				static_cast<AvailableMove>(p1.getMoveSet()[this->_state.me.nextAction - Attack1].getID());
 			if (p1.getForcedAttack())
 				this->_state.me.nextAction = static_cast<BattleAction>(Attack1 + p1.getForcedAttack() - 1);
+			else if (!p1.hasStatus(STATUS_ASLEEP) && !p1.hasStatus(STATUS_FROZEN))
+				this->_state.me.lastAttack =
+					p1.isWrapped() ? static_cast<AvailableMove>(-1) :
+					this->_state.me.nextAction == StruggleMove ? Struggle :
+					static_cast<AvailableMove>(p1.getMoveSet()[this->_state.me.nextAction - Attack1].getID());
 		}
 		if (p2Attack) {
-			this->_state.op.lastAttack =
-				p2.isWrapped() ? static_cast<AvailableMove>(-1) :
-				this->_state.op.nextAction == StruggleMove ? Struggle :
-				static_cast<AvailableMove>(p2.getMoveSet()[this->_state.op.nextAction - Attack1].getID());
 			if (p2.getForcedAttack())
 				this->_state.op.nextAction = static_cast<BattleAction>(Attack1 + p2.getForcedAttack() - 1);
+			else if (!p2.hasStatus(STATUS_ASLEEP) && !p2.hasStatus(STATUS_FROZEN))
+				this->_state.op.lastAttack =
+					p2.isWrapped() ? static_cast<AvailableMove>(-1) :
+					this->_state.op.nextAction == StruggleMove ? Struggle :
+					static_cast<AvailableMove>(p2.getMoveSet()[this->_state.op.nextAction - Attack1].getID());
 		}
 
 		if (p1PriorityFactor == p2PriorityFactor)
