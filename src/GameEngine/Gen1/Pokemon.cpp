@@ -710,7 +710,7 @@ namespace PokemonGen1
 					this->setRecharging(false);
 					logger(PkmnCommon::TextEvent{"It hurt itself in its confusion!"});
 					logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_CONFUSED_HIT, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
-					this->takeDamage(target, this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false, true).damage, false, true);
+					this->takeDamage(target, this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false, true).damage, false, true, false);
 					// clear bide, thrashing about, charging up, and multi-turn moves such as warp
 					// but NOT rage!
 					if (this->_lastUsedMove.getID() != AvailableMove::Rage)
@@ -781,7 +781,7 @@ namespace PokemonGen1
 		if (status & STATUS_BURNED) {
 			logger(PkmnCommon::TextEvent{this->getName() + "'s hurt by the burn!"});
 			logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_BURN, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
-			this->takeDamage(target, this->getMaxHealth() / 16, true, false);
+			this->takeDamage(target, this->getMaxHealth() / 16, true, false, false);
 		} else if (status & STATUS_POISONED) {
 			damage = this->getMaxHealth() / 16;
 			logger(PkmnCommon::TextEvent{this->getName() + "'s hurt by poison!"});
@@ -790,7 +790,7 @@ namespace PokemonGen1
 				damage *= this->_badPoisonStage++;
 			} else
 				logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_POISON, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
-			this->takeDamage(target, damage, true, false);
+			this->takeDamage(target, damage, true, false, false);
 		}
 		if (status & STATUS_LEECHED) {
 			// FIXME: If dead from poison, the "X fainted!" message shows before that one. See test `Metronome[26](H*)`.
@@ -799,7 +799,7 @@ namespace PokemonGen1
 			damage = this->getMaxHealth() / 16;
 			if (status & STATUS_BAD_POISON)
 				damage *= this->_badPoisonStage++;
-			this->takeDamage(target, damage, true, false);
+			this->takeDamage(target, damage, true, false, false);
 			target.heal(damage);
 		}
 	}
@@ -938,7 +938,7 @@ namespace PokemonGen1
 		this->_battleState->battleLogger(PkmnCommon::HealthModEvent{.newHealth = this->_computedStats.HP, .player = !this->isEnemy(), .animated = true });
 	}
 
-	void Pokemon::takeDamage(Pokemon &target, unsigned short damage, bool skipSubstitute, bool swapSide)
+	void Pokemon::takeDamage(Pokemon &target, unsigned short damage, bool skipSubstitute, bool swapSide, bool store)
 	{
 		if (!this->_computedStats.HP)
 			return;
@@ -948,7 +948,7 @@ namespace PokemonGen1
 
 		const auto &logger = this->_battleState->battleLogger;
 
-		if (this->_storingDamages)
+		if (this->_storingDamages && store)
 			this->_damageStored += damage;
 
 		if (!skipSubstitute && this->_hasSub) {

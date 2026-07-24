@@ -420,8 +420,8 @@ cdef class Pokemon:
 	def heal(self, unsigned short health):
 		self.__instance.heal(health)
 
-	def take_damage(self, Pokemon target, unsigned short damage, bool ignoreSubstitute, bool swapSide):
-		self.__instance.takeDamage(dereference(target.__instance), damage, ignoreSubstitute, swapSide)
+	def take_damage(self, Pokemon target, unsigned short damage, bool ignoreSubstitute, bool swapSide, bool storeDamage):
+		self.__instance.takeDamage(dereference(target.__instance), damage, ignoreSubstitute, swapSide, storeDamage)
 
 	def use_move_slot(self, unsigned char moveSlot, Pokemon target):
 		self.__instance.attack(moveSlot, dereference(target.__instance))

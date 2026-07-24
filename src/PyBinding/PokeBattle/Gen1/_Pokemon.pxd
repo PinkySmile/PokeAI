@@ -81,7 +81,7 @@ cdef extern from "<GameEngine/Gen1/Pokemon.hpp>" namespace "PokemonGen1":
 		void storeDamages(bool active)
 		bool hasStatus(StatusChange status) const
 		void heal(int health)
-		void takeDamage(Pokemon &target, int damage, bool ignoreSubstitute, bool swapSide)
+		void takeDamage(Pokemon &target, int damage, bool ignoreSubstitute, bool swapSide, bool storeDamage)
 		void attack(unsigned char moveSlot, Pokemon &target)
 		Pokemon.DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense, bool swapSide)
 		void endTurn()

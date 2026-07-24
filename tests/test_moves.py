@@ -191,6 +191,8 @@ def test_move(emulator, move, opType, random_state, scenario, min_turns=6):
 			state.me.next_action = BattleAction.StruggleMove
 		if state.op.pokemon_on_field.health == 0:
 			state.op.next_action = BattleAction.Switch2
+		elif state.op.pokemon_on_field.wrapped:
+			state.op.next_action = BattleAction.NoAction
 		else:
 			state.op.next_action = BattleAction.Attack1
 		battle.tick()
@@ -958,6 +960,9 @@ extra_lists = {
 	AvailableMove.Dig: [
 		[ 75, 249,  72, 171, 120,  78,  39, 204,  67]
 	],
+	AvailableMove.Bide: [
+		[112, 167,  60, 107, 104, 196, 205,  64,  40]
+	],
 	AvailableMove.Metronome: [
 		[202,  88, 229, 250,  88, 170, 200,  85, 211],
 		[228,  54, 183, 208, 182,  28, 135,  72, 106],
@@ -1025,7 +1030,8 @@ multi_turn_moves = [
 	AvailableMove.Bide
 ]
 replay_moves = [
-	(AvailableMove.Leech_Seed, 'replays/desync-leech-seed.replay')
+	(AvailableMove.Leech_Seed, 'replays/desync-leech-seed.replay'),
+	(AvailableMove.Hypnosis,   'replays/desync-sleep-turns.replay'),
 ]
 types = [
 	Type.Normal,

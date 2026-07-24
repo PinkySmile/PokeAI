@@ -33,7 +33,7 @@ namespace PokemonGen1
 	Move::MissCallback explodeMissCb = [](unsigned id, Pokemon &owner, Pokemon &target, bool, const BattleLogger &logger) {
 		logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(id), .player = !owner.isEnemy(), .hideSubstitute = true});
 		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy(), .hasEffect = true});
-		owner.takeDamage(target, owner.getHealth(), true, false);
+		owner.takeDamage(target, owner.getHealth(), true, false, false);
 		return true;
 	};
 	const char *explodeMissDesc = "Kills user";
@@ -41,7 +41,7 @@ namespace PokemonGen1
 	Move::MissCallback take1DmgCb = [](unsigned id, Pokemon &owner, Pokemon &target, bool, const BattleLogger &logger) {
 		logger(PkmnCommon::TextEvent{owner.getName() + " kept going and crashed!"});
 		logger(PkmnCommon::ExtraAnimEvent{.moveId = PokemonGen1::moveToCommon(id), .index = 0, .player = !owner.isEnemy()});
-		owner.takeDamage(target, 1, false, false);
+		owner.takeDamage(target, 1, false, false, false);
 		return true;
 	};
 	const char *take1DmgDesc = "Take 1 damage";
@@ -163,9 +163,9 @@ namespace PokemonGen1
 	Move::HitCallback quRecoilCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger) {
 		logger(PkmnCommon::ExtraAnimEvent{.moveId = PokemonGen1::moveToCommon(id), .index = 0, .player = !owner.isEnemy()});
 		if (damage <= 3)
-			owner.takeDamage(target, 1, true, false);
+			owner.takeDamage(target, 1, true, false, false);
 		else
-			owner.takeDamage(target, damage / 4, true, false);
+			owner.takeDamage(target, damage / 4, true, false, false);
 		logger(PkmnCommon::TextEvent{owner.getName() + "'s hits with recoil!"});
 		return true;
 	};
@@ -181,9 +181,9 @@ namespace PokemonGen1
 	Move::HitCallback takeHalfMoveDamageCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger) {
 		logger(PkmnCommon::ExtraAnimEvent{.moveId = PokemonGen1::moveToCommon(id), .index = 0, .player = !owner.isEnemy()});
 		if (damage == 1)
-			owner.takeDamage(target, 1, true, false);
+			owner.takeDamage(target, 1, true, false, false);
 		else
-			owner.takeDamage(target, damage / 2, true, false);
+			owner.takeDamage(target, damage / 2, true, false, false);
 		logger(PkmnCommon::TextEvent{owner.getName() + "'s hits with recoil!"});
 		return true;
 	};
@@ -201,7 +201,7 @@ namespace PokemonGen1
 
 	Move::HitCallback deal20DamageCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
 		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
-		target.takeDamage(owner, 20, false, false);
+		target.takeDamage(owner, 20, false, false, true);
 		target.getBattleState().lastDamage = 20;
 		return true;
 	};
@@ -209,7 +209,7 @@ namespace PokemonGen1
 
 	Move::HitCallback deal40DamageCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
 		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
-		target.takeDamage(owner, 40, false, false);
+		target.takeDamage(owner, 40, false, false, true);
 		target.getBattleState().lastDamage = 40;
 		return true;
 	};
@@ -217,7 +217,7 @@ namespace PokemonGen1
 
 	Move::HitCallback dealLvlAsDmgCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
 		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy(), .hasEffect = true});
-		target.takeDamage(owner, owner.getLevel(), false, false);
+		target.takeDamage(owner, owner.getLevel(), false, false, true);
 		target.getBattleState().lastDamage = owner.getLevel();
 		return true;
 	};
@@ -259,7 +259,7 @@ namespace PokemonGen1
 
 		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
 		target.getBattleState().lastDamage = r;
-		target.takeDamage(owner, r, false, false);
+		target.takeDamage(owner, r, false, false, true);
 		return true;
 	};
 	const char *deal1DamageTo1d5LevelDamageDesc = "Deal between 1 damage and 1.5 times the user's level as damage";
@@ -330,7 +330,7 @@ namespace PokemonGen1
 			logger(PkmnCommon::TextEvent{owner.getName() + " unleashes energy!"});
 			logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(id), .player = !owner.isEnemy(), .hideSubstitute = true});
 			logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
-			target.takeDamage(owner, owner.getDamagesStored() * 2, false, false);
+			target.takeDamage(owner, owner.getDamagesStored() * 2, false, false, true);
 		}
 		owner.storeDamages(!last);
 		return true;
@@ -355,7 +355,7 @@ namespace PokemonGen1
 	const char *useLastFoeMoveDesc = "Use last foe's used move";
 
 	Move::HitCallback explodeCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){
-		owner.takeDamage(target, owner.getHealth(), true, false);
+		owner.takeDamage(target, owner.getHealth(), true, false, false);
 		return true;
 	};
 	const char *explodeDesc = "Kill user";
@@ -370,7 +370,7 @@ namespace PokemonGen1
 	Move::HitCallback dealHalfHPDmgCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){
 		target.getBattleState().lastDamage = target.getHealth() / 2;
 		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
-		target.takeDamage(owner, target.getHealth() / 2, false, false); /* TODO: Check how it interacts with SUBSTITUTE */
+		target.takeDamage(owner, target.getHealth() / 2, false, false, true); /* TODO: Check how it interacts with SUBSTITUTE */
 		return true;
 	};
 	const char *dealHalfHPDmgDesc = "Deal half foe's HP";
@@ -384,7 +384,7 @@ namespace PokemonGen1
 	Move::HitCallback createSubCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
 		unsigned hp = owner.getMaxHealth() / 4;
 		owner.setSubstituteHealth(hp);
-		owner.takeDamage(target, hp, true, false);
+		owner.takeDamage(target, hp, true, false, false);
 		logger(PkmnCommon::TextEvent{"It created a SUBSTITUTE!"});
 		return true;
 	};
@@ -848,15 +848,37 @@ namespace PokemonGen1
 			logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 			return false;
 		}
-		if ((this->_category != STATUS || this->_type == TYPE_ELECTRIC) && getAttackDamageMultiplier(this->_type, target.getTypes()) == 0) {
+		if (
+			(this->_category != STATUS || this->_type == TYPE_ELECTRIC) &&
+			getAttackDamageMultiplier(this->_type, target.getTypes()) == 0 &&
+			this->getID() != Counter && this->getID() != Super_Fang && this->getID() != Bide
+		) {
 			if (this->_category != STATUS) {
-				// First is crit check
-				rng(); // FIXME: Apparently 2 RNG ticks are required when the enemy isn't affected?????
-				rng(); //        Check out the code path in the assembly to figure out what these 2 values are used for.
+				// First is crit check, unless it's a OHKO move
+				if (this->_power != 255)
+					rng();
+				// Second is accuracy check
+				accuracyByte = target.getEvasion(owner.getAccuracy(this->_accuracy));
+				if (accuracyByte > 0xFF)
+					accuracyByte = 0xFF;
+				if ((
+					!target.canGetHit() &&
+					!this->_skipAccuracyCheck
+				) || (
+					this->_canHitCallback &&
+					!this->_canHitCallback(this->getID(), owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger)
+				) || (
+					!this->_skipAccuracyCheck &&
+					rng() >= accuracyByte
+				))
+					this->_nbHit = 0;
+				else if (this->_hitCallBackDescription == wrapTargetDesc)
+					target.setWrapped(true);
 			}
 			logger(PkmnCommon::TextEvent{"It didn't affect " + target.getName() + "!"});
 			if (this->_missCallback)
 				this->_missCallback(this->getID(), owner, target, this->isFinished(), logger);
+			owner.getBattleState().lastDamage = 0;
 			logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 			return false;
 		}
@@ -990,7 +1012,7 @@ namespace PokemonGen1
 				logger(PkmnCommon::TextEvent{"One-hit KO!"});
 			if (!target.hasSubstitute() && owner.getBattleState().lastDamage > target.getHealth())
 				owner.getBattleState().lastDamage = target.getHealth();
-			target.takeDamage(owner, owner.getBattleState().lastDamage, false, false);
+			target.takeDamage(owner, owner.getBattleState().lastDamage, false, false, true);
 			if (damage.critical)
 				logger(PkmnCommon::TextEvent{"Critical hit!"});
 			if (damage.isNotVeryEffective)
@@ -1022,7 +1044,7 @@ namespace PokemonGen1
 			for (size_t i = 1; i < hits; i++) {
 				logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy(), .hideSubstitute = true});
 				logger(PkmnCommon::HitEvent{.veryEffective = damage.isVeryEffective, .notVeryEffective = damage.isNotVeryEffective, .player = !target.isEnemy(), .hasEffect = true});
-				target.takeDamage(owner, owner.getBattleState().lastDamage, false, false);
+				target.takeDamage(owner, owner.getBattleState().lastDamage, false, false, true);
 				if (damage.isNotVeryEffective)
 					logger(PkmnCommon::TextEvent{"It's not very effective!"});
 				if (damage.isVeryEffective)
@@ -1364,7 +1386,7 @@ namespace PokemonGen1
 		Move{0x8D, "Leech Life"  , TYPE_BUG     , PHYSICAL,  20, 100, 15, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(absorbHalfDmg)},
 		Move{0x8E, "Lovely Kiss" , TYPE_NORMAL  , STATUS  ,   0,  75, 10, {STATUS_ASLEEP, 0}},
 		Move{0x8F, "Sky Attack"  , TYPE_FLYING  , PHYSICAL, 140,  90,  5, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NEED_LOADING("is glowing!")},
-		Move{0x90, "Transform"   , TYPE_NORMAL  , PHYSICAL,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(transform)},
+		Move{0x90, "Transform"   , TYPE_NORMAL  , STATUS  ,   0, 255, 10, NO_STATUS_CHANGE, NO_STATS_CHANGE, DEFAULT_HITS, ONE_RUN, 0, DEFAULT_CRIT_CHANCE, NO_LOADING, false, false, alwaysHit, DESC_CALLBACK(transform)},
 		Move{0x91, "Bubble"      , TYPE_WATER   , SPECIAL ,  20, 100, 30, NO_STATUS_CHANGE, {}, {{STATS_SPD, -1, 0x55}}},
 		Move{0x92, "Dizzy Punch" , TYPE_NORMAL  , PHYSICAL,  70, 100, 10},
 		Move{0x93, "Spore"       , TYPE_GRASS   , STATUS  ,   0, 100, 15, {STATUS_ASLEEP, 0}},

@@ -201,7 +201,7 @@ namespace PokemonGen1
 		void storeDamages(bool active);
 		bool hasStatus(StatusChange status) const;
 		void heal(unsigned short health);
-		void takeDamage(Pokemon &target, unsigned short damage, bool skipSubstitute, bool swapSide);
+		void takeDamage(Pokemon &target, unsigned short damage, bool skipSubstitute, bool swapSide, bool store);
 		void attack(unsigned char moveSlot, Pokemon &target);
 		DamageResult calcDamage(Pokemon &target, unsigned power, Type damageType, MoveCategory category, bool critical, bool randomized, bool halfDefense, bool swapTurn) const;
 		void endTurn();
