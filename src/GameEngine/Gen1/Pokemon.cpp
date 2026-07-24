@@ -711,6 +711,7 @@ namespace PokemonGen1
 					logger(PkmnCommon::TextEvent{"It hurt itself in its confusion!"});
 					logger(PkmnCommon::AnimEvent{.animId = PkmnCommon::SYSANIM_CONFUSED_HIT, .isGuaranteed = true, .player = !this->isEnemy(), .turn = !this->isEnemy()});
 					this->takeDamage(target, this->calcDamage(*this, 40, TYPE_NEUTRAL_PHYSICAL, PHYSICAL, false, false, false, true).damage, false, true, false);
+					this->setInvincible(false);
 					// clear bide, thrashing about, charging up, and multi-turn moves such as warp
 					// but NOT rage!
 					if (this->_lastUsedMove.getID() != AvailableMove::Rage)
