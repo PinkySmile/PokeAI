@@ -408,8 +408,8 @@ cdef class Pokemon:
 	def change_stat(self, int stat, char nb, bool guarenteed, bool turn):
 		return self.__instance.changeStat(cast(__StatsChange, stat), nb, guarenteed, turn)
 
-	def use_move(self, PyMove move, Pokemon target):
-		self.__instance.useMove(dereference(move.__instance), dereference(target.__instance))
+	def use_move(self, PyMove move, Pokemon target, bool second):
+		self.__instance.useMove(dereference(move.__instance), dereference(target.__instance), second)
 
 	def store_damages(self, bool active):
 		return self.__instance.storeDamages(active)
@@ -423,8 +423,8 @@ cdef class Pokemon:
 	def take_damage(self, Pokemon target, unsigned short damage, bool ignoreSubstitute, bool swapSide, bool storeDamage):
 		self.__instance.takeDamage(dereference(target.__instance), damage, ignoreSubstitute, swapSide, storeDamage)
 
-	def use_move_slot(self, unsigned char moveSlot, Pokemon target):
-		self.__instance.attack(moveSlot, dereference(target.__instance))
+	def use_move_slot(self, unsigned char moveSlot, Pokemon target, bool second):
+		self.__instance.attack(moveSlot, dereference(target.__instance), second)
 
 	def calc_damage(self, Pokemon target, unsigned power, int damageType, int category, bool critical, bool randomized, bool halfDefense, bool swapSide):
 		cdef __Pokemon.DamageResult result = self.__instance.calcDamage(

@@ -97,7 +97,7 @@ namespace PokemonGen1
 			if (p1Attack) {
 				if (this->_state.me.nextAction <= Attack4)
 					this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
-				p1.attack(this->_state.me.nextAction - Attack1, p2);
+				p1.attack(this->_state.me.nextAction - Attack1, p2, false);
 			}
 			p1.stepEnds(p2);
 		}
@@ -107,7 +107,7 @@ namespace PokemonGen1
 		if (p2Attack) {
 			if (this->_state.op.nextAction <= Attack4)
 				this->_state.me.discovered[this->_state.op.pokemonOnField].second[this->_state.op.nextAction - Attack1] = true;
-			p2.attack(this->_state.op.nextAction - Attack1, p1);
+			p2.attack(this->_state.op.nextAction - Attack1, p1, p1Start);
 		}
 		p2.stepEnds(p1);
 
@@ -117,7 +117,7 @@ namespace PokemonGen1
 			if (p1Attack) {
 				if (this->_state.me.nextAction <= Attack4)
 					this->_state.op.discovered[this->_state.me.pokemonOnField].second[this->_state.me.nextAction - Attack1] = true;
-				p1.attack(this->_state.me.nextAction - Attack1, p2);
+				p1.attack(this->_state.me.nextAction - Attack1, p2, true);
 			}
 			p1.stepEnds(p2);
 		}

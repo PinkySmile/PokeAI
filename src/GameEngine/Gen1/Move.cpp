@@ -51,9 +51,9 @@ namespace PokemonGen1
 
 
 	// Can hit callback
-	Move::HitCallback alwaysHit = [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &){ return true; };
+	Move::HitCallback alwaysHit = [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &, bool){ return true; };
 
-	Move::HitCallback deal1DamageTo1d5LevelDamageCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &) {
+	Move::HitCallback deal1DamageTo1d5LevelDamageCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &, bool) {
 		unsigned char multipliedLevel = owner.getLevel() * 1.5;
 		unsigned char r;
 		unsigned int index = 0;
@@ -90,17 +90,17 @@ namespace PokemonGen1
 		return true;
 	};
 
-	Move::HitCallback healCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &) {
+	Move::HitCallback healCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &, bool) {
 	        unsigned h = owner.getHealth();
 	        unsigned m = owner.getMaxHealth();
 		return (h & 0xFF) - (m & 0xFF) - ((h >> 8) < (m >> 8)) != 0;
 	};
 
-	Move::HitCallback useLastFoeMoveCheck = [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &) {
+	Move::HitCallback useLastFoeMoveCheck = [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &, bool) {
 		return target.getLastUsedMove().getID() != 0;
 	};
 
-	Move::HitCallback createSubstituteCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback createSubstituteCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger, bool) {
 		if (owner.hasSubstitute()) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " has a SUBSTITUTE!"});
 			return false;
@@ -113,23 +113,23 @@ namespace PokemonGen1
 		return true;
 	};
 
-	Move::HitCallback reflectCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &) {
+	Move::HitCallback reflectCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &, bool) {
 	        return !owner.hasReflectUp();
 	};
 
-	Move::HitCallback lightScreenCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &) {
+	Move::HitCallback lightScreenCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &, bool) {
 	        return !owner.hasLightScreenUp();
 	};
 
-	Move::HitCallback mistCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &) {
+	Move::HitCallback mistCheck = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &, bool) {
 		return !owner.isMisted();
 	};
 
-	Move::HitCallback sleepCheck = [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &) {
+	Move::HitCallback sleepCheck = [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &, bool) {
 		return target.hasStatus(STATUS_ASLEEP);
 	};
 
-	Move::HitCallback disableCheck = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){
+	Move::HitCallback disableCheck = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &, bool) {
 		if (target.getMoveDisabled() != 0) {
 			owner.getRandomGenerator().skip(1);
 			return false;
@@ -160,7 +160,7 @@ namespace PokemonGen1
 	Move::HitCallback ohkoCb = nullptr;
 	const char *ohkoDesc = "Kills in one hit if the user's speed is higher than the foe's";
 
-	Move::HitCallback quRecoilCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger) {
+	Move::HitCallback quRecoilCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger, bool) {
 		logger(PkmnCommon::ExtraAnimEvent{.moveId = PokemonGen1::moveToCommon(id), .index = 0, .player = !owner.isEnemy()});
 		if (damage <= 3)
 			owner.takeDamage(target, 1, true, false, false);
@@ -171,14 +171,14 @@ namespace PokemonGen1
 	};
 	const char *quRecoilDesc = "Take a quarter of the damage dealt as recoil";
 
-	Move::HitCallback transformCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback transformCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger, bool) {
 		owner.transform(target);
 		logger(PkmnCommon::TextEvent{owner.getName() + " transformed into " + target.getSpeciesName() + "!"});
 		return true;
 	};
 	const char *transformDesc = "Transform the user into the foe, copying stats, types and sprite";
 
-	Move::HitCallback takeHalfMoveDamageCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger) {
+	Move::HitCallback takeHalfMoveDamageCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger, bool) {
 		logger(PkmnCommon::ExtraAnimEvent{.moveId = PokemonGen1::moveToCommon(id), .index = 0, .player = !owner.isEnemy()});
 		if (damage == 1)
 			owner.takeDamage(target, 1, true, false, false);
@@ -189,7 +189,7 @@ namespace PokemonGen1
 	};
 	const char *takeHalfMoveDamageDesc = "Take half dealt damage as recoil";
 
-	Move::HitCallback wrapTargetCb = [](unsigned, Pokemon &, Pokemon &target, unsigned, bool last, const BattleLogger &) {
+	Move::HitCallback wrapTargetCb = [](unsigned, Pokemon &, Pokemon &target, unsigned, bool last, const BattleLogger &, bool) {
 		if (!last)
 			target.setWrapped(true);
 		return true;
@@ -199,7 +199,7 @@ namespace PokemonGen1
 	Move::HitCallback confuseOnLastCb = nullptr;
 	const char *confuseOnLastDesc = "Confuse the user on last run";
 
-	Move::HitCallback deal20DamageCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback deal20DamageCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger, bool) {
 		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
 		target.takeDamage(owner, 20, false, false, true);
 		target.getBattleState().lastDamage = 20;
@@ -207,7 +207,7 @@ namespace PokemonGen1
 	};
 	const char *deal20DamageDesc = "Deal 20 damage";
 
-	Move::HitCallback deal40DamageCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback deal40DamageCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger, bool) {
 		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
 		target.takeDamage(owner, 40, false, false, true);
 		target.getBattleState().lastDamage = 40;
@@ -215,7 +215,7 @@ namespace PokemonGen1
 	};
 	const char *deal40DamageDesc = "Deal 40 damage";
 
-	Move::HitCallback dealLvlAsDmgCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback dealLvlAsDmgCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger, bool) {
 		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !target.isEnemy(), .hasEffect = true});
 		target.takeDamage(owner, owner.getLevel(), false, false, true);
 		target.getBattleState().lastDamage = owner.getLevel();
@@ -223,7 +223,7 @@ namespace PokemonGen1
 	};
 	const char *dealLvlAsDmgDesc = "Deal the user's level as raw damage";
 
-	Move::HitCallback deal1DamageTo1d5LevelDamageCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback deal1DamageTo1d5LevelDamageCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger, bool) {
 		unsigned char multipliedLevel = owner.getLevel() * 1.5;
 
 		if (!multipliedLevel)
@@ -264,7 +264,7 @@ namespace PokemonGen1
 	};
 	const char *deal1DamageTo1d5LevelDamageDesc = "Deal between 1 damage and 1.5 times the user's level as damage";
 
-	Move::HitCallback absorbHalfDmgCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger) {
+	Move::HitCallback absorbHalfDmgCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned damage, bool, const BattleLogger &logger, bool) {
 		if (damage == 1)
 			owner.heal(1);
 		else
@@ -274,14 +274,14 @@ namespace PokemonGen1
 	};
 	const char *absorbHalfDmgDesc = "Absorb half dealt damage";
 
-	Move::HitCallback healHalfHealthCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback healHalfHealthCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger, bool) {
 		owner.heal(owner.getMaxHealth() / 2);
 		logger(PkmnCommon::TextEvent{owner.getName() + " regained health!"});
 		return true;
 	};
 	const char *healHalfHealthDesc = "Heal half max HP";
 
-	Move::HitCallback healAllHealthAndSleepCb = [](unsigned id, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback healAllHealthAndSleepCb = [](unsigned id, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger, bool) {
 		owner.setNonVolatileStatus(STATUS_ASLEEP_FOR_2_TURN);
 		logger(PkmnCommon::TextEvent{owner.getName() + " started sleeping!"});
 		logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(id), .player = !owner.isEnemy(), .hideSubstitute = false});
@@ -298,7 +298,7 @@ namespace PokemonGen1
 	};
 	const char *healAllHealthAndSleepDesc = "Heal all lost HP and sleep for 2 turns";
 
-	Move::HitCallback cancelStatsChangeCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback cancelStatsChangeCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger, bool) {
 		owner.resetStatsChanges();
 		owner.setStatus(STATUS_NONE);
 		owner.setGlobalCritRatio(1);
@@ -318,14 +318,14 @@ namespace PokemonGen1
 	};
 	const char *cancelStatsChangeDesc = "Resets all stats, status, crit chance multiplier and special effects";
 
-	Move::HitCallback setUserCritRatioToQuCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback setUserCritRatioToQuCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger, bool) {
 		logger(PkmnCommon::TextEvent{owner.getName() + "'s getting pumped!"});
 		owner.setGlobalCritRatio(0.25);
 		return true;
 	};
 	const char *setUserCritRatioToQuDesc = "User has 4 times less chance to crit";
 
-	Move::HitCallback storeDmgCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned, bool last, const BattleLogger &logger) {
+	Move::HitCallback storeDmgCb = [](unsigned id, Pokemon &owner, Pokemon &target, unsigned, bool last, const BattleLogger &logger, bool) {
 		if (last) {
 			logger(PkmnCommon::TextEvent{owner.getName() + " unleashes energy!"});
 			logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(id), .player = !owner.isEnemy(), .hideSubstitute = true});
@@ -337,37 +337,37 @@ namespace PokemonGen1
 	};
 	const char *storeDmgDesc = "Store damage";
 
-	Move::HitCallback useRandomMoveCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &) {
+	Move::HitCallback useRandomMoveCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &, bool second) {
 		unsigned index;
 
 		do {
 			index = owner.getRandomGenerator()();
 		} while (!index || index >= Struggle || index == Metronome);
-		owner.useMove(availableMoves[index], target);
+		owner.useMove(availableMoves[index], target, second);
 		return true;
 	};
 	const char *useRandomMoveDesc = "Use a randomly chosen move";
 
-	Move::HitCallback useLastFoeMoveCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &) {
-		owner.useMove(availableMoves[target.getLastUsedMove().getID()], target);
+	Move::HitCallback useLastFoeMoveCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &, bool second) {
+		owner.useMove(availableMoves[target.getLastUsedMove().getID()], target, second);
 		return true;
 	};
 	const char *useLastFoeMoveDesc = "Use last foe's used move";
 
-	Move::HitCallback explodeCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &){
+	Move::HitCallback explodeCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &, bool){
 		owner.takeDamage(target, owner.getHealth(), true, false, false);
 		return true;
 	};
 	const char *explodeDesc = "Kill user";
 
-	Move::HitCallback conversionCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback conversionCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger, bool) {
 		logger(PkmnCommon::TextEvent{"Converted type to " + target.getName() + "'s!"});
 		owner.setTypes(target.getTypes());
 		return true;
 	};
 	const char *conversionDesc = "Copy foe's types";
 
-	Move::HitCallback dealHalfHPDmgCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger){
+	Move::HitCallback dealHalfHPDmgCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger, bool) {
 		target.getBattleState().lastDamage = target.getHealth() / 2;
 		logger(PkmnCommon::HitEvent{.veryEffective = false, .notVeryEffective = false, .player = !owner.isEnemy(), .hasEffect = true});
 		target.takeDamage(owner, target.getHealth() / 2, false, false, true); /* TODO: Check how it interacts with SUBSTITUTE */
@@ -375,13 +375,13 @@ namespace PokemonGen1
 	};
 	const char *dealHalfHPDmgDesc = "Deal half foe's HP";
 
-	Move::HitCallback nothingCb = [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback nothingCb = [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &logger, bool) {
 		logger(PkmnCommon::TextEvent{"No effect!"});
 		return true;
 	};
 	const char *nothingDesc = "No effect";
 
-	Move::HitCallback createSubCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback createSubCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &logger, bool) {
 		unsigned hp = owner.getMaxHealth() / 4;
 		owner.setSubstituteHealth(hp);
 		owner.takeDamage(target, hp, true, false, false);
@@ -390,21 +390,21 @@ namespace PokemonGen1
 	};
 	const char *createSubDesc = "Creates a substitute";
 
-	Move::HitCallback reflectCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback reflectCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger, bool) {
 		logger(PkmnCommon::TextEvent{owner.getName() + " gained armor!"});
 		owner.setReflectUp(true);
 		return true;
 	};
 	const char *reflectDesc = "Doubles active pokemon physical defense";
 
-	Move::HitCallback lightScreenCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback lightScreenCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger, bool) {
 		logger(PkmnCommon::TextEvent{owner.getName() + "'s protected against special attacks!"});
 		owner.setLightScreenUp(true);
 		return true;
 	};
 	const char *lightScreenDesc = "Doubles active pokemon special defense";
 
-	Move::HitCallback mistCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback mistCb = [](unsigned, Pokemon &owner, Pokemon &, unsigned, bool, const BattleLogger &logger, bool) {
 		logger(PkmnCommon::TextEvent{owner.getName() + "'s shrouded in mist!"});
 		owner.setMisted(true);
 		return true;
@@ -414,13 +414,13 @@ namespace PokemonGen1
 	Move::HitCallback counterCb = nullptr;
 	const char *counterDesc = "Deal double the last damage took if from normal or fighting move";
 
-	Move::HitCallback payDayCb = [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback payDayCb = [](unsigned, Pokemon &, Pokemon &, unsigned, bool, const BattleLogger &logger, bool) {
 		logger(PkmnCommon::TextEvent{"Coins scattered everywhere!"});
 		return true;
 	};
 	const char *payDayDesc = "Gain extra money at the end of the match";
 
-	Move::HitCallback copyRandomMoveCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &) {
+	Move::HitCallback copyRandomMoveCb = [](unsigned, Pokemon &owner, Pokemon &target, unsigned, bool, const BattleLogger &, bool) {
 		auto &moves = target.getMoveSet();
 		auto &rng = target.getRandomGenerator();
 		size_t id = rng() & 3;
@@ -431,7 +431,7 @@ namespace PokemonGen1
 	};
 	const char *copyRandomMoveDesc = "Copy a random move from the foe";
 
-	Move::HitCallback disableCb = [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &logger) {
+	Move::HitCallback disableCb = [](unsigned, Pokemon &, Pokemon &target, unsigned, bool, const BattleLogger &logger, bool) {
 		auto &moveSet = target.getMoveSet();
 		auto &rng = target.getRandomGenerator();
 		const Move *move = nullptr;
@@ -736,7 +736,7 @@ namespace PokemonGen1
 		this->_nbHit = 1;
 	}
 
-	bool Move::attack(Pokemon &owner, Pokemon &target, const BattleLogger &logger)
+	bool Move::attack(Pokemon &owner, Pokemon &target, const BattleLogger &logger, bool second)
 	{
 		std::string msg;
 		unsigned hits;
@@ -855,7 +855,7 @@ namespace PokemonGen1
 		) {
 			if (this->_category != STATUS) {
 				// First is crit check, unless it's a OHKO move
-				if (this->_power != 255)
+				if (!second || this->_power != 255)
 					rng();
 				// Second is accuracy check
 				accuracyByte = target.getEvasion(owner.getAccuracy(this->_accuracy));
@@ -866,7 +866,7 @@ namespace PokemonGen1
 					!this->_skipAccuracyCheck
 				) || (
 					this->_canHitCallback &&
-					!this->_canHitCallback(this->getID(), owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger)
+					!this->_canHitCallback(this->getID(), owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger, second)
 				) || (
 					!this->_skipAccuracyCheck &&
 					rng() >= accuracyByte
@@ -935,7 +935,7 @@ namespace PokemonGen1
 			!this->_skipAccuracyCheck
 		) || (
 			this->_canHitCallback &&
-			!this->_canHitCallback(this->getID(), owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger)
+			!this->_canHitCallback(this->getID(), owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger, second)
 		) || (
 			!this->_skipAccuracyCheck &&
 			rng() >= accuracyByte
@@ -1058,7 +1058,7 @@ namespace PokemonGen1
 
 		if (!target.getHealth() || sub != target.hasSubstitute()) {
 			if (this->_hitCallback)
-				return this->_hitCallback(this->getID(), owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger);
+				return this->_hitCallback(this->getID(), owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger, second);
 			return true;
 		}
 		owner.setRecharging(this->_needRecharge);
@@ -1131,7 +1131,7 @@ namespace PokemonGen1
 		}
 
 		if (this->_hitCallback)
-			return this->_hitCallback(this->getID(), owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger);
+			return this->_hitCallback(this->getID(), owner, target, owner.getBattleState().lastDamage, this->isFinished(), logger, second);
 		return true;
 	}
 

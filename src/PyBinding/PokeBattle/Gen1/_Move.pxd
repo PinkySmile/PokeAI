@@ -94,7 +94,7 @@ cdef extern from "<GameEngine/Gen1/Move.hpp>" namespace "PokemonGen1":
 		void setHitsLeft(unsigned char nb)
 		void reset()
 
-		bool attack(Pokemon &owner, Pokemon &target, const function[void (const Event &)] &logger)
+		bool attack(Pokemon &owner, Pokemon &target, const function[void (const Event &)] &logger, bool second)
 
 	extern const ArrayMoves availableMoves
 

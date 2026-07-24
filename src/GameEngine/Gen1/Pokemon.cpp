@@ -569,7 +569,7 @@ namespace PokemonGen1
 		return (move ? move->getPriority() : 0) * 262140 + static_cast<int>(this->getSpeed());
 	}
 
-	bool Pokemon::useMove(const Move &move, Pokemon &target)
+	bool Pokemon::useMove(const Move &move, Pokemon &target, bool second)
 	{
 		bool moveStarted = false;
 		auto thrashOrPetalDance = this->_lastUsedMove.getID() == Thrash || this->_lastUsedMove.getID() == Petal_Dance || this->_lastUsedMove.getID() == Rage;
@@ -578,7 +578,7 @@ namespace PokemonGen1
 			this->_lastUsedMove = move;
 			moveStarted = true;
 		}
-		if (!this->_lastUsedMove.attack(*this, target, this->_battleState->battleLogger) && !thrashOrPetalDance)
+		if (!this->_lastUsedMove.attack(*this, target, this->_battleState->battleLogger, second) && !thrashOrPetalDance)
 			return true;
 		if (this->_lastUsedMove.needsLoading())
 			return this->_lastUsedMove.isFinished();
@@ -653,7 +653,7 @@ namespace PokemonGen1
 		this->_hasSub = true;
 	}
 
-	void Pokemon::attack(unsigned char moveSlot, Pokemon &target)
+	void Pokemon::attack(unsigned char moveSlot, Pokemon &target, bool second)
 	{
 		Move *move;
 		const auto &logger = this->_battleState->battleLogger;
@@ -754,11 +754,11 @@ namespace PokemonGen1
 		// Check if using rage
 		if (moveSlot == 0xE) {
 			logger(PkmnCommon::TextEvent{this->getName() + " has no moves left!"});
-			this->useMove(availableMoves[Struggle], target);
+			this->useMove(availableMoves[Struggle], target, second);
 		} else if (moveSlot < this->_moveSet.size() && this->_moveSet[moveSlot].getID()) {
 			this->_forcedAttack = moveSlot + 1;
 			move = &this->_moveSet[moveSlot];
-			if (this->useMove(*move, target) && move->getID() != Struggle && !move->wasReplaced)
+			if (this->useMove(*move, target, second) && move->getID() != Struggle && !move->wasReplaced)
 				move->setPP(move->getPP() ? move->getPP() - 1 : 63);
 		}
 		for (auto &m : this->_moveSet)
@@ -860,8 +860,8 @@ namespace PokemonGen1
 	{
 		std::string statName;
 		auto stats = reinterpret_cast<char *>(&this->_upgradedStats);
-		auto bStats = reinterpret_cast<unsigned short *>(&this->_baseStats.ATK);
-		auto cStats = reinterpret_cast<unsigned short *>(&this->_computedStats.ATK);
+		unsigned short *bStats = &this->_baseStats.ATK;
+		unsigned short *cStats = &this->_computedStats.ATK;
 
 		if (!nb)
 			return false;

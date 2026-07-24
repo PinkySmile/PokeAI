@@ -45,7 +45,7 @@ namespace PokemonGen1
 			unsigned char cmpVal;
 		};
 
-		typedef std::function<bool (unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun, const BattleLogger &logger)> HitCallback;
+		typedef std::function<bool (unsigned id, Pokemon &owner, Pokemon &target, unsigned damage, bool lastRun, const BattleLogger &logger, bool second)> HitCallback;
 		typedef std::function<bool (unsigned id, Pokemon &owner, Pokemon &target,                  bool lastRun, const BattleLogger &logger)> MissCallback;
 
 	private:
@@ -145,7 +145,7 @@ namespace PokemonGen1
 		void setHitsLeft(unsigned char nb);
 		void reset();
 
-		bool attack(Pokemon &owner, Pokemon &target, const BattleLogger &logger);
+		bool attack(Pokemon &owner, Pokemon &target, const BattleLogger &logger, bool second);
 	};
 
 	extern const std::array<Move, 256> availableMoves;

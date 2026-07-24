@@ -375,7 +375,7 @@ cdef class Move:
 			raise TypeError("Instance is read only")
 		self.__instance.reset()
 
-	def attack(self, PyPokemon owner, PyPokemon target, logger):
+	def attack(self, PyPokemon owner, PyPokemon target, logger, bool second):
 		if self.__instance == NULL:
 			raise TypeError("Instance is read only")
-		self.__instance.attack(dereference(owner.__instance), dereference(target.__instance), pythonLoggerLambda(<void *>logger, &evalLogger))
+		self.__instance.attack(dereference(owner.__instance), dereference(target.__instance), pythonLoggerLambda(<void *>logger, &evalLogger), second)
