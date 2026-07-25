@@ -1079,16 +1079,22 @@ namespace PokemonGen1
 			this->_statusChange.status == STATUS_ASLEEP ||
 			this->_statusChange.status == STATUS_LEECHED ||
 			this->_statusChange.status == STATUS_PARALYZED
-		)))
-			if (this->_statusChange.status != STATUS_NONE && (
-				this->_statusChange.cmpVal == 0 || (
-					(this->_statusChange.status == STATUS_FLINCHED || (
-						target.getTypes().first != this->_type &&
-						target.getTypes().second != this->_type &&
-						target.canHaveStatus(this->_statusChange.status)
-					)) && rng() < this->_statusChange.cmpVal
-				)
-			)) {
+		))) {
+			if (this->_statusChange.status == STATUS_NONE)
+				goto dontApplyStatus;
+			if (this->_statusChange.cmpVal == 0)
+				goto applyStatus;
+			if (this->_statusChange.status != STATUS_FLINCHED) {
+				if (!target.canHaveStatus(this->_statusChange.status))
+					goto dontApplyStatus;
+
+				const auto &types = target.getTypes();
+
+				if ((types.first == this->_type || types.second == this->_type) && this->getID() != Twineedle)
+					goto dontApplyStatus;
+			}
+			if (rng() < this->_statusChange.cmpVal) {
+			applyStatus:
 				unsigned anim = -1;
 
 				if (this->_statusChange.status == STATUS_FROZEN)
@@ -1114,7 +1120,9 @@ namespace PokemonGen1
 					});
 				target.addStatus(this->_statusChange.status);
 			}
+		}
 
+	dontApplyStatus:
 		if (!sub)
 			for (const auto &val: this->_foeChange)
 				if (!val.cmpVal || rng() < val.cmpVal)
