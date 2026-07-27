@@ -848,6 +848,8 @@ namespace PokemonGen1
 			logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 			return false;
 		}
+		if (this->isFinished() && (this->getID() == Petal_Dance || this->getID() == Thrash))
+			owner.addStatusSilent(STATUS_CONFUSED);
 		if (
 			(this->_category != STATUS || this->_type == TYPE_ELECTRIC) &&
 			getAttackDamageMultiplier(this->_type, target.getTypes()) == 0 &&
@@ -861,7 +863,7 @@ namespace PokemonGen1
 				accuracyByte = target.getEvasion(owner.getAccuracy(this->_accuracy));
 				if (accuracyByte > 0xFF)
 					accuracyByte = 0xFF;
-				if ((
+				if (((
 					!target.canGetHit() &&
 					!this->_skipAccuracyCheck
 				) || (
@@ -870,10 +872,12 @@ namespace PokemonGen1
 				) || (
 					!this->_skipAccuracyCheck &&
 					rng() >= accuracyByte
-				))
+				)) && this->getID() != Thrash)
 					this->_nbHit = 0;
 				else if (this->_hitCallBackDescription == wrapTargetDesc)
 					target.setWrapped(true);
+				if (this->getID() == Rage && first)
+					this->_nbHit = 0;
 			}
 			logger(PkmnCommon::TextEvent{"It didn't affect " + target.getName() + "!"});
 			if (this->_missCallback)
@@ -883,8 +887,6 @@ namespace PokemonGen1
 			return false;
 		}
 
-		if (this->isFinished() && (this->getID() == Petal_Dance || this->getID() == Thrash))
-			owner.addStatusSilent(STATUS_CONFUSED);
 		if (this->_power == 255) {
 			rng(); // Crit-check, but result doesn't matter
 			if (owner.getSpeed() < target.getSpeed()) {
@@ -892,7 +894,16 @@ namespace PokemonGen1
 				logger(PkmnCommon::MoveMissEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy()});
 				return false;
 			}
-			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, false, true, false, false);
+			damage = owner.calcDamage(
+				target,
+				this->_power,
+				this->_type,
+				this->_category,
+				false,
+				true,
+				false,
+				false
+			);
 			damage.affect = true;
 			damage.critical = false;
 			damage.isVeryEffective = false;
@@ -905,7 +916,16 @@ namespace PokemonGen1
 			unsigned char spd = std::min<unsigned int>(tmp * owner.getGlobalCritRatio(), 255);
 
 			r = (r << 3U) | (r >> 5U);
-			damage = owner.calcDamage(target, this->_power, this->_type, this->_category, (r < spd), true, this->getID() == Explosion || this->getID() == Self_Destruct, false);
+			damage = owner.calcDamage(
+				target,
+				this->_power,
+				this->_type,
+				this->_category,
+				r < spd,
+				true,
+				this->getID() == Explosion || this->getID() == Self_Destruct,
+				false
+			);
 			owner.getBattleState().lastDamage = damage.damage;
 		} else if (this->getID() == Metronome)
 			owner.getBattleState().lastDamage = 0;
@@ -949,7 +969,8 @@ namespace PokemonGen1
 			else if (this->getID() == Leech_Seed)
 				// https://github.com/pret/pokeyellow/blob/d237b01cfb241f417567c964e0df0658cf921570/data/text/text_5.asm#L191
 				logger(PkmnCommon::TextEvent{target.getName() + " evaded attack!"});
-			else if (this->getID() == Substitute);
+			else if (this->getID() == Substitute)
+				;
 			else if (!this->_power)
 				logger(PkmnCommon::TextEvent{"But, it failed!"});
 			owner.getBattleState().lastDamage = 0;
@@ -981,7 +1002,8 @@ namespace PokemonGen1
 		}
 
 	skipAccuracyAndDamageCheck:
-		if (this->getID() == Rest || this->getID() == Mirror_Move);
+		if (this->getID() == Rest || this->getID() == Mirror_Move)
+			;
 		else if (this->getID() == Thrash || this->getID() == Petal_Dance) {
 			if (first)
 				logger(PkmnCommon::MoveEvent{.moveId = PokemonGen1::moveToCommon(this->getID()), .player = !owner.isEnemy(), .hideSubstitute = true});
